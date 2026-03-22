@@ -1,0 +1,3 @@
+Name,SerialNumber,AssetType,Status,SiteId,Location,Floor,Room,Brand,Model,ManufacturingDate
+Lobby Extinguisher,TEST-EXT-001,FireExtinguisher,Active,1,Main Entrance,1st Floor,Entrance Way,Amerex,ABC-Pro,2023-01-15T00:00:00Z
+Server Room Smoke Detector,TEST-SMK-002,SmokeDetector,Active,1,IT Server Room,2nd Floor,Room 205,SystemSensor,i3-Series,2024-05-20T00:00:00Z

@@ -1,0 +1,19 @@
+# .NET Core
+bin/
+obj/
+.vs/
+*.user
+*.suo
+appsettings.Development.json
+
+# Node.js
+node_modules/
+dist/
+build/
+.env
+.env.local
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
