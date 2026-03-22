@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Roadmap — FiretechERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{ --bg:#050914; --surface:#0d1526; --border:rgba(255,255,255,0.07); --primary:#4f8ef7; --accent:#a78bfa; --text:#f0f4ff; --muted:#8b98b8; --success:#34d399; --warning:#fbbf24; }
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 2rem;background:rgba(5,9,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+.container{max-width:800px;margin:140px auto 100px;padding:0 2rem;}
+h1{font-size:2.5rem;font-weight:800;margin-bottom:.5rem;}
+.subtitle{color:var(--muted);margin-bottom:3rem;}
+.phase{margin-bottom:2.5rem;}
+.phase-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;}
+.phase-title{font-size:1.2rem;font-weight:700;}
+.phase-badge{font-size:.7rem;padding:.3rem .8rem;border-radius:999px;font-weight:700;}
+.badge-done{background:rgba(52,211,153,0.15);color:var(--success);border:1px solid rgba(52,211,153,0.3);}
+.badge-progress{background:rgba(251,191,36,0.15);color:var(--warning);border:1px solid rgba(251,191,36,0.3);}
+.badge-planned{background:rgba(79,142,247,0.1);color:var(--primary);border:1px solid rgba(79,142,247,0.2);}
+.item-list{display:flex;flex-direction:column;gap:.75rem;}
+.item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;}
+.item-icon{font-size:1rem;flex-shrink:0;}
+.item-text{font-size:.9rem;color:var(--muted);}
+.item.done{border-color:rgba(52,211,153,0.2);}
+.item.done .item-text{text-decoration:line-through;opacity:.6;}
+a{color:var(--primary);text-decoration:none;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/landing" class="nav-logo">⚡ FiretechERP</a>
+</nav>
+<div class="container">
+  <h1>Product Roadmap</h1>
+  <p class="subtitle">Where we've been, where we are, and where we're going.</p>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-title">Q1 2026 — Core Platform</span>
+      <span class="phase-badge badge-done">✓ Shipped</span>
+    </div>
+    <div class="item-list">
+      <div class="item done"><span class="item-icon">✅</span><span class="item-text">Multi-tenant SaaS architecture</span></div>
+      <div class="item done"><span class="item-icon">✅</span><span class="item-text">CRM, Work Orders, Inventory, Invoicing</span></div>
+      <div class="item done"><span class="item-icon">✅</span><span class="item-text">HR & Payroll module</span></div>
+      <div class="item done"><span class="item-icon">✅</span><span class="item-text">Stripe subscription billing</span></div>
+      <div class="item done"><span class="item-icon">✅</span><span class="item-text">Offline-first mobile sync</span></div>
+      <div class="item done"><span class="item-icon">✅</span><span class="item-text">Full mobile responsiveness</span></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-title">Q2 2026 — Intelligence & Integrations</span>
+      <span class="phase-badge badge-progress">🔨 In Progress</span>
+    </div>
+    <div class="item-list">
+      <div class="item"><span class="item-icon">🔄</span><span class="item-text">QuickBooks & Xero accounting integration</span></div>
+      <div class="item"><span class="item-icon">🔄</span><span class="item-text">WhatsApp notifications for field technicians</span></div>
+      <div class="item"><span class="item-icon">🔄</span><span class="item-text">AI-powered work order auto-assignment</span></div>
+      <div class="item"><span class="item-icon">🔄</span><span class="item-text">Native mobile apps (iOS & Android)</span></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-title">Q3–Q4 2026 — Scale & Enterprise</span>
+      <span class="phase-badge badge-planned">📋 Planned</span>
+    </div>
+    <div class="item-list">
+      <div class="item"><span class="item-icon">📍</span><span class="item-text">GPS real-time technician tracking on map</span></div>
+      <div class="item"><span class="item-icon">📍</span><span class="item-text">Drag-and-drop dispatch scheduler</span></div>
+      <div class="item"><span class="item-icon">📍</span><span class="item-text">Custom report builder with PDF export</span></div>
+      <div class="item"><span class="item-icon">📍</span><span class="item-text">SSO / SAML enterprise login</span></div>
+      <div class="item"><span class="item-icon">📍</span><span class="item-text">Public REST API for third-party integrations</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

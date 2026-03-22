@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Changelog — FiretechERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{ --bg:#050914; --surface:#0d1526; --border:rgba(255,255,255,0.07); --primary:#4f8ef7; --accent:#a78bfa; --text:#f0f4ff; --muted:#8b98b8; --success:#34d399; }
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 2rem;background:rgba(5,9,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+.container{max-width:800px;margin:140px auto 100px;padding:0 2rem;}
+h1{font-size:2.5rem;font-weight:800;margin-bottom:.5rem;}
+.subtitle{color:var(--muted);margin-bottom:3rem;}
+.release{border-left:2px solid var(--border);padding-left:2rem;margin-bottom:3rem;position:relative;}
+.release::before{content:'';position:absolute;left:-5px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--primary);}
+.release-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;}
+.version{font-size:1.2rem;font-weight:800;color:var(--text);}
+.version-badge{font-size:.7rem;padding:.2rem .7rem;border-radius:999px;font-weight:700;background:rgba(79,142,247,0.15);color:var(--primary);border:1px solid rgba(79,142,247,0.3);}
+.version-badge.major{background:rgba(167,139,250,0.15);color:var(--accent);border-color:rgba(167,139,250,0.3);}
+.release-date{font-size:.85rem;color:var(--muted);}
+.change-list{list-style:none;display:flex;flex-direction:column;gap:.6rem;}
+.change-list li{font-size:.9rem;color:var(--muted);display:flex;gap:.6rem;}
+.change-list li::before{content:'→';color:var(--primary);flex-shrink:0;}
+a{color:var(--primary);text-decoration:none;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/landing" class="nav-logo">⚡ FiretechERP</a>
+</nav>
+<div class="container">
+  <h1>Changelog</h1>
+  <p class="subtitle">Every update, improvement, and fix — documented.</p>
+
+  <div class="release">
+    <div class="release-header">
+      <span class="version">v2.0.0</span>
+      <span class="version-badge major">Major Release</span>
+      <span class="release-date">March 2026</span>
+    </div>
+    <ul class="change-list">
+      <li>Full mobile responsiveness across all modules and landing page</li>
+      <li>Hamburger navigation menu on mobile with animated drawer</li>
+      <li>Stripe live payment integration for subscription billing</li>
+      <li>Azure Blob Storage for evidence file uploads</li>
+      <li>Multi-tenant login flow for accounts with multiple organizations</li>
+      <li>Offline-first sync support with conflict resolution</li>
+      <li>Checklist Form Builder with digital signature capture</li>
+      <li>Advanced analytics dashboard with revenue and pipeline charts</li>
+      <li>PDF invoice generation with correct line item totals</li>
+      <li>Customer self-service portal for invoices and job history</li>
+    </ul>
+  </div>
+
+  <div class="release">
+    <div class="release-header">
+      <span class="version">v1.5.0</span>
+      <span class="version-badge">Feature Update</span>
+      <span class="release-date">February 2026</span>
+    </div>
+    <ul class="change-list">
+      <li>HR & Payroll module with attendance and pay slip generation</li>
+      <li>Audit logs with full change history and user tracking</li>
+      <li>Procurement module with purchase orders and GRN workflow</li>
+      <li>Email notifications for quotations and work order assignments</li>
+      <li>Contract & AMC management with auto work order generation</li>
+    </ul>
+  </div>
+
+  <div class="release">
+    <div class="release-header">
+      <span class="version">v1.0.0</span>
+      <span class="version-badge">Initial Release</span>
+      <span class="release-date">January 2026</span>
+    </div>
+    <ul class="change-list">
+      <li>Core ERP: CRM, Work Orders, Inventory, Invoicing</li>
+      <li>Role-based access control with 5 user roles</li>
+      <li>Multi-tenant architecture with full data isolation</li>
+      <li>JWT authentication and secure API layer</li>
+      <li>Azure cloud deployment with CI/CD pipeline</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

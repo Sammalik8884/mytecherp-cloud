@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blog — FiretechERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{ --bg:#050914; --surface:#0d1526; --border:rgba(255,255,255,0.07); --primary:#4f8ef7; --accent:#a78bfa; --text:#f0f4ff; --muted:#8b98b8; }
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 2rem;background:rgba(5,9,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+.container{max-width:800px;margin:140px auto 100px;padding:0 2rem;}
+h1{font-size:2.5rem;font-weight:800;margin-bottom:.5rem;}
+.subtitle{color:var(--muted);margin-bottom:3rem;}
+.post-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.8rem;margin-bottom:1.5rem;transition:border-color .2s;}
+.post-card:hover{border-color:rgba(79,142,247,0.4);}
+.post-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin-bottom:.75rem;display:block;}
+.post-card h2{font-size:1.2rem;font-weight:700;margin-bottom:.5rem;color:#fff;}
+.post-card p{font-size:.875rem;color:var(--muted);margin-bottom:1rem;}
+.post-meta{font-size:.78rem;color:var(--muted);}
+a{color:var(--primary);text-decoration:none;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/landing" class="nav-logo">⚡ FiretechERP</a>
+</nav>
+<div class="container">
+  <h1>Blog</h1>
+  <p class="subtitle">Insights on field service management, operations, and building great software.</p>
+
+  <div class="post-card">
+    <span class="post-tag">🚀 Product</span>
+    <h2>FiretechERP v2.0: Full Mobile Responsiveness is Here</h2>
+    <p>We've completely rearchitected the frontend to work beautifully on any screen size — from the dispatch desk to the field technician's phone. Here's what changed and why.</p>
+    <span class="post-meta">March 2026 · 5 min read</span>
+  </div>
+
+  <div class="post-card">
+    <span class="post-tag">💡 Operations</span>
+    <h2>How to Cut Invoice Processing Time by 68% with Automation</h2>
+    <p>Manual invoicing is killing your cash flow. Here's a practical guide to automating your billing cycle — from quote to paid invoice — without changing your team's workflow.</p>
+    <span class="post-meta">February 2026 · 8 min read</span>
+  </div>
+
+  <div class="post-card">
+    <span class="post-tag">🔧 Field Service</span>
+    <h2>Offline-First: Why Your Field Software Must Work Without Signal</h2>
+    <p>Connectivity is a lie in the field. We explain why offline-first isn't a nice-to-have — it's a requirement — and how FiretechERP handles it with zero data loss.</p>
+    <span class="post-meta">January 2026 · 6 min read</span>
+  </div>
+
+  <div class="post-card">
+    <span class="post-tag">🏗️ Engineering</span>
+    <h2>Building a Multi-Tenant SaaS on Azure: Lessons Learned</h2>
+    <p>From tenant isolation patterns, JWT auth, and Azure Key Vault secrets management — here's the architecture behind FiretechERP and what we'd do differently.</p>
+    <span class="post-meta">January 2026 · 12 min read</span>
+  </div>
+</div>
+</body>
+</html>

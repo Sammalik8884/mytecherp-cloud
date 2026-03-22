@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Security — FiretechERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{ --bg:#050914; --surface:#0d1526; --border:rgba(255,255,255,0.07); --primary:#4f8ef7; --text:#f0f4ff; --muted:#8b98b8; --success:#34d399; }
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 2rem;background:rgba(5,9,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+.container{max-width:800px;margin:140px auto 100px;padding:0 2rem;}
+h1{font-size:2.5rem;font-weight:800;margin-bottom:1rem;}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:var(--success);padding:.35rem 1rem;border-radius:999px;font-size:.8rem;font-weight:600;margin-bottom:2rem;}
+.last-updated{color:var(--muted);font-size:.9rem;margin-bottom:3rem;display:block;}
+h2{font-size:1.4rem;font-weight:700;margin:2.5rem 0 1rem;color:#fff;}
+.security-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;}
+.security-card h3{font-size:1rem;font-weight:700;margin-bottom:.5rem;color:var(--primary);}
+p,li{color:var(--muted);margin-bottom:.75rem;}
+ul{margin-left:1.5rem;margin-bottom:1rem;}
+a{color:var(--primary);text-decoration:none;}
+a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/landing" class="nav-logo">⚡ FiretechERP</a>
+</nav>
+<div class="container">
+  <div class="badge">🔒 Enterprise Security</div>
+  <h1>Security at FiretechERP</h1>
+  <span class="last-updated">Last Updated: March 2026</span>
+
+  <p>Security is not an afterthought at FiretechERP — it's built into every layer of our platform. Here's how we keep your business data safe.</p>
+
+  <div class="security-card">
+    <h3>🔐 Authentication & Access Control</h3>
+    <ul>
+      <li>JWT-based stateless authentication with short-lived tokens</li>
+      <li>Role-based access control (Admin, Manager, Engineer, Technician, Customer)</li>
+      <li>Multi-tenant data isolation — one tenant can never access another's data</li>
+      <li>Password hashing using industry-standard bcrypt</li>
+    </ul>
+  </div>
+
+  <div class="security-card">
+    <h3>🔑 Secrets & Key Management</h3>
+    <ul>
+      <li>All secrets managed via <strong>Azure Key Vault</strong> — never stored in code or config files</li>
+      <li>Digital signature keys for quotations are rotated and stored securely</li>
+      <li>Payment processing handled exclusively by Stripe (PCI-DSS compliant)</li>
+    </ul>
+  </div>
+
+  <div class="security-card">
+    <h3>🌐 Transport Security</h3>
+    <ul>
+      <li>HTTPS enforced across all endpoints — no plain HTTP connections</li>
+      <li>TLS 1.2+ required for all API communications</li>
+      <li>Azure-managed SSL certificates with automatic renewal</li>
+    </ul>
+  </div>
+
+  <div class="security-card">
+    <h3>📋 Audit & Compliance</h3>
+    <ul>
+      <li>Immutable audit logs on every data-changing action — who, what, and when</li>
+      <li>Full traceability from quote creation to invoice payment</li>
+      <li>Azure SQL with automated backups and point-in-time restore</li>
+    </ul>
+  </div>
+
+  <h2>Report a Vulnerability</h2>
+  <p>If you discover a security vulnerability, please report it responsibly to <a href="mailto:mytechfms@gmail.com">mytechfms@gmail.com</a>. We take all reports seriously and will respond within 48 hours.</p>
+</div>
+</body>
+</html>

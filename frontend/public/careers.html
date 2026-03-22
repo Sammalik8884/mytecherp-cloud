@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Careers — FiretechERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{ --bg:#050914; --surface:#0d1526; --border:rgba(255,255,255,0.07); --primary:#4f8ef7; --accent:#a78bfa; --text:#f0f4ff; --muted:#8b98b8; }
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 2rem;background:rgba(5,9,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+.container{max-width:800px;margin:140px auto 100px;padding:0 2rem;}
+h1{font-size:2.5rem;font-weight:800;margin-bottom:1rem;}
+h2{font-size:1.4rem;font-weight:700;margin:2.5rem 0 1rem;color:#fff;}
+p,li{color:var(--muted);margin-bottom:1rem;}
+.empty-state{text-align:center;padding:4rem 2rem;background:var(--surface);border:1px solid var(--border);border-radius:16px;margin:2rem 0;}
+.empty-state .icon{font-size:3rem;margin-bottom:1rem;}
+.empty-state h3{font-size:1.5rem;font-weight:700;margin-bottom:.75rem;color:#fff;}
+.perks{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem;}
+.perk{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;}
+.perk .icon{font-size:1.3rem;margin-bottom:.5rem;}
+.perk h3{font-size:.9rem;font-weight:700;margin-bottom:.3rem;color:#fff;}
+.perk p{font-size:.82rem;margin:0;}
+a{color:var(--primary);text-decoration:none;}
+.cta-btn{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:.75rem 2rem;border-radius:10px;font-weight:600;text-decoration:none;margin-top:1rem;}
+@media(max-width:600px){.perks{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/landing" class="nav-logo">⚡ FiretechERP</a>
+</nav>
+<div class="container">
+  <h1>Careers at FiretechERP</h1>
+  <p>We're building the future of field service management. Come build it with us.</p>
+
+  <div class="empty-state">
+    <div class="icon">🚀</div>
+    <h3>No Open Positions Right Now</h3>
+    <p>We're a small, focused team — but we're growing. Send us your CV and tell us how you'd contribute.</p>
+    <a href="mailto:mytechfms@gmail.com?subject=Career Opportunity" class="cta-btn">Send Your CV →</a>
+  </div>
+
+  <h2>Why FiretechERP?</h2>
+  <div class="perks">
+    <div class="perk"><div class="icon">🌍</div><h3>Remote First</h3><p>Work from anywhere. We believe great work happens everywhere.</p></div>
+    <div class="perk"><div class="icon">🏗️</div><h3>Greenfield Problems</h3><p>No legacy code nightmares. You help shape the architecture.</p></div>
+    <div class="perk"><div class="icon">📈</div><h3>Equity & Growth</h3><p>Early team members share in our success as we scale.</p></div>
+    <div class="perk"><div class="icon">⚡</div><h3>Move Fast</h3><p>Ship weekly, learn constantly, iterate rapidly.</p></div>
+  </div>
+</div>
+</body>
+</html>

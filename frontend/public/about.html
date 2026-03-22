@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>About Us — FiretechERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{ --bg:#050914; --surface:#0d1526; --border:rgba(255,255,255,0.07); --primary:#4f8ef7; --accent:#a78bfa; --text:#f0f4ff; --muted:#8b98b8; }
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 2rem;background:rgba(5,9,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+.container{max-width:800px;margin:140px auto 100px;padding:0 2rem;}
+h1{font-size:2.5rem;font-weight:800;margin-bottom:1.5rem;}
+h2{font-size:1.4rem;font-weight:700;margin:2.5rem 0 1rem;color:#fff;}
+p,li{color:var(--muted);margin-bottom:1rem;}
+.mission{background:linear-gradient(135deg,rgba(79,142,247,0.1),rgba(167,139,250,0.1));border:1px solid rgba(79,142,247,0.2);border-radius:16px;padding:2rem;margin:2rem 0;}
+.mission p{color:var(--text);font-size:1.1rem;font-style:italic;margin:0;}
+.values-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem;}
+.value-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.2rem;}
+.value-card h3{font-size:.95rem;font-weight:700;margin-bottom:.4rem;color:var(--primary);}
+.value-card p{font-size:.85rem;margin:0;}
+a{color:var(--primary);text-decoration:none;}
+@media(max-width:600px){.values-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/landing" class="nav-logo">⚡ FiretechERP</a>
+</nav>
+<div class="container">
+  <h1>About FiretechERP</h1>
+
+  <div class="mission">
+    <p>"We built FiretechERP because we couldn't find a field service ERP that was actually great to use. So we built one ourselves."</p>
+  </div>
+
+  <h2>Our Story</h2>
+  <p>FiretechERP was founded by a team with deep roots in field service operations. We watched companies manage critical operations through messy spreadsheets, disconnected tools, and outdated desktop software — and we knew there had to be a better way.</p>
+  <p>We set out to build a modern, cloud-native ERP that was powerful enough for enterprise teams but approachable enough for small companies growing fast. The result is FiretechERP — an all-in-one platform that connects customers, work orders, inventory, invoicing, and your entire field workforce.</p>
+
+  <h2>Our Mission</h2>
+  <p>To give field service companies the operational clarity and tools they need to deliver exceptional service, scale confidently, and get paid faster — all from one unified platform.</p>
+
+  <h2>Our Values</h2>
+  <div class="values-grid">
+    <div class="value-card"><h3>🎯 Customer First</h3><p>Every feature we build starts with a real customer problem.</p></div>
+    <div class="value-card"><h3>⚡ Speed Matters</h3><p>Fast software, fast support, fast decisions. We don't make you wait.</p></div>
+    <div class="value-card"><h3>🔒 Trust by Default</h3><p>Security and data privacy are built-in, not bolted on.</p></div>
+    <div class="value-card"><h3>🌍 Built for Growth</h3><p>From 1-person shops to 100-person operations — we scale with you.</p></div>
+  </div>
+
+  <h2>Get in Touch</h2>
+  <p>We'd love to hear from you. Reach us at <a href="mailto:mytechfms@gmail.com">mytechfms@gmail.com</a> or <a href="/landing#pricing">start a free trial</a> today.</p>
+</div>
+</body>
+</html>
