@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, CalendarClock, Clock, CheckCircle2, Loader2, Navigation, UploadCloud, ClipboardCheck, Satellite } from "lucide-react";
+import { ConfirmModal } from "../components/common/ConfirmModal";
 import { workOrderService } from "../services/workOrderService";
+
+const extractApiError = (error: any, fallback: string) => {
+    if (!error || !error.response || !error.response.data) {
+        return error?.message || fallback;
+    }
+    const d = error.response.data;
+    if (typeof d === 'string') return d;
+    return d.error || d.Error || d.message || d.Message || d.detail || d.title || fallback;
+};
 import { timeTrackingService } from "../services/timeTrackingService";
 import { WorkOrderDto, ChecklistResultDto, UpdateChecklistDto } from "../types/field";
 import { toast } from "react-hot-toast";
@@ -29,6 +39,21 @@ export const JobExecutionPage = () => {
     // Completion Form State
     const [notes, setNotes] = useState("");
     const [result, setResult] = useState(1); // 1=Pass
+
+    // Modal State
+    const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, title: string, message: string, type: 'info' | 'warning' | 'danger', onConfirm: () => void}>({
+        isOpen: false, title: '', message: '', type: 'info', onConfirm: () => {}
+    });
+
+    const confirmAction = (title: string, message: string, type: 'info' | 'warning' | 'danger', action: () => Promise<void>) => {
+        setConfirmModal({
+            isOpen: true, title, message, type,
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                await action();
+            }
+        });
+    };
 
     const fetchJob = async () => {
         try {
@@ -113,42 +138,45 @@ export const JobExecutionPage = () => {
 
     const handleComplete = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!window.confirm("Are you sure you want to complete this job? You cannot edit it afterwards.")) return;
+        confirmAction(
+            "Complete Job",
+            "Are you sure you want to complete this job? You cannot edit it afterwards.",
+            "warning",
+            async () => {
+                setActionLoading(true);
+                try {
+                    // 1. Submit Checklist if there are any
+                    if (checklists.length > 0) {
+                        const answers: UpdateChecklistDto[] = checklists.map(c => ({
+                            resultId: c.id,
+                            selectedValue: checklistAnswers[c.id] || "",
+                            comments: null
+                        }));
+                        await workOrderService.submitChecklist(Number(id), answers);
+                    }
 
-        setActionLoading(true);
-        try {
-            // 1. Submit Checklist if there are any
-            if (checklists.length > 0) {
-                const answers: UpdateChecklistDto[] = checklists.map(c => ({
-                    resultId: c.id,
-                    selectedValue: checklistAnswers[c.id] || "",
-                    comments: null
-                }));
-                await workOrderService.submitChecklist(Number(id), answers);
-            }
+                    // 2. Upload Evidence if selected
+                    if (evidenceFile) {
+                        const formData = new FormData();
+                        formData.append('File', evidenceFile);
+                        if (currentLocation) {
+                            formData.append('Latitude', currentLocation.lat.toString());
+                            formData.append('Longitude', currentLocation.lng.toString());
+                        }
+                        await workOrderService.uploadEvidence(Number(id), formData);
+                    }
 
-            // 2. Upload Evidence if selected
-            if (evidenceFile) {
-                const formData = new FormData();
-                formData.append('File', evidenceFile);
-                if (currentLocation) {
-                    formData.append('Latitude', currentLocation.lat.toString());
-                    formData.append('Longitude', currentLocation.lng.toString());
+                    // 3. Complete Job
+                    await workOrderService.completeJob(Number(id), { notes, result });
+                    toast.success("Job marked as Complete — pending manager review.");
+                    fetchJob();
+                } catch (error: any) {
+                    toast.error(extractApiError(error, "Failed to complete job. Ensure photos are uploaded."));
+                } finally {
+                    setActionLoading(false);
                 }
-                await workOrderService.uploadEvidence(Number(id), formData);
             }
-
-            // 3. Complete Job
-            await workOrderService.completeJob(Number(id), { notes, result });
-            toast.success("Job marked as Complete — pending manager review.");
-            fetchJob();
-        } catch (error: any) {
-            const errData = error.response?.data;
-            const backendMsg = errData?.Message || errData?.message || errData?.Error || errData?.error || error.message;
-            toast.error(backendMsg || "Failed to complete job. Ensure photos are uploaded.");
-        } finally {
-            setActionLoading(false);
-        }
+        );
     };
 
     if (loading) {
@@ -450,6 +478,16 @@ export const JobExecutionPage = () => {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                confirmText="Confirm"
+            />
         </div>
     );
 };
