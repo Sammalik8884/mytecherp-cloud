@@ -119,32 +119,43 @@ export const WorkOrdersPage = () => {
     };
 
     const handleApproveReject = async (id: number, isApproved: boolean) => {
-        if (!window.confirm(`Are you sure you want to ${isApproved ? 'approve' : 'reject'} this job?`)) return;
-
-        try {
-            setProcessingId(id);
-            await workOrderService.approveJob(id, isApproved);
-            toast.success(`Job ${isApproved ? 'approved' : 'rejected'} successfully.`);
-            fetchData();
-        } catch (error: any) {
-            toast.error(extractApiError(error, "Failed to process job."));
-        } finally {
-            setProcessingId(null);
-        }
+        confirmAction(
+            isApproved ? "Approve Job" : "Reject Job", 
+            `Are you sure you want to ${isApproved ? 'approve' : 'reject'} this job?`, 
+            isApproved ? "info" : "warning", 
+            async () => {
+                try {
+                    setProcessingId(id);
+                    await workOrderService.approveJob(id, isApproved);
+                    toast.success(`Job ${isApproved ? 'approved' : 'rejected'} successfully.`);
+                    fetchData();
+                } catch (error: any) {
+                    toast.error(extractApiError(error, "Failed to process job."));
+                } finally {
+                    setProcessingId(null);
+                }
+            }
+        );
     };
 
     const handleInitialize = async (id: number) => {
-        if (!window.confirm("Initialize this work order? This will set up the inspection checklist and mark it as In Progress.")) return;
-        try {
-            setProcessingId(id);
-            const result = await workOrderService.initialize(id);
-            toast.success(result?.message || "Work order initialized successfully!");
-            fetchData();
-        } catch (error: any) {
-            toast.error(extractApiError(error, "Failed to initialize work order."));
-        } finally {
-            setProcessingId(null);
-        }
+        confirmAction(
+            "Initialize Work Order", 
+            "Initialize this work order? This will set up the inspection checklist and mark it as In Progress.", 
+            "info", 
+            async () => {
+                try {
+                    setProcessingId(id);
+                    const result = await workOrderService.initialize(id);
+                    toast.success(result?.message || "Work order initialized successfully!");
+                    fetchData();
+                } catch (error: any) {
+                    toast.error(extractApiError(error, "Failed to initialize work order."));
+                } finally {
+                    setProcessingId(null);
+                }
+            }
+        );
     };
 
     const handleGenerateInvoice = async (id: number) => {
