@@ -45,7 +45,7 @@ const RootRoute = () => {
     const { isAuthenticated, hasRole } = useAuth();
     
     if (!isAuthenticated) {
-        window.location.href = "/landing.html";
+        window.location.href = "/landing";
         return null;
     }
     

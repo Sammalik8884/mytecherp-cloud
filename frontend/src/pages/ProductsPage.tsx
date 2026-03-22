@@ -9,6 +9,15 @@ import { CategoryDto } from "../types/category";
 import { toast } from "react-hot-toast";
 import { ConfirmModal } from "../components/common/ConfirmModal";
 
+const getImageUrl = (url: string | null | undefined) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url;
+    let base = import.meta.env.VITE_API_URL || "http://localhost:5269";
+    base = base.replace(/\/api\/?$/, "").replace(/\/$/, "");
+    const safePath = url.startsWith("/") ? url : `/${url}`;
+    return `${base}${safePath}`;
+};
+
 export const ProductsPage = () => {
     const [products, setProducts] = useState<ProductDto[]>([]);
     const [categories, setCategories] = useState<CategoryDto[]>([]);
@@ -256,7 +265,7 @@ export const ProductsPage = () => {
                                             <div className="flex items-center space-x-3">
                                                 <div className="h-8 w-8 rounded bg-background border border-border flex items-center justify-center shrink-0 overflow-hidden">
                                                     {item.imageUrl ? (
-                                                        <img src={`http://localhost:5269/${item.imageUrl}`} alt={item.name} className="h-full w-full object-cover" />
+                                                        <img src={getImageUrl(item.imageUrl)} alt={item.name} className="h-full w-full object-cover" />
                                                     ) : (
                                                         <Package className="h-4 w-4 text-muted-foreground" />
                                                     )}

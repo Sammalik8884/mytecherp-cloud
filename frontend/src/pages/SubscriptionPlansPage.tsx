@@ -36,8 +36,8 @@ export const SubscriptionPlansPage: React.FC = () => {
             setIsCheckingOut(stripePriceId);
             const checkoutUrl = await subscriptionService.createCheckoutSession(stripePriceId, user?.email || "");
             window.location.href = checkoutUrl;
-        } catch (error) {
-            toast.error("Failed to start checkout session.");
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "Failed to start checkout session.");
             setIsCheckingOut(null);
         }
     };

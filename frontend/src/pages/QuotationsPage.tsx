@@ -9,6 +9,15 @@ import { useAuth } from "../auth/AuthContext";
 import { ConfirmModal } from "../components/common/ConfirmModal";
 import { PromptModal } from "../components/common/PromptModal";
 
+const extractApiError = (error: any, fallback: string) => {
+    if (!error || !error.response || !error.response.data) {
+        return error?.message || fallback;
+    }
+    const d = error.response.data;
+    if (typeof d === 'string') return d;
+    return d.error || d.Error || d.message || d.Message || d.detail || d.title || fallback;
+};
+
 export const QuotationsPage = () => {
     const navigate = useNavigate();
     const { hasRole } = useAuth();
@@ -102,7 +111,7 @@ export const QuotationsPage = () => {
                 toast.success("Email sent successfully", { id: `email-${id}` });
                 fetchData();
             } catch (error: any) {
-                toast.error(error.response?.data?.Error || error.response?.data?.Message || "Failed to send email", { id: `email-${id}` });
+                toast.error(extractApiError(error, "Failed to send email"), { id: `email-${id}` });
             }
         });
     };
@@ -114,7 +123,7 @@ export const QuotationsPage = () => {
                 const result = await invoiceService.generateFromQuote(id);
                 toast.success(`Invoice ${result.invoiceNumber} Generated Successfully`, { id: `inv-${id}` });
             } catch (error: any) {
-                toast.error(error.response?.data?.Error || error.response?.data?.Message || "Failed to generate invoice", { id: `inv-${id}` });
+                toast.error(extractApiError(error, "Failed to generate invoice"), { id: `inv-${id}` });
             }
         });
     };
@@ -126,7 +135,7 @@ export const QuotationsPage = () => {
                 const result = await quotationService.convertToWorkOrder(id);
                 toast.success(result.message, { id: `wo-${id}` });
             } catch (error: any) {
-                toast.error(error.response?.data?.Error || error.response?.data?.Message || "Failed to convert to work order", { id: `wo-${id}` });
+                toast.error(extractApiError(error, "Failed to convert to work order"), { id: `wo-${id}` });
             }
         });
     };
@@ -139,7 +148,7 @@ export const QuotationsPage = () => {
                 toast.success("Quotation Approved", { id: `approve-${id}` });
                 fetchData();
             } catch (error: any) {
-                toast.error(error.response?.data?.Error || error.response?.data?.Message || "Failed to approve quotation", { id: `approve-${id}` });
+                toast.error(extractApiError(error, "Failed to approve quotation"), { id: `approve-${id}` });
             }
         });
     };
@@ -152,7 +161,7 @@ export const QuotationsPage = () => {
                 toast.success("Quotation Submitted for Approval", { id: `submit-${id}` });
                 fetchData();
             } catch (error: any) {
-                toast.error(error.response?.data?.Error || error.response?.data?.error || error.response?.data?.Message || "Failed to submit quotation", { id: `submit-${id}` });
+                toast.error(extractApiError(error, "Failed to submit quotation"), { id: `submit-${id}` });
             }
         });
     };
@@ -170,7 +179,7 @@ export const QuotationsPage = () => {
                     toast.success("Quotation Rejected", { id: `reject-${id}` });
                     fetchData();
                 } catch (error: any) {
-                    toast.error(error.response?.data?.Error || error.response?.data?.error || error.response?.data?.Message || "Failed to reject quotation", { id: `reject-${id}` });
+                    toast.error(extractApiError(error, "Failed to reject quotation"), { id: `reject-${id}` });
                 }
             }
         });
@@ -183,7 +192,7 @@ export const QuotationsPage = () => {
                 const result = await quotationService.convertToContract(id);
                 toast.success(result.message, { id: `contract-${id}` });
             } catch (error: any) {
-                toast.error(error.response?.data?.Error || error.response?.data?.error || error.response?.data?.Message || "Failed to convert to contract", { id: `contract-${id}` });
+                toast.error(extractApiError(error, "Failed to convert to contract"), { id: `contract-${id}` });
             }
         });
     };
@@ -195,8 +204,7 @@ export const QuotationsPage = () => {
                 toast.success("Quotation deleted successfully.");
                 fetchData();
             } catch (error: any) {
-                const errorMessage = error.response?.data?.Error || error.response?.data?.error || error.response?.data?.Message || "Failed to delete quotation.";
-                toast.error(errorMessage);
+                toast.error(extractApiError(error, "Failed to delete quotation"));
             }
         });
     };

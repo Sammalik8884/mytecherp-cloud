@@ -11,6 +11,15 @@ import { toast } from "react-hot-toast";
 import { authService } from "../services/authService";
 import { apiClient } from "../services/apiClient";
 
+const extractApiError = (error: any, fallback: string) => {
+    if (!error || !error.response || !error.response.data) {
+        return error?.message || fallback;
+    }
+    const d = error.response.data;
+    if (typeof d === 'string') return d;
+    return d.error || d.Error || d.message || d.Message || d.detail || d.title || fallback;
+};
+
 export const WorkOrdersPage = () => {
     const [workOrders, setWorkOrders] = useState<WorkOrderDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -103,7 +112,7 @@ export const WorkOrdersPage = () => {
             setJobToDelete(null);
             fetchData();
         } catch (error: any) {
-            toast.error(error.response?.data?.Error || error.response?.data?.Message || "Failed to delete item.");
+            toast.error(extractApiError(error, "Failed to delete item."));
             setIsDeleteModalOpen(false);
             setJobToDelete(null);
         }
@@ -118,7 +127,7 @@ export const WorkOrdersPage = () => {
             toast.success(`Job ${isApproved ? 'approved' : 'rejected'} successfully.`);
             fetchData();
         } catch (error: any) {
-            toast.error(error.response?.data?.Error || error.response?.data?.Message || "Failed to process job.");
+            toast.error(extractApiError(error, "Failed to process job."));
         } finally {
             setProcessingId(null);
         }
@@ -132,7 +141,7 @@ export const WorkOrdersPage = () => {
             toast.success(result?.message || "Work order initialized successfully!");
             fetchData();
         } catch (error: any) {
-            toast.error(error.response?.data?.Error || error.response?.data?.Message || "Failed to initialize work order.");
+            toast.error(extractApiError(error, "Failed to initialize work order."));
         } finally {
             setProcessingId(null);
         }
@@ -144,7 +153,7 @@ export const WorkOrdersPage = () => {
             await invoiceService.generateFromJob(id);
             toast.success("Invoice generated successfully!");
         } catch (error: any) {
-            toast.error(error.response?.data?.Error || error.response?.data?.Message || "Failed to generate invoice.");
+            toast.error(extractApiError(error, "Failed to generate invoice."));
         } finally {
             setProcessingId(null);
         }
@@ -168,7 +177,7 @@ export const WorkOrdersPage = () => {
             setCreateForm({ description: "", contractId: 0, scheduledDate: new Date().toISOString().split('T')[0], technicianId: null, assetId: undefined });
             fetchData();
         } catch (error: any) {
-            toast.error(error.response?.data?.Error || error.response?.data?.Message || "Failed to create work order.");
+            toast.error(extractApiError(error, "Failed to create work order."));
         } finally {
             setProcessingId(null);
         }
@@ -233,22 +242,7 @@ export const WorkOrdersPage = () => {
             fetchData();
         } catch (error: any) {
             console.error("Update error:", error.response?.data || error.message);
-            let errorMsg = "Failed to update job.";
-
-            if (error.response?.data) {
-                if (typeof error.response.data === 'string') {
-                    errorMsg = error.response.data; // Raw string or HTML
-                } else {
-                    errorMsg = error.response.data.Message ||
-                        error.response.data.title ||
-                        (error.response.data.errors ? JSON.stringify(error.response.data.errors) : null) ||
-                        "Failed to update job.";
-                }
-            } else {
-                errorMsg = error.response?.data?.Error || "An unexpected error occurred.";
-            }
-
-            toast.error(errorMsg);
+            toast.error(extractApiError(error, "Failed to update job."));
         }
     };
 
