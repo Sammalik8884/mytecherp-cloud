@@ -211,6 +211,8 @@ using (var scope = app.Services.CreateScope())
             context.Database.Migrate();
         }
 
+
+
         var userManager = services.GetRequiredService<UserManager<AppUser>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
@@ -239,6 +241,7 @@ using (var scope = app.Services.CreateScope())
         {
             var basic = await context.SubscriptionPlans.FirstAsync(p => p.Name == "Basic");
             basic.MaxUsers = 5;
+            basic.StripePriceId = basicPriceId;
             basic.PlanFeatures = MytechERP.domain.Enums.PlanFeature.None;
         }
 
@@ -262,6 +265,7 @@ using (var scope = app.Services.CreateScope())
         {
             var pro = await context.SubscriptionPlans.FirstAsync(p => p.Name == "Pro");
             pro.MaxUsers = 25;
+            pro.StripePriceId = proPriceId;
             pro.PlanFeatures = MytechERP.domain.Enums.PlanFeature.HrPayroll | 
                                MytechERP.domain.Enums.PlanFeature.ChecklistFormBuilder | 
                                MytechERP.domain.Enums.PlanFeature.AuditLogs | 

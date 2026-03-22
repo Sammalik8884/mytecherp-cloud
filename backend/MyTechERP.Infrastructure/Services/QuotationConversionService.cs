@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MytechERP.Application.Interfaces;
 using MytechERP.domain.Entities;
 using MytechERP.domain.Entities.CRM;
@@ -31,9 +31,9 @@ namespace MyTechERP.Infrastructure.Services
             if (quote == null)
                 throw new KeyNotFoundException("Quotation not found");
 
-            if (quote.Status != QuotationStatus.Approved && quote.Status!=QuotationStatus.Converted)
+            if (quote.Status != QuotationStatus.Approved && quote.Status != QuotationStatus.SentToCustomer && quote.Status != QuotationStatus.Converted)
                 throw new InvalidOperationException(
-                    $"Cannot convert Quote. Status must be 'Approved', but it is '{quote.Status}'.");
+                    $"Cannot convert Quote. Status must be 'Approved' or 'SentToCustomer', but it is '{quote.Status}'.");
             var existingWorkOrder = await _context.WorkOrders.AnyAsync(w => w.ReferenceQuotationId == quotationId);
             if (existingWorkOrder)
                 throw new InvalidOperationException("A Work Order has already been created for this Quotation.");
@@ -63,8 +63,8 @@ namespace MyTechERP.Infrastructure.Services
 
             if (quote == null) throw new KeyNotFoundException("Quotation not found");
 
-            if (quote.Status != QuotationStatus.Approved && quote.Status != QuotationStatus.Converted)
-                throw new InvalidOperationException($"Cannot convert Quote. Status must be 'Approved', but it is '{quote.Status}'.");
+            if (quote.Status != QuotationStatus.Approved && quote.Status != QuotationStatus.SentToCustomer && quote.Status != QuotationStatus.Converted)
+                throw new InvalidOperationException($"Cannot convert Quote. Status must be 'Approved' or 'SentToCustomer', but it is '{quote.Status}'.");
 
             var existingContract = await _context.Contracts.AnyAsync(c => c.ReferenceQuotationId == quotationId);
             if (existingContract)

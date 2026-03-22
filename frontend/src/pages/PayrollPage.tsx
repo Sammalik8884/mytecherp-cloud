@@ -531,7 +531,7 @@ export const PayrollPage = () => {
                                     </select>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4 border border-border/50 p-4 rounded-2xl bg-white/5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-border/50 p-4 rounded-2xl bg-white/5">
                                     <div>
                                         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Period Start</label>
                                         <input
@@ -639,7 +639,7 @@ export const PayrollPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4 border border-border/50 p-4 rounded-2xl bg-white/5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-border/50 p-4 rounded-2xl bg-white/5">
                                     <div>
                                         <label className="block text-sm font-semibold text-muted-foreground mb-2">Bank Name</label>
                                         <input
@@ -717,7 +717,7 @@ export const PayrollPage = () => {
                                     </select>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-semibold text-muted-foreground mb-2">Entry Type</label>
                                         <select

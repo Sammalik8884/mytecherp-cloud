@@ -78,6 +78,7 @@ namespace MyTechERP.Infrastructure.Services
             var userTenantId = _currentUserService.TenantId;
 
             var assets = await _context.Assets 
+        .Include(a => a.Site)
         .Where(a => a.TenantId == userTenantId)
         .OrderByDescending(a => a.Id)
         .ToListAsync();

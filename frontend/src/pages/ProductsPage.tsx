@@ -344,7 +344,7 @@ export const ProductsPage = () => {
                             </h2>
 
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-xs font-semibold text-muted-foreground mb-1 block">Item Name *</label>
                                         <input
@@ -369,7 +369,7 @@ export const ProductsPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-xs font-semibold text-muted-foreground mb-1 block">Price ($) *</label>
                                         <input

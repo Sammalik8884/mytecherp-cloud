@@ -416,7 +416,7 @@ export const QuotationFormPage = () => {
                     <div className="bg-secondary/30 border border-border/50 rounded-2xl p-6 backdrop-blur-sm shadow-xl space-y-4">
                         <h3 className="text-lg font-semibold text-foreground border-b border-border/50 pb-2 mb-4">Taxes & Adjustments</h3>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="text-xs font-semibold text-muted-foreground mb-1 block">GST (%)</label>
                                 <input

@@ -6,6 +6,9 @@ obj/
 *.suo
 appsettings.Development.json
 
+# SECRETS - never commit live credentials
+backend/MytechERP.API/appsettings.json
+
 # Node.js
 node_modules/
 dist/

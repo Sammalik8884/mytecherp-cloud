@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using MytechERP.domain.Entities;
 using MytechERP.domain.Roles;
 using System;
@@ -21,7 +21,7 @@ namespace MyTechERP.Infrastructure.Seeds
                EmailConfirmed= true,
                PhoneNumberConfirmed= true,
                IsActive=true,
-               TenantId=1
+               TenantId=0
            };
             if (userManager.Users.All(u => u.Id != defaultUser.Id))
             {

@@ -203,8 +203,10 @@ namespace MytechERP.API.Controllers
                 .Include(q => q.Site)
                 .FirstOrDefaultAsync(q => q.Id == id);
 
-            if (quote == null) return NotFound("Quotation not found.");
-            if (string.IsNullOrEmpty(quote.Customer?.Email)) return BadRequest("Customer has no email address.");
+            if (quote == null) return NotFound(new { Error = "Quotation not found." });
+            if (string.IsNullOrEmpty(quote.Customer?.Email)) return BadRequest(new { Error = "Customer has no email address." });
+            if (quote.Status != QuotationStatus.Approved && quote.Status != QuotationStatus.SentToCustomer && quote.Status != QuotationStatus.Converted)
+                return BadRequest(new { Error = "Cannot send Email. Quotation must be 'Approved' first." });
 
             var quoteDto = new QuotationDto
             {

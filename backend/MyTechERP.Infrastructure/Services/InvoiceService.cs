@@ -32,8 +32,8 @@ namespace MyTechERP.Infrastructure.Services
 
             if (quote == null) throw new KeyNotFoundException("Quotation not found");
 
-            if (quote.Status != QuotationStatus.Approved)
-                throw new InvalidOperationException("Cannot invoice a quotation that is not Approved.");
+            if (quote.Status != QuotationStatus.Approved && quote.Status != QuotationStatus.SentToCustomer && quote.Status != QuotationStatus.Converted)
+                throw new InvalidOperationException("Cannot invoice a quotation that is not Approved or SentToCustomer.");
 
             var invoice = new Invoice
             {
@@ -57,6 +57,7 @@ namespace MyTechERP.Infrastructure.Services
                     Description = item.Description,
                     Quantity = item.Quantity,
                     UnitPrice = item.UnitPrice,
+                    TotalPrice = item.Quantity * item.UnitPrice,
                     TenantId = quote.TenantId
                 });
             }

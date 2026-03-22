@@ -195,7 +195,7 @@ namespace MyTechERP.Infrastructure.PDF
                     table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).Text(item.Description);
                     table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).AlignRight().Text(item.Quantity.ToString());
                     table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).AlignRight().Text($"${item.UnitPrice:N2}");
-                    table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).AlignRight().Text($"${item.TotalPrice:N2}").SemiBold();
+                    table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).AlignRight().Text($"${(item.TotalPrice > 0 ? item.TotalPrice : item.Total):N2}").SemiBold();
                     
                     index++;
                 }
