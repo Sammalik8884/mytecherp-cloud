@@ -36,7 +36,8 @@ namespace MytechERP.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                var errorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return BadRequest(new { error = errorMsg });
             }
         }
 
