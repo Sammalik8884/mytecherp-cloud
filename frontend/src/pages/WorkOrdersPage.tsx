@@ -21,6 +21,20 @@ const extractApiError = (error: any, fallback: string) => {
 };
 
 export const WorkOrdersPage = () => {
+    const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, title: string, message: string, type: 'info' | 'warning' | 'danger', onConfirm: () => void}>({
+        isOpen: false, title: '', message: '', type: 'info', onConfirm: () => {}
+    });
+
+    const confirmAction = (title: string, message: string, type: 'info' | 'warning' | 'danger', action: () => Promise<void>) => {
+        setConfirmModal({
+            isOpen: true, title, message, type,
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                await action();
+            }
+        });
+    };
+
     const [workOrders, setWorkOrders] = useState<WorkOrderDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
@@ -653,6 +667,17 @@ export const WorkOrdersPage = () => {
                 message={`Are you sure you want to delete WO-${jobToDelete?.id.toString().padStart(4, '0')}? This action cannot be undone.`}
                 confirmText="Delete Job"
                 type="danger"
+            />
+
+            {/* Generic Action Confirm Modal */}
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                confirmText="Confirm"
             />
         </div>
     );
