@@ -1,4 +1,4 @@
-﻿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using MytechERP.Application.Interfaces;
@@ -30,8 +30,16 @@ namespace MyTechERP.Infrastructure.Services
             email.Subject = subject;
 
             var builder = new BodyBuilder();
-            if (isHtml) builder.HtmlBody = body;
-            else builder.TextBody = body;
+            if (isHtml) 
+            {
+                builder.HtmlBody = body;
+                // Provide plain text fallback for clients that disable HTML
+                builder.TextBody = System.Text.RegularExpressions.Regex.Replace(body, "<.*?>", string.Empty);
+            }
+            else 
+            {
+                builder.TextBody = body;
+            }
 
             email.Body = builder.ToMessageBody();
 
@@ -50,6 +58,8 @@ namespace MyTechERP.Infrastructure.Services
 
             var builder = new BodyBuilder();
             builder.HtmlBody = body;
+            // Provide plain text fallback for clients that disable HTML
+            builder.TextBody = System.Text.RegularExpressions.Regex.Replace(body, "<.*?>", string.Empty);
 
             if (attachment != null && attachment.Length > 0)
             {
