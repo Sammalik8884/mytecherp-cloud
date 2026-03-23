@@ -38,6 +38,10 @@ builder.Services.AddCors(options =>
     });
 });
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (connectionString == "CONFIGURE_IN_AZURE_APP_SERVICE" || string.IsNullOrEmpty(connectionString))
+{
+    connectionString = "Server=localhost;Database=dummy;Trusted_Connection=True;";
+}
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddIdentity<AppUser,IdentityRole>(options => {
@@ -89,13 +93,21 @@ builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IAssetImportService, AssetImportService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddHangfire(config => config
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddHangfireServer();
+// Hangfire (Skip if placeholder)
+var hangfireConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrEmpty(hangfireConnection) && hangfireConnection != "CONFIGURE_IN_AZURE_APP_SERVICE")
+{
+    builder.Services.AddHangfire(config => config
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UseSqlServerStorage(hangfireConnection));
+    builder.Services.AddHangfireServer();
+}
+else
+{
+    Console.WriteLine("Warning: Hangfire skipped - DefaultConnection is a placeholder.");
+}
 
 
 builder.Services.AddScoped<IContractService, ContractService>();
@@ -111,15 +123,20 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    var keyString = jwtSettings["Key"] ?? "InitialDefaultKeyForStartupOnly123!";
+    var signingKey = keyString == "CONFIGURE_IN_AZURE_APP_SERVICE" 
+        ? new SymmetricSecurityKey(Encoding.ASCII.GetBytes("InitialDefaultKeyForStartupOnly123!"))
+        : new SymmetricSecurityKey(Encoding.ASCII.GetBytes(keyString));
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(key)
+        ValidIssuer = jwtSettings["Issuer"] ?? "MyTechERP",
+        ValidAudience = jwtSettings["Audience"] ?? "MyTechERP_Users",
+        IssuerSigningKey = signingKey
     };
 });
 
@@ -206,9 +223,19 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        if (context.Database.GetPendingMigrations().Any())
+        var dbConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+        
+        if (!string.IsNullOrEmpty(dbConnection) && dbConnection != "CONFIGURE_IN_AZURE_APP_SERVICE")
         {
-            context.Database.Migrate();
+            if (context.Database.GetPendingMigrations().Any())
+            {
+                context.Database.Migrate();
+            }
+        }
+        else
+        {
+            Console.WriteLine("Warning: Database migration skipped - DefaultConnection is a placeholder.");
+            return; // Skip seeding too
         }
 
 

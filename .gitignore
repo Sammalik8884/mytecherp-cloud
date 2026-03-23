@@ -4,10 +4,9 @@ obj/
 .vs/
 *.user
 *.suo
+# SECRETS stored as Azure App Service environment variables - NOT in appsettings.json
+# appsettings.json has only placeholder values and is safe to commit
 appsettings.Development.json
-
-# SECRETS - never commit live credentials
-backend/MytechERP.API/appsettings.json
 
 # Node.js
 node_modules/
