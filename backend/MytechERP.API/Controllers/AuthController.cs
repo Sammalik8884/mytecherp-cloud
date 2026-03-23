@@ -142,7 +142,7 @@ namespace MytechERP.API.Controllers
             if (!string.IsNullOrEmpty(token))
             {
                 var encodedToken = System.Web.HttpUtility.UrlEncode(token);
-                var resetLink = $"http://localhost:5173/reset-password?email={System.Web.HttpUtility.UrlEncode(dto.Email)}&token={encodedToken}";
+                var resetLink = $"https://mytech-erp.vercel.app/reset-password?email={System.Web.HttpUtility.UrlEncode(dto.Email)}&token={encodedToken}";
                 
                 var emailBody = $@"
                     <h2>Reset Your Password</h2>
