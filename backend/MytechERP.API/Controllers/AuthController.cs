@@ -146,8 +146,11 @@ namespace MytechERP.API.Controllers
                 
                 var emailBody = $@"
                     <h2>Reset Your Password</h2>
-                    <p>You requested a password reset. Click the link below to reset your password:</p>
-                    <a href='{resetLink}' style='padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;'>Reset Password</a>
+                    <p>You requested a password reset. Click the button below to reset your password:</p>
+                    <p><a href='{resetLink}' style='padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Password</a></p>
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p>{resetLink}</p>
+                    <br/>
                     <p>If you didn't request this, please ignore this email.</p>
                 ";
 
