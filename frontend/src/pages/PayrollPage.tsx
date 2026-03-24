@@ -397,7 +397,7 @@ export const PayrollPage = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                {ps.status === 1 ? (
+                                                {ps.status !== 0 ? (
                                                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
                                                         <CheckCircle2 className="h-3.5 w-3.5" /> Cleared
                                                     </span>
