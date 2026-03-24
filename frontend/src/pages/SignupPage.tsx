@@ -45,7 +45,7 @@ export const SignupPage = () => {
     };
 
     return (
-        <div className="dark min-h-screen bg-background text-foreground flex items-center justify-center relative overflow-hidden py-10">
+        <div className="dark min-h-[100dvh] bg-background text-foreground flex items-center justify-center relative overflow-x-hidden overflow-y-auto px-4 py-8 sm:py-12">
             {/* Background Orbs */}
             <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
