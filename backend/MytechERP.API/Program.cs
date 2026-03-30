@@ -231,76 +231,72 @@ using (var scope = app.Services.CreateScope())
             {
                 context.Database.Migrate();
             }
-        }
-        else
-        {
-            Console.WriteLine("Warning: Database migration skipped - DefaultConnection is a placeholder.");
-            return; // Skip seeding too
-        }
 
+            var userManager = services.GetRequiredService<UserManager<AppUser>>();
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
+            await DefaultRoles.SeedAsync(userManager, roleManager);
+            await DefaultSuperAdmin.SeedAsync(userManager, roleManager);
 
-        var userManager = services.GetRequiredService<UserManager<AppUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            // Seed Subscription Plans
+            var configuration = services.GetRequiredService<IConfiguration>();
+            string basicPriceId = configuration["Stripe:BasicPlanPriceId"] ?? "price_1QxT12Gqj2XF2N98w7If4lSj";
+            string proPriceId = configuration["Stripe:ProPlanPriceId"] ?? "price_1QxT1FGqj2XF2N98hG5CnvC1";
 
-        
-        await DefaultRoles.SeedAsync(userManager, roleManager);
-        await DefaultSuperAdmin.SeedAsync(userManager, roleManager);
-
-        // Seed Subscription Plans
-        var configuration = services.GetRequiredService<IConfiguration>();
-        string basicPriceId = configuration["Stripe:BasicPlanPriceId"] ?? "price_1QxT12Gqj2XF2N98w7If4lSj";
-        string proPriceId = configuration["Stripe:ProPlanPriceId"] ?? "price_1QxT1FGqj2XF2N98hG5CnvC1";
-
-        if (!await context.SubscriptionPlans.AnyAsync(p => p.Name == "Basic"))
-        {
-            context.SubscriptionPlans.Add(new SubscriptionPlan
+            if (!await context.SubscriptionPlans.AnyAsync(p => p.Name == "Basic"))
             {
-                Name = "Basic",
-                StripePriceId = basicPriceId,
-                MonthlyPrice = 49.99m,
-                MaxUsers = 5,
-                PlanFeatures = MytechERP.domain.Enums.PlanFeature.None,
-                IsActive = true
-            });
-        }
-        else
-        {
-            var basic = await context.SubscriptionPlans.FirstAsync(p => p.Name == "Basic");
-            basic.MaxUsers = 5;
-            basic.StripePriceId = basicPriceId;
-            basic.PlanFeatures = MytechERP.domain.Enums.PlanFeature.None;
-        }
-
-        if (!await context.SubscriptionPlans.AnyAsync(p => p.Name == "Pro"))
-        {
-            context.SubscriptionPlans.Add(new SubscriptionPlan
+                context.SubscriptionPlans.Add(new SubscriptionPlan
+                {
+                    Name = "Basic",
+                    StripePriceId = basicPriceId,
+                    MonthlyPrice = 49.99m,
+                    MaxUsers = 5,
+                    PlanFeatures = MytechERP.domain.Enums.PlanFeature.None,
+                    IsActive = true
+                });
+            }
+            else
             {
-                Name = "Pro",
-                StripePriceId = proPriceId,
-                MonthlyPrice = 149.99m,
-                MaxUsers = 25,
-                PlanFeatures = MytechERP.domain.Enums.PlanFeature.HrPayroll | 
-                               MytechERP.domain.Enums.PlanFeature.ChecklistFormBuilder | 
-                               MytechERP.domain.Enums.PlanFeature.AuditLogs | 
-                               MytechERP.domain.Enums.PlanFeature.AdvancedAnalytics |
-                               MytechERP.domain.Enums.PlanFeature.OfflineSync,
-                IsActive = true
-            });
+                var basic = await context.SubscriptionPlans.FirstAsync(p => p.Name == "Basic");
+                basic.MaxUsers = 5;
+                basic.StripePriceId = basicPriceId;
+                basic.PlanFeatures = MytechERP.domain.Enums.PlanFeature.None;
+            }
+
+            if (!await context.SubscriptionPlans.AnyAsync(p => p.Name == "Pro"))
+            {
+                context.SubscriptionPlans.Add(new SubscriptionPlan
+                {
+                    Name = "Pro",
+                    StripePriceId = proPriceId,
+                    MonthlyPrice = 149.99m,
+                    MaxUsers = 25,
+                    PlanFeatures = MytechERP.domain.Enums.PlanFeature.HrPayroll | 
+                                   MytechERP.domain.Enums.PlanFeature.ChecklistFormBuilder | 
+                                   MytechERP.domain.Enums.PlanFeature.AuditLogs | 
+                                   MytechERP.domain.Enums.PlanFeature.AdvancedAnalytics |
+                                   MytechERP.domain.Enums.PlanFeature.OfflineSync,
+                    IsActive = true
+                });
+            }
+            else
+            {
+                var pro = await context.SubscriptionPlans.FirstAsync(p => p.Name == "Pro");
+                pro.MaxUsers = 25;
+                pro.StripePriceId = proPriceId;
+                pro.PlanFeatures = MytechERP.domain.Enums.PlanFeature.HrPayroll | 
+                                   MytechERP.domain.Enums.PlanFeature.ChecklistFormBuilder | 
+                                   MytechERP.domain.Enums.PlanFeature.AuditLogs | 
+                                   MytechERP.domain.Enums.PlanFeature.AdvancedAnalytics |
+                                   MytechERP.domain.Enums.PlanFeature.OfflineSync;
+            }
+            
+            await context.SaveChangesAsync();
         }
         else
         {
-            var pro = await context.SubscriptionPlans.FirstAsync(p => p.Name == "Pro");
-            pro.MaxUsers = 25;
-            pro.StripePriceId = proPriceId;
-            pro.PlanFeatures = MytechERP.domain.Enums.PlanFeature.HrPayroll | 
-                               MytechERP.domain.Enums.PlanFeature.ChecklistFormBuilder | 
-                               MytechERP.domain.Enums.PlanFeature.AuditLogs | 
-                               MytechERP.domain.Enums.PlanFeature.AdvancedAnalytics |
-                               MytechERP.domain.Enums.PlanFeature.OfflineSync;
+            Console.WriteLine("Warning: Database migration and seeding skipped - DefaultConnection is a placeholder.");
         }
-        
-        await context.SaveChangesAsync();
     }
     catch (Exception ex)
     {
