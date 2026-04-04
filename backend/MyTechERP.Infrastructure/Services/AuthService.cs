@@ -153,22 +153,27 @@ namespace MyTechERP.Infrastructure.Services
         
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
-            var validUsers = new List<AppUser>();
-            var allUsersWithEmail = await _context.Users.Where(u => u.Email == request.Email).ToListAsync();
-            
-            foreach (var u in allUsersWithEmail)
-            {
-                if (await _userManager.CheckPasswordAsync(u, request.Password))
-                {
-                    validUsers.Add(u);
-                }
-            }
+            var allUsersWithEmail = await _context.Users
+                .Where(u => u.Email == request.Email)
+                .ToListAsync();
 
-            if (validUsers.Count == 0)
+            if (allUsersWithEmail.Count == 0)
             {
-                Console.WriteLine($"[AUTH DEBUG] User not found or incorrect password for email: {request.Email}");
+                Console.WriteLine($"[AUTH DEBUG] No user found for email: {request.Email}");
                 throw new Exception("Invalid Credentials");
             }
+
+            // Check password ONCE against the first account (all tenant accounts share the same password)
+            bool isPasswordValid = await _userManager.CheckPasswordAsync(allUsersWithEmail.First(), request.Password);
+
+            if (!isPasswordValid)
+            {
+                Console.WriteLine($"[AUTH DEBUG] Incorrect password for email: {request.Email}");
+                throw new Exception("Invalid Credentials");
+            }
+
+            // Password is valid — all tenant accounts for this email are now authorized
+            var validUsers = allUsersWithEmail;
 
             if (validUsers.Count > 1)
             {
