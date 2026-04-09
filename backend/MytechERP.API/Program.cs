@@ -47,6 +47,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentity<AppUser,IdentityRole>(options => {
     options.User.RequireUniqueEmail = false;
 }).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+// OPTIMIZATION: Reduce password hashing iterations from 100,000 to 10,000
+// This makes the Login speed up to 10x faster for newly created users or users who reset their passwords.
+builder.Services.Configure<PasswordHasherOptions>(options =>
+{
+    options.IterationCount = 10000;
+});
 builder.Services.AddScoped<IChecklistRepository, ChecklistRepository>();
 builder.Services.AddScoped<ICheckListService, CheckListService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -67,6 +74,7 @@ builder.Services.AddScoped<IWorkflowService, WorkFlowService>();
 builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
 builder.Services.AddScoped<IProductImportService, ProductImportService>();
+builder.Services.AddScoped<IFikeProductImportService, FikeProductImportService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<MyTechERP.Infrastructure.Services.QuotationPdfService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -316,14 +324,20 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseHangfireDashboard("/hangfire");
-
+try 
+{
+    app.UseHangfireDashboard("/hangfire");
+    RecurringJob.AddOrUpdate<IWorkOrderGenerator>(
+        "daily-maintenance-check",
+        service => service.GenerateMonthlyJobs(),
+        Cron.Daily);
+} 
+catch (Exception ex) 
+{
+    Console.WriteLine("Hangfire startup skipped: " + ex.Message);
+}
 
 app.UseStaticFiles();
 app.MapControllers();
 app.MapHub<MytechERP.API.Hubs.SyncHub>("/hubs/sync");
-RecurringJob.AddOrUpdate<IWorkOrderGenerator>(
-    "daily-maintenance-check",
-    service => service.GenerateMonthlyJobs(),
-    Cron.Daily);
 app.Run();
