@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using MytechERP.Application.Interfaces;
 using MytechERP.API.Filters;
 using MytechERP.domain.Enums;
+using MytechERP.domain.Roles;
 
 namespace MytechERP.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    [RequirePlanFeature(PlanFeature.AdvancedAnalytics)]
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardService _dashboardService;
@@ -22,7 +22,8 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("metrics")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
+        [RequirePlanFeature(PlanFeature.AdvancedAnalytics)]
         public async Task<IActionResult> GetMetrics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             try
@@ -36,7 +37,7 @@ namespace MytechERP.API.Controllers
             }
         }
         [HttpGet("sales-activity")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
         public async Task<IActionResult> GetSalesmanActivity([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             try
@@ -51,7 +52,7 @@ namespace MytechERP.API.Controllers
         }
         
         [HttpGet("sales-activity/export/csv")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
         public async Task<IActionResult> ExportSalesActivityCsv([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             try
@@ -78,7 +79,7 @@ namespace MytechERP.API.Controllers
         }
         
         [HttpGet("sales-activity/export/pdf")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
         public async Task<IActionResult> ExportSalesActivityPdf([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             try

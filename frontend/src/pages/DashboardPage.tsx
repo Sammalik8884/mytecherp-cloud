@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { PremiumChart } from '../components/dashboard/PremiumChart';
-import { SalesmanActivityChart } from '../components/dashboard/SalesmanActivityChart';
 import { SystemSetupGuide } from '../components/SystemSetupGuide';
+import { apiClient } from '../services/apiClient';
 import {
     AlertTriangle, RefreshCw, Calendar, Zap
 } from 'lucide-react';
