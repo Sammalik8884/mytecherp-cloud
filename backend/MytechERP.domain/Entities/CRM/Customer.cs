@@ -19,6 +19,12 @@ namespace MytechERP.domain.Entities.CRM
         public string Phone {  get; set; }=string.Empty ;
         public string TaxNumber {  get; set; }=string.Empty ;
         public string Address { get; set; } = string.Empty;
+        public bool IsProspect { get; set; } = true;
+        
+        public string? ContactPersonName { get; set; }
+        public bool HasVisitingCard { get; set; } = false;
+        public string? ContractorCompanyName { get; set; }
+        public string? FurtherDetails { get; set; }
 
         public ICollection<Site> Sites { get; set; } = new List<Site>();
         public ICollection<Contract> Contracts { get;set; } = new List<Contract>();

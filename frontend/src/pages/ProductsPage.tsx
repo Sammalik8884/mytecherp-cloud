@@ -453,12 +453,14 @@ export const ProductsPage = () => {
 
                             <form onSubmit={handleImportSubmit} className="space-y-4">
                                 <div>
-                                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Brand (Optional default)</label>
-                                    <input
-                                        type="text"
+                                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Select Format / Brand</label>
+                                    <select
                                         value={importBrand} onChange={e => setImportBrand(e.target.value)}
-                                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
-                                    />
+                                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent appearance-none"
+                                    >
+                                        <option value="LIFECO">LIFECO Format</option>
+                                        <option value="FIKE">FIKE Format (Encrypted)</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-muted-foreground mb-1 block">Select Excel File (.xlsx, .xls)</label>

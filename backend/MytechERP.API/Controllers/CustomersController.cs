@@ -20,7 +20,7 @@ namespace MytechERP.API.Controllers
         private readonly ApplicationDbContext _context;
         public CustomersController(ApplicationDbContext context)
         { _context = context; }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Salesman + "," + Roles.Estimation)]
         [HttpGet]
         public async Task<ActionResult<List<CustomerDto>>> GetAll()
         {
@@ -30,11 +30,16 @@ namespace MytechERP.API.Controllers
                 Name = x.Name,
                 Email = x.Email,
                 Phone = x.Phone,
-                Address = x.Address
+                Address = x.Address,
+                IsProspect = x.IsProspect,
+                ContactPersonName = x.ContactPersonName,
+                HasVisitingCard = x.HasVisitingCard,
+                ContractorCompanyName = x.ContractorCompanyName,
+                FurtherDetails = x.FurtherDetails
             }).ToListAsync();
             return Ok(customers);
         }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Salesman)]
         [HttpPost]
         public async Task<ActionResult> Create(CreateCustomerDto request)
         {
@@ -46,40 +51,63 @@ namespace MytechERP.API.Controllers
                 Email = request.Email,
                 Phone = request.Phone,
                 Address = request.Address,
-                TaxNumber = request.TaxNumber
+                TaxNumber = request.TaxNumber,
+                IsProspect = request.IsProspect
             };
+
+            var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (userRole == Roles.Salesman)
+            {
+                customer.IsProspect = true;
+            }
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
             return Ok(new { Message = "Customer Created Successfuly", Id = customer.Id });
         }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Salesman + "," + Roles.Estimation)]
         [HttpGet("{id}")]
         public async Task<ActionResult<CustomerDto>> GetById(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
             if (customer == null) { return NotFound(); }
-            var dto = new Customer
+            var dto = new CustomerDto
             {
                 Id = customer.Id,
                 Name = customer.Name,
                 Email = customer.Email,
                 Phone = customer.Phone,
-                Address = customer.Address
+                Address = customer.Address,
+                IsProspect = customer.IsProspect,
+                ContactPersonName = customer.ContactPersonName,
+                HasVisitingCard = customer.HasVisitingCard,
+                ContractorCompanyName = customer.ContractorCompanyName,
+                FurtherDetails = customer.FurtherDetails
             };
             return Ok(dto);
 
         }
         [HttpPut("{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Salesman)]
         public async Task<IActionResult> Update(int id, CreateCustomerDto request)
         {
             var customer = await _context.Customers.FindAsync(id);
             if (customer == null) { return NotFound(); };
+
+            var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (userRole == Roles.Salesman && !customer.IsProspect)
+            {
+                return Forbid();
+            }
+
             customer.Name = request.Name;
             customer.Email = request.Email;
             customer.Phone = request.Phone;
             customer.Address = request.Address;
             customer.TaxNumber = request.TaxNumber;
+            if (userRole != Roles.Salesman) {
+                customer.IsProspect = request.IsProspect;
+            }
+
             await _context.SaveChangesAsync();
             return Ok(new { Message = "Customer updated Successfuly" });
         }

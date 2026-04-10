@@ -484,11 +484,26 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.Property<string>("CompanyName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ContactPersonName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContractorCompanyName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FurtherDetails")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasVisitingCard")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsProspect")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -594,10 +609,19 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("SiteName");
+
+                    b.Property<string>("ProjectStatus")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
@@ -1582,6 +1606,164 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.ToTable("DocumentSignatures");
                 });
 
+            modelBuilder.Entity("MytechERP.domain.Entities.sales.SalesLead", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BOQFileUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DrawingsFileUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LeadNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("QuotationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SalesmanUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SalespersonSignatureName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SiteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("QuotationId");
+
+                    b.HasIndex("SalesmanUserId");
+
+                    b.HasIndex("SiteId");
+
+                    b.ToTable("SalesLeads");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.sales.SiteVisit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double?>("EndLatitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("EndLongitude")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MeetingNotes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SalesLeadId")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("StartLatitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("StartLongitude")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("VisitNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SalesLeadId");
+
+                    b.ToTable("SiteVisits");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.sales.VisitPhoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Caption")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PhotoUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SiteVisitId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiteVisitId");
+
+                    b.ToTable("VisitPhotos");
+                });
+
             modelBuilder.Entity("MytechERP.domain.Inventory.InventoryStock", b =>
                 {
                     b.Property<int>("Id")
@@ -2397,6 +2579,61 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.Navigation("Technician");
                 });
 
+            modelBuilder.Entity("MytechERP.domain.Entities.sales.SalesLead", b =>
+                {
+                    b.HasOne("MytechERP.domain.Entities.CRM.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MytechERP.domain.Quotations.Quotation", "Quotation")
+                        .WithMany()
+                        .HasForeignKey("QuotationId");
+
+                    b.HasOne("MytechERP.domain.Entities.AppUser", "SalesmanUser")
+                        .WithMany()
+                        .HasForeignKey("SalesmanUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MytechERP.domain.Entities.CRM.Site", "Site")
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Quotation");
+
+                    b.Navigation("SalesmanUser");
+
+                    b.Navigation("Site");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.sales.SiteVisit", b =>
+                {
+                    b.HasOne("MytechERP.domain.Entities.sales.SalesLead", "SalesLead")
+                        .WithMany("SiteVisits")
+                        .HasForeignKey("SalesLeadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SalesLead");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.sales.VisitPhoto", b =>
+                {
+                    b.HasOne("MytechERP.domain.Entities.sales.SiteVisit", "SiteVisit")
+                        .WithMany("Photos")
+                        .HasForeignKey("SiteVisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SiteVisit");
+                });
+
             modelBuilder.Entity("MytechERP.domain.Inventory.InventoryStock", b =>
                 {
                     b.HasOne("MytechERP.domain.Entities.Product", "Product")
@@ -2622,6 +2859,16 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.Navigation("Results");
 
                     b.Navigation("TimeLogs");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.sales.SalesLead", b =>
+                {
+                    b.Navigation("SiteVisits");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.sales.SiteVisit", b =>
+                {
+                    b.Navigation("Photos");
                 });
 
             modelBuilder.Entity("MytechERP.domain.Inventory.PurchaseOrder", b =>

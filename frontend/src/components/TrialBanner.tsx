@@ -11,6 +11,16 @@ interface TrialStatus {
     trialEndsAt: string | null;
 }
 
+// Global cache to prevent redundant API calls
+let cachedTrialPromise: Promise<{ data: TrialStatus }> | null = null;
+export const clearTrialCache = () => { cachedTrialPromise = null; };
+const fetchTrialStatus = () => {
+    if (!cachedTrialPromise) {
+        cachedTrialPromise = apiClient.get("/subscription/trial-status");
+    }
+    return cachedTrialPromise;
+};
+
 // Full-page blocking wall for expired trials
 export const TrialExpiredWall: React.FC = () => {
     const navigate = useNavigate();
@@ -52,7 +62,7 @@ export const TrialBanner: React.FC = () => {
 
     useEffect(() => {
         if (isPublicRoute) return;
-        apiClient.get("/subscription/trial-status")
+        fetchTrialStatus()
             .then((res: { data: TrialStatus }) => setStatus(res.data))
             .catch(() => {}); // Silently fail
     }, [location.pathname]);
@@ -105,7 +115,7 @@ export const useTrialEnforcement = () => {
 
     useEffect(() => {
         if (isPublicRoute) { setShouldBlock(false); return; }
-        apiClient.get("/subscription/trial-status")
+        fetchTrialStatus()
             .then((res: { data: TrialStatus }) => {
                 const s: TrialStatus = res.data;
                 setShouldBlock(s.isExpired && !s.hasActivePlan);

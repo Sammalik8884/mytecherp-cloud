@@ -18,6 +18,9 @@ namespace MytechERP.domain.Entities.CRM
         public string Name { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public string Address {  get; set; } = string.Empty;
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string? ProjectStatus { get; set; }
 
         public int CustomerId {  get; set; }
         public Customer? Customer { get; set; }

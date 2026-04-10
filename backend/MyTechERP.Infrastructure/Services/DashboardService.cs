@@ -179,5 +179,87 @@ namespace MyTechERP.Infrastructure.Services
                 InvoiceStatusBreakdown = invoiceStatusRaw.Select(x => new ChartDataPoint { Name = x.Status, Value = x.Count }).ToList(),
             };
         }
+
+        public async Task<SalesmanActivityResponseDto> GetSalesmanActivityMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var endOfPeriod = endDate?.Date.AddDays(1).AddSeconds(-1) ?? DateTime.UtcNow.Date.AddDays(1).AddSeconds(-1);
+            var startOfPeriod = startDate?.Date ?? endOfPeriod.Date.AddDays(-6);
+            int benchmark = 5;
+
+            var siteVisits = await _context.SiteVisits
+                .Include(s => s.SalesLead)
+                .ThenInclude(l => l.SalesmanUser)
+                .Where(s => s.StartTime != null && s.StartTime >= startOfPeriod && s.StartTime <= endOfPeriod && s.SalesLead != null && s.SalesLead.SalesmanUser != null)
+                .ToListAsync();
+
+            var dateLabels = new List<DateTime>();
+            for (var d = startOfPeriod.Date; d <= endOfPeriod.Date; d = d.AddDays(1))
+            {
+                dateLabels.Add(d);
+            }
+
+            var groupedBySalesman = siteVisits
+                .GroupBy(s => new { s.SalesLead!.SalesmanUserId, s.SalesLead.SalesmanUser!.FullName })
+                .ToList();
+
+            var response = new SalesmanActivityResponseDto
+            {
+                StartDate = startOfPeriod,
+                EndDate = endOfPeriod,
+                BenchmarkVisitsPerDay = benchmark
+            };
+
+            var overallTrendData = new Dictionary<DateTime, int>();
+            foreach (var d in dateLabels) { overallTrendData[d] = 0; }
+
+            foreach (var group in groupedBySalesman)
+            {
+                var summary = new SalesmanActivitySummaryDto
+                {
+                    SalesmanUserId = group.Key.SalesmanUserId,
+                    SalesmanName = group.Key.FullName ?? group.Key.SalesmanUserId,
+                    TotalVisitsInPeriod = group.Count()
+                };
+
+                var totalPossibleVisits = dateLabels.Count * benchmark;
+                summary.AverageVisitsPerDay = dateLabels.Count > 0 ? (int)Math.Round((double)summary.TotalVisitsInPeriod / dateLabels.Count) : 0;
+                summary.AverageActivityPercentage = totalPossibleVisits > 0 
+                    ? Math.Min(100, Math.Round((decimal)summary.TotalVisitsInPeriod / totalPossibleVisits * 100, 2))
+                    : 0;
+
+                var visitsByDate = group.GroupBy(s => s.StartTime!.Value.Date)
+                                        .ToDictionary(g => g.Key, g => g.Count());
+
+                foreach (var d in dateLabels)
+                {
+                    var count = visitsByDate.ContainsKey(d) ? visitsByDate[d] : 0;
+                    var pct = Math.Min(100, Math.Round((decimal)count / benchmark * 100, 2));
+
+                    summary.DailyRecords.Add(new SalesmanActivityRecordDto
+                    {
+                        SalesmanUserId = summary.SalesmanUserId,
+                        SalesmanName = summary.SalesmanName,
+                        Date = d.ToString("yyyy-MM-dd"),
+                        TotalVisits = count,
+                        ActivityPercentage = pct
+                    });
+
+                    overallTrendData[d] += count; // Add to overall trend
+                }
+
+                response.SalesmenSummary.Add(summary);
+            }
+
+            foreach (var kvp in overallTrendData.OrderBy(k => k.Key))
+            {
+                response.OverallActivityTrend.Add(new ChartDataPoint
+                {
+                    Name = kvp.Key.ToString("MMM dd"),
+                    Value = kvp.Value
+                });
+            }
+
+            return response;
+        }
     }
 }

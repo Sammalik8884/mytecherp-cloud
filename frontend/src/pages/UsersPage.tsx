@@ -27,7 +27,7 @@ export const UsersPage = () => {
             ]);
             setUsers(usersData);
             // Only show the official backend roles — filter out stale DB entries like Worker, Client, Customers
-            const validRoles = ["Manager", "Engineer", "Technician", "Customer"];
+            const validRoles = ["Manager", "Engineer", "Technician", "Customer", "Salesman", "Estimation"];
             const filteredRoles = rolesData.filter((r: string) => validRoles.includes(r));
             setRoles(filteredRoles);
             if (filteredRoles.length > 0) {

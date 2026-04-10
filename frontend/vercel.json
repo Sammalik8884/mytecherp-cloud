@@ -12,6 +12,11 @@
     { "src": "/roadmap",   "dest": "/roadmap.html" },
     { "src": "/careers",   "dest": "/careers.html" },
     { "src": "/blog",      "dest": "/blog.html" },
+    { "src": "/blog-best-fm-software-2026", "dest": "/blog-best-fm-software-2026.html" },
+    { "src": "/blog-digital-work-orders",   "dest": "/blog-digital-work-orders.html" },
+    { "src": "/blog-automate-invoicing",    "dest": "/blog-automate-invoicing.html" },
+    { "src": "/blog-digital-checklists-fm", "dest": "/blog-digital-checklists-fm.html" },
+    { "src": "/blog-erp-vs-cmms",           "dest": "/blog-erp-vs-cmms.html" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

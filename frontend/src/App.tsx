@@ -30,6 +30,10 @@ import { ProcurementPage } from "./pages/ProcurementPage";
 import { ChecklistBuilderPage } from "./pages/ChecklistBuilderPage";
 import { AuditLogsPage } from "./pages/AuditLogsPage";
 import { SyncDashboardPage } from "./pages/SyncDashboardPage";
+import { SalesLeadsPage } from "./pages/SalesLeadsPage";
+import { SalesmanDashboardPage } from "./pages/SalesmanDashboardPage";
+import { SiteVisitPage } from "./pages/SiteVisitPage";
+import { BoqDrawingsPortalPage } from "./pages/BoqDrawingsPortalPage";
 import { CustomerPortalDashboardPage } from "./pages/CustomerPortalDashboardPage";
 import { CustomerInvoicesPage } from "./pages/CustomerInvoicesPage";
 import { SubscriptionPlansPage } from "./pages/SubscriptionPlansPage";
@@ -76,13 +80,24 @@ function App() {
                             </Route>
 
                             {/* Catalog & Sales - Engineer/Manager/Admin Only */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Estimation"]} />}>
                                 <Route path="/categories" element={<CategoriesPage />} />
                                 <Route path="/products" element={<ProductsPage />} />
                                 <Route path="/quotations" element={<QuotationsPage />} />
                                 <Route path="/quotations/new" element={<QuotationFormPage />} />
                                 <Route path="/quotations/edit/:id" element={<QuotationFormPage />} />
                                 <Route path="/contracts" element={<ContractsPage />} />
+                                <Route path="/sales/boq-portal" element={<BoqDrawingsPortalPage />} />
+                            </Route>
+
+                            {/* Sales & Leads - Salesman/Manager/Admin */}
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Salesman", "Estimation"]} />}>
+                                <Route path="/sales/leads" element={<SalesLeadsPage />} />
+                                <Route path="/sales/visit/:id" element={<SiteVisitPage />} />
+                            </Route>
+                            
+                            <Route element={<RoleProtectedRoute allowedRoles={["Salesman"]} />}>
+                                <Route path="/sales/my-dashboard" element={<SalesmanDashboardPage />} />
                             </Route>
 
                             {/* System Area / Admin - Manager/Admin Only */}

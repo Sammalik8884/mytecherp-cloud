@@ -1,4 +1,4 @@
-﻿using OfficeOpenXml;
+using OfficeOpenXml;
 using MytechERP.domain.Entities;
 using MytechERP.Infrastructure.Persistance;
 using MytechERP.Application.Interfaces;
@@ -67,7 +67,7 @@ namespace MyTechERP.Infrastructure.Services
 
                         var existing = await _context.Products
                             .IgnoreQueryFilters()
-                            .FirstOrDefaultAsync(p => p.ItemCode == uniqueKey && p.TenantId == tenantId);
+                            .FirstOrDefaultAsync(p => p.ItemCode == uniqueKey && p.TenantId == tenantId && p.Brand == brandName);
                         if (existing != null)
                         {
                             existing.Name = desc;

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { UserDto, LoginDto, RegisterDto, PlanFeature } from "../types/auth";
 import { authService } from "../services/authService";
 import { apiClient } from "../services/apiClient";
+import { clearTrialCache } from "../components/TrialBanner";
 
 interface AuthContextType {
     user: UserDto | null;
@@ -111,6 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const logout = () => {
         authService.logout();
         sessionStorage.removeItem("erp_creds");
+        clearTrialCache();
         setUser(null);
         setIsAuthenticated(false);
     };

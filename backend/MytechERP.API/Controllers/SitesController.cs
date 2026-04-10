@@ -19,7 +19,7 @@ namespace MytechERP.API.Controllers
         { 
            _context = context;
         }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation + "," + Roles.Salesman)]
         [HttpGet]
         public async Task<ActionResult<List<SiteDto>>> GetAll()
         {
@@ -43,7 +43,7 @@ namespace MytechERP.API.Controllers
         }
       
         [HttpPost]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Salesman)]
         public async Task<ActionResult> Create(CreateSiteDto request)
         {
  
@@ -67,7 +67,7 @@ namespace MytechERP.API.Controllers
 
             return Ok(new { Message = "Site Created Successfully", Id = site.Id });
         }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation + "," + Roles.Salesman)]
         [HttpGet("{id}")]
         public async Task<ActionResult<SiteDto>> GetById(int id)
         {
@@ -89,7 +89,7 @@ namespace MytechERP.API.Controllers
 
             return Ok(dto);
         }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Salesman)]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, CreateSiteDto request)
         {

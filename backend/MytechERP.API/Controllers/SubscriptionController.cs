@@ -92,10 +92,25 @@ namespace MytechERP.API.Controllers
             var tenantId = _currentUserService.TenantId;
             if (tenantId == null) return Unauthorized();
 
-            var features = await _subscriptionService.GetPlanFeaturesAsync(tenantId.Value);
-
-            // Also return the plan name so the frontend can show the correct label
             var subscription = await _subscriptionService.GetByTenantIdAsync(tenantId.Value);
+
+            var features = MytechERP.domain.Enums.PlanFeature.None;
+            if (subscription != null && subscription.SubscriptionStatus == MytechERP.domain.Enums.SubscriptionStatus.Active && subscription.Plan != null)
+            {
+                features = subscription.Plan.PlanFeatures;
+            }
+            else
+            {
+                var tenant = await _currentUserService.GetCurrentTenantAsync();
+                if (tenant != null && DateTime.UtcNow <= tenant.SubscriptionExpiresAt)
+                {
+                    features = MytechERP.domain.Enums.PlanFeature.HrPayroll | 
+                               MytechERP.domain.Enums.PlanFeature.ChecklistFormBuilder | 
+                               MytechERP.domain.Enums.PlanFeature.AuditLogs | 
+                               MytechERP.domain.Enums.PlanFeature.AdvancedAnalytics |
+                               MytechERP.domain.Enums.PlanFeature.OfflineSync;
+                }
+            }
 
             return Ok(new
             {

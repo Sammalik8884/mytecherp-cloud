@@ -94,6 +94,17 @@ namespace MyTechERP.Infrastructure.Services
                 quotation.GrandTotal.ToString("N2")
             );
 
+            if (quotation.OpportunityId.HasValue)
+            {
+                var lead = await _context.SalesLeads.FindAsync(quotation.OpportunityId.Value);
+                if (lead != null)
+                {
+                    lead.QuotationId = quotation.Id;
+                    lead.Status = LeadStatus.ConvertedToQuotation;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             return await GetQuoteByIdAsync(quotation.Id);
         }
 
@@ -365,6 +376,11 @@ namespace MyTechERP.Infrastructure.Services
             q.ApprovedByUserId = userId;
             q.ApprovedAt = DateTime.UtcNow;
             q.ReviewerComments = null;
+
+            if (q.Customer != null)
+            {
+                q.Customer.IsProspect = false;
+            }
 
             await _context.SaveChangesAsync();
 

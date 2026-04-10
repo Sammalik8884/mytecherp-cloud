@@ -29,7 +29,7 @@ apiClient.interceptors.response.use(
         const originalRequest = error.config;
 
         // Do not intercept login failures
-        if (originalRequest.url?.includes("/Auth/login")) {
+        if (originalRequest.url?.includes("/Auth/")) {
             return Promise.reject(error);
         }
 
@@ -43,7 +43,7 @@ apiClient.interceptors.response.use(
                     const creds = JSON.parse(atob(savedCredsStr));
                     // Call backend login to get a fresh token without user intervention
                     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5269/api";
-                    const res = await axios.post(`${apiUrl}/Auth/login`, creds);
+                    const res = await axios.post(`${apiUrl}/Auth/login`, creds, { timeout: 5000 });
 
                     if (res.data?.token) {
                         sessionStorage.setItem("token", res.data.token);

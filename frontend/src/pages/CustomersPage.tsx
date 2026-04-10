@@ -10,6 +10,7 @@ export const CustomersPage = () => {
     const [customers, setCustomers] = useState<CustomerDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [activeTab, setActiveTab] = useState<"Clients" | "Customers">("Clients");
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,8 +53,9 @@ export const CustomersPage = () => {
     }, []);
 
     const filteredCustomers = customers.filter(c =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.email.toLowerCase().includes(searchQuery.toLowerCase())
+        (c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.email.toLowerCase().includes(searchQuery.toLowerCase())) &&
+        (activeTab === "Clients" ? c.isProspect : !c.isProspect)
     );
 
     const handleOpenModal = (customer?: CustomerDto) => {
@@ -121,19 +123,50 @@ export const CustomersPage = () => {
                     className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:-translate-y-0.5 transition-all shadow-lg hover:shadow-primary/25 flex items-center space-x-2"
                 >
                     <Plus className="h-5 w-5" />
-                    <span>Add Customer</span>
+                    <span>Add {activeTab === "Clients" ? "Client" : "Customer"}</span>
                 </button>
             </div>
 
-            <div className="mb-8 grid gap-4 grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
+            <div className="mb-8 grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
                 <StatCard
-                    title="Total Customers"
-                    value={customers.length}
-                    subtitle="Registered accounts"
+                    title="Total Clients (Prospects)"
+                    value={customers.filter(c => c.isProspect).length}
+                    subtitle="Active prospects"
                     icon={Users}
                     href="#"
                     accentColor="blue"
                 />
+                <StatCard
+                    title="Total Finalized Customers"
+                    value={customers.filter(c => !c.isProspect).length}
+                    subtitle="Converted accounts"
+                    icon={Users}
+                    href="#"
+                    accentColor="emerald"
+                />
+            </div>
+
+            <div className="flex space-x-4 mb-6 border-b border-border/40">
+                <button
+                    onClick={() => setActiveTab("Clients")}
+                    className={`pb-3 px-2 text-sm font-medium transition-colors border-b-2 ${
+                        activeTab === "Clients" 
+                            ? "border-primary text-primary" 
+                            : "border-transparent text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                    Clients (Prospects)
+                </button>
+                <button
+                    onClick={() => setActiveTab("Customers")}
+                    className={`pb-3 px-2 text-sm font-medium transition-colors border-b-2 ${
+                        activeTab === "Customers" 
+                            ? "border-primary text-primary" 
+                            : "border-transparent text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                    Finalized Customers
+                </button>
             </div>
 
             <div className="bg-secondary/30 border border-border/50 rounded-2xl overflow-hidden backdrop-blur-sm shadow-xl">
@@ -157,6 +190,7 @@ export const CustomersPage = () => {
                                 <th className="px-6 py-4 font-medium">Name</th>
                                 <th className="px-6 py-4 font-medium">Email</th>
                                 <th className="px-6 py-4 font-medium">Phone</th>
+                                <th className="px-6 py-4 font-medium">Status</th>
                                 <th className="px-6 py-4 font-medium text-right">Actions</th>
                             </tr>
                         </thead>
@@ -184,6 +218,15 @@ export const CustomersPage = () => {
                                         </td>
                                         <td className="px-6 py-4 text-muted-foreground">
                                             {customer.phone || "-"}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                customer.isProspect
+                                                    ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                                    : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                            }`}>
+                                                {customer.isProspect ? "Client" : "Customer"}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end space-x-2">

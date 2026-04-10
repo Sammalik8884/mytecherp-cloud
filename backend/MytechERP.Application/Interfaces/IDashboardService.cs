@@ -10,5 +10,6 @@ namespace MytechERP.Application.Interfaces
     public interface IDashboardService
     {
         Task<DashboardMetricsDto> GetExecutiveMetricsAsync(DateTime? startDate = null, DateTime? endDate = null);
+        Task<SalesmanActivityResponseDto> GetSalesmanActivityMetricsAsync(DateTime? startDate = null, DateTime? endDate = null);
     }
 }

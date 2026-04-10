@@ -21,6 +21,7 @@ namespace MytechERP.API.Controllers
         private readonly IGenericRepository<Product> _genericRepository;
         private readonly IFileService _fileService;
         private readonly IProductImportService _importService;
+        private readonly IFikeProductImportService _fikeImportService;
         private readonly ICurrentUserService _currentUserService;
         private readonly ApplicationDbContext _context;
 
@@ -28,17 +29,19 @@ namespace MytechERP.API.Controllers
             IGenericRepository<Product> genericRepository,
             IFileService fileService,
             IProductImportService importService,
+            IFikeProductImportService fikeImportService,
             ICurrentUserService currentUserService )
         {
             _genericRepository = genericRepository;
             _fileService = fileService;
             _importService = importService;
+            _fikeImportService = fikeImportService;
             _currentUserService = currentUserService;
             _context = context;
         }
 
         [HttpGet]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation)]
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
             var searchFilter = ProductSearchHelper.GetSearchExpression(filter.SearchText);
@@ -54,7 +57,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation)]
         public async Task<IActionResult> GetById(int id)
         {
             var product = await _genericRepository.GetByIdAsync(id, includeProperties: "Category");
@@ -111,8 +114,16 @@ namespace MytechERP.API.Controllers
                
                 int tenantId = _currentUserService.TenantId ?? 1;
 
-               
-                var result = await _importService.ImportExcelAsync(file, brand, tenantId);
+                string result;
+                if (brand.Equals("FIKE", StringComparison.OrdinalIgnoreCase))
+                {
+                    result = await _fikeImportService.ImportExcelAsync(file, brand, tenantId);
+                }
+                else
+                {
+                    result = await _importService.ImportExcelAsync(file, brand, tenantId);
+                }
+
                 return Ok(new { message = result });
             }
             catch (Exception ex)

@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Save, Plus, Trash2, ArrowLeft, Loader2, Search } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 import { quotationService, CreateQuotationDto, CreateQuotationItemDto } from "../services/quotationService";
 import { customerService } from "../services/customerService";
 import { siteService } from "../services/siteService";
 import { productService } from "../services/productService";
+import { salesService } from "../services/salesService";
 
 import { CustomerDto } from "../types/customer";
 import { SiteDto } from "../types/site";
@@ -18,6 +19,8 @@ export const QuotationFormPage = () => {
     const { id } = useParams<{ id: string }>();
     const isEditMode = Boolean(id);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const leadIdParam = searchParams.get("leadId");
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -50,10 +53,10 @@ export const QuotationFormPage = () => {
             try {
                 setLoading(true);
                 const [custData, siteData, prodData, assetData] = await Promise.all([
-                    customerService.getAll(),
-                    siteService.getAll(),
-                    productService.getAll(1, 1000),
-                    apiClient.get<AssetDto[]>("/Assets").then(r => r.data)
+                    customerService.getAll().catch(() => []),
+                    siteService.getAll().catch(() => []),
+                    productService.getAll(1, 1000).catch(() => []),
+                    apiClient.get<AssetDto[]>("/Assets").then(r => r.data).catch(() => [])
                 ]);
                 setCustomers(custData);
                 setSites(siteData);
@@ -90,6 +93,18 @@ export const QuotationFormPage = () => {
                         };
                     });
                     setUiItems(editUiItems);
+                } else if (leadIdParam) {
+                    const leadData = await salesService.getLead(Number(leadIdParam)).catch(() => null);
+                    if (leadData) {
+                        setFormData(prev => ({
+                            ...prev,
+                            customerId: leadData.customerId,
+                            siteId: leadData.siteName ? siteData.find(s => s.name === leadData.siteName)?.id : undefined,
+                            opportunityId: leadData.id
+                        }));
+                    }
+                    setUiItems([{ productId: 0, quantity: 1, unitPrice: 0, lineTotal: 0 }]);
+                    setProductSearch([""]);
                 } else {
                     // Add one empty row by default
                     setUiItems([{ productId: 0, quantity: 1, unitPrice: 0, lineTotal: 0 }]);

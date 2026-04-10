@@ -12,5 +12,6 @@ namespace MytechERP.Application.Interfaces
         Task<byte[]> GenerateContractPdfAsync(int contractId);
         Task<byte[]> GenerateInvoicePdfAsync(int invoiceId);
         Task<byte[]> GeneratePurchaseOrderPdfAsync(int poId);
+        Task<byte[]> GenerateSalesmanActivityReportPdfAsync(MytechERP.Application.DTOs.Dashboard.SalesmanActivityResponseDto data);
     }
 }

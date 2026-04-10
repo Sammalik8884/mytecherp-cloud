@@ -11,6 +11,7 @@ using MytechERP.domain.Entities.Finance;
 using MytechERP.domain.Entities.HR;
 using MytechERP.domain.Entities.Job;
 using MytechERP.domain.Entities.System;
+using MytechERP.domain.Entities.sales;
 using MytechERP.domain.Interfaces;
 using MytechERP.domain.Inventory;
 using MytechERP.domain.Quotations;
@@ -84,6 +85,10 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<SyncLog> SyncLogs { get; set; }
         public DbSet<SyncConflict> SyncConflicts { get; set; }
 
+        public DbSet<SalesLead> SalesLeads { get; set; }
+        public DbSet<SiteVisit> SiteVisits { get; set; }
+        public DbSet<VisitPhoto> VisitPhotos { get; set; }
+
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<TenantSubscription> TenantSubscriptions { get; set; }
@@ -145,6 +150,18 @@ namespace MytechERP.Infrastructure.Persistance
                 .WithMany()
                 .HasForeignKey(t => t.ToWarehouseId)
                 .OnDelete(DeleteBehavior.Restrict); 
+            
+            builder.Entity<SalesLead>()
+                .HasOne(sl => sl.Site)
+                .WithMany()
+                .HasForeignKey(sl => sl.SiteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<SalesLead>()
+                .HasOne(sl => sl.Customer)
+                .WithMany()
+                .HasForeignKey(sl => sl.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict); 
             builder.Entity<Customer>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId && !x.IsDeleted);
             builder.Entity<Site>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId && !x.IsDeleted);
             builder.Entity<Building>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId && !x.IsDeleted);
@@ -174,6 +191,9 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<SyncConflict>().HasQueryFilter(sc => sc.TenantId == _currentUserService.TenantId);
             builder.Entity<AuditLog>().HasQueryFilter(al => al.TenantId == _currentUserService.TenantId);
             builder.Entity<EmployeePayrollProfile>().HasQueryFilter(epp => epp.TenantId == _currentUserService.TenantId);
+            builder.Entity<SalesLead>().HasQueryFilter(sl => sl.TenantId == _currentUserService.TenantId && !sl.IsDeleted);
+            builder.Entity<SiteVisit>().HasQueryFilter(sv => sv.TenantId == _currentUserService.TenantId && !sv.IsDeleted);
+            builder.Entity<VisitPhoto>().HasQueryFilter(vp => vp.TenantId == _currentUserService.TenantId && !vp.IsDeleted);
 
             // ─── Subscription Plan & Tenant Subscription ─────────────────────────────
             // No tenant query filter on SubscriptionPlan (it's global/shared data).

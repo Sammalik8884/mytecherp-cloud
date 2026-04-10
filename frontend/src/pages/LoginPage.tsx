@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { Briefcase, KeyRound, Mail, AlertCircle, Loader2, X, Eye, EyeOff } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { apiClient } from "../services/apiClient";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -23,6 +24,11 @@ export const LoginPage = () => {
     const [step, setStep] = useState<"credentials" | "tenant-selection">("credentials");
     const [tempToken, setTempToken] = useState("");
     const [tenants, setTenants] = useState<{ tenantId: number; companyName: string; userId: string }[]>([]);
+
+    // PRE-WARM: Wake up Azure backend while user types their credentials
+    useEffect(() => {
+        apiClient.get("/health").catch(() => {});
+    }, []);
 
     // Redirect if already authenticated
     if (isAuthenticated) {

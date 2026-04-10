@@ -1,4 +1,4 @@
-﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -19,7 +19,9 @@ namespace MyTechERP.Infrastructure.Services
         public BlobService(IConfiguration configuration)
         {
             string connectionString = configuration.GetConnectionString("AzureStorage");
-            _blobServiceClient = new BlobServiceClient(connectionString);
+            // Force older API version compatibility for local Azurite / Azure Storage Emulators
+            var options = new BlobClientOptions(BlobClientOptions.ServiceVersion.V2020_12_06);
+            _blobServiceClient = new BlobServiceClient(connectionString, options);
         }
 
         public async Task<string> UploadAsync(IFormFile file, string fileName)
@@ -30,7 +32,7 @@ namespace MyTechERP.Infrastructure.Services
             {
                 await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
             }
-            catch (Azure.RequestFailedException ex) when (ex.Status == 409)
+            catch (Azure.RequestFailedException ex) when (ex.Status == 409 || ex.ErrorCode == "ContainerAlreadyExists" || ex.Message.Contains("already exists"))
             {
                 // Container already exists, ignore
             }
@@ -53,7 +55,7 @@ namespace MyTechERP.Infrastructure.Services
             {
                 await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
             }
-            catch (Azure.RequestFailedException ex) when (ex.Status == 409)
+            catch (Azure.RequestFailedException ex) when (ex.Status == 409 || ex.ErrorCode == "ContainerAlreadyExists" || ex.Message.Contains("already exists"))
             {
                 // Container already exists, ignore
             }

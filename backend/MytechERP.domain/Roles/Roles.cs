@@ -11,9 +11,10 @@ namespace MytechERP.domain.Roles
         public const string Admin = "Admin";
         public const string Manager = "Manager";
         public const string Engineer = "Engineer";
-
+        public const string Estimation = "Estimation";
 
         public const string Technician = "Technician";
-        public const string Customers = "Customers";
+        public const string Customers = "Customer";
+        public const string Salesman = "Salesman";
     }
 }

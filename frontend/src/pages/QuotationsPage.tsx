@@ -330,9 +330,11 @@ export const QuotationsPage = () => {
                                                 <button onClick={() => handleDownloadPdf(quote.id, quote.quoteNumber)} title="Download PDF" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
                                                     <DownloadCloud className="h-4 w-4" />
                                                 </button>
+                                                {!hasRole(["Estimation"]) && (
                                                 <button onClick={() => handleSendEmail(quote.id)} title="Send Email" className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors">
                                                     <Send className="h-4 w-4" />
                                                 </button>
+                                                )}
                                                 <button onClick={() => navigate(`/quotations/edit/${quote.id}`)} title="Edit" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
                                                     <Edit className="h-4 w-4" />
                                                 </button>

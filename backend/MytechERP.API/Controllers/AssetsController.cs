@@ -62,7 +62,7 @@ namespace MytechERP.API.Controllers
         }
 
        
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

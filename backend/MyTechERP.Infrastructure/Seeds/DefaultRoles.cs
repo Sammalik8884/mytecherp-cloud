@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using MytechERP.domain.Constants;
 using MytechERP.domain.Entities;
 using MytechERP.domain.Roles;
@@ -17,8 +17,11 @@ namespace MyTechERP.Infrastructure.Seeds
         {
             await roleManager.CreateAsync(new IdentityRole(Roles.Admin));
             await roleManager.CreateAsync(new IdentityRole(Roles.Manager));
+            await roleManager.CreateAsync(new IdentityRole(Roles.Engineer));
+            await roleManager.CreateAsync(new IdentityRole(Roles.Estimation));
             await roleManager.CreateAsync(new IdentityRole(Roles.Technician));
             await roleManager.CreateAsync(new IdentityRole(Roles.Customers));
+            await roleManager.CreateAsync(new IdentityRole(Roles.Salesman));
             var adminRole = await roleManager.FindByNameAsync(Roles.Admin);
             await SeedClaimsForSuperAdmin(roleManager, adminRole);
         }

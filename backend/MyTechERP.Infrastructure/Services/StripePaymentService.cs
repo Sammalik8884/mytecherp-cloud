@@ -16,6 +16,21 @@ namespace MyTechERP.Infrastructure.Services
             StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
         }
 
+        private string GetValidUrl(string configKey, string fallbackPath)
+        {
+            var url = _config[configKey];
+            if (string.IsNullOrWhiteSpace(url) || !url.StartsWith("http"))
+            {
+                var baseUrl = _config["FrontendUrls:0"];
+                if (string.IsNullOrWhiteSpace(baseUrl) || !baseUrl.StartsWith("http"))
+                {
+                    baseUrl = "https://mytech-erp.vercel.app";
+                }
+                return $"{baseUrl.TrimEnd('/')}{fallbackPath}";
+            }
+            return url;
+        }
+
         // ─── One-off Invoice Payment ────────────────────────────────────────────────
 
         public async Task<PaymentResponseDto> CreateCheckoutSessionAsync(PaymentRequestDto request)
@@ -44,8 +59,8 @@ namespace MyTechERP.Infrastructure.Services
                     },
                     Mode = "payment",
                     ClientReferenceId = request.InvoiceId.ToString(),
-                    SuccessUrl = _config["Stripe:SuccessUrl"] ?? "https://your-erp.com/payment/success?session_id={CHECKOUT_SESSION_ID}",
-                    CancelUrl  = _config["Stripe:CancelUrl"]  ?? "https://your-erp.com/payment/cancel",
+                    SuccessUrl = GetValidUrl("Stripe:SuccessUrl", "/payment/success?session_id={CHECKOUT_SESSION_ID}"),
+                    CancelUrl  = GetValidUrl("Stripe:CancelUrl", "/payment/cancel"),
                 };
 
                 var service = new SessionService();
@@ -96,8 +111,8 @@ namespace MyTechERP.Infrastructure.Services
                     {
                         { "tenantId", tenantId.ToString() }
                     },
-                    SuccessUrl = _config["Stripe:SubscriptionSuccessUrl"] ?? "https://your-erp.com/subscription/success?session_id={CHECKOUT_SESSION_ID}",
-                    CancelUrl  = _config["Stripe:SubscriptionCancelUrl"]  ?? "https://your-erp.com/subscription/cancel",
+                    SuccessUrl = GetValidUrl("Stripe:SubscriptionSuccessUrl", "/subscription/success?session_id={CHECKOUT_SESSION_ID}"),
+                    CancelUrl  = GetValidUrl("Stripe:SubscriptionCancelUrl", "/subscription/cancel"),
                 };
 
                 var service = new SessionService();

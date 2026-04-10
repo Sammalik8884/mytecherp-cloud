@@ -3,62 +3,121 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Blog — FiretechERP</title>
+<title>Blog — MytechERP | Facilities Management Insights</title>
+<meta name="description" content="Expert insights on facilities management software, work order automation, digital checklists, invoicing, and ERP solutions for maintenance and service companies." />
+<meta name="keywords" content="facilities management blog, FM software tips, maintenance management, work order best practices, ERP insights" />
+<meta name="robots" content="index, follow" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{ --bg:#050914; --surface:#0d1526; --border:rgba(255,255,255,0.07); --primary:#4f8ef7; --accent:#a78bfa; --text:#f0f4ff; --muted:#8b98b8; }
+:root{--bg:#050914;--surface:#0d1526;--border:rgba(255,255,255,0.07);--primary:#4f8ef7;--accent:#a78bfa;--green:#34d399;--orange:#fb923c;--text:#f0f4ff;--muted:#8b98b8;--radius:14px}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 2rem;background:rgba(5,9,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
-.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
-.container{max-width:800px;margin:140px auto 100px;padding:0 2rem;}
-h1{font-size:2.5rem;font-weight:800;margin-bottom:.5rem;}
-.subtitle{color:var(--muted);margin-bottom:3rem;}
-.post-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.8rem;margin-bottom:1.5rem;transition:border-color .2s;}
-.post-card:hover{border-color:rgba(79,142,247,0.4);}
-.post-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin-bottom:.75rem;display:block;}
-.post-card h2{font-size:1.2rem;font-weight:700;margin-bottom:.5rem;color:#fff;}
-.post-card p{font-size:.875rem;color:var(--muted);margin-bottom:1rem;}
-.post-meta{font-size:.78rem;color:var(--muted);}
-a{color:var(--primary);text-decoration:none;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 2rem;background:rgba(5,9,20,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.cta-btn{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff!important;padding:8px 20px;border-radius:8px;font-weight:600;font-size:.85rem;-webkit-text-fill-color:#fff}
+.container{max-width:800px;margin:130px auto 100px;padding:0 2rem}
+h1{font-size:2.5rem;font-weight:800;margin-bottom:.5rem;background:linear-gradient(135deg,#fff,#c8d8f8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{color:var(--muted);margin-bottom:2.5rem;font-size:1.05rem}
+.featured{background:linear-gradient(135deg,rgba(79,142,247,0.08),rgba(167,139,250,0.08));border:1px solid rgba(79,142,247,0.25);border-radius:var(--radius);padding:2rem;margin-bottom:2rem;transition:border-color .2s,transform .2s;cursor:pointer;text-decoration:none;display:block}
+.featured:hover{border-color:rgba(79,142,247,0.5);transform:translateY(-2px)}
+.featured-badge{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--accent));padding:3px 10px;border-radius:12px;display:inline-block;margin-bottom:.8rem}
+.post-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.8rem;margin-bottom:1.2rem;transition:border-color .2s,transform .2s;cursor:pointer;text-decoration:none;display:block}
+.post-card:hover{border-color:rgba(79,142,247,0.4);transform:translateY(-2px)}
+.post-tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:inline-block;margin-bottom:.6rem;padding:2px 8px;border-radius:10px}
+.tag-comparison{color:var(--accent);background:rgba(167,139,250,0.1)}
+.tag-field{color:var(--green);background:rgba(52,211,153,0.1)}
+.tag-ops{color:var(--orange);background:rgba(251,146,60,0.1)}
+.tag-guide{color:var(--primary);background:rgba(79,142,247,0.1)}
+.tag-compliance{color:var(--green);background:rgba(52,211,153,0.1)}
+.post-card h2,.featured h2{font-size:1.2rem;font-weight:700;margin-bottom:.5rem;color:#fff}
+.featured h2{font-size:1.4rem}
+.post-card p,.featured p{font-size:.875rem;color:var(--muted);margin-bottom:.8rem}
+.post-meta{font-size:.78rem;color:var(--muted)}
+a{color:var(--primary);text-decoration:none}
+.subscribe-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;text-align:center;margin-top:3rem}
+.subscribe-box h3{font-size:1.1rem;margin-bottom:.5rem}
+.subscribe-box p{font-size:.85rem;color:var(--muted);margin-bottom:1rem}
+footer{text-align:center;padding:40px 2rem;color:var(--muted);font-size:.82rem;border-top:1px solid var(--border)}
+@media(max-width:600px){h1{font-size:1.8rem}.container{margin-top:100px}nav{padding:14px 1rem}}
 </style>
 </head>
 <body>
 <nav>
-  <a href="/landing" class="nav-logo">⚡ FiretechERP</a>
+  <a href="/landing" class="nav-logo">⚡ MytechERP</a>
+  <div class="nav-links">
+    <a href="/about.html">About</a>
+    <a href="/roadmap.html">Roadmap</a>
+    <a href="/" class="cta-btn">Start Free Trial</a>
+  </div>
 </nav>
+
 <div class="container">
   <h1>Blog</h1>
-  <p class="subtitle">Insights on field service management, operations, and building great software.</p>
+  <p class="subtitle">Expert insights on facilities management, field service operations, and building great software.</p>
 
-  <div class="post-card">
-    <span class="post-tag">🚀 Product</span>
-    <h2>FiretechERP v2.0: Full Mobile Responsiveness is Here</h2>
-    <p>We've completely rearchitected the frontend to work beautifully on any screen size — from the dispatch desk to the field technician's phone. Here's what changed and why.</p>
-    <span class="post-meta">March 2026 · 5 min read</span>
-  </div>
+  <!-- FEATURED POST -->
+  <a href="/blog-best-fm-software-2026.html" class="featured">
+    <span class="featured-badge">⭐ Featured</span>
+    <h2>10 Best Facilities Management Software in 2026</h2>
+    <p>The definitive comparison of FM software. We analyzed features, pricing, and real-world performance of the top 10 tools — from CMMS to full ERP — to help you pick the right one.</p>
+    <span class="post-meta">📅 March 20, 2026 · ⏱️ 12 min read · 📊 Comparison Guide</span>
+  </a>
 
-  <div class="post-card">
-    <span class="post-tag">💡 Operations</span>
-    <h2>How to Cut Invoice Processing Time by 68% with Automation</h2>
-    <p>Manual invoicing is killing your cash flow. Here's a practical guide to automating your billing cycle — from quote to paid invoice — without changing your team's workflow.</p>
-    <span class="post-meta">February 2026 · 8 min read</span>
-  </div>
+  <!-- ARTICLE CARDS -->
+  <a href="/blog-erp-vs-cmms.html" class="post-card">
+    <span class="post-tag tag-guide">📊 Buying Guide</span>
+    <h2>ERP vs CMMS: Which Does Your Maintenance Business Need?</h2>
+    <p>CMMS handles work orders. ERP handles your entire business. Here's how to decide which one fits — with a cost comparison that might surprise you.</p>
+    <span class="post-meta">📅 March 10, 2026 · ⏱️ 10 min read</span>
+  </a>
 
-  <div class="post-card">
-    <span class="post-tag">🔧 Field Service</span>
-    <h2>Offline-First: Why Your Field Software Must Work Without Signal</h2>
-    <p>Connectivity is a lie in the field. We explain why offline-first isn't a nice-to-have — it's a requirement — and how FiretechERP handles it with zero data loss.</p>
-    <span class="post-meta">January 2026 · 6 min read</span>
-  </div>
+  <a href="/blog-digital-work-orders.html" class="post-card">
+    <span class="post-tag tag-field">🔧 Field Service</span>
+    <h2>How to Manage Work Orders Digitally in 2026</h2>
+    <p>Still using spreadsheets and WhatsApp for work orders? Here's a 5-step plan to go fully digital — and save 18+ hours per week in admin time.</p>
+    <span class="post-meta">📅 March 15, 2026 · ⏱️ 8 min read</span>
+  </a>
 
-  <div class="post-card">
-    <span class="post-tag">🏗️ Engineering</span>
+  <a href="/blog-digital-checklists-fm.html" class="post-card">
+    <span class="post-tag tag-compliance">📋 Compliance</span>
+    <h2>Why Every FM Company Needs Digital Checklists in 2026</h2>
+    <p>Paper checklists are your biggest compliance liability. Learn how digital inspection forms with photo evidence protect your business and improve quality.</p>
+    <span class="post-meta">📅 March 5, 2026 · ⏱️ 6 min read</span>
+  </a>
+
+  <a href="/blog-automate-invoicing.html" class="post-card">
+    <span class="post-tag tag-ops">💰 Operations</span>
+    <h2>How to Automate Invoice Processing for Service Companies</h2>
+    <p>The average FM company takes 5-7 days to turn a completed job into an invoice. Here's how to reduce that to under 60 seconds and get paid faster.</p>
+    <span class="post-meta">📅 February 28, 2026 · ⏱️ 7 min read</span>
+  </a>
+
+  <a href="#" class="post-card">
+    <span class="post-tag tag-field">🚀 Product</span>
+    <h2>MytechERP v2.0: Full Mobile Responsiveness is Here</h2>
+    <p>We've completely rearchitected the frontend to work beautifully on any screen size — from the dispatch desk to the field technician's phone.</p>
+    <span class="post-meta">📅 February 20, 2026 · ⏱️ 5 min read</span>
+  </a>
+
+  <a href="#" class="post-card">
+    <span class="post-tag tag-guide">🏗️ Engineering</span>
     <h2>Building a Multi-Tenant SaaS on Azure: Lessons Learned</h2>
-    <p>From tenant isolation patterns, JWT auth, and Azure Key Vault secrets management — here's the architecture behind FiretechERP and what we'd do differently.</p>
-    <span class="post-meta">January 2026 · 12 min read</span>
+    <p>From tenant isolation patterns, JWT auth, and Azure Key Vault secrets management — here's the architecture behind MytechERP.</p>
+    <span class="post-meta">📅 January 2026 · ⏱️ 12 min read</span>
+  </a>
+
+  <div class="subscribe-box">
+    <h3>📬 Get FM insights in your inbox</h3>
+    <p>Join facilities management professionals who read our weekly newsletter. No spam, just actionable insights.</p>
   </div>
 </div>
+
+<footer>
+  © 2026 MytechERP. All rights reserved. | <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/security.html">Security</a>
+</footer>
 </body>
 </html>

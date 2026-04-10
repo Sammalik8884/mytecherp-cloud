@@ -156,6 +156,85 @@ namespace MyTechERP.Infrastructure.Services
 
             return document.GeneratePdf();
         }
+        public Task<byte[]> GenerateSalesmanActivityReportPdfAsync(MytechERP.Application.DTOs.Dashboard.SalesmanActivityResponseDto data)
+        {
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(11).FontFamily(Fonts.Arial));
+
+                    page.Header().Row(row =>
+                    {
+                        row.RelativeItem().Column(col =>
+                        {
+                            col.Item().Text("MyTech ERP").FontSize(24).SemiBold().FontColor(Colors.Blue.Darken2);
+                            col.Item().Text("Official Salesman Activity Report").FontSize(14).FontColor(Colors.Grey.Medium);
+                        });
+                        row.RelativeItem().AlignRight().Text($"Date Generated: {DateTime.UtcNow:MMM dd, yyyy}");
+                    });
+
+                    page.Content().PaddingVertical(1, Unit.Centimetre).Column(column =>
+                    {
+                        column.Item().Text($"Reporting Period: {data.StartDate:MMM dd, yyyy} to {data.EndDate:MMM dd, yyyy}").SemiBold();
+                        column.Item().Text($"Daily Visit Benchmark: {data.BenchmarkVisitsPerDay} visits = 100%");
+
+                        column.Item().PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+
+                        if (data.SalesmenSummary.Count == 0)
+                        {
+                            column.Item().Text("No salesman activity recorded in this period.").FontColor(Colors.Grey.Medium);
+                        }
+
+                        foreach (var salesman in data.SalesmenSummary)
+                        {
+                            column.Item().PaddingTop(15).Text($"{salesman.SalesmanName}").FontSize(14).SemiBold().FontColor(Colors.Blue.Darken2);
+                            column.Item().Text($"Total Visits: {salesman.TotalVisitsInPeriod} | Average Activity: {salesman.AverageActivityPercentage}%").FontSize(11).FontColor(Colors.Grey.Darken2);
+                            
+                            column.Item().PaddingTop(5).Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn(3); 
+                                    columns.RelativeColumn(2);
+                                    columns.RelativeColumn(2);
+                                });
+
+                                table.Header(header =>
+                                {
+                                    header.Cell().BorderBottom(1).Padding(2).Text("Date").SemiBold();
+                                    header.Cell().BorderBottom(1).Padding(2).Text("Total Visits").SemiBold();
+                                    header.Cell().BorderBottom(1).Padding(2).Text("Activity (%)").SemiBold();
+                                });
+
+                                foreach (var record in salesman.DailyRecords)
+                                {
+                                    var color = record.ActivityPercentage >= 100 ? Colors.Green.Darken1 : 
+                                                (record.ActivityPercentage > 0 ? Colors.Orange.Darken1 : Colors.Red.Darken1);
+                                    
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(2).Text(record.Date);
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(2).Text(record.TotalVisits.ToString());
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(2).Text($"{record.ActivityPercentage}%").FontColor(color);
+                                }
+                            });
+                        }
+                    });
+
+                    page.Footer().AlignCenter().Text(x =>
+                    {
+                        x.Span("Page ");
+                        x.CurrentPageNumber();
+                        x.Span(" of ");
+                        x.TotalPages();
+                    });
+                });
+            });
+
+            return Task.FromResult(document.GeneratePdf());
+        }
     }
 }
 

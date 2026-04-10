@@ -4,6 +4,8 @@ export interface CustomerDto {
     email: string;
     phone?: string;
     address?: string;
+    taxNumber?: string;
+    isProspect: boolean;
 }
 
 export interface CreateCustomerDto {
@@ -12,4 +14,5 @@ export interface CreateCustomerDto {
     phone?: string;
     address?: string;
     taxNumber?: string;
+    isProspect?: boolean;
 }

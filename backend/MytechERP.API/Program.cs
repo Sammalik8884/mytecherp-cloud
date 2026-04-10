@@ -340,4 +340,5 @@ catch (Exception ex)
 app.UseStaticFiles();
 app.MapControllers();
 app.MapHub<MytechERP.API.Hubs.SyncHub>("/hubs/sync");
+app.MapGet("/api/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 app.Run();

@@ -2,7 +2,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
     Home, Users, MapPin, Briefcase, LogOut, FileText, FolderTree, Package, Receipt,
     ShieldAlert, X, Box, Wrench, DollarSign, FileSignature, ShoppingCart, ClipboardList,
-    Activity, RefreshCw, CreditCard, Lock
+    Activity, RefreshCw, CreditCard, Lock, Target
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { PlanFeature } from "../types/auth";
@@ -26,11 +26,16 @@ type SidebarItem = {
 const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Dashboard", href: "/dashboard", icon: Home },
 
+    { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman"] },
+    { label: "Sales Management", href: "/sales/leads", icon: Target, allowedRoles: ["Admin", "Manager", "Salesman"] },
+    { label: "BOQ / Drawings Portal", href: "/sales/boq-portal", icon: FileText, allowedRoles: ["Admin", "Manager", "Engineer", "Estimation"] },
+    { label: "My Sales Dashboard", href: "/sales/my-dashboard", icon: MapPin, allowedRoles: ["Salesman"] },
+
     { label: "Foundation", isHeader: true, allowedRoles: ["Admin", "Manager"] },
     { label: "Users & Roles", href: "/users", icon: ShieldAlert, allowedRoles: ["Admin", "Manager"] },
 
     { label: "CRM & Assets", isHeader: true, allowedRoles: ["Admin", "Manager"] },
-    { label: "Customers (CRM)", href: "/customers", icon: Users, paths: ["/customers", "/sites"], allowedRoles: ["Admin", "Manager"] },
+    { label: "Clients (CRM)", href: "/customers", icon: Users, paths: ["/customers", "/sites"], allowedRoles: ["Admin", "Manager"] },
     { label: "Assets", href: "/assets", icon: Box, allowedRoles: ["Admin", "Manager"] },
 
     { label: "Inventory", isHeader: true, allowedRoles: ["Admin", "Manager", "Engineer"] },
@@ -38,8 +43,8 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Procurement (POs)", href: "/procurement", icon: ShoppingCart, allowedRoles: ["Admin", "Manager"] },
     { label: "Inventory", href: "/inventory", icon: FolderTree, allowedRoles: ["Admin", "Manager"] },
 
-    { label: "Operations & Jobs", isHeader: true, allowedRoles: ["Admin", "Manager", "Engineer", "Worker", "Technician"] },
-    { label: "Sales & Quotes", href: "/quotations", icon: FileText, paths: ["/quotations", "/quotations/new", "/quotations/edit"], allowedRoles: ["Admin", "Manager", "Engineer"] },
+    { label: "Operations & Jobs", isHeader: true, allowedRoles: ["Admin", "Manager", "Engineer", "Worker", "Technician", "Estimation"] },
+    { label: "Sales & Quotes", href: "/quotations", icon: FileText, paths: ["/quotations", "/quotations/new", "/quotations/edit"], allowedRoles: ["Admin", "Manager", "Engineer", "Estimation"] },
     { label: "Contracts & AMCs", href: "/contracts", icon: FileSignature, allowedRoles: ["Admin", "Manager", "Engineer"] },
     { label: "Dispatch (Jobs)", href: "/work-orders", icon: Briefcase, allowedRoles: ["Admin", "Manager"] },
     { label: "My Jobs", href: "/my-jobs", icon: Wrench, paths: ["/my-jobs", "/job/:id"], allowedRoles: ["Admin", "Manager", "Engineer", "Worker", "Technician"] },
@@ -167,7 +172,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                 </div>
                             )}
                             {/* Submenu for CRM */}
-                            {!isLocked && item.label === "Customers (CRM)" && isActive && (
+                            {!isLocked && item.label === "Clients (CRM)" && isActive && (
                                 <div className="pl-12 flex flex-col space-y-1 mt-1 animate-in slide-in-from-top-2 duration-200">
                                     <NavLink
                                         to="/customers"

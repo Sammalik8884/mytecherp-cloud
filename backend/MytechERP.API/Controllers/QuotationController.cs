@@ -37,7 +37,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> GetAll()
         {
             var data = await _service.GetAllQuotesAsync();
@@ -45,7 +45,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> GetById(int id)
         {
             var quote = await _service.GetQuoteByIdAsync(id);
@@ -57,7 +57,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> Create([FromBody] CreateQuotationDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -74,7 +74,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> Update(int id, [FromBody] CreateQuotationDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -95,7 +95,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -119,7 +119,7 @@ namespace MytechERP.API.Controllers
             }
         }
         [HttpGet("{id}/pdf")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Customers)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Customers + "," + Roles.Estimation + "," + Roles.Salesman)]
         public async Task<IActionResult> DownloadPdf(int id)
         {
             try
@@ -140,7 +140,7 @@ namespace MytechERP.API.Controllers
             }
         }
         [HttpPost("{id}/submit")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> Submit(int id)
         {
             return Ok(await _service.SubmitForApprovalAsync(id));
@@ -161,7 +161,7 @@ namespace MytechERP.API.Controllers
             return Ok(await _service.RejectAsync(id, comment));
         }
         [HttpPost("{id}/convert-to-workorder")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> ConvertToWorkOrder(int id)
         {
             try
@@ -176,7 +176,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("{id}/convert-to-contract")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> ConvertToContract(int id, [FromQuery] DateTime startDate)
         {
             try
@@ -192,7 +192,7 @@ namespace MytechERP.API.Controllers
             }
         }
         [HttpPost("{id}/send-email")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
         public async Task<IActionResult> SendQuotationEmail(int id)
         {
            
