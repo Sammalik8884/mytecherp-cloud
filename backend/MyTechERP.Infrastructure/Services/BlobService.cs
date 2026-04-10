@@ -32,6 +32,10 @@ namespace MyTechERP.Infrastructure.Services
             {
                 await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
             }
+            catch (Azure.RequestFailedException ex) when (ex.ErrorCode == "PublicAccessNotPermitted")
+            {
+                await containerClient.CreateIfNotExistsAsync();
+            }
             catch (Azure.RequestFailedException ex) when (ex.Status == 409 || ex.ErrorCode == "ContainerAlreadyExists" || ex.Message.Contains("already exists"))
             {
                 // Container already exists, ignore
@@ -55,6 +59,10 @@ namespace MyTechERP.Infrastructure.Services
             {
                 await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
             }
+            catch (Azure.RequestFailedException ex) when (ex.ErrorCode == "PublicAccessNotPermitted")
+            {
+                await containerClient.CreateIfNotExistsAsync();
+            }
             catch (Azure.RequestFailedException ex) when (ex.Status == 409 || ex.ErrorCode == "ContainerAlreadyExists" || ex.Message.Contains("already exists"))
             {
                 // Container already exists, ignore
@@ -65,6 +73,31 @@ namespace MyTechERP.Infrastructure.Services
             await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders });
 
             return blobClient.Uri.ToString();
+        }
+        public string GenerateSasUrl(string rawBlobUrl, int expiryMinutes = 60)
+        {
+            if (string.IsNullOrEmpty(rawBlobUrl)) return rawBlobUrl;
+            
+            try
+            {
+                var uri = new Uri(rawBlobUrl);
+                string blobName = uri.Segments.Last();
+
+                var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+                var blobClient = containerClient.GetBlobClient(blobName);
+
+                if (blobClient.CanGenerateSasUri)
+                {
+                    var sasUri = blobClient.GenerateSasUri(Azure.Storage.Sas.BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddMinutes(expiryMinutes));
+                    return sasUri.ToString();
+                }
+            }
+            catch (Exception)
+            {
+                // Fallback to original URL
+            }
+
+            return rawBlobUrl;
         }
     }
 }

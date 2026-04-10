@@ -65,8 +65,8 @@ namespace MytechERP.API.Controllers
                 SalesmanName = l.SalesmanUser?.FullName ?? "",
                 Status = l.Status.ToString(),
                 Notes = l.Notes,
-                BoqFileUrl = l.BOQFileUrl,
-                DrawingsFileUrl = l.DrawingsFileUrl,
+                BoqFileUrl = _blobService.GenerateSasUrl(l.BOQFileUrl, 120),
+                DrawingsFileUrl = _blobService.GenerateSasUrl(l.DrawingsFileUrl, 120),
                 QuotationId = l.QuotationId,
                 CreatedAt = l.CreatedAt,
                 VisitCount = l.SiteVisits.Count(v => !v.IsDeleted)
@@ -108,8 +108,8 @@ namespace MytechERP.API.Controllers
                 SalesmanName = lead.SalesmanUser?.FullName ?? "",
                 Status = lead.Status.ToString(),
                 Notes = lead.Notes,
-                BoqFileUrl = lead.BOQFileUrl,
-                DrawingsFileUrl = lead.DrawingsFileUrl,
+                BoqFileUrl = _blobService.GenerateSasUrl(lead.BOQFileUrl, 120),
+                DrawingsFileUrl = _blobService.GenerateSasUrl(lead.DrawingsFileUrl, 120),
                 QuotationId = lead.QuotationId,
                 CreatedAt = lead.CreatedAt,
                 VisitCount = lead.SiteVisits.Count(v => !v.IsDeleted)
@@ -595,7 +595,7 @@ namespace MytechERP.API.Controllers
                 Photos = v.Photos.Where(p => !p.IsDeleted).Select(p => new VisitPhotoDto
                 {
                     Id = p.Id,
-                    PhotoUrl = p.PhotoUrl,
+                    PhotoUrl = _blobService.GenerateSasUrl(p.PhotoUrl, 120),
                     Caption = p.Caption,
                     UploadedAt = p.UploadedAt
                 }).ToList()

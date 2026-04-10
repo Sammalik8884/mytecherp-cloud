@@ -32,6 +32,7 @@ import { AuditLogsPage } from "./pages/AuditLogsPage";
 import { SyncDashboardPage } from "./pages/SyncDashboardPage";
 import { SalesLeadsPage } from "./pages/SalesLeadsPage";
 import { SalesmanDashboardPage } from "./pages/SalesmanDashboardPage";
+import { ActivityPage } from "./pages/ActivityPage";
 import { SiteVisitPage } from "./pages/SiteVisitPage";
 import { BoqDrawingsPortalPage } from "./pages/BoqDrawingsPortalPage";
 import { CustomerPortalDashboardPage } from "./pages/CustomerPortalDashboardPage";
@@ -94,6 +95,10 @@ function App() {
                             <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Salesman", "Estimation"]} />}>
                                 <Route path="/sales/leads" element={<SalesLeadsPage />} />
                                 <Route path="/sales/visit/:id" element={<SiteVisitPage />} />
+                            </Route>
+
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager"]} />}>
+                                <Route path="/sales/activity" element={<ActivityPage />} />
                             </Route>
                             
                             <Route element={<RoleProtectedRoute allowedRoles={["Salesman"]} />}>

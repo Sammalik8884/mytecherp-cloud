@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +11,6 @@ namespace MytechERP.Application.Interfaces
     {
         Task<string> UploadAsync(IFormFile file, string fileName);
         Task<string> UploadStreamAsync(System.IO.Stream stream, string fileName, string contentType);
+        string GenerateSasUrl(string rawBlobUrl, int expiryMinutes = 60);
     }
 }

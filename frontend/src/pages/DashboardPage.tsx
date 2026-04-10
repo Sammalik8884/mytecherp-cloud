@@ -3,8 +3,6 @@ import { useAuth } from '../auth/AuthContext';
 import { PremiumChart } from '../components/dashboard/PremiumChart';
 import { SalesmanActivityChart } from '../components/dashboard/SalesmanActivityChart';
 import { SystemSetupGuide } from '../components/SystemSetupGuide';
-import { apiClient } from '../services/apiClient';
-import { getSalesmanActivityMetrics, downloadSalesActivityPdf, downloadSalesActivityCsv, SalesmanActivityResponse } from '../services/dashboardService';
 import {
     AlertTriangle, RefreshCw, Calendar, Zap
 } from 'lucide-react';
@@ -34,7 +32,6 @@ const fmt = (n: number) =>
 export const DashboardPage: React.FC = () => {
     const { user } = useAuth();
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-    const [salesActivity, setSalesActivity] = useState<SalesmanActivityResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [lastRefresh, setLastRefresh] = useState(new Date());
 
@@ -68,13 +65,9 @@ export const DashboardPage: React.FC = () => {
                 endDate = '2100-01-01';
             }
 
-            const [metricsRes, salesRes] = await Promise.all([
-                apiClient.get('/Dashboard/metrics', { params: { startDate, endDate } }),
-                getSalesmanActivityMetrics(startDate ? new Date(startDate) : undefined, endDate ? new Date(endDate) : undefined).catch(() => null)
-            ]);
+            const metricsRes = await apiClient.get('/Dashboard/metrics', { params: { startDate, endDate } });
             
             setMetrics(metricsRes.data);
-            if (salesRes) setSalesActivity(salesRes);
             
             setLastRefresh(new Date());
         } catch (e) {
@@ -164,47 +157,6 @@ export const DashboardPage: React.FC = () => {
                     )}
 
                     <div className="flex gap-2 items-center">
-                        <button
-                            onClick={() => {
-                                let sd: Date | undefined;
-                                let ed: Date | undefined;
-                                if (dateRange !== 'all') {
-                                    ed = new Date();
-                                    if (dateRange === '30days') sd = subDays(ed, 30);
-                                    if (dateRange === '6months') sd = subMonths(ed, 6);
-                                    if (dateRange === '1year') sd = subYears(ed, 1);
-                                    if (dateRange === 'custom') {
-                                        sd = new Date(customStartDate);
-                                        ed = new Date(customEndDate);
-                                    }
-                                }
-                                downloadSalesActivityPdf(sd, ed);
-                            }}
-                            className="bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/20 px-3 py-1.5 rounded-lg text-sm transition-all"
-                        >
-                            Export PDF
-                        </button>
-                        <button
-                            onClick={() => {
-                                let sd: Date | undefined;
-                                let ed: Date | undefined;
-                                if (dateRange !== 'all') {
-                                    ed = new Date();
-                                    if (dateRange === '30days') sd = subDays(ed, 30);
-                                    if (dateRange === '6months') sd = subMonths(ed, 6);
-                                    if (dateRange === '1year') sd = subYears(ed, 1);
-                                    if (dateRange === 'custom') {
-                                        sd = new Date(customStartDate);
-                                        ed = new Date(customEndDate);
-                                    }
-                                }
-                                downloadSalesActivityCsv(sd, ed);
-                            }}
-                            className="bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border px-3 py-1.5 rounded-lg text-sm transition-all"
-                        >
-                            Export CSV
-                        </button>
-                        
                         <button
                             onClick={fetchMetrics}
                             className="flex items-center space-x-2 text-xs text-muted-foreground hover:text-foreground border border-border/50 hover:border-border px-3 py-2 rounded-lg transition-all"
@@ -312,13 +264,6 @@ export const DashboardPage: React.FC = () => {
                             height={260}
                         />
                     </div>
-
-                    {/* ── Salesman Activity Block ───────────────────────── */}
-                    {salesActivity && (
-                        <div className="w-full">
-                            <SalesmanActivityChart salesmenSummary={salesActivity.salesmenSummary} />
-                        </div>
-                    )}
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center bg-card border border-border rounded-xl p-12 text-center h-96 relative overflow-hidden">

@@ -29,6 +29,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman"] },
     { label: "Sales Management", href: "/sales/leads", icon: Target, allowedRoles: ["Admin", "Manager", "Salesman"] },
     { label: "BOQ / Drawings Portal", href: "/sales/boq-portal", icon: FileText, allowedRoles: ["Admin", "Manager", "Engineer", "Estimation"] },
+    { label: "Activity (Salesmen)", href: "/sales/activity", icon: Activity, allowedRoles: ["Admin", "Manager"] },
     { label: "My Sales Dashboard", href: "/sales/my-dashboard", icon: MapPin, allowedRoles: ["Salesman"] },
 
     { label: "Foundation", isHeader: true, allowedRoles: ["Admin", "Manager"] },
