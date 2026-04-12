@@ -74,12 +74,12 @@ namespace MyTechERP.Infrastructure.Services
                 GSTPercentage = dto.GSTPercentage,
                 IncomeTaxPercentage = dto.IncomeTaxPercentage,
                 Adjustment = dto.Adjustment,
-                CreatedByUserId= _currentUserService.UserId
-
-                
+                CreatedByUserId= _currentUserService.UserId,
+                QuoteMode = dto.QuoteMode,
+                SupplyColumnMode = dto.SupplyColumnMode
             };
 
-            await CalculateAndAddItemsAsync(quotation, dto.Items);
+            await CalculateAndAddItemsAsync(quotation, dto);
 
             await _quotationRepository.AddQuoteWithItemsAsync(quotation);
 
@@ -142,8 +142,11 @@ namespace MyTechERP.Infrastructure.Services
             existingQuote.IncomeTaxPercentage = dto.IncomeTaxPercentage;
             existingQuote.Adjustment = dto.Adjustment;
 
+            existingQuote.QuoteMode = dto.QuoteMode;
+            existingQuote.SupplyColumnMode = dto.SupplyColumnMode;
+
             existingQuote.Items.Clear();
-            await CalculateAndAddItemsAsync(existingQuote, dto.Items);
+            await CalculateAndAddItemsAsync(existingQuote, dto);
 
             await _quotationRepository.UpdateQuoteWithItemsAsync(id, existingQuote);
 
@@ -197,47 +200,100 @@ namespace MyTechERP.Infrastructure.Services
         }
 
 
-        private async Task CalculateAndAddItemsAsync(Quotation quote, List<CreateQuotationItemDto> itemDtos)
+        private async Task CalculateAndAddItemsAsync(Quotation quote, CreateQuotationDto dto)
         {
             decimal runningSubTotal = 0;
-
-            if (itemDtos != null)
+            var tenantId = _currentUserService.TenantId ?? 0;
+            
+            // For now use dto values directly as they carry defaults or overrides
+            decimal costFactorPct = dto.CostFactorPct > 0 ? dto.CostFactorPct : 60m;
+            decimal importationPct = dto.ImportationPct > 0 ? dto.ImportationPct : 13.75m;
+            decimal transportationPct = dto.TransportationPct > 0 ? dto.TransportationPct : 2m;
+            decimal profitPct = dto.ProfitPct > 0 ? dto.ProfitPct : 15m;
+            decimal exchangeRate = quote.ExchangeRate;
+            
+            if (dto.Items != null)
             {
-                foreach (var itemDto in itemDtos)
+                foreach (var itemDto in dto.Items)
                 {
-                    var product = await _context.Products.FindAsync(itemDto.ProductId);
-                    if (product == null)
+                    decimal unitCost = 0;
+                    decimal finalSellingPrice = 0;
+                    decimal originalPrice = 0;
+                    string finalDescription = "";
+                    string calcBreakdown = null;
+                    ItemType parsedType = ItemType.Local;
+                    if (Enum.TryParse<ItemType>(itemDto.ItemType, out var t)) parsedType = t;
+
+                    if (parsedType == ItemType.Service)
                     {
-                        throw new Exception($"Product with ID {itemDto.ProductId} was not found in the database. Please check your inputs.");
+                        finalDescription = itemDto.ServiceName ?? "Custom Service";
+                        originalPrice = itemDto.ServicePrice ?? 0;
+                        finalSellingPrice = originalPrice;
+                        unitCost = finalSellingPrice;
+                    }
+                    else
+                    {
+                        var product = await _context.Products.FindAsync(itemDto.ProductId);
+                        if (product == null)
+                            throw new Exception($"Product with ID {itemDto.ProductId} not found.");
+
+                        finalDescription = !string.IsNullOrEmpty(product.Description) ? product.Description : product.Name;
+                        originalPrice = product.PriceAED ?? product.Price; // Use USD (AED field conceptually) if available, fallback to price
+
+                        if (parsedType == ItemType.Imported)
+                        {
+                            decimal costPricePKR = originalPrice * exchangeRate;
+                            decimal negotiatedCost = costPricePKR * (costFactorPct / 100m);
+                            decimal importationCharge = negotiatedCost * (importationPct / 100m);
+                            decimal transportationCharge = negotiatedCost * (transportationPct / 100m);
+                            decimal profitCharge = negotiatedCost * (profitPct / 100m);
+                            
+                            finalSellingPrice = negotiatedCost + importationCharge + transportationCharge + profitCharge;
+                            unitCost = negotiatedCost;
+                            
+                            calcBreakdown = System.Text.Json.JsonSerializer.Serialize(new {
+                                originalPrice = originalPrice,
+                                exchangeRate = exchangeRate,
+                                costPricePKR = costPricePKR,
+                                costFactorPct = costFactorPct,
+                                negotiatedCost = negotiatedCost,
+                                importationPct = importationPct,
+                                importationCharge = importationCharge,
+                                transportationPct = transportationPct,
+                                transportationCharge = transportationCharge,
+                                profitPct = profitPct,
+                                profitCharge = profitCharge,
+                                finalPrice = finalSellingPrice
+                            });
+                        }
+                        else // Local
+                        {
+                            // Local directly uses price (PKR)
+                            originalPrice = product.Price;
+                            decimal costInQuoteCurrency = originalPrice;
+                            decimal appliedCommission = itemDto.ManualCommissionPct ?? quote.GlobalCommissionPct;
+                            decimal marginAmount = costInQuoteCurrency * (appliedCommission / 100m);
+                            finalSellingPrice = costInQuoteCurrency + marginAmount;
+                            unitCost = costInQuoteCurrency;
+                        }
                     }
 
-
-                    string finalDescription = !string.IsNullOrEmpty(product.Description)
-                                              ? product.Description
-                                              : product.Name;
-
-                    decimal costInQuoteCurrency = product.Price * quote.ExchangeRate;
-
-                    decimal appliedCommission = itemDto.ManualCommissionPct ?? quote.GlobalCommissionPct;
-
-                    decimal marginAmount = costInQuoteCurrency * (appliedCommission / 100);
-                    decimal finalSellingPrice = costInQuoteCurrency + marginAmount;
                     decimal lineTotal = finalSellingPrice * itemDto.Quantity;
 
                     quote.Items.Add(new QuotationItem
                     {
-                        ProductId = product.Id,
-
+                        ProductId = parsedType == ItemType.Service ? null : itemDto.ProductId,
                         Description = finalDescription,
-
                         Quantity = itemDto.Quantity,
-                        TenantId = _currentUserService.TenantId ?? 0,
-
-                        UnitCost = costInQuoteCurrency,
-                        MarginPercentage = appliedCommission,
-
+                        TenantId = tenantId,
+                        UnitCost = unitCost,
+                        MarginPercentage = parsedType == ItemType.Local ? (itemDto.ManualCommissionPct ?? quote.GlobalCommissionPct) : profitPct,
                         UnitPrice = finalSellingPrice,
-                        LineTotal = lineTotal
+                        LineTotal = lineTotal,
+                        ItemType = parsedType,
+                        ServiceName = itemDto.ServiceName,
+                        OriginalPrice = originalPrice,
+                        CalculationBreakdown = calcBreakdown
                     });
 
                     runningSubTotal += lineTotal;
@@ -245,8 +301,8 @@ namespace MyTechERP.Infrastructure.Services
             }
 
             quote.SubTotal = runningSubTotal;
-            quote.GSTAmount = quote.SubTotal * (quote.GSTPercentage / 100);
-            quote.IncomeTaxAmount = quote.SubTotal * (quote.IncomeTaxPercentage / 100);
+            quote.GSTAmount = quote.SubTotal * (quote.GSTPercentage / 100m);
+            quote.IncomeTaxAmount = quote.SubTotal * (quote.IncomeTaxPercentage / 100m);
             quote.GrandTotal = quote.SubTotal + quote.GSTAmount + quote.IncomeTaxAmount + quote.Adjustment;
         }
         private QuotationDto MapToDto(Quotation q)
@@ -261,6 +317,8 @@ namespace MyTechERP.Infrastructure.Services
                 ValidUntil = q.ValidUntil,
                 Status = q.Status.ToString(),
                 CreatedAt = q.CreatedAt,
+                QuoteMode = q.QuoteMode,
+                SupplyColumnMode = q.SupplyColumnMode,
 
                 Currency = q.Currency,
                 SubTotal = q.SubTotal,
@@ -278,7 +336,11 @@ namespace MyTechERP.Infrastructure.Services
                     Description = i.Description,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
-                    LineTotal = i.LineTotal
+                    LineTotal = i.LineTotal,
+                    ItemType = i.ItemType.ToString(),
+                    ServiceName = i.ServiceName,
+                    OriginalPrice = i.OriginalPrice,
+                    CalculationBreakdown = i.CalculationBreakdown
                 }).ToList() ?? new List<QuotationItemDto>()
             };
         }

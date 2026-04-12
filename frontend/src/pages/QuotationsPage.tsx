@@ -284,6 +284,7 @@ export const QuotationsPage = () => {
                             <tr>
                                 <th className="px-6 py-4 font-medium">Quote #</th>
                                 <th className="px-6 py-4 font-medium">Customer</th>
+                                <th className="px-6 py-4 font-medium">Details</th>
                                 <th className="px-6 py-4 font-medium">Amount</th>
                                 <th className="px-6 py-4 font-medium">Valid Until</th>
                                 <th className="px-6 py-4 font-medium">Status</th>
@@ -313,6 +314,20 @@ export const QuotationsPage = () => {
                                         <td className="px-6 py-4 font-medium text-primary">
                                             {quote.customerName}
                                             {quote.siteName && <span className="text-xs text-muted-foreground block font-normal">{quote.siteName}</span>}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-1 flex-wrap">
+                                                {quote.quoteMode && quote.quoteMode.split(',').map((mode, idx) => (
+                                                    <span key={idx} className="px-2 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground border border-border">
+                                                        {mode}
+                                                    </span>
+                                                ))}
+                                                {(!quote.quoteMode || quote.quoteMode === "") && (
+                                                    <span className="px-2 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground border border-border">
+                                                        Local
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 text-foreground font-semibold">
                                             {quote.grandTotal.toLocaleString()} <span className="text-xs text-muted-foreground font-normal">{quote.currency}</span>

@@ -60,5 +60,8 @@ namespace MytechERP.domain.Quotations
         public DateTime ExpiryDate { get; set; }
         public string Notes { get; set; }= string.Empty;
         public string CreatedByUserId { get; set; }=string.Empty;
+
+        public string QuoteMode { get; set; } = "Local"; 
+        public string SupplyColumnMode { get; set; } = "Both"; 
     }
 }

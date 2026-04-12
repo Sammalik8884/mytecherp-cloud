@@ -39,135 +39,117 @@ namespace MyTechERP.Infrastructure.Services
 
         void ComposeHeader(IContainer container, QuotationDto quote)
         {
-            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo.png");
+            var headerPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image2.png");
             
-            container.Row(row =>
+            container.Column(col =>
             {
-                // LEFT: LOGO & COMPANY NAME
-                row.RelativeItem().Column(col =>
+                // Full width header image
+                if (File.Exists(headerPath))
                 {
-                    // Attempt to load logo if it exists, otherwise fallback to text
-                    if (File.Exists(logoPath))
-                    {
-                        col.Item().Height(50).Image(logoPath).FitArea();
-                    }
-                    else
-                    {
-                         // Fallback Text Logo
-                        col.Item().Text("MY TECH").FontSize(22).Bold().FontColor(BrandColor);
-                        col.Item().Text("ENGINEERING COMPANY PVT LTD").FontSize(14).Bold().FontColor(BrandColor);
-                    }
-                    
-                    col.Item().PaddingTop(2).Text("Fire Protection | HVAC | Fabrication | Services").FontSize(9).Italic().FontColor(Colors.Grey.Medium);
-                });
+                    col.Item().Image(headerPath).FitWidth();
+                }
+                else
+                {
+                    col.Item().Text("MY TECH ENGINEERING COMPANY PVT LTD").FontSize(22).Bold().FontColor(BrandColor);
+                }
 
-                row.ConstantItem(180).PaddingLeft(10).Column(col =>
+                // Quote Info Below Header
+                col.Item().PaddingTop(10).Row(row =>
                 {
-                    col.Item().Text("Quotation").FontSize(16).Bold().AlignRight().FontColor(Colors.Black);
-                    
-                    col.Item().PaddingTop(10).Table(table =>
+                    row.RelativeItem().Column(c =>
                     {
-                        table.ColumnsDefinition(columns =>
+                        c.Item().Text(text => { text.Span("To: ").SemiBold(); text.Span(quote.CustomerName); });
+                        if (!string.IsNullOrWhiteSpace(quote.SiteName))
                         {
-                            columns.RelativeColumn();
-                            columns.RelativeColumn();
-                        });
-
-                        table.Cell().RowSpan(2).LabelCell("To:");
-                        table.Cell().RowSpan(2).ValueCell(quote.CustomerName);
-
-                        table.Cell().LabelCell("Quotation #:");
-                        table.Cell().ValueCell(quote.QuoteNumber);
-
-                        table.Cell().LabelCell("Date:");
-                        table.Cell().ValueCell(DateTime.Now.ToString("dd/MM/yyyy"));
+                            c.Item().Text(text => { text.Span("Site: ").SemiBold(); text.Span(quote.SiteName); });
+                        }
                     });
-                     
-                    if (!string.IsNullOrWhiteSpace(quote.SiteName))
+
+                    row.RelativeItem().AlignRight().Column(c =>
                     {
-                        col.Item().PaddingTop(5).Text(text =>
-                        {
-                            text.Span("Site: ").SemiBold();
-                            text.Span(quote.SiteName);
-                        });
-                    }
+                        c.Item().Text("Quotation").FontSize(16).Bold().FontColor(Colors.Black);
+                        c.Item().Text(text => { text.Span("Quotation #: ").SemiBold(); text.Span(quote.QuoteNumber); });
+                        c.Item().Text(text => { text.Span("Date: ").SemiBold(); text.Span(DateTime.Now.ToString("dd/MM/yyyy")); });
+                    });
                 });
             });
         }
 
         void ComposeContent(IContainer container, QuotationDto quote)
         {
-             var watermarkPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "watermark.png");
-
-            container.PaddingTop(20).Layers(layers =>
+            container.PaddingTop(20).Column(col =>
             {
-                    // Watermark Image
-                    if (File.Exists(watermarkPath))
-                    {
-                        layers.Layer().AlignCenter().AlignMiddle().Width(300).Image(watermarkPath);
-                    }
+                col.Item().Element(c => ComposeTables(c, quote));
 
-                // PRIMARY CONTENT LAYER
-                layers.PrimaryLayer().Column(col =>
+                col.Item().Row(row =>
                 {
-                    // Title Bar
-                    col.Item().Background(BrandColor).Padding(5).AlignCenter().Text("Quotation for Fire Detection Equipments (Supply Only)")
-                        .Bold().FontColor(Colors.White).FontSize(11);
-
-                    // Table
-                    col.Item().PaddingTop(10).Element(c => ComposeTable(c, quote));
-
-                    // Summary Section (Below table)
-                    col.Item().Row(row =>
-                    {
-                        row.RelativeItem(); // Spacer
-                        row.ConstantItem(250).Element(c => ComposeSummary(c, quote));
-                    });
-
-                    // Terms
-                    col.Item().PaddingTop(20).Element(c => ComposeTerms(c, quote));
+                    row.RelativeItem(); 
+                    row.ConstantItem(250).Element(c => ComposeSummary(c, quote));
                 });
+
+                col.Item().PaddingTop(20).Element(c => ComposeTerms(c, quote));
             });
         }
 
-        void ComposeTable(IContainer container, QuotationDto quote)
+        void ComposeTables(IContainer container, QuotationDto quote)
         {
-            container.Table(table =>
+            container.Column(col =>
             {
-                // Define Columns
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.ConstantColumn(30);  // Sr
-                    columns.RelativeColumn();    // Product Description
-                    columns.ConstantColumn(40);  // Qty
-                    columns.ConstantColumn(35);  // Unit
-                    columns.ConstantColumn(75);  // Rate
-                    columns.ConstantColumn(85);  // Amount
-                });
+                bool showImported = quote.SupplyColumnMode == "Both" || quote.SupplyColumnMode == "ImportedOnly";
+                bool showLocal = quote.SupplyColumnMode == "Both" || quote.SupplyColumnMode == "LocalOnly";
 
-                // Header
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCellStyle).Text("Sr.#");
-                    header.Cell().Element(HeaderCellStyle).Text("Product Name / Description");
-                    header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Qty");
-                    header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Unit"); // Assuming Unit is needed? Or just empty
-                    header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Rate ({quote.Currency})");
-                    header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Amount ({quote.Currency})");
-                });
+                var importedItems = quote.Items.Where(i => i.ItemType == "Imported" || i.ItemType == "Service").ToList();
+                var localItems = quote.Items.Where(i => i.ItemType == "Local" || i.ItemType == "Service").ToList();
 
-                // Rows
-                int i = 1;
-                foreach (var item in quote.Items)
+                if (showImported && importedItems.Any())
                 {
-                    // Striped rows could be added here if desired
-                    table.Cell().Element(CellStyle).Text(i++.ToString());
-                    table.Cell().Element(CellStyle).Text(item.Description);
-                    table.Cell().Element(CellStyle).AlignCenter().Text(item.Quantity.ToString());
-                    table.Cell().Element(CellStyle).AlignCenter().Text("-"); // Placeholder for Unit
-                    table.Cell().Element(CellStyle).AlignRight().Text(item.UnitPrice.ToString("N2"));
-                    table.Cell().Element(CellStyle).AlignRight().Text(item.LineTotal.ToString("N2"));
+                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, "Supply Imported Items & Services", importedItems, quote.Currency));
                 }
+
+                if (showLocal && localItems.Any())
+                {
+                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, "Supply Local Items & Services", localItems, quote.Currency));
+                }
+            });
+        }
+
+        void DrawTableSection(IContainer container, string title, List<QuotationItemDto> items, string currency)
+        {
+            container.Column(col =>
+            {
+                col.Item().Background(BrandColor).Padding(5).AlignCenter().Text(title)
+                    .Bold().FontColor(Colors.White).FontSize(11);
+
+                col.Item().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.ConstantColumn(30);  // Sr
+                        columns.RelativeColumn();    // Description
+                        columns.ConstantColumn(40);  // Qty
+                        columns.ConstantColumn(75);  // Rate
+                        columns.ConstantColumn(85);  // Amount
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(HeaderCellStyle).Text("Sr.#");
+                        header.Cell().Element(HeaderCellStyle).Text("Description");
+                        header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Qty");
+                        header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Rate");
+                        header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Amount");
+                    });
+
+                    int i = 1;
+                    foreach (var item in items)
+                    {
+                        table.Cell().Element(CellStyle).Text(i++.ToString());
+                        table.Cell().Element(CellStyle).Text(item.Description);
+                        table.Cell().Element(CellStyle).AlignCenter().Text(item.Quantity.ToString());
+                        table.Cell().Element(CellStyle).AlignRight().Text(item.UnitPrice.ToString("N2"));
+                        table.Cell().Element(CellStyle).AlignRight().Text(item.LineTotal.ToString("N2"));
+                    }
+                });
             });
         }
 
@@ -228,42 +210,45 @@ namespace MyTechERP.Infrastructure.Services
 
                 AddTerm("Payment & Taxes Terms:", 
                     "Price are as per actual basis.",
-                    $"Currency : Unit of Currency of this quotation is {quote.Currency}.",
-                    "Payment : 100% Advance Payment after Order Confirmation and Advance Payment."
+                    "GST Tax is mentioned separately on Supply Rates",
+                    $"Currency : Unit of Currency of this quotations is {quote.Currency}.",
+                    "Payment :  100% Advance Payment after Order Confirmation and Advance Payment."
                 );
 
-                AddTerm("Delivery Terms:",
-                    "Items will be delivered in 9 to 11 working weeks after order confirmation."
+                AddTerm("Delivery terms:",
+                    "Stock Available in EX Pakistan.",
+                    "Items will be delivered in 8 to 12 working weeks after order confirmation."
                 );
 
-                AddTerm("Warranty Terms:",
+                AddTerm("Warranty terms:",
                     "This Warranty covers the defects resulting from defective parts, items, materials or manufacturing if such defects are revealed during the period of 12 months since the date of purchase.",
                     "The Warranty does not cover consumables or parts of limited regular functionality due to their natural wear and tear.",
-                    "The Warranty does not cover Damages: Mechanical or electric damages resulting from incorrect installation, configuration, usage, or other activities incompatible with the operation manual.",
-                    "The Warranty does not cover Damages caused by acts of God, floods, fires, lighting or other natural disasters, wars, unexpected events, inappropriate voltage or other external factors."
+                    "The Warranty does not cover Damages: Mechanical or electric damages resulting from incorrect installation, configuration, usage, Improper Maintenance or other activities incompatible with the operation manual.",
+                    "The Warranty does not cover Damages caused by acts of God, floods, fires, lighting or other natural disasters, wars, unexpected events.",
+                    "The Warranty does not cover Damages result as a result of using chemical cleaning materials."
                 );
 
-                AddTerm("Validity Terms:",
-                    "Quotation validity is 10 days.",
+                AddTerm("Validity terms:",
+                    "Quotation validity is 20 days.",
                     "Due to currency devaluation, Seller will reserve the right to adjust their prices if the exchange rate varies greater than +1% of the Quotation Value."
                 );
 
-                AddTerm("Transportation/Accommodation/Food/Power for Work Terms:",
-                    "Prices Equipments are for Ex-Karachi. Any further transportation will be charged accordingly.",
-                    "Power for the Work at Site will be in client scope.",
-                    "Continuous Supply And Storage will be in client scope.",
-                    "Transportation, Accommodation & Food for My Tech Team will be client's responsibility."
+                AddTerm("Transportation/Accommodation/Food/Power for work terms:",
+                    "Prices Equipments are for Ex-Karachi. Any further transportation from Karachi to Site will be in client's scope.",
+                    "Power for the Work at Site will be in client's scope.",
+                    "Travelling and Residence of Team from Karachi to Site will be in client's scope.",
+                    "Continuous Supply of Storage will be in client's scope."
                 );
 
                 AddTerm("PO Terms:",
-                    "After placing the Purchase Order, Any item if cancelled by client, 30% of its value shall be charged conditioned with MyTech acceptance on the same.",
+                    "After placing the Purchase Order, Any item if cancelled by client, 30% of its value shall be charged.",
                     "The Prices in the above Quotation are based on Total Purchase, No Partial Purchase shall be accepted.",
                     "Purchase Orders must contain our Quotation Number for which it is issue."
                 );
 
                 AddTerm("General Terms:",
                     "If Quotation finally gets the winning marks, then LOI must be shared with us before Purchase Order.",
-                    "This agreement shall be performed by the BUYER and the SUPPLIER with sincerity. Any questions arising in connection with this agreement shall be performed resolved through good faith discussion between both parties.",
+                    "This agreement shall be performed by the BUYER and the SUPPLIER with sincerity. Any questions arising in connection with this agreement shall be promptly resolved through good faith discussion.",
                     "This agreement is to be governed by, and interpreted strictly in accordance with the laws of Islamic Republic of Pakistan."
                 );
 
@@ -293,50 +278,15 @@ namespace MyTechERP.Infrastructure.Services
 
         void ComposeFooter(IContainer container)
         {
-            // Blue bottom bar style
+            var footerPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image3.jpeg");
             container.Column(col =>
             {
-               col.Item().LineHorizontal(2).LineColor(BrandColor);
-               
-               col.Item().PaddingTop(5).Row(row => 
-               {
-                   // Head Office
-                   row.RelativeItem().Column(c => {
-                       c.Item().Text("Head Office:").Bold().FontSize(8);
-                       c.Item().Text("B-278, Basement Floor, Gulistan-e-Jouhar\nBlock 2 Opposite Shaikh Zaid University,\nKarachi, Pakistan, 75200.").FontSize(7);
-                   });
-
-                   // Vertical Line
-                   row.AutoItem().PaddingHorizontal(5).LineVertical(30).LineColor(Colors.Grey.Medium);
-
-                   // Contact
-                   row.RelativeItem().Column(c => {
-                       c.Item().Text("Contact:").Bold().FontSize(8);
-                       c.Item().Text("+92-213-4187188").FontSize(7);
-                       c.Item().Text("info@mytecheng.com").FontSize(7);
-                   });
-                   
-                   // Vertical Line
-                   row.AutoItem().PaddingHorizontal(5).LineVertical(30).LineColor(Colors.Grey.Medium);
-
-                   // Social Media (Text placeholder as images might be missing)
-                   row.RelativeItem().Column(c => {
-                       c.Item().Text("Social Media:").Bold().FontSize(8);
-                       c.Item().Text("www.mytecheng.com").FontSize(7).FontColor(BrandColor);
-                   });
-                   
-                   // Vertical Line
-                   row.AutoItem().PaddingHorizontal(5).LineVertical(30).LineColor(Colors.Grey.Medium);
-
-                   // Membership
-                   row.RelativeItem().Column(c => {
-                       c.Item().Text("Membership:").Bold().FontSize(8);
-                       // Placeholders for membership logos
-                       c.Item().Text("[APF] [PEC]").FontSize(7); 
-                   });
-               });
-
-               col.Item().PaddingTop(5).AlignCenter().Text(x =>
+                if (File.Exists(footerPath))
+                {
+                    col.Item().Image(footerPath).FitWidth();
+                }
+                
+                col.Item().PaddingTop(5).AlignCenter().Text(x =>
                 {
                     x.Span("Page ");
                     x.CurrentPageNumber();

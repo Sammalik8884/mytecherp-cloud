@@ -1,12 +1,12 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace MytechERP.Application.DTOs.Quotations
 {
     public class CreateQuotationItemDto
     {
-        [Required]
-        public int ProductId { get; set; }
+        
+        public int? ProductId { get; set; }
 
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
@@ -15,6 +15,10 @@ namespace MytechERP.Application.DTOs.Quotations
 
         
         public decimal? ManualCommissionPct { get; set; }
+
+        public string ItemType { get; set; } = "Local";
+        public string? ServiceName { get; set; }
+        public decimal? ServicePrice { get; set; }
 
         
        

@@ -1,6 +1,8 @@
 using MytechERP.domain.Interfaces;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using MytechERP.domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MytechERP.domain.Entities
 {
@@ -33,5 +35,7 @@ namespace MytechERP.domain.Entities
 
         [Column(TypeName = "nvarchar(max)")]
         public string? TechnicalSpecs { get; set; }
+
+        public ProductType Type { get; set; } = ProductType.Local;
     }
 }

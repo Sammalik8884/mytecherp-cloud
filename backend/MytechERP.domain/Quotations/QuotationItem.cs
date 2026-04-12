@@ -1,6 +1,7 @@
 using MytechERP.domain.Common;
 using MytechERP.domain.Entities;
 using MytechERP.domain.Interfaces;
+using MytechERP.domain.Enums;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -34,5 +35,14 @@ namespace MytechERP.domain.Quotations
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal LineTotal { get; set; }
+
+        public ItemType ItemType { get; set; } = ItemType.Local;
+        public string? ServiceName { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal OriginalPrice { get; set; }
+
+        [Column(TypeName = "nvarchar(max)")]
+        public string? CalculationBreakdown { get; set; }
     }
 }

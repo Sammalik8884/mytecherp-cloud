@@ -7,6 +7,10 @@ export interface QuotationItemDto {
     quantity: number;
     unitPrice: number;
     lineTotal: number;
+    itemType: string;
+    serviceName?: string;
+    originalPrice: number;
+    calculationBreakdown?: string;
 }
 
 export interface QuotationDto {
@@ -26,13 +30,18 @@ export interface QuotationDto {
     incomeTaxAmount: number;
     adjustment: number;
     grandTotal: number;
+    quoteMode: string;
+    supplyColumnMode: string;
     items: QuotationItemDto[];
 }
 
 export interface CreateQuotationItemDto {
-    productId: number;
+    productId?: number | null;
     quantity: number;
     manualCommissionPct?: number;
+    itemType: string;
+    serviceName?: string;
+    servicePrice?: number;
 }
 
 export interface CreateQuotationDto {
@@ -46,6 +55,12 @@ export interface CreateQuotationDto {
     gstPercentage: number;
     incomeTaxPercentage: number;
     adjustment: number;
+    quoteMode: string;
+    supplyColumnMode: string;
+    costFactorPct?: number;
+    importationPct?: number;
+    transportationPct?: number;
+    profitPct?: number;
     items: CreateQuotationItemDto[];
 }
 

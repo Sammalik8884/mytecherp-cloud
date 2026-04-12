@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using static MytechERP.domain.Quotations.Quotation;
 
@@ -12,6 +12,8 @@ namespace MytechERP.Application.DTOs.Quotations
         public DateTime ValidUntil { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string QuoteMode { get; set; } = "Local";
+        public string SupplyColumnMode { get; set; } = "Both";
 
         public int CustomerId { get; set; }
         public string CustomerName { get; set; } 
