@@ -277,7 +277,14 @@ namespace MyTechERP.Infrastructure.Services
                             throw new Exception($"Product with ID {itemDto.ProductId} not found.");
 
                         finalDescription = !string.IsNullOrEmpty(product.Description) ? product.Description : product.Name;
-                        originalPrice = product.PriceAED ?? product.Price; // Use USD (AED field conceptually) if available, fallback to price
+                        if (itemDto.OverridePrice.HasValue && itemDto.OverridePrice.Value > 0)
+                        {
+                            originalPrice = itemDto.OverridePrice.Value;
+                        }
+                        else
+                        {
+                            originalPrice = (product.PriceAED.HasValue && product.PriceAED.Value > 0) ? product.PriceAED.Value : product.Price;
+                        }
 
                         if (parsedType == ItemType.Imported)
                         {

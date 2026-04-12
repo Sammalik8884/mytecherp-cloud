@@ -19,6 +19,7 @@ namespace MytechERP.Application.DTOs.Quotations
         public string ItemType { get; set; } = "Local";
         public string? ServiceName { get; set; }
         public decimal? ServicePrice { get; set; }
+        public decimal? OverridePrice { get; set; }
 
         
        

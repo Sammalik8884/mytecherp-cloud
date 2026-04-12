@@ -46,6 +46,7 @@ export interface CreateQuotationItemDto {
     itemType: string;
     serviceName?: string;
     servicePrice?: number;
+    overridePrice?: number;
 }
 
 export interface CreateQuotationDto {

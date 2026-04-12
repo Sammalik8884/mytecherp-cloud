@@ -270,11 +270,11 @@ export const QuotationFormPage = () => {
         
         if (showImported) {
              const valid = importedItems.filter(i => i.productId && i.productId > 0);
-             payloadItems.push(...valid.map(i => ({ productId: i.productId, quantity: i.quantity, itemType: "Imported" })));
+             payloadItems.push(...valid.map(i => ({ productId: i.productId, quantity: i.quantity, itemType: "Imported", overridePrice: i.originalPrice })));
         }
         if (showLocal) {
              const valid = localItems.filter(i => i.productId && i.productId > 0);
-             payloadItems.push(...valid.map(i => ({ productId: i.productId, quantity: i.quantity, itemType: "Local", manualCommissionPct: i.manualCommissionPct })));
+             payloadItems.push(...valid.map(i => ({ productId: i.productId, quantity: i.quantity, itemType: "Local", manualCommissionPct: i.manualCommissionPct, overridePrice: i.unitPrice })));
         }
         if (showServices) {
              const valid = serviceItems.filter(i => i.serviceName && i.serviceName.trim() !== "");
@@ -345,7 +345,11 @@ export const QuotationFormPage = () => {
                 </div>
                 <div>
                     <label className="text-xs text-muted-foreground">Base (USD)</label>
-                    <div className="text-sm font-medium text-foreground py-1.5">{item.originalPrice?.toLocaleString(undefined, {maximumFractionDigits: 2}) || '—'}</div>
+                    <input type="number" className={inputCls + " !py-1.5"} min="0" value={item.originalPrice||0} onChange={e => {
+                        const newArr = [...importedItems];
+                        newArr[idx] = { ...newArr[idx], originalPrice: Number(e.target.value) };
+                        setImportedItems(newArr.map(x => calculateImportedItem(x, formData)));
+                    }}/>
                 </div>
             </div>
             <div className="flex items-center justify-between">
@@ -386,8 +390,12 @@ export const QuotationFormPage = () => {
                     }}/>
                 </div>
                 <div>
-                    <label className="text-xs text-muted-foreground">Price</label>
-                    <div className="text-sm font-medium text-foreground py-1.5">{item.unitPrice > 0 ? item.unitPrice.toLocaleString() : '—'}</div>
+                    <label className="text-xs text-muted-foreground">Price (PKR)</label>
+                    <input type="number" className={inputCls + " !py-1.5"} min="0" value={item.unitPrice||0} onChange={e => {
+                        const newArr = [...localItems];
+                        newArr[idx] = { ...newArr[idx], unitPrice: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].quantity * (1 - (newArr[idx].manualCommissionPct||0)/100) };
+                        setLocalItems(newArr);
+                    }}/>
                 </div>
                 <div>
                     <label className="text-xs text-muted-foreground">Disc%</label>
@@ -527,7 +535,13 @@ export const QuotationFormPage = () => {
                                                   setImportedItems(newArr);
                                               }}/>
                                          </td>
-                                         <td className="text-right text-muted-foreground text-xs">{item.originalPrice?.toLocaleString(undefined, {maximumFractionDigits: 2}) || '—'}</td>
+                                         <td className="px-1">
+                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.originalPrice||0} onChange={e => {
+                                                  const newArr = [...importedItems];
+                                                  newArr[idx] = { ...newArr[idx], originalPrice: Number(e.target.value) };
+                                                  setImportedItems(newArr.map(x => calculateImportedItem(x, formData)));
+                                              }}/>
+                                         </td>
                                          <td className="text-right font-medium text-foreground">
                                              <div className="flex items-center justify-end gap-1.5">
                                                  {item.calcBreakdown && (
@@ -601,7 +615,13 @@ export const QuotationFormPage = () => {
                                                   setLocalItems(newArr);
                                               }}/>
                                          </td>
-                                         <td className="text-right text-muted-foreground text-xs">{item.unitPrice > 0 ? item.unitPrice.toLocaleString() : '—'}</td>
+                                         <td className="px-1">
+                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.unitPrice||0} onChange={e => {
+                                                  const newArr = [...localItems];
+                                                  newArr[idx] = { ...newArr[idx], unitPrice: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].quantity * (1 - (newArr[idx].manualCommissionPct||0)/100) };
+                                                  setLocalItems(newArr);
+                                              }}/>
+                                         </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="0" max="100" value={item.manualCommissionPct||""} placeholder="0" onChange={e => {
                                                   const newArr = [...localItems];
