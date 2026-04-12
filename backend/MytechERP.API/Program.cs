@@ -219,7 +219,7 @@ builder.Services.AddAuthorization(options =>
 });
 builder.Services.AddSignalR();
 builder.Services.AddScoped<MytechERP.Application.Interfaces.ISyncNotifier, MytechERP.API.Services.SignalRSyncNotifier>();
-OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("MyTechERP");
 QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
 

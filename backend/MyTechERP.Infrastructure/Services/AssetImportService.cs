@@ -32,7 +32,7 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<AssetImportResultDto> ImportFromExcelOrCsvAsync(Stream fileStream, string fileName, bool isDryRun)
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExcelPackage.License.SetNonCommercialPersonal("MyTechERP");
 
             var result = new AssetImportResultDto
             {

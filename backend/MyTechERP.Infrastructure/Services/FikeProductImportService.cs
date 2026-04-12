@@ -27,7 +27,7 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<string> ImportExcelFromBytesAsync(byte[] fileBytes, string brandName, int tenantId)
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExcelPackage.License.SetNonCommercialPersonal("MyTechERP");
 
             int updatedCount = 0, insertedCount = 0;
 
