@@ -39,6 +39,15 @@ namespace MyTechERP.Infrastructure.Services
 
                     var category = await GetOrCreateCategoryAsync(worksheet.Name.Trim(), tenantId);
 
+                    // Pre-load all existing products for this brand and tenant to avoid N+1 queries
+                    var existingProducts = await _context.Products
+                        .IgnoreQueryFilters()
+                        .Where(p => p.TenantId == tenantId && p.Brand == brandName)
+                        .ToListAsync();
+                    var productMap = existingProducts
+                        .GroupBy(p => p.ItemCode ?? p.Name)
+                        .ToDictionary(g => g.Key, g => g.FirstOrDefault());
+
                     for (int row = headerRow + 1; row <= worksheet.Dimension.End.Row; row++)
                     {
                         string desc = GetValue(worksheet, row, map, "Description");
@@ -65,9 +74,8 @@ namespace MyTechERP.Infrastructure.Services
                             }
                         }
 
-                        var existing = await _context.Products
-                            .IgnoreQueryFilters()
-                            .FirstOrDefaultAsync(p => p.ItemCode == uniqueKey && p.TenantId == tenantId && p.Brand == brandName);
+                        productMap.TryGetValue(uniqueKey, out var existing);
+
                         if (existing != null)
                         {
                             existing.Name = desc;
@@ -79,7 +87,7 @@ namespace MyTechERP.Infrastructure.Services
                         }
                         else
                         {
-                            _context.Products.Add(new Product
+                            var newProduct = new Product
                             {
                                 Name = desc,
                                 Description = desc,
@@ -90,7 +98,9 @@ namespace MyTechERP.Infrastructure.Services
                                 CategoryId = category.Id,
                                 TenantId = tenantId,
                                 TechnicalSpecs = JsonConvert.SerializeObject(specs)
-                            });
+                            };
+                            _context.Products.Add(newProduct);
+                            productMap[uniqueKey] = newProduct;
                             insertedCount++;
                         }
                     }
