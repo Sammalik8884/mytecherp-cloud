@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, ArrowLeft, Loader2, Info, Search } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Loader2, Search, Calculator } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
@@ -22,9 +22,6 @@ type UiItem = CreateQuotationItemDto & {
     calcBreakdown?: any; 
     originalPrice?: number;
 };
-
-/* ─── Main Page Component ─────────────────────────────────────── */
-
 
 /* ─── Main Page Component ─────────────────────────────────────── */
 export const QuotationFormPage = () => {
@@ -55,7 +52,9 @@ export const QuotationFormPage = () => {
         costFactorPct: 60,
         importationPct: 13.75,
         transportationPct: 2,
-        profitPct: 15
+        profitPct: 15,
+        projectCode: "FPS",
+        quoteHeadline: ""
     });
 
     // Selections for Quote Sections
@@ -129,6 +128,8 @@ export const QuotationFormPage = () => {
                         adjustment: quote.adjustment,
                         quoteMode: quote.quoteMode || "Local",
                         supplyColumnMode: quote.supplyColumnMode || "Both",
+                        projectCode: quote.projectCode || "FPS",
+                        quoteHeadline: quote.quoteHeadline || "",
                     }));
 
                     setShowImported(quote.items.some(i => i.itemType === "Imported"));
@@ -243,8 +244,6 @@ export const QuotationFormPage = () => {
         setServiceItems([...serviceItems, makeEmptyRow("Service")]);
     };
 
-    /* ─── Product filtering ───────────────────────────────────── */
-
     const renderTotals = () => {
         let subTotal = 0;
         if (showImported) subTotal += importedItems.reduce((acc, i) => acc + i.lineTotal, 0);
@@ -325,27 +324,110 @@ export const QuotationFormPage = () => {
     const selectCls = inputCls + " appearance-none";
     const tinyInputCls = "w-16 bg-background text-foreground border border-border rounded px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50";
 
+    /* ─── Mobile card renderer for items ─── */
+    const renderImportedCard = (item: UiItem, idx: number) => (
+        <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
+            <div onClick={() => setProductModalTarget({ list: "imported", index: idx })}
+                className="flex items-center justify-between bg-secondary/30 border border-border rounded-lg p-3 cursor-pointer hover:border-primary/50 transition-colors">
+                <span className="truncate text-sm text-foreground">
+                    {item.product ? `${item.product.name}` : "Tap to select product..."}
+                </span>
+                <Search className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="text-xs text-muted-foreground">Qty</label>
+                    <input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => {
+                        const newArr = [...importedItems];
+                        newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].unitPrice };
+                        setImportedItems(newArr);
+                    }}/>
+                </div>
+                <div>
+                    <label className="text-xs text-muted-foreground">Base (USD)</label>
+                    <div className="text-sm font-medium text-foreground py-1.5">{item.originalPrice?.toLocaleString(undefined, {maximumFractionDigits: 2}) || '—'}</div>
+                </div>
+            </div>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    {item.calcBreakdown && (
+                        <button type="button" onClick={() => setModalBreakdown(item.calcBreakdown)} className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition-colors" title="View calculations">
+                            <Calculator className="h-4 w-4 text-blue-500"/>
+                        </button>
+                    )}
+                    <span className="text-sm font-medium">{item.unitPrice > 0 ? `PKR ${item.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '—'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
+                    <button type="button" onClick={() => setImportedItems(importedItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors">
+                        <Trash2 className="w-4 h-4 text-destructive"/>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderLocalCard = (item: UiItem, idx: number) => (
+        <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
+            <div onClick={() => setProductModalTarget({ list: "local", index: idx })}
+                className="flex items-center justify-between bg-secondary/30 border border-border rounded-lg p-3 cursor-pointer hover:border-primary/50 transition-colors">
+                <span className="truncate text-sm text-foreground">
+                    {item.product ? `${item.product.name}` : "Tap to select product..."}
+                </span>
+                <Search className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+                <div>
+                    <label className="text-xs text-muted-foreground">Qty</label>
+                    <input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => {
+                        const newArr = [...localItems];
+                        newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].unitPrice * (1 - (newArr[idx].manualCommissionPct||0)/100) };
+                        setLocalItems(newArr);
+                    }}/>
+                </div>
+                <div>
+                    <label className="text-xs text-muted-foreground">Price</label>
+                    <div className="text-sm font-medium text-foreground py-1.5">{item.unitPrice > 0 ? item.unitPrice.toLocaleString() : '—'}</div>
+                </div>
+                <div>
+                    <label className="text-xs text-muted-foreground">Disc%</label>
+                    <input type="number" className={inputCls + " !py-1.5"} min="0" max="100" value={item.manualCommissionPct||""} placeholder="0" onChange={e => {
+                        const newArr = [...localItems];
+                        newArr[idx] = { ...newArr[idx], manualCommissionPct: Number(e.target.value), lineTotal: newArr[idx].quantity * newArr[idx].unitPrice * (1 - Number(e.target.value)/100) };
+                        setLocalItems(newArr);
+                    }}/>
+                </div>
+            </div>
+            <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
+                <button type="button" onClick={() => setLocalItems(localItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors">
+                    <Trash2 className="w-4 h-4 text-destructive"/>
+                </button>
+            </div>
+        </div>
+    );
+
     return (
-        <div className="p-8 max-w-7xl mx-auto animate-in fade-in duration-500 pb-32">
-            <div className="flex items-center space-x-4 mb-8">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500 pb-32">
+            <div className="flex items-center space-x-4 mb-6 md:mb-8">
                 <button onClick={() => navigate('/quotations')} className="p-2 hover:bg-secondary/50 rounded-lg text-muted-foreground"><ArrowLeft className="h-5 w-5"/></button>
                 <div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+                    <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
                         {isEditMode ? "Edit Quotation" : "Create Quotation"}
                     </h1>
                     <p className="text-muted-foreground text-sm">Select sections and build your quote</p>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
                 {/* ── 1. SECTIONS TOGGLE ── */}
-                <div className="bg-secondary/20 border border-border/50 rounded-2xl p-6 shadow-md flex justify-center gap-6 flex-wrap">
+                <div className="bg-secondary/20 border border-border/50 rounded-2xl p-4 md:p-6 shadow-md flex justify-center gap-3 md:gap-6 flex-wrap">
                      {[
                          { label: "Imported Items", checked: showImported, onChange: setShowImported, color: "blue" },
                          { label: "Local Items", checked: showLocal, onChange: setShowLocal, color: "emerald" },
                          { label: "Services", checked: showServices, onChange: setShowServices, color: "purple" },
                      ].map(opt => (
-                         <label key={opt.label} className={`flex items-center gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${opt.checked ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-border hover:border-primary/40'}`}>
+                         <label key={opt.label} className={`flex items-center gap-2 md:gap-3 cursor-pointer p-3 md:p-4 rounded-xl border-2 transition-all text-sm md:text-base ${opt.checked ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-border hover:border-primary/40'}`}>
                              <input type="checkbox" className="hidden" checked={opt.checked} onChange={e => opt.onChange(e.target.checked)}/>
                              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${opt.checked ? 'bg-primary border-primary' : 'border-muted-foreground/50'}`}>
                                  {opt.checked && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
@@ -356,7 +438,7 @@ export const QuotationFormPage = () => {
                 </div>
 
                 {/* ── HEADER INFO ── */}
-                <div className="bg-secondary/30 border border-border/50 rounded-2xl p-6 shadow-md grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-secondary/30 border border-border/50 rounded-2xl p-4 md:p-6 shadow-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                      <div>
                         <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Customer *</label>
                         <select required value={formData.customerId} onChange={e => setFormData({...formData, customerId: Number(e.target.value), siteId: 0})} className={selectCls}>
@@ -385,12 +467,25 @@ export const QuotationFormPage = () => {
                      </div>
                 </div>
 
+                {/* ── PROJECT CODE & HEADLINE ── */}
+                <div className="bg-secondary/30 border border-border/50 rounded-2xl p-4 md:p-6 shadow-md grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                    <div>
+                        <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Project Code (Quote Suffix)</label>
+                        <input type="text" placeholder="FPS" value={formData.projectCode || ""} onChange={e => setFormData({...formData, projectCode: e.target.value.toUpperCase()})} className={inputCls} />
+                        <p className="text-xs text-muted-foreground mt-1">Quote # will be: MTQ-XXXXX-{formData.projectCode || "FPS"}-R0</p>
+                    </div>
+                    <div>
+                        <label className="text-xs font-semibold text-muted-foreground block mb-1.5">PDF Headline (auto-generated if blank)</label>
+                        <input type="text" placeholder="e.g. Fire Fighting Equipments for Marka-e-Haq Monument" value={formData.quoteHeadline || ""} onChange={e => setFormData({...formData, quoteHeadline: e.target.value})} className={inputCls} />
+                    </div>
+                </div>
+
                 {/* ── IMPORTED SECTION ── */}
                 {showImported && (
-                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
+                     <div className="bg-card border border-border rounded-2xl p-4 md:p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
                          <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l-2xl" />
                          <div className="flex justify-between items-center mb-4 pl-3">
-                             <h3 className="text-lg font-bold text-blue-500 dark:text-blue-400 flex items-center gap-2">
+                             <h3 className="text-base md:text-lg font-bold text-blue-500 dark:text-blue-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                                  Imported Items
                              </h3>
@@ -400,16 +495,17 @@ export const QuotationFormPage = () => {
                          </div>
 
                          {/* Config bar */}
-                         <div className="flex gap-4 mb-4 text-xs bg-primary/5 border border-border p-3 rounded-xl ml-3 flex-wrap">
+                         <div className="flex gap-3 md:gap-4 mb-4 text-xs bg-primary/5 border border-border p-3 rounded-xl ml-3 flex-wrap">
                              <div className="flex items-center gap-1 text-muted-foreground">Cost Factor %: <input type="number" className={tinyInputCls} value={formData.costFactorPct} onChange={e=>setFormData({...formData, costFactorPct: Number(e.target.value)})} /></div>
                              <div className="flex items-center gap-1 text-muted-foreground">Import %: <input type="number" step="0.01" className={tinyInputCls} value={formData.importationPct} onChange={e=>setFormData({...formData, importationPct: Number(e.target.value)})} /></div>
                              <div className="flex items-center gap-1 text-muted-foreground">Transport %: <input type="number" className={tinyInputCls} value={formData.transportationPct} onChange={e=>setFormData({...formData, transportationPct: Number(e.target.value)})} /></div>
                              <div className="flex items-center gap-1 text-muted-foreground">Profit %: <input type="number" className={tinyInputCls} value={formData.profitPct} onChange={e=>setFormData({...formData, profitPct: Number(e.target.value)})} /></div>
                          </div>
 
-                         <div className="overflow-visible ml-3">
-                         <table className="w-full text-sm">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2" style={{ minWidth: '400px', width: '45%' }}>Product</th><th className="w-20 text-center">Qty</th><th className="w-28 text-right">Base (USD)</th><th className="w-32 text-right">Final (PKR)</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
+                         {/* Desktop table */}
+                         <div className="hidden md:block overflow-x-auto ml-3">
+                         <table className="w-full text-sm table-fixed">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 w-[40%]">Product</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (USD)</th><th className="w-36 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {importedItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -418,10 +514,10 @@ export const QuotationFormPage = () => {
                                                   onClick={() => setProductModalTarget({ list: "imported", index: idx })}
                                                   className="flex items-center min-w-0 w-full justify-between bg-background border border-border rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors px-3 py-2 text-sm"
                                               >
-                                                  <span className="truncate text-foreground max-w-[250px] sm:max-w-none">
+                                                  <span className="truncate text-foreground">
                                                       {item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "Browse to select product..."}
                                                   </span>
-                                                  <Search className="h-3.5 w-3.5 text-muted-foreground ml-2.5 shrink-0" />
+                                                  <Search className="h-3.5 w-3.5 text-muted-foreground ml-2 shrink-0" />
                                               </div>
                                          </td>
                                          <td className="px-1">
@@ -436,7 +532,7 @@ export const QuotationFormPage = () => {
                                              <div className="flex items-center justify-end gap-1.5">
                                                  {item.calcBreakdown && (
                                                      <button type="button" onClick={() => setModalBreakdown(item.calcBreakdown)} className="p-1 rounded hover:bg-primary/10 transition-colors" title="View calculation breakdown">
-                                                         <Info className="h-3.5 w-3.5 text-blue-400 hover:text-blue-500"/>
+                                                         <Calculator className="h-4 w-4 text-blue-400 hover:text-blue-500"/>
                                                      </button>
                                                  )}
                                                  <span>{item.unitPrice > 0 ? item.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
@@ -454,8 +550,13 @@ export const QuotationFormPage = () => {
                          </table>
                          </div>
 
+                         {/* Mobile cards */}
+                         <div className="md:hidden space-y-3 ml-3">
+                             {importedItems.map((item, idx) => renderImportedCard(item, idx))}
+                         </div>
+
                          {importedItems.length > 0 && (
-                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-14">
+                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-4 md:pr-14">
                                  Section Total: {importedItems.reduce((s, i) => s + i.lineTotal, 0).toLocaleString(undefined, {maximumFractionDigits:2})} PKR
                              </div>
                          )}
@@ -464,10 +565,10 @@ export const QuotationFormPage = () => {
 
                 {/* ── LOCAL SECTION ── */}
                 {showLocal && (
-                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
+                     <div className="bg-card border border-border rounded-2xl p-4 md:p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
                          <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 rounded-l-2xl" />
                          <div className="flex justify-between items-center mb-4 pl-3">
-                             <h3 className="text-lg font-bold text-emerald-500 dark:text-emerald-400 flex items-center gap-2">
+                             <h3 className="text-base md:text-lg font-bold text-emerald-500 dark:text-emerald-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                  Local Items
                              </h3>
@@ -475,9 +576,10 @@ export const QuotationFormPage = () => {
                                  <Plus className="w-4 h-4 mr-1"/> Add Row
                              </button>
                          </div>
-                         <div className="overflow-visible ml-3">
-                         <table className="w-full text-sm">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2" style={{ minWidth: '400px', width: '45%' }}>Product</th><th className="w-20 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-24 text-center">Discount%</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
+                         {/* Desktop table */}
+                         <div className="hidden md:block overflow-x-auto ml-3">
+                         <table className="w-full text-sm table-fixed">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 w-[40%]">Product</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Price (PKR)</th><th className="w-20 text-center">Disc%</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -486,10 +588,10 @@ export const QuotationFormPage = () => {
                                                   onClick={() => setProductModalTarget({ list: "local", index: idx })}
                                                   className="flex items-center min-w-0 w-full justify-between bg-background border border-border rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors px-3 py-2 text-sm"
                                               >
-                                                  <span className="truncate text-foreground max-w-[250px] sm:max-w-none">
+                                                  <span className="truncate text-foreground">
                                                       {item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "Browse to select product..."}
                                                   </span>
-                                                  <Search className="h-3.5 w-3.5 text-muted-foreground ml-2.5 shrink-0" />
+                                                  <Search className="h-3.5 w-3.5 text-muted-foreground ml-2 shrink-0" />
                                               </div>
                                          </td>
                                          <td className="px-1">
@@ -519,8 +621,13 @@ export const QuotationFormPage = () => {
                          </table>
                          </div>
 
+                         {/* Mobile cards */}
+                         <div className="md:hidden space-y-3 ml-3">
+                             {localItems.map((item, idx) => renderLocalCard(item, idx))}
+                         </div>
+
                          {localItems.length > 0 && (
-                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-14">
+                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-4 md:pr-14">
                                  Section Total: {localItems.reduce((s, i) => s + i.lineTotal, 0).toLocaleString(undefined, {maximumFractionDigits:2})} PKR
                              </div>
                          )}
@@ -529,10 +636,10 @@ export const QuotationFormPage = () => {
 
                 {/* ── SERVICES SECTION ── */}
                 {showServices && (
-                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
+                     <div className="bg-card border border-border rounded-2xl p-4 md:p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
                          <div className="absolute top-0 left-0 w-1 h-full bg-purple-500 rounded-l-2xl" />
                          <div className="flex justify-between items-center mb-4 pl-3">
-                             <h3 className="text-lg font-bold text-purple-500 dark:text-purple-400 flex items-center gap-2">
+                             <h3 className="text-base md:text-lg font-bold text-purple-500 dark:text-purple-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                                  Services
                              </h3>
@@ -540,9 +647,10 @@ export const QuotationFormPage = () => {
                                  <Plus className="w-4 h-4 mr-1"/> Add Row
                              </button>
                          </div>
-                         <div className="overflow-visible ml-3">
-                         <table className="w-full text-sm">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2" style={{ minWidth: '400px', width: '45%' }}>Service Name</th><th className="w-20 text-center">Qty</th><th className="w-32 text-right">Price (PKR)</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
+                         {/* Desktop table */}
+                         <div className="hidden md:block overflow-x-auto ml-3">
+                         <table className="w-full text-sm table-fixed">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 w-[40%]">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {serviceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -579,8 +687,27 @@ export const QuotationFormPage = () => {
                          </table>
                          </div>
 
+                         {/* Mobile cards for services */}
+                         <div className="md:hidden space-y-3 ml-3">
+                             {serviceItems.map((item, idx) => (
+                                 <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
+                                     <input type="text" placeholder="Service name..." className={inputCls} value={item.serviceName||""} onChange={e => {
+                                         const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], serviceName: e.target.value }; setServiceItems(newArr);
+                                     }}/>
+                                     <div className="grid grid-cols-2 gap-3">
+                                         <div><label className="text-xs text-muted-foreground">Qty</label><input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => { const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) }; setServiceItems(newArr); }}/></div>
+                                         <div><label className="text-xs text-muted-foreground">Price</label><input type="number" className={inputCls + " !py-1.5"} min="0" value={item.servicePrice||0} onChange={e => { const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) }; setServiceItems(newArr); }}/></div>
+                                     </div>
+                                     <div className="flex items-center justify-between">
+                                         <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
+                                         <button type="button" onClick={() => setServiceItems(serviceItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors"><Trash2 className="w-4 h-4 text-destructive"/></button>
+                                     </div>
+                                 </div>
+                             ))}
+                         </div>
+
                          {serviceItems.length > 0 && (
-                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-14">
+                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-4 md:pr-14">
                                  Section Total: {serviceItems.reduce((s, i) => s + i.lineTotal, 0).toLocaleString(undefined, {maximumFractionDigits:2})} PKR
                              </div>
                          )}
@@ -588,10 +715,10 @@ export const QuotationFormPage = () => {
                 )}
 
                 {/* ── TAXES AND TOTALS ── */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                     <div className="bg-secondary/30 border border-border/50 rounded-2xl p-6 shadow-md">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                     <div className="bg-secondary/30 border border-border/50 rounded-2xl p-4 md:p-6 shadow-md">
                          <h3 className="text-lg font-semibold text-foreground mb-4">Taxes &amp; Adjustments</h3>
-                         <div className="grid grid-cols-2 gap-4">
+                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                              <div>
                                  <label className="text-xs font-semibold text-muted-foreground block mb-1">GST (%)</label>
                                  <input type="number" className={inputCls} value={formData.gstPercentage} onChange={e => setFormData({...formData, gstPercentage: Number(e.target.value)})}/>
@@ -606,7 +733,7 @@ export const QuotationFormPage = () => {
                              </div>
                          </div>
                      </div>
-                     <div className="bg-gradient-to-br from-secondary/50 to-secondary/30 border border-border/50 rounded-2xl p-6 shadow-xl flex flex-col justify-center">
+                     <div className="bg-gradient-to-br from-secondary/50 to-secondary/30 border border-border/50 rounded-2xl p-4 md:p-6 shadow-xl flex flex-col justify-center">
                          <div className="space-y-3">
                              <div className="flex justify-between text-muted-foreground"><span>Sub Total</span><span className="text-foreground font-medium">{totals.subTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
                              {formData.gstPercentage > 0 && <div className="flex justify-between text-muted-foreground"><span>GST ({formData.gstPercentage}%)</span><span className="text-foreground">+ {totals.gst.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
@@ -614,14 +741,14 @@ export const QuotationFormPage = () => {
                              {formData.adjustment > 0 && <div className="flex justify-between text-destructive"><span>Adjustment</span><span>- {formData.adjustment.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
                              
                              <div className="border-t border-border pt-3 flex justify-between items-end">
-                                 <span className="text-lg font-bold text-foreground">Grand Total</span>
-                                 <span className="text-2xl font-black text-primary">{totals.grand.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-muted-foreground">PKR</span></span>
+                                 <span className="text-base md:text-lg font-bold text-foreground">Grand Total</span>
+                                 <span className="text-xl md:text-2xl font-black text-primary">{totals.grand.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-muted-foreground">PKR</span></span>
                              </div>
                          </div>
 
-                         <div className="mt-8 flex justify-end gap-4">
+                         <div className="mt-6 md:mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">
                              <button type="button" onClick={() => navigate('/quotations')} className="px-6 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary/50 transition-colors">Cancel</button>
-                             <button type="submit" disabled={saving} className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl shadow-lg hover:-translate-y-0.5 transition-all font-bold flex items-center gap-2 hover:shadow-primary/25">
+                             <button type="submit" disabled={saving} className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl shadow-lg hover:-translate-y-0.5 transition-all font-bold flex items-center justify-center gap-2 hover:shadow-primary/25">
                                  {saving && <Loader2 className="w-4 h-4 animate-spin"/>} {isEditMode ? "Update" : "Save Quotation"}
                              </button>
                          </div>
@@ -634,7 +761,10 @@ export const QuotationFormPage = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in" onClick={() => setModalBreakdown(null)}>
                     <div className="bg-card border border-border rounded-3xl p-6 shadow-2xl max-w-md w-full animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500">Price Calculation Pipeline</h2>
+                            <h2 className="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center gap-2">
+                                <Calculator className="h-5 w-5 text-blue-500" />
+                                Price Calculation Pipeline
+                            </h2>
                         </div>
                         <div className="space-y-3 text-sm font-medium">
                             <div className="flex justify-between border-b border-border pb-2">

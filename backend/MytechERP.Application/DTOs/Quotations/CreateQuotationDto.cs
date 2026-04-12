@@ -29,7 +29,9 @@ namespace MytechERP.Application.DTOs.Quotations
         public decimal CostFactorPct { get; set; } = 60m;
         public decimal ImportationPct { get; set; } = 13.75m;
         public decimal TransportationPct { get; set; } = 2m;
-        public decimal ProfitPct { get; set; } = 15m; 
+        public decimal ProfitPct { get; set; } = 15m;
+        public string ProjectCode { get; set; } = "FPS";
+        public string? QuoteHeadline { get; set; }
 
         [Required]
         public List<CreateQuotationItemDto> Items { get; set; } = new List<CreateQuotationItemDto>();

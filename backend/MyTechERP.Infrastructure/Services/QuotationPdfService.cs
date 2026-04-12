@@ -2,7 +2,6 @@ using MytechERP.Application.DTOs.Quotations;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using System.Reflection;
 using System.IO;
 
 namespace MyTechERP.Infrastructure.Services
@@ -43,73 +42,103 @@ namespace MyTechERP.Infrastructure.Services
             
             container.Column(col =>
             {
-                // Full width header image
+                // Lightened header image
                 if (File.Exists(headerPath))
                 {
-                    col.Item().Image(headerPath).FitWidth();
+                    col.Item().Layers(layers =>
+                    {
+                        layers.Layer().Image(headerPath).FitWidth();
+                        layers.PrimaryLayer().Background("#D9FFFFFF"); // 85% opaque white
+                    });
                 }
-                else
+
+                // If image doesn't exist, show text fallback
+                if (!File.Exists(headerPath))
                 {
                     col.Item().Text("MY TECH ENGINEERING COMPANY PVT LTD").FontSize(22).Bold().FontColor(BrandColor);
                 }
 
-                // Quote Info Below Header
+                // Quote Info Row
                 col.Item().PaddingTop(10).Row(row =>
                 {
+                    // Left: To / Contact Person / Company
                     row.RelativeItem().Column(c =>
                     {
-                        c.Item().Text(text => { text.Span("To: ").SemiBold(); text.Span(quote.CustomerName); });
+                        c.Item().Text("To,").SemiBold().FontSize(10);
+                        if (!string.IsNullOrWhiteSpace(quote.ContactPersonName))
+                        {
+                            c.Item().Text(quote.ContactPersonName).FontSize(10);
+                        }
+                        c.Item().Text(quote.CustomerName).FontSize(10).SemiBold();
                         if (!string.IsNullOrWhiteSpace(quote.SiteName))
                         {
                             c.Item().Text(text => { text.Span("Site: ").SemiBold(); text.Span(quote.SiteName); });
                         }
                     });
 
+                    // Right: Quote number, dates
                     row.RelativeItem().AlignRight().Column(c =>
                     {
-                        c.Item().Text("Quotation").FontSize(16).Bold().FontColor(Colors.Black);
-                        c.Item().Text(text => { text.Span("Quotation #: ").SemiBold(); text.Span(quote.QuoteNumber); });
-                        c.Item().Text(text => { text.Span("Date: ").SemiBold(); text.Span(DateTime.Now.ToString("dd/MM/yyyy")); });
+                        c.Item().Text("QUOTATION").FontSize(14).Bold().FontColor(BrandColor);
+                        c.Item().PaddingTop(4).Text(text => { text.Span("Quotation # : ").SemiBold(); text.Span(quote.QuoteNumber); });
+                        c.Item().Text(text => { text.Span("Date: ").SemiBold(); text.Span(quote.CreatedAt.ToString("dd-MMM-yyyy")); });
+                        if (quote.RevisionNumber > 0)
+                        {
+                            c.Item().Text(text => { text.Span("Revision: ").SemiBold(); text.Span($"R{quote.RevisionNumber}"); });
+                        }
                     });
                 });
+
+                // Headline
+                if (!string.IsNullOrWhiteSpace(quote.QuoteHeadline))
+                {
+                    col.Item().PaddingTop(10).Background(BrandColorLight).Padding(8).AlignCenter()
+                        .Text($"QUOTATION FOR {quote.QuoteHeadline}")
+                        .Bold().FontSize(11).FontColor(BrandColor);
+                }
             });
         }
 
         void ComposeContent(IContainer container, QuotationDto quote)
         {
-            container.PaddingTop(20).Column(col =>
+            container.PaddingTop(15).Column(col =>
             {
-                col.Item().Element(c => ComposeTables(c, quote));
+                // Determine which sections exist based on actual items
+                var importedItems = quote.Items.Where(i => i.ItemType == "Imported").ToList();
+                var localItems = quote.Items.Where(i => i.ItemType == "Local").ToList();
+                var serviceItems = quote.Items.Where(i => i.ItemType == "Service").ToList();
 
+                char sectionLetter = 'A';
+
+                // Section A: Imported
+                if (importedItems.Any())
+                {
+                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, $"Section {sectionLetter}: Imported Supply Items", importedItems, quote.Currency));
+                    sectionLetter++;
+                }
+
+                // Section B: Local
+                if (localItems.Any())
+                {
+                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, $"Section {sectionLetter}: Local Supply Items", localItems, quote.Currency));
+                    sectionLetter++;
+                }
+
+                // Section C: Services
+                if (serviceItems.Any())
+                {
+                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, $"Section {sectionLetter}: Services", serviceItems, quote.Currency));
+                }
+
+                // Summary
                 col.Item().Row(row =>
                 {
                     row.RelativeItem(); 
-                    row.ConstantItem(250).Element(c => ComposeSummary(c, quote));
+                    row.ConstantItem(260).Element(c => ComposeSummary(c, quote));
                 });
 
+                // Terms
                 col.Item().PaddingTop(20).Element(c => ComposeTerms(c, quote));
-            });
-        }
-
-        void ComposeTables(IContainer container, QuotationDto quote)
-        {
-            container.Column(col =>
-            {
-                bool showImported = quote.SupplyColumnMode == "Both" || quote.SupplyColumnMode == "ImportedOnly";
-                bool showLocal = quote.SupplyColumnMode == "Both" || quote.SupplyColumnMode == "LocalOnly";
-
-                var importedItems = quote.Items.Where(i => i.ItemType == "Imported" || i.ItemType == "Service").ToList();
-                var localItems = quote.Items.Where(i => i.ItemType == "Local" || i.ItemType == "Service").ToList();
-
-                if (showImported && importedItems.Any())
-                {
-                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, "Supply Imported Items & Services", importedItems, quote.Currency));
-                }
-
-                if (showLocal && localItems.Any())
-                {
-                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, "Supply Local Items & Services", localItems, quote.Currency));
-                }
             });
         }
 
@@ -117,18 +146,18 @@ namespace MyTechERP.Infrastructure.Services
         {
             container.Column(col =>
             {
-                col.Item().Background(BrandColor).Padding(5).AlignCenter().Text(title)
-                    .Bold().FontColor(Colors.White).FontSize(11);
+                col.Item().Background(BrandColor).Padding(6).AlignCenter().Text(title)
+                    .Bold().FontColor(Colors.White).FontSize(10);
 
                 col.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.ConstantColumn(30);  // Sr
-                        columns.RelativeColumn();    // Description
-                        columns.ConstantColumn(40);  // Qty
-                        columns.ConstantColumn(75);  // Rate
-                        columns.ConstantColumn(85);  // Amount
+                        columns.ConstantColumn(30);   // Sr
+                        columns.RelativeColumn(4);    // Description
+                        columns.ConstantColumn(35);   // Qty
+                        columns.ConstantColumn(80);   // Rate
+                        columns.ConstantColumn(90);   // Amount
                     });
 
                     table.Header(header =>
@@ -136,8 +165,8 @@ namespace MyTechERP.Infrastructure.Services
                         header.Cell().Element(HeaderCellStyle).Text("Sr.#");
                         header.Cell().Element(HeaderCellStyle).Text("Description");
                         header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Qty");
-                        header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Rate");
-                        header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Amount");
+                        header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Rate ({currency})");
+                        header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Amount ({currency})");
                     });
 
                     int i = 1;
@@ -149,6 +178,14 @@ namespace MyTechERP.Infrastructure.Services
                         table.Cell().Element(CellStyle).AlignRight().Text(item.UnitPrice.ToString("N2"));
                         table.Cell().Element(CellStyle).AlignRight().Text(item.LineTotal.ToString("N2"));
                     }
+
+                    // Section sub-total row
+                    decimal sectionTotal = items.Sum(x => x.LineTotal);
+                    table.Cell().Element(SubTotalCellStyle).Text("");
+                    table.Cell().Element(SubTotalCellStyle).AlignRight().Text("Section Sub-Total:").Bold();
+                    table.Cell().Element(SubTotalCellStyle).Text("");
+                    table.Cell().Element(SubTotalCellStyle).Text("");
+                    table.Cell().Element(SubTotalCellStyle).AlignRight().Text(sectionTotal.ToString("N2")).Bold();
                 });
             });
         }
@@ -160,35 +197,41 @@ namespace MyTechERP.Infrastructure.Services
                 table.ColumnsDefinition(columns =>
                 {
                     columns.RelativeColumn();
-                    columns.ConstantColumn(90); 
+                    columns.ConstantColumn(100); 
                 });
 
                 // Header
                 table.Header(header =>
                 {
                     header.Cell().Element(SummaryHeaderStyle).Text("Description");
-                    header.Cell().Element(SummaryHeaderStyle).AlignRight().Text("Amount");
+                    header.Cell().Element(SummaryHeaderStyle).AlignRight().Text($"Amount ({quote.Currency})");
                 });
 
                 // Rows
                 table.Cell().Element(SummaryCellStyle).Text("SUB Total Before Taxes");
                 table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.SubTotal.ToString("N2"));
 
-                table.Cell().Element(SummaryCellStyle).Text($"GST @ {quote.GSTPercentage}%");
-                table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.GSTAmount.ToString("N2"));
+                if (quote.GSTPercentage > 0)
+                {
+                    table.Cell().Element(SummaryCellStyle).Text($"GST @ {quote.GSTPercentage}%");
+                    table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.GSTAmount.ToString("N2"));
+                }
 
-                table.Cell().Element(SummaryCellStyle).Text($"Income Tax @ {quote.IncomeTaxPercentage}%");
-                table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.IncomeTaxAmount.ToString("N2"));
+                if (quote.IncomeTaxPercentage > 0)
+                {
+                    table.Cell().Element(SummaryCellStyle).Text($"Income Tax @ {quote.IncomeTaxPercentage}%");
+                    table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.IncomeTaxAmount.ToString("N2"));
+                }
 
-                 if (quote.Adjustment != 0)
+                if (quote.Adjustment != 0)
                 {
                     table.Cell().Element(SummaryCellStyle).Text("Adjustment");
                     table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.Adjustment.ToString("N2"));
                 }
 
-                // Total
-                table.Cell().Element(SummaryCellStyle).Text("Grand Total All Taxes").Bold();
-                table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.GrandTotal.ToString("N2")).Bold();
+                // Grand Total
+                table.Cell().Element(GrandTotalCellStyle).Text("Grand Total Payable").Bold();
+                table.Cell().Element(GrandTotalCellStyle).AlignRight().Text(quote.GrandTotal.ToString("N2")).Bold();
             });
         }
 
@@ -196,9 +239,8 @@ namespace MyTechERP.Infrastructure.Services
         {
             container.Column(col =>
             {
-                col.Item().Text("Terms & Conditions:").Bold().Underline();
+                col.Item().Text("Terms & Conditions:").Bold().Underline().FontSize(10);
                 
-                // Helper for terms sections to keep code clean
                 void AddTerm(string title, params string[] points)
                 {
                     col.Item().PaddingTop(5).Text(title).Bold().FontSize(8);
@@ -211,8 +253,10 @@ namespace MyTechERP.Infrastructure.Services
                 AddTerm("Payment & Taxes Terms:", 
                     "Price are as per actual basis.",
                     "GST Tax is mentioned separately on Supply Rates",
+                    "Service Tax is mentioned separately on Installation Rates",
                     $"Currency : Unit of Currency of this quotations is {quote.Currency}.",
-                    "Payment :  100% Advance Payment after Order Confirmation and Advance Payment."
+                    "Payment : 30% Advance Payment and 60% on Order Confirmation and 10% on completion.",
+                    "Payment : 100% Advance Payment after Order Confirmation and Advance Payment."
                 );
 
                 AddTerm("Delivery terms:",
@@ -257,20 +301,20 @@ namespace MyTechERP.Infrastructure.Services
                 {
                     row.RelativeItem().Column(c =>
                     {
-                        c.Item().Text("Prepared By:").FontSize(8).Bold();
-                        c.Item().Text("Engr. Ali Azeem").FontSize(9).SemiBold();
-                        c.Item().Text("Estimation & Design Engineer").FontSize(8);
-                        c.Item().Text("+92-323-7886379").FontSize(8);
-                        c.Item().Text("ali.azeem@mytecheng.com").FontSize(8);
-                    });
-
-                    row.RelativeItem().Column(c =>
-                    {
                         c.Item().Text("Approved By:").FontSize(8).Bold();
                         c.Item().Text("Mr. Munawar Hasan").FontSize(9).SemiBold();
                         c.Item().Text("Director Sales & Projects").FontSize(8);
                         c.Item().Text("+92-300-9233273").FontSize(8);
                         c.Item().Text("munawar.hasan@mytecheng.com").FontSize(8);
+                    });
+
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text("Prepared By:").FontSize(8).Bold();
+                        c.Item().Text("Engr. Ali Azeem").FontSize(9).SemiBold();
+                        c.Item().Text("Estimation & Design Engineer").FontSize(8);
+                        c.Item().Text("+92-323-7886379").FontSize(8);
+                        c.Item().Text("ali.azeem@mytecheng.com").FontSize(8);
                     });
                 });
             });
@@ -303,7 +347,7 @@ namespace MyTechERP.Infrastructure.Services
                 .Border(1)
                 .BorderColor(Colors.White)
                 .Padding(5)
-                .DefaultTextStyle(x => x.Bold().FontColor(Colors.White).FontSize(9));
+                .DefaultTextStyle(x => x.Bold().FontColor(Colors.White).FontSize(8));
         }
 
         static IContainer CellStyle(IContainer container)
@@ -311,16 +355,23 @@ namespace MyTechERP.Infrastructure.Services
             return container
                 .BorderBottom(1)
                 .BorderColor(LightBorder)
+                .Padding(4)
+                .DefaultTextStyle(x => x.FontSize(8));
+        }
+
+        static IContainer SubTotalCellStyle(IContainer container)
+        {
+            return container
+                .Background(BrandColorLight)
+                .BorderBottom(1)
+                .BorderColor(LightBorder)
                 .Padding(5)
-                .DefaultTextStyle(x => x.FontSize(9));
+                .DefaultTextStyle(x => x.FontSize(9).SemiBold());
         }
 
         static IContainer SummaryHeaderStyle(IContainer container)
         {
             return container
-                .Background(Colors.Green.Medium) // The summary table in screenshot has green header? No, looks like a different shade of blue/teal.
-                // Screenshot 1: Summary table header is Green/Teal. 
-                // Let's use a nice Teal
                 .Background(Color.FromHex("#1ABC9C")) 
                 .Padding(5)
                 .DefaultTextStyle(x => x.Bold().FontColor(Colors.White).FontSize(9));
@@ -333,6 +384,16 @@ namespace MyTechERP.Infrastructure.Services
                 .BorderColor(Colors.Grey.Lighten2)
                 .Padding(5)
                 .DefaultTextStyle(x => x.FontSize(9));
+        }
+
+        static IContainer GrandTotalCellStyle(IContainer container)
+        {
+             return container
+                .Background(Color.FromHex("#E8F8F5"))
+                .Border(1)
+                .BorderColor(Color.FromHex("#1ABC9C"))
+                .Padding(6)
+                .DefaultTextStyle(x => x.FontSize(10).Bold());
         }
     }
     

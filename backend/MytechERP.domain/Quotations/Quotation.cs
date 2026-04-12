@@ -62,6 +62,9 @@ namespace MytechERP.domain.Quotations
         public string CreatedByUserId { get; set; }=string.Empty;
 
         public string QuoteMode { get; set; } = "Local"; 
-        public string SupplyColumnMode { get; set; } = "Both"; 
+        public string SupplyColumnMode { get; set; } = "Both";
+        public int RevisionNumber { get; set; } = 0;
+        public string ProjectCode { get; set; } = "FPS";
+        public string? QuoteHeadline { get; set; }
     }
 }

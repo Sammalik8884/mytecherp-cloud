@@ -29,7 +29,12 @@ namespace MytechERP.Application.DTOs.Quotations
         public decimal IncomeTaxAmount { get; set; }
 
         public decimal Adjustment { get; set; }
-        public decimal GrandTotal { get; set; } 
+        public decimal GrandTotal { get; set; }
+
+        public int RevisionNumber { get; set; }
+        public string ProjectCode { get; set; } = "FPS";
+        public string? QuoteHeadline { get; set; }
+        public string? ContactPersonName { get; set; }
 
         public List<QuotationItemDto> Items { get; set; } = new List<QuotationItemDto>();
     }

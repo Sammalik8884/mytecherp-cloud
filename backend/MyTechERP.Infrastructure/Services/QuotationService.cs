@@ -54,7 +54,43 @@ namespace MyTechERP.Infrastructure.Services
             if (dto.Items == null || !dto.Items.Any())
                 throw new Exception("Cannot create a quotation with 0 items.");
 
-            string quoteNumber = $"QT-{DateTime.Now:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}";
+            // Generate MTQ-XXXXX-{ProjectCode}-R0 format
+            int nextSeq = 1;
+            var lastQuote = await _context.Quotations
+                .Where(q => q.QuoteNumber.StartsWith("MTQ-"))
+                .OrderByDescending(q => q.Id)
+                .FirstOrDefaultAsync();
+            if (lastQuote != null)
+            {
+                var parts = lastQuote.QuoteNumber.Split('-');
+                if (parts.Length >= 2 && int.TryParse(parts[1], out int parsed))
+                    nextSeq = parsed + 1;
+            }
+            string projectCode = string.IsNullOrWhiteSpace(dto.ProjectCode) ? "FPS" : dto.ProjectCode;
+            string quoteNumber = $"MTQ-{nextSeq:D5}-{projectCode}-R0";
+
+            // Auto-generate headline if not provided
+            string headline = dto.QuoteHeadline;
+            if (string.IsNullOrWhiteSpace(headline))
+            {
+                var modes = (dto.QuoteMode ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim()).ToList();
+                if (modes.Contains("Imported") && modes.Contains("Local") && modes.Contains("Services"))
+                    headline = "Supply & Installation";
+                else if (modes.Contains("Imported") && modes.Contains("Services"))
+                    headline = "Supply (Imported) & Services";
+                else if (modes.Contains("Local") && modes.Contains("Services"))
+                    headline = "Supply (Local) & Services";
+                else if (modes.Contains("Imported") && modes.Contains("Local"))
+                    headline = "Supply (Imported + Local)";
+                else if (modes.Contains("Imported"))
+                    headline = "Supply (Imported)";
+                else if (modes.Contains("Local"))
+                    headline = "Supply (Local)";
+                else if (modes.Contains("Services"))
+                    headline = "Services Only";
+                else
+                    headline = "Quotation";
+            }
 
             var quotation = new Quotation
             {
@@ -76,7 +112,10 @@ namespace MyTechERP.Infrastructure.Services
                 Adjustment = dto.Adjustment,
                 CreatedByUserId= _currentUserService.UserId,
                 QuoteMode = dto.QuoteMode,
-                SupplyColumnMode = dto.SupplyColumnMode
+                SupplyColumnMode = dto.SupplyColumnMode,
+                RevisionNumber = 0,
+                ProjectCode = projectCode,
+                QuoteHeadline = headline
             };
 
             await CalculateAndAddItemsAsync(quotation, dto);
@@ -313,6 +352,7 @@ namespace MyTechERP.Infrastructure.Services
                 QuoteNumber = q.QuoteNumber,
                 CustomerId = q.CustomerId,
                 CustomerName = q.Customer?.Name ?? "Unknown",
+                ContactPersonName = q.Customer?.ContactPersonName,
                 SiteName = q.Site?.Name,
                 ValidUntil = q.ValidUntil,
                 Status = q.Status.ToString(),
@@ -328,6 +368,10 @@ namespace MyTechERP.Infrastructure.Services
                 IncomeTaxAmount = q.IncomeTaxAmount,
                 Adjustment = q.Adjustment,
                 GrandTotal = q.GrandTotal,
+
+                RevisionNumber = q.RevisionNumber,
+                ProjectCode = q.ProjectCode,
+                QuoteHeadline = q.QuoteHeadline,
 
                 Items = q.Items?.Select(i => new QuotationItemDto
                 {

@@ -21,6 +21,7 @@ export interface QuotationDto {
     createdAt: string;
     customerId: number;
     customerName: string;
+    contactPersonName?: string;
     siteName?: string;
     currency: string;
     subTotal: number;
@@ -32,6 +33,9 @@ export interface QuotationDto {
     grandTotal: number;
     quoteMode: string;
     supplyColumnMode: string;
+    revisionNumber: number;
+    projectCode: string;
+    quoteHeadline?: string;
     items: QuotationItemDto[];
 }
 
@@ -48,7 +52,7 @@ export interface CreateQuotationDto {
     customerId: number;
     opportunityId?: number;
     siteId?: number;
-    assetId?: number;         // Required for Work Order initialization
+    assetId?: number;
     currency: string;
     exchangeRate: number;
     globalCommissionPct: number;
@@ -61,6 +65,8 @@ export interface CreateQuotationDto {
     importationPct?: number;
     transportationPct?: number;
     profitPct?: number;
+    projectCode?: string;
+    quoteHeadline?: string;
     items: CreateQuotationItemDto[];
 }
 
