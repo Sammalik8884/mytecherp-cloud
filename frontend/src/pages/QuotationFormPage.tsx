@@ -78,7 +78,7 @@ const ProductCombobox = ({
             </div>
 
             {isOpen && (
-                <div className="absolute z-50 mt-1 w-full bg-card border border-border rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute z-50 bottom-[calc(100%+4px)] w-full bg-card border border-border rounded-lg shadow-xl max-h-72 overflow-y-auto">
                     {filtered.length === 0 ? (
                         <div className="px-3 py-4 text-sm text-muted-foreground text-center">No products found</div>
                     ) : (
@@ -469,8 +469,8 @@ export const QuotationFormPage = () => {
 
                 {/* ── IMPORTED SECTION ── */}
                 {showImported && (
-                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative overflow-hidden">
-                         <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
+                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
+                         <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l-2xl" />
                          <div className="flex justify-between items-center mb-4 pl-3">
                              <h3 className="text-lg font-bold text-blue-500 dark:text-blue-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
@@ -489,7 +489,7 @@ export const QuotationFormPage = () => {
                              <div className="flex items-center gap-1 text-muted-foreground">Profit %: <input type="number" className={tinyInputCls} value={formData.profitPct} onChange={e=>setFormData({...formData, profitPct: Number(e.target.value)})} /></div>
                          </div>
 
-                         <div className="overflow-x-auto ml-3">
+                         <div className="overflow-visible ml-3">
                          <table className="w-full text-sm">
                              <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2" style={{ minWidth: '400px', width: '45%' }}>Product</th><th className="w-20 text-center">Qty</th><th className="w-28 text-right">Base (USD)</th><th className="w-32 text-right">Final (PKR)</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
@@ -547,8 +547,8 @@ export const QuotationFormPage = () => {
 
                 {/* ── LOCAL SECTION ── */}
                 {showLocal && (
-                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative overflow-hidden">
-                         <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
+                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
+                         <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 rounded-l-2xl" />
                          <div className="flex justify-between items-center mb-4 pl-3">
                              <h3 className="text-lg font-bold text-emerald-500 dark:text-emerald-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -558,7 +558,7 @@ export const QuotationFormPage = () => {
                                  <Plus className="w-4 h-4 mr-1"/> Add Row
                              </button>
                          </div>
-                         <div className="overflow-x-auto ml-3">
+                         <div className="overflow-visible ml-3">
                          <table className="w-full text-sm">
                              <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2" style={{ minWidth: '400px', width: '45%' }}>Product</th><th className="w-20 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-24 text-center">Discount%</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
@@ -613,8 +613,8 @@ export const QuotationFormPage = () => {
 
                 {/* ── SERVICES SECTION ── */}
                 {showServices && (
-                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative overflow-hidden">
-                         <div className="absolute top-0 left-0 w-1 h-full bg-purple-500" />
+                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
+                         <div className="absolute top-0 left-0 w-1 h-full bg-purple-500 rounded-l-2xl" />
                          <div className="flex justify-between items-center mb-4 pl-3">
                              <h3 className="text-lg font-bold text-purple-500 dark:text-purple-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
@@ -624,7 +624,7 @@ export const QuotationFormPage = () => {
                                  <Plus className="w-4 h-4 mr-1"/> Add Row
                              </button>
                          </div>
-                         <div className="overflow-x-auto ml-3">
+                         <div className="overflow-visible ml-3">
                          <table className="w-full text-sm">
                              <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2" style={{ minWidth: '400px', width: '45%' }}>Service Name</th><th className="w-20 text-center">Qty</th><th className="w-32 text-right">Price (PKR)</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
