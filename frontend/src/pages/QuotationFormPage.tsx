@@ -23,31 +23,44 @@ type UiItem = CreateQuotationItemDto & {
     originalPrice?: number;
 };
 
-/* ─── Searchable Product Combobox ─────────────────────────────── */
-const ProductCombobox = ({ 
-    products, 
+/* ─── Searchable ProductCombobox ─────────────────────────────── */
+const SearchableProductCombobox = ({ 
+    selectedProduct, 
     value, 
     onChange, 
     placeholder = "Search products..." 
 }: { 
-    products: ProductDto[]; 
+    selectedProduct: ProductDto | undefined; 
     value: number | undefined; 
     onChange: (product: ProductDto) => void;
     placeholder?: string;
 }) => {
     const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
+    const [options, setOptions] = useState<ProductDto[]>([]);
+    const [loading, setLoading] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
-    const selectedProduct = products.find(p => p.id === value);
+    // Fetch products dynamically
+    useEffect(() => {
+        if (!isOpen) return;
+        
+        const fetchProducts = async () => {
+            setLoading(true);
+            try {
+                const res = await productService.getAll(1, 40, query);
+                const data = Array.isArray(res) ? res : Array.isArray((res as any).data) ? (res as any).data : [];
+                setOptions(data);
+            } catch (error) {
+                // Ignore
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const filtered = query.trim() === ""
-        ? products.slice(0, 50) // Show first 50 when no query
-        : products.filter(p =>
-            p.name.toLowerCase().includes(query.toLowerCase()) ||
-            (p.itemCode && p.itemCode.toLowerCase().includes(query.toLowerCase())) ||
-            (p.brand && p.brand.toLowerCase().includes(query.toLowerCase()))
-        ).slice(0, 50);
+        const timer = setTimeout(fetchProducts, 300);
+        return () => clearTimeout(timer);
+    }, [query, isOpen]);
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -74,15 +87,15 @@ const ProductCombobox = ({
                     onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
                     onFocus={() => setIsOpen(true)}
                 />
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground mr-2.5 shrink-0" />
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground mr-2.5 shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground mr-2.5 shrink-0" />}
             </div>
 
             {isOpen && (
                 <div className="absolute z-50 bottom-[calc(100%+4px)] w-full bg-card border border-border rounded-lg shadow-xl max-h-72 overflow-y-auto">
-                    {filtered.length === 0 ? (
+                    {options.length === 0 && !loading ? (
                         <div className="px-3 py-4 text-sm text-muted-foreground text-center">No products found</div>
                     ) : (
-                        filtered.map(p => (
+                        options.map(p => (
                             <div 
                                 key={p.id}
                                 className={`px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-primary/10 ${p.id === value ? 'bg-primary/5 text-primary font-medium' : 'text-foreground'}`}
@@ -116,7 +129,6 @@ export const QuotationFormPage = () => {
     
     const [customers, setCustomers] = useState<CustomerDto[]>([]);
     const [sites, setSites] = useState<SiteDto[]>([]);
-    const [products, setProducts] = useState<ProductDto[]>([]);
 
     const [formData, setFormData] = useState<Omit<CreateQuotationDto, 'items'>>({
         customerId: 0,
@@ -185,16 +197,12 @@ export const QuotationFormPage = () => {
         const fetchDependencies = async () => {
             try {
                 setLoading(true);
-                const [custData, siteData, prodData] = await Promise.all([
+                const [custData, siteData] = await Promise.all([
                     customerService.getAll().catch(() => []),
-                    siteService.getAll().catch(() => []),
-                    productService.getAll(1, 1000).catch(() => [])
+                    siteService.getAll().catch(() => [])
                 ]);
                 setCustomers(custData);
                 setSites(siteData);
-                const rawProds = prodData as any;
-                const prodArray: ProductDto[] = Array.isArray(rawProds) ? rawProds : Array.isArray(rawProds?.data) ? rawProds.data : [];
-                setProducts(prodArray);
 
                 if (isEditMode) {
                     const quote = await quotationService.getQuotationById(Number(id));
@@ -218,8 +226,14 @@ export const QuotationFormPage = () => {
                     const loc: UiItem[] = [];
                     const srv: UiItem[] = [];
 
+                    // Fetch previously selected products to display their names correctly
+                    const productIds = quote.items.filter(i => i.productId).map(i => i.productId as number);
+                    const uniqueIds = Array.from(new Set(productIds));
+                    const loadedProducts = await Promise.all(uniqueIds.map(pid => productService.getById(pid).catch(() => null)));
+                    const validProducts = loadedProducts.filter(p => p !== null) as ProductDto[];
+
                     quote.items.forEach(i => {
-                        const p = prodArray.find((prod: any) => prod.id === i.productId);
+                        const p = validProducts.find((prod) => prod.id === i.productId);
                         const uiItem: UiItem = {
                             id: Math.random().toString(36).substr(2, 9),
                             productId: i.productId,
@@ -317,15 +331,6 @@ export const QuotationFormPage = () => {
     };
 
     /* ─── Product filtering ───────────────────────────────────── */
-    // All products for imported section
-    const importedProducts = products;
-    // Only local-type products for local section (type === 0 means Local in the ProductType enum)
-    const localProducts = products.filter(p => {
-        const pType = (p as any).type;
-        // If product has type field and it's 0 (Local), show it
-        // If no type field exists, show all (backwards compatible)
-        return pType === undefined || pType === null || pType === 0;
-    });
 
     const renderTotals = () => {
         let subTotal = 0;
@@ -496,8 +501,8 @@ export const QuotationFormPage = () => {
                                  {importedItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
-                                              <ProductCombobox 
-                                                  products={importedProducts}
+                                              <SearchableProductCombobox 
+                                                  selectedProduct={item.product}
                                                   value={item.productId || undefined}
                                                   onChange={(p) => {
                                                       const newArr = [...importedItems];
@@ -565,8 +570,8 @@ export const QuotationFormPage = () => {
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
-                                              <ProductCombobox
-                                                  products={localProducts}
+                                              <SearchableProductCombobox
+                                                  selectedProduct={item.product}
                                                   value={item.productId || undefined}
                                                   onChange={(p) => {
                                                       const newArr = [...localItems];
