@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Plus, Trash2, ArrowLeft, Loader2, Info } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Trash2, ArrowLeft, Loader2, Info, Search, ChevronDown } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
@@ -15,7 +15,7 @@ import { ProductDto } from "../types/product";
 
 
 type UiItem = CreateQuotationItemDto & { 
-    id: string; // unique ID for React list key
+    id: string;
     product?: ProductDto; 
     unitPrice: number; 
     lineTotal: number; 
@@ -23,6 +23,87 @@ type UiItem = CreateQuotationItemDto & {
     originalPrice?: number;
 };
 
+/* ─── Searchable Product Combobox ─────────────────────────────── */
+const ProductCombobox = ({ 
+    products, 
+    value, 
+    onChange, 
+    placeholder = "Search products..." 
+}: { 
+    products: ProductDto[]; 
+    value: number | undefined; 
+    onChange: (product: ProductDto) => void;
+    placeholder?: string;
+}) => {
+    const [query, setQuery] = useState("");
+    const [isOpen, setIsOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    const selectedProduct = products.find(p => p.id === value);
+
+    const filtered = query.trim() === ""
+        ? products.slice(0, 50) // Show first 50 when no query
+        : products.filter(p =>
+            p.name.toLowerCase().includes(query.toLowerCase()) ||
+            (p.itemCode && p.itemCode.toLowerCase().includes(query.toLowerCase())) ||
+            (p.brand && p.brand.toLowerCase().includes(query.toLowerCase()))
+        ).slice(0, 50);
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
+    return (
+        <div ref={ref} className="relative">
+            <div 
+                className="flex items-center bg-background border border-border rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => setIsOpen(true)}
+            >
+                <Search className="h-3.5 w-3.5 text-muted-foreground ml-2.5 shrink-0" />
+                <input
+                    type="text"
+                    className="w-full bg-transparent px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                    placeholder={selectedProduct ? selectedProduct.name : placeholder}
+                    value={isOpen ? query : (selectedProduct ? selectedProduct.name : "")}
+                    onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+                    onFocus={() => setIsOpen(true)}
+                />
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground mr-2.5 shrink-0" />
+            </div>
+
+            {isOpen && (
+                <div className="absolute z-50 mt-1 w-full bg-card border border-border rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                    {filtered.length === 0 ? (
+                        <div className="px-3 py-4 text-sm text-muted-foreground text-center">No products found</div>
+                    ) : (
+                        filtered.map(p => (
+                            <div 
+                                key={p.id}
+                                className={`px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-primary/10 ${p.id === value ? 'bg-primary/5 text-primary font-medium' : 'text-foreground'}`}
+                                onClick={() => { onChange(p); setQuery(""); setIsOpen(false); }}
+                            >
+                                <div className="font-medium truncate">{p.name}</div>
+                                <div className="text-xs text-muted-foreground flex gap-3">
+                                    {p.itemCode && <span>Code: {p.itemCode}</span>}
+                                    {p.brand && <span>Brand: {p.brand}</span>}
+                                    <span className="ml-auto font-medium">${p.price.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+/* ─── Main Page Component ─────────────────────────────────────── */
 export const QuotationFormPage = () => {
     const { id } = useParams<{ id: string }>();
     const isEditMode = Boolean(id);
@@ -44,7 +125,7 @@ export const QuotationFormPage = () => {
         currency: "PKR",
         exchangeRate: 300, 
         globalCommissionPct: 0,
-        gstPercentage: 18, // Default
+        gstPercentage: 18,
         incomeTaxPercentage: 0,
         adjustment: 0,
         quoteMode: "Local",
@@ -67,6 +148,37 @@ export const QuotationFormPage = () => {
 
     // Breakdown Modal state
     const [modalBreakdown, setModalBreakdown] = useState<any>(null);
+
+    // Helper: make empty row
+    const makeEmptyRow = (itemType: string): UiItem => ({
+        id: Math.random().toString(36).substr(2, 9),
+        productId: 0,
+        quantity: 1,
+        itemType,
+        unitPrice: 0,
+        lineTotal: 0,
+        serviceName: itemType === "Service" ? "" : undefined,
+        servicePrice: itemType === "Service" ? 0 : undefined,
+    });
+
+    // Auto-add first row when section is toggled on
+    useEffect(() => {
+        if (showImported && importedItems.length === 0) {
+            setImportedItems([makeEmptyRow("Imported")]);
+        }
+    }, [showImported]);
+
+    useEffect(() => {
+        if (showLocal && localItems.length === 0) {
+            setLocalItems([makeEmptyRow("Local")]);
+        }
+    }, [showLocal]);
+
+    useEffect(() => {
+        if (showServices && serviceItems.length === 0) {
+            setServiceItems([makeEmptyRow("Service")]);
+        }
+    }, [showServices]);
 
     // Initial Fetch
     useEffect(() => {
@@ -154,14 +266,15 @@ export const QuotationFormPage = () => {
 
     // Recalculate imported items when config changes
     useEffect(() => {
-        if (!isEditMode && importedItems.length > 0) {
-            setImportedItems(prev => prev.map(item => calculateImportedItem(item, formData)));
+        if (importedItems.length > 0) {
+            setImportedItems(prev => prev.map(item => item.product ? calculateImportedItem(item, formData) : item));
         }
     }, [formData.costFactorPct, formData.importationPct, formData.transportationPct, formData.profitPct, formData.exchangeRate]);
 
+    /* ─── Calculation pipeline (matches Excel & Backend exactly) ─── */
     const calculateImportedItem = (item: UiItem, config: Omit<CreateQuotationDto, 'items'>): UiItem => {
          if (!item.product) return item;
-         const basePrice = item.product.priceAED || item.product.price; // USD logic
+         const basePrice = item.product.priceAED || item.product.price; // USD price
          const costPricePKR = basePrice * config.exchangeRate;
          const negotiatedCost = costPricePKR * (config.costFactorPct! / 100);
          const impCharge = negotiatedCost * (config.importationPct! / 100);
@@ -178,9 +291,13 @@ export const QuotationFormPage = () => {
                  originalPrice: basePrice,
                  exchangeRate: config.exchangeRate,
                  costPricePKR,
+                 costFactorPct: config.costFactorPct,
                  negotiatedCost,
+                 importationPct: config.importationPct,
                  importationCharge: impCharge,
+                 transportationPct: config.transportationPct,
                  transportationCharge: transCharge,
+                 profitPct: config.profitPct,
                  profitCharge: profCharge,
                  finalPrice
              }
@@ -188,16 +305,27 @@ export const QuotationFormPage = () => {
     };
 
     const handleAddImported = () => {
-        setImportedItems([...importedItems, { id: Math.random().toString(), productId: 0, quantity: 1, itemType: "Imported", unitPrice: 0, lineTotal: 0 }]);
+        setImportedItems([...importedItems, makeEmptyRow("Imported")]);
     };
     
     const handleAddLocal = () => {
-        setLocalItems([...localItems, { id: Math.random().toString(), productId: 0, quantity: 1, itemType: "Local", unitPrice: 0, lineTotal: 0 }]);
+        setLocalItems([...localItems, makeEmptyRow("Local")]);
     };
 
     const handleAddService = () => {
-        setServiceItems([...serviceItems, { id: Math.random().toString(), quantity: 1, itemType: "Service", unitPrice: 0, lineTotal: 0, serviceName: "", servicePrice: 0 }]);
+        setServiceItems([...serviceItems, makeEmptyRow("Service")]);
     };
+
+    /* ─── Product filtering ───────────────────────────────────── */
+    // All products for imported section
+    const importedProducts = products;
+    // Only local-type products for local section (type === 0 means Local in the ProductType enum)
+    const localProducts = products.filter(p => {
+        const pType = (p as any).type;
+        // If product has type field and it's 0 (Local), show it
+        // If no type field exists, show all (backwards compatible)
+        return pType === undefined || pType === null || pType === 0;
+    });
 
     const renderTotals = () => {
         let subTotal = 0;
@@ -264,7 +392,7 @@ export const QuotationFormPage = () => {
             }
             navigate('/quotations');
         } catch (error: any) {
-            toast.error(error?.response?.data?.message || "Error saving quotation");
+            toast.error(error?.response?.data?.message || error?.response?.data?.Error || "Error saving quotation");
         } finally {
             setSaving(false);
         }
@@ -274,6 +402,11 @@ export const QuotationFormPage = () => {
 
     const availableSites = sites.filter(s => s.customerId === formData.customerId);
 
+    /* ─── Shared input style ──────────────────────────────────── */
+    const inputCls = "w-full bg-background border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors";
+    const selectCls = inputCls + " appearance-none";
+    const tinyInputCls = "w-16 bg-background text-foreground border border-border rounded px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50";
+
     return (
         <div className="p-8 max-w-7xl mx-auto animate-in fade-in duration-500 pb-32">
             <div className="flex items-center space-x-4 mb-8">
@@ -282,245 +415,297 @@ export const QuotationFormPage = () => {
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
                         {isEditMode ? "Edit Quotation" : "Create Quotation"}
                     </h1>
-                    <p className="text-muted-foreground">Select sections and build your quote</p>
+                    <p className="text-muted-foreground text-sm">Select sections and build your quote</p>
                 </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
-                {/* 1. SECTIONS TOGGLE */}
+                {/* ── 1. SECTIONS TOGGLE ── */}
                 <div className="bg-secondary/20 border border-border/50 rounded-2xl p-6 shadow-md flex justify-center gap-6 flex-wrap">
-                     <label className="flex items-center gap-2 cursor-pointer p-4 rounded-xl border-2 hover:border-primary transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                         <input type="checkbox" className="hidden" checked={showImported} onChange={e => setShowImported(e.target.checked)}/>
-                         <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${showImported ? 'bg-primary border-primary text-white' : 'border-muted-foreground'}`}>
-                             {showImported && <div className="w-2.5 h-2.5 bg-white rounded-sm" />}
-                         </div>
-                         <span className="font-semibold text-foreground">Imported Items</span>
-                     </label>
-
-                     <label className="flex items-center gap-2 cursor-pointer p-4 rounded-xl border-2 hover:border-primary transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                         <input type="checkbox" className="hidden" checked={showLocal} onChange={e => setShowLocal(e.target.checked)}/>
-                         <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${showLocal ? 'bg-primary border-primary text-white' : 'border-muted-foreground'}`}>
-                             {showLocal && <div className="w-2.5 h-2.5 bg-white rounded-sm" />}
-                         </div>
-                         <span className="font-semibold text-foreground">Local Items</span>
-                     </label>
-
-                     <label className="flex items-center gap-2 cursor-pointer p-4 rounded-xl border-2 hover:border-primary transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                         <input type="checkbox" className="hidden" checked={showServices} onChange={e => setShowServices(e.target.checked)}/>
-                         <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${showServices ? 'bg-primary border-primary text-white' : 'border-muted-foreground'}`}>
-                             {showServices && <div className="w-2.5 h-2.5 bg-white rounded-sm" />}
-                         </div>
-                         <span className="font-semibold text-foreground">Services</span>
-                     </label>
+                     {[
+                         { label: "Imported Items", checked: showImported, onChange: setShowImported, color: "blue" },
+                         { label: "Local Items", checked: showLocal, onChange: setShowLocal, color: "emerald" },
+                         { label: "Services", checked: showServices, onChange: setShowServices, color: "purple" },
+                     ].map(opt => (
+                         <label key={opt.label} className={`flex items-center gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${opt.checked ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-border hover:border-primary/40'}`}>
+                             <input type="checkbox" className="hidden" checked={opt.checked} onChange={e => opt.onChange(e.target.checked)}/>
+                             <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${opt.checked ? 'bg-primary border-primary' : 'border-muted-foreground/50'}`}>
+                                 {opt.checked && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
+                             </div>
+                             <span className="font-semibold text-foreground">{opt.label}</span>
+                         </label>
+                     ))}
                 </div>
 
-                {/* HEADER INFO */}
-                <div className="bg-secondary/30 rounded-2xl p-6 shadow-md grid grid-cols-1 md:grid-cols-4 gap-6">
+                {/* ── HEADER INFO ── */}
+                <div className="bg-secondary/30 border border-border/50 rounded-2xl p-6 shadow-md grid grid-cols-1 md:grid-cols-4 gap-6">
                      <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-1">Customer *</label>
-                        <select required value={formData.customerId} onChange={e => setFormData({...formData, customerId: Number(e.target.value), siteId: 0})} className="w-full bg-background border px-3 py-2 rounded-lg">
+                        <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Customer *</label>
+                        <select required value={formData.customerId} onChange={e => setFormData({...formData, customerId: Number(e.target.value), siteId: 0})} className={selectCls}>
                             <option value={0} disabled>Select...</option>
                             {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                      </div>
                      <div>
-                        <label className="text-xs font-semibold text-muted-foreground block mb-1">Site</label>
-                        <select value={formData.siteId || 0} onChange={e => setFormData({...formData, siteId: Number(e.target.value)||undefined})} className="w-full bg-background border px-3 py-2 rounded-lg">
+                        <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Site</label>
+                        <select value={formData.siteId || 0} onChange={e => setFormData({...formData, siteId: Number(e.target.value)||undefined})} className={selectCls}>
                              <option value={0}>No Site</option>
                              {availableSites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                      </div>
                      <div>
-                         <label className="text-xs font-semibold text-muted-foreground block mb-1">PDF Mode</label>
-                         <select value={formData.supplyColumnMode} onChange={e => setFormData({...formData, supplyColumnMode: e.target.value})} className="w-full bg-background border px-3 py-2 rounded-lg">
-                            <option value="Both">Show Both Tables</option>
-                            <option value="ImportedOnly">Only Imported+Services</option>
-                            <option value="LocalOnly">Only Local+Services</option>
+                         <label className="text-xs font-semibold text-muted-foreground block mb-1.5">PDF Supply Column</label>
+                         <select value={formData.supplyColumnMode} onChange={e => setFormData({...formData, supplyColumnMode: e.target.value})} className={selectCls}>
+                            <option value="Both">Both (Imported + Local)</option>
+                            <option value="ImportedOnly">Imported Items &amp; Services Only</option>
+                            <option value="LocalOnly">Local Items &amp; Services Only</option>
                          </select>
                      </div>
                      <div>
-                         <label className="text-xs font-semibold tracking-wide text-primary block mb-1">Exchange Rate (USD to PKR)</label>
-                         <input type="number" step="0.01" value={formData.exchangeRate} onChange={e => setFormData({...formData, exchangeRate: Number(e.target.value)})} className="w-full bg-background border border-primary/40 px-3 py-2 rounded-lg focus:ring focus:ring-primary/20" />
+                         <label className="text-xs font-semibold text-primary block mb-1.5">Exchange Rate (USD → PKR)</label>
+                         <input type="number" step="0.01" value={formData.exchangeRate} onChange={e => setFormData({...formData, exchangeRate: Number(e.target.value)})} className={inputCls + " !border-primary/40 focus:!ring-primary/30"} />
                      </div>
                 </div>
 
-                {/* IMPORTED SECTION */}
+                {/* ── IMPORTED SECTION ── */}
                 {showImported && (
-                     <div className="bg-white dark:bg-zinc-900 border-l-4 border-l-blue-500 rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4">
-                         <div className="flex justify-between items-center mb-4">
-                             <h3 className="text-lg font-bold text-blue-500">Imported Items</h3>
-                             <button type="button" onClick={handleAddImported} className="text-sm bg-blue-500/10 text-blue-600 px-3 py-1.5 rounded-lg flex items-center"><Plus className="w-4 h-4 mr-1"/> Add Row</button>
+                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative overflow-hidden">
+                         <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
+                         <div className="flex justify-between items-center mb-4 pl-3">
+                             <h3 className="text-lg font-bold text-blue-500 dark:text-blue-400 flex items-center gap-2">
+                                 <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                                 Imported Items
+                             </h3>
+                             <button type="button" onClick={handleAddImported} className="text-sm bg-blue-500/10 text-blue-500 dark:text-blue-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-blue-500/20 transition-colors">
+                                 <Plus className="w-4 h-4 mr-1"/> Add Row
+                             </button>
                          </div>
 
-                         {/* Config line */}
-                         <div className="flex gap-4 mb-4 text-xs bg-blue-50 dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100 dark:border-blue-800">
-                             <div>Cost Factor %: <input type="number" className="w-16 bg-white dark:bg-black rounded border px-1" value={formData.costFactorPct} onChange={e=>setFormData({...formData, costFactorPct: Number(e.target.value)})} /></div>
-                             <div>Import %: <input type="number" step="0.01" className="w-16 bg-white dark:bg-black rounded border px-1" value={formData.importationPct} onChange={e=>setFormData({...formData, importationPct: Number(e.target.value)})} /></div>
-                             <div>Trans %: <input type="number" className="w-16 bg-white dark:bg-black rounded border px-1" value={formData.transportationPct} onChange={e=>setFormData({...formData, transportationPct: Number(e.target.value)})} /></div>
-                             <div>Profit %: <input type="number" className="w-16 bg-white dark:bg-black rounded border px-1" value={formData.profitPct} onChange={e=>setFormData({...formData, profitPct: Number(e.target.value)})} /></div>
+                         {/* Config bar */}
+                         <div className="flex gap-4 mb-4 text-xs bg-primary/5 border border-border p-3 rounded-xl ml-3 flex-wrap">
+                             <div className="flex items-center gap-1 text-muted-foreground">Cost Factor %: <input type="number" className={tinyInputCls} value={formData.costFactorPct} onChange={e=>setFormData({...formData, costFactorPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Import %: <input type="number" step="0.01" className={tinyInputCls} value={formData.importationPct} onChange={e=>setFormData({...formData, importationPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Transport %: <input type="number" className={tinyInputCls} value={formData.transportationPct} onChange={e=>setFormData({...formData, transportationPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Profit %: <input type="number" className={tinyInputCls} value={formData.profitPct} onChange={e=>setFormData({...formData, profitPct: Number(e.target.value)})} /></div>
                          </div>
 
+                         <div className="overflow-x-auto ml-3">
                          <table className="w-full text-sm">
-                             <thead className="text-xs text-muted-foreground"><tr><th className="text-left py-2">Product</th><th className="w-24">Qty</th><th className="w-32 text-right">Base(USD)</th><th className="w-32 text-right">Final(PKR)</th><th className="w-32 text-right">Total</th><th></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2">Product</th><th className="w-20 text-center">Qty</th><th className="w-28 text-right">Base (USD)</th><th className="w-32 text-right">Final (PKR)</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {importedItems.map((item, idx) => (
-                                     <tr key={item.id} className="border-t border-border/40">
-                                         <td className="py-2">
-                                              <select value={item.productId || 0} onChange={e => {
-                                                  const p = products.find(x => x.id === Number(e.target.value));
-                                                  const newArr = [...importedItems];
-                                                  newArr[idx] = calculateImportedItem({ ...newArr[idx], productId: p!.id, product: p }, formData);
-                                                  setImportedItems(newArr);
-                                              }} className="w-full border rounded p-1.5">
-                                                  <option value={0}>Select Product...</option>
-                                                  {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                              </select>
+                                     <tr key={item.id} className="border-t border-border/30">
+                                         <td className="py-2 pr-2">
+                                              <ProductCombobox 
+                                                  products={importedProducts}
+                                                  value={item.productId || undefined}
+                                                  onChange={(p) => {
+                                                      const newArr = [...importedItems];
+                                                      newArr[idx] = calculateImportedItem({ ...newArr[idx], productId: p.id, product: p }, formData);
+                                                      setImportedItems(newArr);
+                                                  }}
+                                                  placeholder="Search imported products..."
+                                              />
                                          </td>
-                                         <td className="px-2">
-                                              <input type="number" className="w-full border rounded p-1.5" min="1" value={item.quantity} onChange={e => {
+                                         <td className="px-1">
+                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
                                                   const newArr = [...importedItems];
-                                                  newArr[idx].quantity = Number(e.target.value);
-                                                  newArr[idx].lineTotal = newArr[idx].quantity * newArr[idx].unitPrice;
+                                                  newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].unitPrice };
                                                   setImportedItems(newArr);
                                               }}/>
                                          </td>
-                                         <td className="text-right text-muted-foreground">{item.originalPrice?.toLocaleString() || '0.00'}</td>
-                                         <td className="text-right font-medium flex items-center justify-end gap-2">
-                                             {item.calcBreakdown && <Info className="h-4 w-4 text-blue-400 cursor-pointer hover:text-blue-600" onClick={() => setModalBreakdown(item.calcBreakdown)}/>}
-                                             {item.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                         <td className="text-right text-muted-foreground text-xs">{item.originalPrice?.toLocaleString(undefined, {maximumFractionDigits: 2}) || '—'}</td>
+                                         <td className="text-right font-medium text-foreground">
+                                             <div className="flex items-center justify-end gap-1.5">
+                                                 {item.calcBreakdown && (
+                                                     <button type="button" onClick={() => setModalBreakdown(item.calcBreakdown)} className="p-1 rounded hover:bg-primary/10 transition-colors" title="View calculation breakdown">
+                                                         <Info className="h-3.5 w-3.5 text-blue-400 hover:text-blue-500"/>
+                                                     </button>
+                                                 )}
+                                                 <span>{item.unitPrice > 0 ? item.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
+                                             </div>
                                          </td>
-                                         <td className="text-right font-bold">{item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                                         <td className="text-center"><button type="button" onClick={() => setImportedItems(importedItems.filter(x=>x.id !== item.id))}><Trash2 className="w-4 h-4 text-red-500"/></button></td>
+                                         <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
+                                         <td className="text-center">
+                                             <button type="button" onClick={() => setImportedItems(importedItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
+                                                 <Trash2 className="w-4 h-4 text-destructive"/>
+                                             </button>
+                                         </td>
                                      </tr>
                                  ))}
                              </tbody>
                          </table>
+                         </div>
+
+                         {importedItems.length > 0 && (
+                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-14">
+                                 Section Total: {importedItems.reduce((s, i) => s + i.lineTotal, 0).toLocaleString(undefined, {maximumFractionDigits:2})} PKR
+                             </div>
+                         )}
                      </div>
                 )}
 
-                {/* LOCAL SECTION */}
+                {/* ── LOCAL SECTION ── */}
                 {showLocal && (
-                     <div className="bg-white dark:bg-zinc-900 border-l-4 border-l-emerald-500 rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4">
-                         <div className="flex justify-between items-center mb-4">
-                             <h3 className="text-lg font-bold text-emerald-500">Local Items</h3>
-                             <button type="button" onClick={handleAddLocal} className="text-sm bg-emerald-500/10 text-emerald-600 px-3 py-1.5 rounded-lg flex items-center"><Plus className="w-4 h-4 mr-1"/> Add Row</button>
+                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative overflow-hidden">
+                         <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
+                         <div className="flex justify-between items-center mb-4 pl-3">
+                             <h3 className="text-lg font-bold text-emerald-500 dark:text-emerald-400 flex items-center gap-2">
+                                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                 Local Items
+                             </h3>
+                             <button type="button" onClick={handleAddLocal} className="text-sm bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-emerald-500/20 transition-colors">
+                                 <Plus className="w-4 h-4 mr-1"/> Add Row
+                             </button>
                          </div>
+                         <div className="overflow-x-auto ml-3">
                          <table className="w-full text-sm">
-                             <thead className="text-xs text-muted-foreground"><tr><th className="text-left py-2">Product</th><th className="w-24">Qty</th><th className="w-32 text-right">Price(PKR)</th><th className="w-24 px-2">Discount%</th><th className="w-32 text-right">Total</th><th></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2">Product</th><th className="w-20 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-20 text-center">Discount%</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {localItems.map((item, idx) => (
-                                     <tr key={item.id} className="border-t border-border/40">
-                                         <td className="py-2">
-                                              <select value={item.productId || 0} onChange={e => {
-                                                  const p = products.find(x => x.id === Number(e.target.value));
-                                                  const newArr = [...localItems];
-                                                  newArr[idx].productId = p!.id;
-                                                  newArr[idx].product = p;
-                                                  newArr[idx].unitPrice = p!.price;
-                                                  newArr[idx].lineTotal = newArr[idx].quantity * p!.price * (1 - (newArr[idx].manualCommissionPct||0)/100);
-                                                  setLocalItems(newArr);
-                                              }} className="w-full border rounded p-1.5">
-                                                  <option value={0}>Select Product...</option>
-                                                  {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                              </select>
+                                     <tr key={item.id} className="border-t border-border/30">
+                                         <td className="py-2 pr-2">
+                                              <ProductCombobox
+                                                  products={localProducts}
+                                                  value={item.productId || undefined}
+                                                  onChange={(p) => {
+                                                      const newArr = [...localItems];
+                                                      newArr[idx] = { ...newArr[idx], productId: p.id, product: p, unitPrice: p.price, lineTotal: newArr[idx].quantity * p.price * (1 - (newArr[idx].manualCommissionPct||0)/100) };
+                                                      setLocalItems(newArr);
+                                                  }}
+                                                  placeholder="Search local products..."
+                                              />
                                          </td>
-                                         <td className="px-2">
-                                              <input type="number" className="w-full border rounded p-1.5" min="1" value={item.quantity} onChange={e => {
+                                         <td className="px-1">
+                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
                                                   const newArr = [...localItems];
-                                                  newArr[idx].quantity = Number(e.target.value);
-                                                  newArr[idx].lineTotal = newArr[idx].quantity * newArr[idx].unitPrice * (1 - (newArr[idx].manualCommissionPct||0)/100);
+                                                  newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].unitPrice * (1 - (newArr[idx].manualCommissionPct||0)/100) };
                                                   setLocalItems(newArr);
                                               }}/>
                                          </td>
-                                         <td className="text-right text-muted-foreground">{item.unitPrice.toLocaleString()}</td>
-                                         <td className="px-2">
-                                              <input type="number" className="w-full border rounded p-1.5" min="0" max="100" value={item.manualCommissionPct||""} onChange={e => {
+                                         <td className="text-right text-muted-foreground text-xs">{item.unitPrice > 0 ? item.unitPrice.toLocaleString() : '—'}</td>
+                                         <td className="px-1">
+                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="0" max="100" value={item.manualCommissionPct||""} placeholder="0" onChange={e => {
                                                   const newArr = [...localItems];
-                                                  newArr[idx].manualCommissionPct = Number(e.target.value);
-                                                  newArr[idx].lineTotal = newArr[idx].quantity * newArr[idx].unitPrice * (1 - (newArr[idx].manualCommissionPct||0)/100);
+                                                  newArr[idx] = { ...newArr[idx], manualCommissionPct: Number(e.target.value), lineTotal: newArr[idx].quantity * newArr[idx].unitPrice * (1 - Number(e.target.value)/100) };
                                                   setLocalItems(newArr);
                                               }}/>
                                          </td>
-                                         <td className="text-right font-bold">{item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                                         <td className="text-center"><button type="button" onClick={() => setLocalItems(localItems.filter(x=>x.id !== item.id))}><Trash2 className="w-4 h-4 text-red-500"/></button></td>
+                                         <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
+                                         <td className="text-center">
+                                             <button type="button" onClick={() => setLocalItems(localItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
+                                                 <Trash2 className="w-4 h-4 text-destructive"/>
+                                             </button>
+                                         </td>
                                      </tr>
                                  ))}
                              </tbody>
                          </table>
+                         </div>
+
+                         {localItems.length > 0 && (
+                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-14">
+                                 Section Total: {localItems.reduce((s, i) => s + i.lineTotal, 0).toLocaleString(undefined, {maximumFractionDigits:2})} PKR
+                             </div>
+                         )}
                      </div>
                 )}
 
-                {/* SERVICES SECTION */}
+                {/* ── SERVICES SECTION ── */}
                 {showServices && (
-                     <div className="bg-white dark:bg-zinc-900 border-l-4 border-l-purple-500 rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4">
-                         <div className="flex justify-between items-center mb-4">
-                             <h3 className="text-lg font-bold text-purple-500">Services</h3>
-                             <button type="button" onClick={handleAddService} className="text-sm bg-purple-500/10 text-purple-600 px-3 py-1.5 rounded-lg flex items-center"><Plus className="w-4 h-4 mr-1"/> Add Row</button>
+                     <div className="bg-card border border-border rounded-2xl p-6 shadow-xl animate-in slide-in-from-bottom-4 relative overflow-hidden">
+                         <div className="absolute top-0 left-0 w-1 h-full bg-purple-500" />
+                         <div className="flex justify-between items-center mb-4 pl-3">
+                             <h3 className="text-lg font-bold text-purple-500 dark:text-purple-400 flex items-center gap-2">
+                                 <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                                 Services
+                             </h3>
+                             <button type="button" onClick={handleAddService} className="text-sm bg-purple-500/10 text-purple-500 dark:text-purple-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-purple-500/20 transition-colors">
+                                 <Plus className="w-4 h-4 mr-1"/> Add Row
+                             </button>
                          </div>
+                         <div className="overflow-x-auto ml-3">
                          <table className="w-full text-sm">
-                             <thead className="text-xs text-muted-foreground"><tr><th className="text-left py-2">Service Name</th><th className="w-24">Qty</th><th className="w-32 text-right">Price(PKR)</th><th className="w-32 text-right">Total</th><th></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2">Service Name</th><th className="w-20 text-center">Qty</th><th className="w-32 text-right">Price (PKR)</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {serviceItems.map((item, idx) => (
-                                     <tr key={item.id} className="border-t border-border/40">
-                                         <td className="py-2">
-                                              <input type="text" placeholder="Installation, Commissioning, etc." className="w-full border rounded p-1.5" value={item.serviceName||""} onChange={e => {
+                                     <tr key={item.id} className="border-t border-border/30">
+                                         <td className="py-2 pr-2">
+                                              <input type="text" placeholder="Installation, Commissioning, etc." className={inputCls} value={item.serviceName||""} onChange={e => {
                                                   const newArr = [...serviceItems];
-                                                  newArr[idx].serviceName = e.target.value;
+                                                  newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                                                   setServiceItems(newArr);
                                               }}/>
                                          </td>
-                                         <td className="px-2">
-                                              <input type="number" className="w-full border rounded p-1.5" min="1" value={item.quantity} onChange={e => {
+                                         <td className="px-1">
+                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
                                                   const newArr = [...serviceItems];
-                                                  newArr[idx].quantity = Number(e.target.value);
-                                                  newArr[idx].lineTotal = newArr[idx].quantity * (newArr[idx].servicePrice||0);
+                                                  newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) };
                                                   setServiceItems(newArr);
                                               }}/>
                                          </td>
-                                         <td className="pl-2">
-                                              <input type="number" className="w-full border rounded p-1.5 text-right" min="0" value={item.servicePrice||0} onChange={e => {
+                                         <td className="pl-1">
+                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.servicePrice||0} onChange={e => {
                                                   const newArr = [...serviceItems];
-                                                  newArr[idx].servicePrice = Number(e.target.value);
-                                                  newArr[idx].unitPrice = Number(e.target.value);
-                                                  newArr[idx].lineTotal = newArr[idx].quantity * newArr[idx].unitPrice;
+                                                  newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) };
                                                   setServiceItems(newArr);
                                               }}/>
                                          </td>
-                                         <td className="text-right font-bold">{item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                                         <td className="text-center"><button type="button" onClick={() => setServiceItems(serviceItems.filter(x=>x.id !== item.id))}><Trash2 className="w-4 h-4 text-red-500"/></button></td>
+                                         <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
+                                         <td className="text-center">
+                                             <button type="button" onClick={() => setServiceItems(serviceItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
+                                                 <Trash2 className="w-4 h-4 text-destructive"/>
+                                             </button>
+                                         </td>
                                      </tr>
                                  ))}
                              </tbody>
                          </table>
+                         </div>
+
+                         {serviceItems.length > 0 && (
+                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-14">
+                                 Section Total: {serviceItems.reduce((s, i) => s + i.lineTotal, 0).toLocaleString(undefined, {maximumFractionDigits:2})} PKR
+                             </div>
+                         )}
                      </div>
                 )}
 
-                {/* TAXES AND TOTALS */}
+                {/* ── TAXES AND TOTALS ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                     <div className="bg-secondary/30 rounded-2xl p-6 shadow-md">
-                         <h3 className="text-lg font-semibold mb-4">Taxes & Adjustments</h3>
+                     <div className="bg-secondary/30 border border-border/50 rounded-2xl p-6 shadow-md">
+                         <h3 className="text-lg font-semibold text-foreground mb-4">Taxes &amp; Adjustments</h3>
                          <div className="grid grid-cols-2 gap-4">
-                             <div>GST (%) <input type="number" className="w-full border rounded p-2 mt-1" value={formData.gstPercentage} onChange={e => setFormData({...formData, gstPercentage: Number(e.target.value)})}/></div>
-                             <div>Income Tax (%) <input type="number" className="w-full border rounded p-2 mt-1" value={formData.incomeTaxPercentage} onChange={e => setFormData({...formData, incomeTaxPercentage: Number(e.target.value)})}/></div>
-                             <div>Global Adj (-) <input type="number" className="w-full border rounded p-2 mt-1 text-red-500" value={formData.adjustment} onChange={e => setFormData({...formData, adjustment: Number(e.target.value)})}/></div>
+                             <div>
+                                 <label className="text-xs font-semibold text-muted-foreground block mb-1">GST (%)</label>
+                                 <input type="number" className={inputCls} value={formData.gstPercentage} onChange={e => setFormData({...formData, gstPercentage: Number(e.target.value)})}/>
+                             </div>
+                             <div>
+                                 <label className="text-xs font-semibold text-muted-foreground block mb-1">Income Tax (%)</label>
+                                 <input type="number" className={inputCls} value={formData.incomeTaxPercentage} onChange={e => setFormData({...formData, incomeTaxPercentage: Number(e.target.value)})}/>
+                             </div>
+                             <div>
+                                 <label className="text-xs font-semibold text-muted-foreground block mb-1">Global Adj (−)</label>
+                                 <input type="number" className={inputCls + " !text-destructive"} value={formData.adjustment} onChange={e => setFormData({...formData, adjustment: Number(e.target.value)})}/>
+                             </div>
                          </div>
                      </div>
-                     <div className="bg-gradient-to-br from-secondary/50 to-secondary/30 rounded-2xl p-6 shadow-xl flex flex-col justify-center">
+                     <div className="bg-gradient-to-br from-secondary/50 to-secondary/30 border border-border/50 rounded-2xl p-6 shadow-xl flex flex-col justify-center">
                          <div className="space-y-3">
-                             <div className="flex justify-between text-muted-foreground"><span>Sub Total</span><span>{totals.subTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
-                             {formData.gstPercentage > 0 && <div className="flex justify-between text-muted-foreground"><span>GST</span><span>+ {totals.gst.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
-                             {formData.incomeTaxPercentage > 0 && <div className="flex justify-between text-muted-foreground"><span>Income Tax</span><span>+ {totals.income.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
-                             {formData.adjustment > 0 && <div className="flex justify-between text-red-400"><span>Adjustment</span><span>- {formData.adjustment.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
+                             <div className="flex justify-between text-muted-foreground"><span>Sub Total</span><span className="text-foreground font-medium">{totals.subTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
+                             {formData.gstPercentage > 0 && <div className="flex justify-between text-muted-foreground"><span>GST ({formData.gstPercentage}%)</span><span className="text-foreground">+ {totals.gst.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
+                             {formData.incomeTaxPercentage > 0 && <div className="flex justify-between text-muted-foreground"><span>Income Tax ({formData.incomeTaxPercentage}%)</span><span className="text-foreground">+ {totals.income.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
+                             {formData.adjustment > 0 && <div className="flex justify-between text-destructive"><span>Adjustment</span><span>- {formData.adjustment.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
                              
-                             <div className="border-t pt-3 flex justify-between items-end">
-                                 <span className="text-lg font-bold">Grand Total</span>
-                                 <span className="text-2xl font-black text-primary">{totals.grand.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm">PKR</span></span>
+                             <div className="border-t border-border pt-3 flex justify-between items-end">
+                                 <span className="text-lg font-bold text-foreground">Grand Total</span>
+                                 <span className="text-2xl font-black text-primary">{totals.grand.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-muted-foreground">PKR</span></span>
                              </div>
                          </div>
 
                          <div className="mt-8 flex justify-end gap-4">
-                             <button type="button" onClick={() => navigate('/quotations')} className="px-6 py-2.5 rounded-xl hover:bg-secondary/50">Cancel</button>
-                             <button type="submit" disabled={saving} className="px-6 py-2.5 bg-primary text-white rounded-xl shadow-lg hover:-translate-y-0.5 transition-transform font-bold flex items-center gap-2">
+                             <button type="button" onClick={() => navigate('/quotations')} className="px-6 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary/50 transition-colors">Cancel</button>
+                             <button type="submit" disabled={saving} className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl shadow-lg hover:-translate-y-0.5 transition-all font-bold flex items-center gap-2 hover:shadow-primary/25">
                                  {saving && <Loader2 className="w-4 h-4 animate-spin"/>} {isEditMode ? "Update" : "Save Quotation"}
                              </button>
                          </div>
@@ -528,53 +713,53 @@ export const QuotationFormPage = () => {
                 </div>
             </form>
 
-            {/* BREAKDOWN MODAL */}
+            {/* ── BREAKDOWN MODAL ── */}
             {modalBreakdown && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="bg-background rounded-3xl p-6 shadow-2xl max-w-md w-full animate-in zoom-in-95">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in" onClick={() => setModalBreakdown(null)}>
+                    <div className="bg-card border border-border rounded-3xl p-6 shadow-2xl max-w-md w-full animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500">Price Calculation Pipeline</h2>
                         </div>
-                        <div className="space-y-4 text-sm font-medium">
-                            <div className="flex justify-between border-b pb-2">
-                                <span className="text-muted-foreground">List Price (USD / AED)</span>
-                                <span>{modalBreakdown.originalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                        <div className="space-y-3 text-sm font-medium">
+                            <div className="flex justify-between border-b border-border pb-2">
+                                <span className="text-muted-foreground">List Price (USD)</span>
+                                <span className="text-foreground">{modalBreakdown.originalPrice?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                             </div>
-                            <div className="flex justify-between items-center bg-secondary/20 p-2 rounded-lg">
+                            <div className="flex justify-between items-center bg-primary/5 border border-border p-2 rounded-lg">
                                 <span className="text-muted-foreground">Exchange Rate</span>
                                 <span className="text-primary font-bold">× {modalBreakdown.exchangeRate}</span>
                             </div>
-                            <div className="flex justify-between pt-2">
+                            <div className="flex justify-between pt-1">
                                 <span className="text-muted-foreground">Cost Price (PKR)</span>
-                                <span>{modalBreakdown.costPricePKR.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                <span className="text-foreground">{modalBreakdown.costPricePKR?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                             </div>
 
-                            <div className="h-px bg-border my-2"></div>
+                            <div className="h-px bg-border my-1"></div>
 
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Negotiated Cost ({modalBreakdown.costFactorPct}%)</span>
-                                <span>{modalBreakdown.negotiatedCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                <span className="text-foreground">{modalBreakdown.negotiatedCost?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                             </div>
-                            <div className="flex justify-between text-blue-500/80">
+                            <div className="flex justify-between text-blue-500 dark:text-blue-400">
                                 <span>+ Importation ({modalBreakdown.importationPct}%)</span>
-                                <span>{modalBreakdown.importationCharge.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                <span>{modalBreakdown.importationCharge?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                             </div>
-                            <div className="flex justify-between text-amber-500/80">
-                                <span>+ Transportation ({modalBreakdown.transportationPct}%)</span>
-                                <span>{modalBreakdown.transportationCharge.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                            <div className="flex justify-between text-amber-500 dark:text-amber-400">
+                                <span>+ Transport ({modalBreakdown.transportationPct}%)</span>
+                                <span>{modalBreakdown.transportationCharge?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                             </div>
-                            <div className="flex justify-between text-emerald-500/80">
+                            <div className="flex justify-between text-emerald-500 dark:text-emerald-400">
                                 <span>+ Profit ({modalBreakdown.profitPct}%)</span>
-                                <span>{modalBreakdown.profitCharge.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                <span>{modalBreakdown.profitCharge?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                             </div>
                             
                             <div className="mt-4 bg-primary/10 p-4 rounded-xl flex justify-between items-center border border-primary/20">
                                 <span className="font-bold text-foreground">Final Unit Price</span>
-                                <span className="text-xl font-black text-primary">{modalBreakdown.finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                <span className="text-xl font-black text-primary">{modalBreakdown.finalPrice?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                             </div>
                         </div>
 
-                        <button onClick={() => setModalBreakdown(null)} className="w-full mt-6 bg-secondary hover:bg-secondary/80 text-foreground py-3 rounded-xl font-semibold transition-colors">
+                        <button onClick={() => setModalBreakdown(null)} className="w-full mt-6 bg-secondary hover:bg-secondary/80 text-foreground py-3 rounded-xl font-semibold transition-colors border border-border">
                             Close
                         </button>
                     </div>
