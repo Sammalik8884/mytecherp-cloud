@@ -12,7 +12,7 @@ import { salesService } from "../services/salesService";
 import { CustomerDto } from "../types/customer";
 import { SiteDto } from "../types/site";
 import { ProductDto } from "../types/product";
-
+import { ProductSelectionModal } from "../components/common/ProductSelectionModal";
 
 type UiItem = CreateQuotationItemDto & { 
     id: string;
@@ -23,98 +23,8 @@ type UiItem = CreateQuotationItemDto & {
     originalPrice?: number;
 };
 
-/* ─── Searchable ProductCombobox ─────────────────────────────── */
-const SearchableProductCombobox = ({ 
-    selectedProduct, 
-    value, 
-    onChange, 
-    placeholder = "Search products..." 
-}: { 
-    selectedProduct: ProductDto | undefined; 
-    value: number | undefined; 
-    onChange: (product: ProductDto) => void;
-    placeholder?: string;
-}) => {
-    const [query, setQuery] = useState("");
-    const [isOpen, setIsOpen] = useState(false);
-    const [options, setOptions] = useState<ProductDto[]>([]);
-    const [loading, setLoading] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
+/* ─── Main Page Component ─────────────────────────────────────── */
 
-    // Fetch products dynamically
-    useEffect(() => {
-        if (!isOpen) return;
-        
-        const fetchProducts = async () => {
-            setLoading(true);
-            try {
-                const res = await productService.getAll(1, 40, query);
-                const data = Array.isArray(res) ? res : Array.isArray((res as any).data) ? (res as any).data : [];
-                setOptions(data);
-            } catch (error) {
-                // Ignore
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const timer = setTimeout(fetchProducts, 300);
-        return () => clearTimeout(timer);
-    }, [query, isOpen]);
-
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
-    }, []);
-
-    return (
-        <div ref={ref} className="relative">
-            <div 
-                className="flex items-center bg-background border border-border rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => setIsOpen(true)}
-            >
-                <Search className="h-3.5 w-3.5 text-muted-foreground ml-2.5 shrink-0" />
-                <input
-                    type="text"
-                    className="w-full bg-transparent px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                    placeholder={selectedProduct ? selectedProduct.name : placeholder}
-                    value={isOpen ? query : (selectedProduct ? selectedProduct.name : "")}
-                    onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
-                    onFocus={() => setIsOpen(true)}
-                />
-                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground mr-2.5 shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground mr-2.5 shrink-0" />}
-            </div>
-
-            {isOpen && (
-                <div className="absolute z-50 bottom-[calc(100%+4px)] w-full bg-card border border-border rounded-lg shadow-xl max-h-72 overflow-y-auto">
-                    {options.length === 0 && !loading ? (
-                        <div className="px-3 py-4 text-sm text-muted-foreground text-center">No products found</div>
-                    ) : (
-                        options.map(p => (
-                            <div 
-                                key={p.id}
-                                className={`px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-primary/10 ${p.id === value ? 'bg-primary/5 text-primary font-medium' : 'text-foreground'}`}
-                                onClick={() => { onChange(p); setQuery(""); setIsOpen(false); }}
-                            >
-                                <div className="font-medium truncate">{p.name}</div>
-                                <div className="text-xs text-muted-foreground flex gap-3">
-                                    {p.itemCode && <span>Code: {p.itemCode}</span>}
-                                    {p.brand && <span>Brand: {p.brand}</span>}
-                                    <span className="ml-auto font-medium">${p.price.toFixed(2)}</span>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-        </div>
-    );
-};
 
 /* ─── Main Page Component ─────────────────────────────────────── */
 export const QuotationFormPage = () => {
@@ -160,6 +70,9 @@ export const QuotationFormPage = () => {
 
     // Breakdown Modal state
     const [modalBreakdown, setModalBreakdown] = useState<any>(null);
+
+    // Product Selection Modal Target
+    const [productModalTarget, setProductModalTarget] = useState<{ list: "imported" | "local", index: number } | null>(null);
 
     // Helper: make empty row
     const makeEmptyRow = (itemType: string): UiItem => ({
@@ -501,16 +414,15 @@ export const QuotationFormPage = () => {
                                  {importedItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
-                                              <SearchableProductCombobox 
-                                                  selectedProduct={item.product}
-                                                  value={item.productId || undefined}
-                                                  onChange={(p) => {
-                                                      const newArr = [...importedItems];
-                                                      newArr[idx] = calculateImportedItem({ ...newArr[idx], productId: p.id, product: p }, formData);
-                                                      setImportedItems(newArr);
-                                                  }}
-                                                  placeholder="Search imported products..."
-                                              />
+                                              <div 
+                                                  onClick={() => setProductModalTarget({ list: "imported", index: idx })}
+                                                  className="flex items-center min-w-0 w-full justify-between bg-background border border-border rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors px-3 py-2 text-sm"
+                                              >
+                                                  <span className="truncate text-foreground max-w-[250px] sm:max-w-none">
+                                                      {item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "Browse to select product..."}
+                                                  </span>
+                                                  <Search className="h-3.5 w-3.5 text-muted-foreground ml-2.5 shrink-0" />
+                                              </div>
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
@@ -570,16 +482,15 @@ export const QuotationFormPage = () => {
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
-                                              <SearchableProductCombobox
-                                                  selectedProduct={item.product}
-                                                  value={item.productId || undefined}
-                                                  onChange={(p) => {
-                                                      const newArr = [...localItems];
-                                                      newArr[idx] = { ...newArr[idx], productId: p.id, product: p, unitPrice: p.price, lineTotal: newArr[idx].quantity * p.price * (1 - (newArr[idx].manualCommissionPct||0)/100) };
-                                                      setLocalItems(newArr);
-                                                  }}
-                                                  placeholder="Search local products..."
-                                              />
+                                              <div 
+                                                  onClick={() => setProductModalTarget({ list: "local", index: idx })}
+                                                  className="flex items-center min-w-0 w-full justify-between bg-background border border-border rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors px-3 py-2 text-sm"
+                                              >
+                                                  <span className="truncate text-foreground max-w-[250px] sm:max-w-none">
+                                                      {item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "Browse to select product..."}
+                                                  </span>
+                                                  <Search className="h-3.5 w-3.5 text-muted-foreground ml-2.5 shrink-0" />
+                                              </div>
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
@@ -770,6 +681,24 @@ export const QuotationFormPage = () => {
                     </div>
                 </div>
             )}
+
+            <ProductSelectionModal
+                isOpen={productModalTarget !== null}
+                onClose={() => setProductModalTarget(null)}
+                onSelect={(p) => {
+                    if (productModalTarget?.list === "imported") {
+                        const newArr = [...importedItems];
+                        newArr[productModalTarget.index] = calculateImportedItem({ ...newArr[productModalTarget.index], productId: p.id, product: p }, formData);
+                        setImportedItems(newArr);
+                    } else if (productModalTarget?.list === "local") {
+                        const newArr = [...localItems];
+                        newArr[productModalTarget.index] = { ...newArr[productModalTarget.index], productId: p.id, product: p, unitPrice: p.price, lineTotal: newArr[productModalTarget.index].quantity * p.price * (1 - (newArr[productModalTarget.index].manualCommissionPct||0)/100) };
+                        setLocalItems(newArr);
+                    }
+                    setProductModalTarget(null);
+                }}
+            />
+
         </div>
     );
 };
