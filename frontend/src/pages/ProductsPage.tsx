@@ -149,7 +149,7 @@ export const ProductsPage = () => {
             setImportFile(null);
             fetchData();
         } catch (error: any) {
-            toast.error(error.response?.data?.Error || error.response?.data?.Message || "Error importing products");
+            toast.error(error.response?.data?.error || error.response?.data?.Error || error.response?.data?.Message || "Error importing products");
         } finally {
             setImportLoading(false);
         }
