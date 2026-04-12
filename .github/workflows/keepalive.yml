@@ -1,0 +1,33 @@
+# Azure Keep-Alive Pinger
+# Prevents Azure App Service cold starts by pinging the apps every 14 minutes.
+# Free-tier / Student accounts lack the "Always On" feature, so this workflow
+# acts as a lightweight substitute to keep both the frontend and backend warm.
+
+name: Azure Keep-Alive Pinger
+
+on:
+  schedule:
+    # Runs every 14 minutes (Azure idles after ~20 min)
+    - cron: "*/14 * * * *"
+  workflow_dispatch: # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Frontend
+        run: |
+          echo "Pinging Frontend..."
+          curl -sSf -o /dev/null -w "Frontend: HTTP %{http_code} in %{time_total}s\n" \
+            "https://mytech-erp-drg7f9gqcxgahggv.austriaeast-01.azurewebsites.net" \
+            || echo "Frontend ping failed (non-fatal)"
+
+      - name: Ping Backend API
+        run: |
+          echo "Pinging Backend API..."
+          curl -sSf -o /dev/null -w "Backend:  HTTP %{http_code} in %{time_total}s\n" \
+            "https://mytecherpapi20260322094207-fnfwfsf5bshubmfs.francecentral-01.azurewebsites.net" \
+            || echo "Backend ping failed (non-fatal)"
+
+      - name: Summary
+        run: echo "✅ Keep-alive pings completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
