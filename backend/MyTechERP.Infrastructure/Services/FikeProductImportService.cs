@@ -51,6 +51,10 @@ namespace MyTechERP.Infrastructure.Services
                         .GroupBy(p => p.ItemCode ?? p.Name)
                         .ToDictionary(g => g.Key, g => g.FirstOrDefault());
 
+                    // We will batch save to prevent EF Core ChangeTracker from timing out 
+                    int batchSize = 500;
+                    int currentBatch = 0;
+
                     for (int row = headerRow + 1; row <= worksheet.Dimension.End.Row; row++)
                     {
                         string desc = GetBestMatch(worksheet, row, map, "Description", "Desc", "Product Name", "Name");
@@ -86,6 +90,7 @@ namespace MyTechERP.Infrastructure.Services
                             if (specs.Count > 0) existing.TechnicalSpecs = JsonConvert.SerializeObject(specs);
                             existing.Brand = brandName;
                             updatedCount++;
+                            currentBatch++;
                         }
                         else
                         {
@@ -104,6 +109,13 @@ namespace MyTechERP.Infrastructure.Services
                             _context.Products.Add(newProduct);
                             productMap[uniqueKey] = newProduct;
                             insertedCount++;
+                            currentBatch++;
+                        }
+
+                        if (currentBatch >= batchSize)
+                        {
+                            await _context.SaveChangesAsync();
+                            currentBatch = 0;
                         }
                     }
                 }

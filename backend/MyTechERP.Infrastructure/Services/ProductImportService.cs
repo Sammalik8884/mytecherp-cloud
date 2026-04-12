@@ -48,6 +48,10 @@ namespace MyTechERP.Infrastructure.Services
                         .GroupBy(p => p.ItemCode ?? p.Name)
                         .ToDictionary(g => g.Key, g => g.FirstOrDefault());
 
+                    // We will batch save to prevent EF Core ChangeTracker from timing out 
+                    int batchSize = 500;
+                    int currentBatch = 0;
+
                     for (int row = headerRow + 1; row <= worksheet.Dimension.End.Row; row++)
                     {
                         string desc = GetValue(worksheet, row, map, "Description");
@@ -84,6 +88,7 @@ namespace MyTechERP.Infrastructure.Services
                             existing.TechnicalSpecs = JsonConvert.SerializeObject(specs);
                             existing.Brand = brandName;
                             updatedCount++;
+                            currentBatch++;
                         }
                         else
                         {
@@ -102,9 +107,21 @@ namespace MyTechERP.Infrastructure.Services
                             _context.Products.Add(newProduct);
                             productMap[uniqueKey] = newProduct;
                             insertedCount++;
+                            currentBatch++;
+                        }
+
+                        // Save in batches of 500 to keep EF Core fast and avoid 4-minute timeout
+                        if (currentBatch >= batchSize)
+                        {
+                            await _context.SaveChangesAsync();
+                            // Optional: _context.ChangeTracker.Clear() could be used but we are 
+                            // actively mutating objects in `productMap` which we need attached.
+                            // Simply saving in chunks forces the batched network calls which keeps it streaming.
+                            currentBatch = 0;
                         }
                     }
                 }
+                // Save any remaining items
                 await _context.SaveChangesAsync();
             }
             return $"Imported: {insertedCount} New, {updatedCount} Updated.";
