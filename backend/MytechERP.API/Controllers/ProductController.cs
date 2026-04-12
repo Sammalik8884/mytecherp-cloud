@@ -104,6 +104,7 @@ namespace MytechERP.API.Controllers
 
 
         [HttpPost("import-excel")]
+        [DisableRequestSizeLimit]
         [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
         public async Task<IActionResult> ImportExcel(IFormFile file, [FromQuery] string brand = "LIFECO")
         {

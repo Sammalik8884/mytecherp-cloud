@@ -20,7 +20,7 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<string> ImportExcelAsync(IFormFile file, string brandName, int tenantId)
         {
-            ExcelPackage.License.SetNonCommercialPersonal("MyTechERP");
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             int updatedCount = 0, insertedCount = 0;
 
