@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ArrowLeft, Loader2, Info, Search, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, ArrowLeft, Loader2, Info, Search } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 

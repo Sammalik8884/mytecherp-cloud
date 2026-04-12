@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, Loader2, Package, X } from "lucide-react";
+import { Search, Loader2, X } from "lucide-react";
 import { productService } from "../../services/productService";
 import { ProductDto } from "../../types/product";
 
