@@ -490,8 +490,8 @@ export const QuotationFormPage = () => {
                          </div>
 
                          <div className="overflow-x-auto ml-3">
-                         <table className="w-full text-sm table-fixed">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 w-[45%]">Product</th><th className="w-[10%] text-center">Qty</th><th className="w-[12%] text-right">Base (USD)</th><th className="w-[14%] text-right">Final (PKR)</th><th className="w-[14%] text-right">Total</th><th className="w-[5%]"></th></tr></thead>
+                         <table className="w-full text-sm">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[350px]">Product</th><th className="w-20 text-center">Qty</th><th className="w-28 text-right">Base (USD)</th><th className="w-32 text-right">Final (PKR)</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {importedItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -559,8 +559,8 @@ export const QuotationFormPage = () => {
                              </button>
                          </div>
                          <div className="overflow-x-auto ml-3">
-                         <table className="w-full text-sm table-fixed">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 w-[40%]">Product</th><th className="w-[10%] text-center">Qty</th><th className="w-[15%] text-right">Price (PKR)</th><th className="w-[12%] text-center">Discount%</th><th className="w-[17%] text-right">Total</th><th className="w-[6%]"></th></tr></thead>
+                         <table className="w-full text-sm">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[350px]">Product</th><th className="w-20 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-24 text-center">Discount%</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -626,7 +626,7 @@ export const QuotationFormPage = () => {
                          </div>
                          <div className="overflow-x-auto ml-3">
                          <table className="w-full text-sm">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2">Service Name</th><th className="w-20 text-center">Qty</th><th className="w-32 text-right">Price (PKR)</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[350px]">Service Name</th><th className="w-20 text-center">Qty</th><th className="w-32 text-right">Price (PKR)</th><th className="w-32 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {serviceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
