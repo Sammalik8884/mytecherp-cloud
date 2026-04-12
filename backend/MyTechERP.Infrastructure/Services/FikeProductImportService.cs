@@ -20,15 +20,19 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<string> ImportExcelAsync(IFormFile file, string brandName, int tenantId)
         {
+            using var ms = new System.IO.MemoryStream();
+            await file.CopyToAsync(ms);
+            return await ImportExcelFromBytesAsync(ms.ToArray(), brandName, tenantId);
+        }
+
+        public async Task<string> ImportExcelFromBytesAsync(byte[] fileBytes, string brandName, int tenantId)
+        {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             int updatedCount = 0, insertedCount = 0;
 
-            using (var memoryStream = new System.IO.MemoryStream())
+            using (var memoryStream = new System.IO.MemoryStream(fileBytes))
             {
-                await file.CopyToAsync(memoryStream);
-                memoryStream.Position = 0;
-
                 using (var package = new ExcelPackage(memoryStream, "Fire2024")) // Fike specific password
                 {
                     foreach (var worksheet in package.Workbook.Worksheets)

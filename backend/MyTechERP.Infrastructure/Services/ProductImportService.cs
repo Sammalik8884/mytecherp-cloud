@@ -20,11 +20,18 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<string> ImportExcelAsync(IFormFile file, string brandName, int tenantId)
         {
+            using var ms = new System.IO.MemoryStream();
+            await file.CopyToAsync(ms);
+            return await ImportExcelFromBytesAsync(ms.ToArray(), brandName, tenantId);
+        }
+
+        public async Task<string> ImportExcelFromBytesAsync(byte[] fileBytes, string brandName, int tenantId)
+        {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             int updatedCount = 0, insertedCount = 0;
 
-            using (var stream = file.OpenReadStream())
+            using (var stream = new System.IO.MemoryStream(fileBytes))
             using (var package = new ExcelPackage(stream))
             {
                 foreach (var worksheet in package.Workbook.Worksheets)
@@ -48,7 +55,6 @@ namespace MyTechERP.Infrastructure.Services
                         .GroupBy(p => p.ItemCode ?? p.Name)
                         .ToDictionary(g => g.Key, g => g.FirstOrDefault());
 
-                    // We will batch save to prevent EF Core ChangeTracker from timing out 
                     int batchSize = 500;
                     int currentBatch = 0;
 
@@ -110,18 +116,13 @@ namespace MyTechERP.Infrastructure.Services
                             currentBatch++;
                         }
 
-                        // Save in batches of 500 to keep EF Core fast and avoid 4-minute timeout
                         if (currentBatch >= batchSize)
                         {
                             await _context.SaveChangesAsync();
-                            // Optional: _context.ChangeTracker.Clear() could be used but we are 
-                            // actively mutating objects in `productMap` which we need attached.
-                            // Simply saving in chunks forces the batched network calls which keeps it streaming.
                             currentBatch = 0;
                         }
                     }
                 }
-                // Save any remaining items
                 await _context.SaveChangesAsync();
             }
             return $"Imported: {insertedCount} New, {updatedCount} Updated.";

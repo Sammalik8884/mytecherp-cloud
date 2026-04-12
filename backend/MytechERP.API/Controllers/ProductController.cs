@@ -10,6 +10,7 @@ using MytechERP.Infrastructure.Persistance;
 using MyTechERP.API.Helpers;
 using MyTechERP.Infrastructure.Services; 
 using System.Linq.Expressions;
+using Hangfire;
 
 namespace MytechERP.API.Controllers
 {
@@ -109,24 +110,33 @@ namespace MytechERP.API.Controllers
         [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
         public async Task<IActionResult> ImportExcel(IFormFile file, [FromQuery] string brand = "LIFECO")
         {
-            if (file == null || file.Length == 0) return BadRequest("File is empty");
+            if (file == null || file.Length == 0) return BadRequest(new { error = "File is empty" });
 
             try
             {
-               
                 int tenantId = _currentUserService.TenantId ?? 1;
 
-                string result;
+                // Read file into byte array so it can be passed to a background job
+                byte[] fileBytes;
+                using (var ms = new MemoryStream())
+                {
+                    await file.CopyToAsync(ms);
+                    fileBytes = ms.ToArray();
+                }
+
+                // Queue the import as a Hangfire background job to avoid Azure's 230s timeout
                 if (brand.Equals("FIKE", StringComparison.OrdinalIgnoreCase))
                 {
-                    result = await _fikeImportService.ImportExcelAsync(file, brand, tenantId);
+                    BackgroundJob.Enqueue<IFikeProductImportService>(
+                        svc => svc.ImportExcelFromBytesAsync(fileBytes, brand, tenantId));
                 }
                 else
                 {
-                    result = await _importService.ImportExcelAsync(file, brand, tenantId);
+                    BackgroundJob.Enqueue<IProductImportService>(
+                        svc => svc.ImportExcelFromBytesAsync(fileBytes, brand, tenantId));
                 }
 
-                return Ok(new { message = result });
+                return Ok(new { message = $"{brand} import started! Products will appear shortly as they are processed in the background." });
             }
             catch (Exception ex)
             {
