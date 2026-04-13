@@ -393,7 +393,7 @@ export const QuotationFormPage = () => {
                 </div>
                 <div>
                     <label className="text-xs text-muted-foreground">Base (USD)</label>
-                    <input type="number" className={inputCls + " !py-1.5"} min="0" value={item.originalPrice||0} onChange={e => {
+                    <input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.originalPrice||0} onChange={e => {
                         const newArr = [...importedItems];
                         newArr[idx] = { ...newArr[idx], originalPrice: Number(e.target.value) };
                         setImportedItems(newArr.map(x => calculateImportedItem(x, formData)));
@@ -439,7 +439,7 @@ export const QuotationFormPage = () => {
                 </div>
                 <div>
                     <label className="text-xs text-muted-foreground">Price (PKR)</label>
-                    <input type="number" className={inputCls + " !py-1.5"} min="0" value={item.unitPrice||0} onChange={e => {
+                    <input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.unitPrice||0} onChange={e => {
                         const newArr = [...localItems];
                         newArr[idx] = { ...newArr[idx], unitPrice: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].quantity * (1 - (newArr[idx].manualCommissionPct||0)/100) };
                         setLocalItems(newArr);
@@ -447,7 +447,7 @@ export const QuotationFormPage = () => {
                 </div>
                 <div>
                     <label className="text-xs text-muted-foreground">Disc%</label>
-                    <input type="number" className={inputCls + " !py-1.5"} min="0" max="100" value={item.manualCommissionPct||""} placeholder="0" onChange={e => {
+                    <input type="number" step="any" className={inputCls + " !py-1.5"} min="0" max="100" value={item.manualCommissionPct||""} placeholder="0" onChange={e => {
                         const newArr = [...localItems];
                         newArr[idx] = { ...newArr[idx], manualCommissionPct: Number(e.target.value), lineTotal: newArr[idx].quantity * newArr[idx].unitPrice * (1 - Number(e.target.value)/100) };
                         setLocalItems(newArr);
@@ -552,10 +552,10 @@ export const QuotationFormPage = () => {
 
                          {/* Config bar */}
                          <div className="flex gap-3 md:gap-4 mb-4 text-xs bg-primary/5 border border-border p-3 rounded-xl ml-3 flex-wrap">
-                             <div className="flex items-center gap-1 text-muted-foreground">Cost Factor %: <input type="number" className={tinyInputCls} value={formData.costFactorPct} onChange={e=>setFormData({...formData, costFactorPct: Number(e.target.value)})} /></div>
-                             <div className="flex items-center gap-1 text-muted-foreground">Import %: <input type="number" step="0.01" className={tinyInputCls} value={formData.importationPct} onChange={e=>setFormData({...formData, importationPct: Number(e.target.value)})} /></div>
-                             <div className="flex items-center gap-1 text-muted-foreground">Transport %: <input type="number" className={tinyInputCls} value={formData.transportationPct} onChange={e=>setFormData({...formData, transportationPct: Number(e.target.value)})} /></div>
-                             <div className="flex items-center gap-1 text-muted-foreground">Profit %: <input type="number" className={tinyInputCls} value={formData.profitPct} onChange={e=>setFormData({...formData, profitPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Cost Factor %: <input type="number" step="any" className={tinyInputCls} value={formData.costFactorPct} onChange={e=>setFormData({...formData, costFactorPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Import %: <input type="number" step="any" className={tinyInputCls} value={formData.importationPct} onChange={e=>setFormData({...formData, importationPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Transport %: <input type="number" step="any" className={tinyInputCls} value={formData.transportationPct} onChange={e=>setFormData({...formData, transportationPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Profit %: <input type="number" step="any" className={tinyInputCls} value={formData.profitPct} onChange={e=>setFormData({...formData, profitPct: Number(e.target.value)})} /></div>
                          </div>
 
                          {/* Desktop table */}
@@ -584,7 +584,7 @@ export const QuotationFormPage = () => {
                                               }}/>
                                          </td>
                                          <td className="px-1">
-                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.originalPrice||0} onChange={e => {
+                                              <input type="number" step="any" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.originalPrice||0} onChange={e => {
                                                   const newArr = [...importedItems];
                                                   newArr[idx] = { ...newArr[idx], originalPrice: Number(e.target.value) };
                                                   setImportedItems(newArr.map(x => calculateImportedItem(x, formData)));
@@ -664,14 +664,14 @@ export const QuotationFormPage = () => {
                                               }}/>
                                          </td>
                                          <td className="px-1">
-                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.unitPrice||0} onChange={e => {
+                                              <input type="number" step="any" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.unitPrice||0} onChange={e => {
                                                   const newArr = [...localItems];
                                                   newArr[idx] = { ...newArr[idx], unitPrice: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].quantity * (1 - (newArr[idx].manualCommissionPct||0)/100) };
                                                   setLocalItems(newArr);
                                               }}/>
                                          </td>
                                          <td className="px-1">
-                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="0" max="100" value={item.manualCommissionPct||""} placeholder="0" onChange={e => {
+                                              <input type="number" step="any" className={inputCls + " !px-2 !py-1.5 text-center"} min="0" max="100" value={item.manualCommissionPct||""} placeholder="0" onChange={e => {
                                                   const newArr = [...localItems];
                                                   newArr[idx] = { ...newArr[idx], manualCommissionPct: Number(e.target.value), lineTotal: newArr[idx].quantity * newArr[idx].unitPrice * (1 - Number(e.target.value)/100) };
                                                   setLocalItems(newArr);
@@ -737,7 +737,7 @@ export const QuotationFormPage = () => {
                                               }}/>
                                          </td>
                                          <td className="pl-1">
-                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.servicePrice||0} onChange={e => {
+                                              <input type="number" step="any" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.servicePrice||0} onChange={e => {
                                                   const newArr = [...serviceItems];
                                                   newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) };
                                                   setServiceItems(newArr);
@@ -764,7 +764,7 @@ export const QuotationFormPage = () => {
                                      }}/>
                                      <div className="grid grid-cols-2 gap-3">
                                          <div><label className="text-xs text-muted-foreground">Qty</label><input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => { const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) }; setServiceItems(newArr); }}/></div>
-                                         <div><label className="text-xs text-muted-foreground">Price</label><input type="number" className={inputCls + " !py-1.5"} min="0" value={item.servicePrice||0} onChange={e => { const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) }; setServiceItems(newArr); }}/></div>
+                                         <div><label className="text-xs text-muted-foreground">Price</label><input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.servicePrice||0} onChange={e => { const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) }; setServiceItems(newArr); }}/></div>
                                      </div>
                                      <div className="flex items-center justify-between">
                                          <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
@@ -789,15 +789,15 @@ export const QuotationFormPage = () => {
                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                              <div>
                                  <label className="text-xs font-semibold text-muted-foreground block mb-1">GST (%)</label>
-                                 <input type="number" className={inputCls} value={formData.gstPercentage} onChange={e => setFormData({...formData, gstPercentage: Number(e.target.value)})}/>
+                                 <input type="number" step="any" className={inputCls} value={formData.gstPercentage} onChange={e => setFormData({...formData, gstPercentage: Number(e.target.value)})}/>
                              </div>
                              <div>
                                  <label className="text-xs font-semibold text-muted-foreground block mb-1">Income Tax (%)</label>
-                                 <input type="number" className={inputCls} value={formData.incomeTaxPercentage} onChange={e => setFormData({...formData, incomeTaxPercentage: Number(e.target.value)})}/>
+                                 <input type="number" step="any" className={inputCls} value={formData.incomeTaxPercentage} onChange={e => setFormData({...formData, incomeTaxPercentage: Number(e.target.value)})}/>
                              </div>
                              <div>
                                  <label className="text-xs font-semibold text-muted-foreground block mb-1">Global Adj (−)</label>
-                                 <input type="number" className={inputCls + " !text-destructive"} value={formData.adjustment} onChange={e => setFormData({...formData, adjustment: Number(e.target.value)})}/>
+                                 <input type="number" step="any" className={inputCls + " !text-destructive"} value={formData.adjustment} onChange={e => setFormData({...formData, adjustment: Number(e.target.value)})}/>
                              </div>
                          </div>
                      </div>
