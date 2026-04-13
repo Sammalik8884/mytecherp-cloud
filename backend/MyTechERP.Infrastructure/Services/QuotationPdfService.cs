@@ -41,8 +41,8 @@ namespace MyTechERP.Infrastructure.Services
                         .FontSize(8.5f)
                         .FontColor(TextDark));
 
-                    // NO global header — header is embedded in Content as first element (ShowOnce)
-                    page.Content().Element(c => ComposeFullDocument(c, quote, headerImagePath));
+                    page.Header().Element(c => ComposeHeader(c, quote, headerImagePath));
+                    page.Content().Element(c => ComposeFullDocument(c, quote));
                     page.Footer().Element(c => ComposeFooter(c, footerImagePath));
                 });
             });
@@ -53,15 +53,10 @@ namespace MyTechERP.Infrastructure.Services
         // ─────────────────────────────────────────────────────────
         //  FULL DOCUMENT (header embedded, shown only on page 1)
         // ─────────────────────────────────────────────────────────
-        void ComposeFullDocument(IContainer container, QuotationDto quote, string headerImagePath)
+        void ComposeFullDocument(IContainer container, QuotationDto quote)
         {
             container.Column(col =>
             {
-                // ── HEADER (ShowOnce so it never repeats on page 2+) ──
-                col.Item().ShowOnce().Element(c => ComposeHeader(c, quote, headerImagePath));
-
-                // ── Thin gold divider after header ──
-                col.Item().ShowOnce().PaddingBottom(2).LineHorizontal(1.5f).LineColor(HighlightGold);
 
                 // ── Headline banner ──
                 if (!string.IsNullOrWhiteSpace(quote.QuoteHeadline))
@@ -110,7 +105,7 @@ namespace MyTechERP.Infrastructure.Services
                 }
 
                 // Meta info row
-                col.Item().PaddingTop(10).Row(row =>
+                col.Item().PaddingTop(10).PaddingBottom(2).Row(row =>
                 {
                     // LEFT: To / Attention / Company
                     row.RelativeItem(3).Column(c =>
@@ -257,57 +252,10 @@ namespace MyTechERP.Infrastructure.Services
                         table.Cell().Element(c => TD(c, isAlt))
                             .AlignCenter().Text(rowIndex.ToString());
                         
-                        // Description cell — may include calculation breakdown for imported
+                        // Description cell
                         table.Cell().Element(c => TD(c, isAlt)).Column(dc =>
                         {
                             dc.Item().Text(item.Description).FontSize(8);
-
-                            if (showCalcBreakdown && !string.IsNullOrWhiteSpace(item.CalculationBreakdown))
-                            {
-                                try
-                                {
-                                    var bd = JsonSerializer.Deserialize<JsonElement>(item.CalculationBreakdown);
-                                    
-                                    string Fmt(string key) =>
-                                        bd.TryGetProperty(key, out var v) ? v.GetDecimal().ToString("N2") : "—";
-                                    string FmtPct(string key) =>
-                                        bd.TryGetProperty(key, out var v) ? v.GetDecimal().ToString("N1") + "%" : "—";
-
-                                    dc.Item().PaddingTop(3).Background(BrandLight)
-                                        .Border(0.3f).BorderColor(Brand)
-                                        .PaddingHorizontal(4).PaddingVertical(3)
-                                        .Column(bc =>
-                                        {
-                                            bc.Item().Text("Calculation Breakdown").Bold().FontSize(6.5f).FontColor(Brand);
-                                            bc.Item().PaddingTop(1).Table(bt =>
-                                            {
-                                                bt.ColumnsDefinition(bcd =>
-                                                {
-                                                    bcd.RelativeColumn();
-                                                    bcd.ConstantColumn(65);
-                                                });
-                                                void BRow(string label, string value, bool bold = false)
-                                                {
-                                                    bt.Cell()
-                                                        .DefaultTextStyle(x => bold ? x.Bold().FontColor(Brand).FontSize(6.5f) : x.FontColor(TextMuted).FontSize(6.5f))
-                                                        .Text(label);
-                                                    bt.Cell().AlignRight()
-                                                        .DefaultTextStyle(x => bold ? x.Bold().FontColor(Brand).FontSize(6.5f) : x.FontColor(TextDark).FontSize(6.5f))
-                                                        .Text(value);
-                                                }
-                                                BRow($"Base Price (USD)", $"USD {Fmt("originalPrice")}");
-                                                BRow($"Exchange Rate", $"× {Fmt("exchangeRate")}");
-                                                BRow($"Cost Price (PKR)", $"PKR {Fmt("costPricePKR")}");
-                                                BRow($"Cost Factor ({FmtPct("costFactorPct")})", $"PKR {Fmt("negotiatedCost")}");
-                                                BRow($"Importation ({FmtPct("importationPct")})", $"PKR {Fmt("importationCharge")}");
-                                                BRow($"Transportation ({FmtPct("transportationPct")})", $"PKR {Fmt("transportationCharge")}");
-                                                BRow($"Profit Margin ({FmtPct("profitPct")})", $"PKR {Fmt("profitCharge")}");
-                                                BRow($"Final Selling Price", $"PKR {Fmt("finalPrice")}", true);
-                                            });
-                                        });
-                                }
-                                catch { /* skip on any parse error */ }
-                            }
                         });
 
                         table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Quantity.ToString());
