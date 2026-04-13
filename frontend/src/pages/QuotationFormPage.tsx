@@ -118,11 +118,26 @@ export const QuotationFormPage = () => {
 
                 if (isEditMode) {
                     const quote = await quotationService.getQuotationById(Number(id));
+                    // Extract config percentages from saved calculation breakdown
+                    const firstImported = quote.items.find(i => i.itemType === "Imported" && i.calculationBreakdown);
+                    let savedCostFactor = 60, savedImportPct = 13.75, savedTransPct = 2, savedProfitPct = 15, savedExchangeRate = 300;
+                    if (firstImported?.calculationBreakdown) {
+                        try {
+                            const bd = JSON.parse(firstImported.calculationBreakdown);
+                            if (bd.costFactorPct) savedCostFactor = bd.costFactorPct;
+                            if (bd.importationPct) savedImportPct = bd.importationPct;
+                            if (bd.transportationPct) savedTransPct = bd.transportationPct;
+                            if (bd.profitPct) savedProfitPct = bd.profitPct;
+                            if (bd.exchangeRate) savedExchangeRate = bd.exchangeRate;
+                        } catch {}
+                    }
+
                     setFormData(prev => ({
                         ...prev,
                         customerId: quote.customerId,
                         siteId: quote.siteName ? siteData.find(s => s.name === quote.siteName)?.id : undefined,
                         currency: quote.currency,
+                        exchangeRate: savedExchangeRate,
                         gstPercentage: quote.gstPercentage,
                         incomeTaxPercentage: quote.incomeTaxPercentage,
                         adjustment: quote.adjustment,
@@ -130,6 +145,10 @@ export const QuotationFormPage = () => {
                         supplyColumnMode: quote.supplyColumnMode || "Both",
                         projectCode: quote.projectCode || "FPS",
                         quoteHeadline: quote.quoteHeadline || "",
+                        costFactorPct: savedCostFactor,
+                        importationPct: savedImportPct,
+                        transportationPct: savedTransPct,
+                        profitPct: savedProfitPct,
                     }));
 
                     setShowImported(quote.items.some(i => i.itemType === "Imported"));
@@ -148,7 +167,7 @@ export const QuotationFormPage = () => {
 
                     quote.items.forEach(i => {
                         const p = validProducts.find((prod) => prod.id === i.productId);
-                        const uiItem: UiItem = {
+                        let uiItem: UiItem = {
                             id: Math.random().toString(36).substr(2, 9),
                             productId: i.productId,
                             quantity: i.quantity,
@@ -161,6 +180,33 @@ export const QuotationFormPage = () => {
                             originalPrice: i.originalPrice,
                             calcBreakdown: i.calculationBreakdown ? JSON.parse(i.calculationBreakdown) : null
                         };
+                        // For imported items: re-derive calculations from saved originalPrice
+                        if (i.itemType === "Imported" && i.originalPrice > 0) {
+                            uiItem = { ...uiItem, originalPrice: i.originalPrice };
+                            uiItem = {
+                                ...uiItem,
+                                ...(() => {
+                                    const base = i.originalPrice;
+                                    const costPricePKR = base * savedExchangeRate;
+                                    const negotiatedCost = costPricePKR * (savedCostFactor / 100);
+                                    const impCharge = negotiatedCost * (savedImportPct / 100);
+                                    const transCharge = negotiatedCost * (savedTransPct / 100);
+                                    const profCharge = negotiatedCost * (savedProfitPct / 100);
+                                    const finalPrice = negotiatedCost + impCharge + transCharge + profCharge;
+                                    return {
+                                        unitPrice: finalPrice,
+                                        lineTotal: finalPrice * i.quantity,
+                                        calcBreakdown: {
+                                            originalPrice: base, exchangeRate: savedExchangeRate, costPricePKR,
+                                            costFactorPct: savedCostFactor, negotiatedCost,
+                                            importationPct: savedImportPct, importationCharge: impCharge,
+                                            transportationPct: savedTransPct, transportationCharge: transCharge,
+                                            profitPct: savedProfitPct, profitCharge: profCharge, finalPrice
+                                        }
+                                    };
+                                })()
+                            };
+                        }
                         
                         if (i.itemType === "Imported") imp.push(uiItem);
                         else if (i.itemType === "Local") loc.push(uiItem);
@@ -195,14 +241,16 @@ export const QuotationFormPage = () => {
     // Recalculate imported items when config changes
     useEffect(() => {
         if (importedItems.length > 0) {
-            setImportedItems(prev => prev.map(item => item.product ? calculateImportedItem(item, formData) : item));
+            setImportedItems(prev => prev.map(item => calculateImportedItem(item, formData)));
         }
     }, [formData.costFactorPct, formData.importationPct, formData.transportationPct, formData.profitPct, formData.exchangeRate]);
 
     /* ─── Calculation pipeline (matches Excel & Backend exactly) ─── */
-    const calculateImportedItem = (item: UiItem, config: Omit<CreateQuotationDto, 'items'>): UiItem => {
-         if (!item.product) return item;
-         const basePrice = item.product.priceAED || item.product.price; // USD price
+    // basePrice param allows edit-mode to force a saved original price instead of reading from product catalog
+    const calculateImportedItem = (item: UiItem, config: Omit<CreateQuotationDto, 'items'>, forcedBasePrice?: number): UiItem => {
+         // Use forced price (edit restore), then item.originalPrice already set, then product catalog
+         const basePrice = forcedBasePrice ?? item.originalPrice ?? (item.product ? (item.product.priceAED && item.product.priceAED > 0 ? item.product.priceAED : item.product.price) : 0);
+         if (!basePrice || basePrice === 0) return item;
          const costPricePKR = basePrice * config.exchangeRate;
          const negotiatedCost = costPricePKR * (config.costFactorPct! / 100);
          const impCharge = negotiatedCost * (config.importationPct! / 100);

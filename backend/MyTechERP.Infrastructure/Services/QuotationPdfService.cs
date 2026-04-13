@@ -3,404 +3,545 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System.IO;
+using System.Text.Json;
 
 namespace MyTechERP.Infrastructure.Services
 {
     public class QuotationPdfService
     {
-        private static readonly Color BrandColor = Color.FromHex("#006CA9"); 
-        private static readonly Color BrandColorLight = Color.FromHex("#E6F2F8");
-        private static readonly Color GreyText = Colors.Grey.Darken2;
-        private static readonly Color LightBorder = Colors.Grey.Lighten2;
+        // ── Brand palette ─────────────────────────────────────────
+        private static readonly Color Brand       = Color.FromHex("#005B9A");   // deep blue
+        private static readonly Color BrandLight  = Color.FromHex("#E8F4FC");   // pale blue
+        private static readonly Color BrandAccent = Color.FromHex("#1B8F5E");   // green accent
+        private static readonly Color BrandAccentLight = Color.FromHex("#E8F5EE");
+        private static readonly Color RowAlt      = Color.FromHex("#F7FAFE");   // alternating row
+        private static readonly Color RowAlt2     = Color.FromHex("#FFFFFF");
+        private static readonly Color BorderGrey  = Color.FromHex("#D1D5DB");
+        private static readonly Color TextDark    = Color.FromHex("#111827");
+        private static readonly Color TextMuted   = Color.FromHex("#6B7280");
+        private static readonly Color HighlightGold = Color.FromHex("#CA8A04");
 
         public byte[] GeneratePdf(QuotationDto quote)
         {
             QuestPDF.Settings.License = LicenseType.Community;
+
+            var headerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image2.png");
+            var footerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image3.jpeg");
 
             var document = Document.Create(container =>
             {
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(30);
-                    page.DefaultTextStyle(x => x.FontFamily(Fonts.Arial).FontSize(9).FontColor(Colors.Black));
+                    page.MarginHorizontal(28);
+                    page.MarginTop(22);
+                    page.MarginBottom(20);
+                    page.DefaultTextStyle(x => x
+                        .FontFamily(Fonts.Arial)
+                        .FontSize(8.5f)
+                        .FontColor(TextDark));
 
-                    page.Header().Element(container => ComposeHeader(container, quote));
-
-                    page.Content().Element(container => ComposeContent(container, quote));
-
-                    page.Footer().Element(ComposeFooter);
+                    // NO global header — header is embedded in Content as first element (ShowOnce)
+                    page.Content().Element(c => ComposeFullDocument(c, quote, headerImagePath));
+                    page.Footer().Element(c => ComposeFooter(c, footerImagePath));
                 });
             });
 
             return document.GeneratePdf();
         }
 
-        void ComposeHeader(IContainer container, QuotationDto quote)
+        // ─────────────────────────────────────────────────────────
+        //  FULL DOCUMENT (header embedded, shown only on page 1)
+        // ─────────────────────────────────────────────────────────
+        void ComposeFullDocument(IContainer container, QuotationDto quote, string headerImagePath)
         {
-            var headerPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image2.png");
-            
             container.Column(col =>
             {
-                // Lightened header image
-                if (File.Exists(headerPath))
+                // ── HEADER (ShowOnce so it never repeats on page 2+) ──
+                col.Item().ShowOnce().Element(c => ComposeHeader(c, quote, headerImagePath));
+
+                // ── Thin gold divider after header ──
+                col.Item().ShowOnce().PaddingBottom(2).LineHorizontal(1.5f).LineColor(HighlightGold);
+
+                // ── Headline banner ──
+                if (!string.IsNullOrWhiteSpace(quote.QuoteHeadline))
+                {
+                    col.Item().ShowOnce().PaddingTop(4).PaddingBottom(6)
+                        .Background(Brand).Padding(8).AlignCenter()
+                        .Text($"QUOTATION FOR: {quote.QuoteHeadline.ToUpper()}")
+                        .Bold().FontSize(9.5f).FontColor(Colors.White).LetterSpacing(0.5f);
+                }
+
+                // ── CONTENT ──
+                col.Item().PaddingTop(6).Element(c => ComposeContent(c, quote));
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────
+        //  HEADER — company letterhead + quote metadata
+        // ─────────────────────────────────────────────────────────
+        void ComposeHeader(IContainer container, QuotationDto quote, string headerImagePath)
+        {
+            container.Column(col =>
+            {
+                // Brand image (lightened with white overlay or fallback)
+                if (File.Exists(headerImagePath))
                 {
                     col.Item().Layers(layers =>
                     {
-                        layers.Layer().Image(headerPath).FitWidth();
-                        layers.PrimaryLayer().Background("#D9FFFFFF"); // 85% opaque white
+                        layers.Layer().Image(headerImagePath).FitWidth();
+                        // Semi-transparent overlay — lightens the background image so text is readable
+                        layers.PrimaryLayer().Background(Color.FromHex("#CCFFFFFF")).Height(0);
+                    });
+                }
+                else
+                {
+                    // Text fallback if image missing
+                    col.Item().Padding(10).Background(Brand).Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("MY TECH ENGINEERING COMPANY PVT LTD")
+                                .Bold().FontSize(14).FontColor(Colors.White);
+                            c.Item().Text("Industrial & Commercial Solutions")
+                                .FontSize(8).FontColor(Colors.White);
+                        });
                     });
                 }
 
-                // If image doesn't exist, show text fallback
-                if (!File.Exists(headerPath))
-                {
-                    col.Item().Text("MY TECH ENGINEERING COMPANY PVT LTD").FontSize(22).Bold().FontColor(BrandColor);
-                }
-
-                // Quote Info Row
+                // Meta info row
                 col.Item().PaddingTop(10).Row(row =>
                 {
-                    // Left: To / Contact Person / Company
-                    row.RelativeItem().Column(c =>
+                    // LEFT: To / Attention / Company
+                    row.RelativeItem(3).Column(c =>
                     {
-                        c.Item().Text("To,").SemiBold().FontSize(10);
+                        c.Item().Text("To,").FontSize(8).FontColor(TextMuted);
                         if (!string.IsNullOrWhiteSpace(quote.ContactPersonName))
                         {
-                            c.Item().Text(quote.ContactPersonName).FontSize(10);
+                            c.Item().Text($"Attn: {quote.ContactPersonName}").SemiBold().FontSize(9);
                         }
-                        c.Item().Text(quote.CustomerName).FontSize(10).SemiBold();
+                        c.Item().Text(quote.CustomerName).Bold().FontSize(10).FontColor(Brand);
                         if (!string.IsNullOrWhiteSpace(quote.SiteName))
                         {
-                            c.Item().Text(text => { text.Span("Site: ").SemiBold(); text.Span(quote.SiteName); });
+                            c.Item().PaddingTop(2).Text(text =>
+                            {
+                                text.Span("Project / Site:  ").SemiBold().FontSize(8).FontColor(TextMuted);
+                                text.Span(quote.SiteName).FontSize(8);
+                            });
                         }
                     });
 
-                    // Right: Quote number, dates
-                    row.RelativeItem().AlignRight().Column(c =>
+                    // CENTER spacer
+                    row.ConstantItem(20);
+
+                    // RIGHT: Quote number block
+                    row.RelativeItem(2).Column(c =>
                     {
-                        c.Item().Text("QUOTATION").FontSize(14).Bold().FontColor(BrandColor);
-                        c.Item().PaddingTop(4).Text(text => { text.Span("Quotation # : ").SemiBold(); text.Span(quote.QuoteNumber); });
-                        c.Item().Text(text => { text.Span("Date: ").SemiBold(); text.Span(quote.CreatedAt.ToString("dd-MMM-yyyy")); });
-                        if (quote.RevisionNumber > 0)
+                        void MetaRow(string label, string value, bool highlight = false)
                         {
-                            c.Item().Text(text => { text.Span("Revision: ").SemiBold(); text.Span($"R{quote.RevisionNumber}"); });
+                            c.Item().Table(t =>
+                            {
+                                t.ColumnsDefinition(cd => { cd.RelativeColumn(); cd.RelativeColumn(1.2f); });
+                                t.Cell().Background(highlight ? Brand : BrandLight)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(label).FontSize(8)
+                                    .FontColor(highlight ? Colors.White : TextMuted).SemiBold();
+                                t.Cell().Border(0.5f).BorderColor(BorderGrey)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(value).FontSize(8)
+                                    .FontColor(highlight ? Brand : TextDark).SemiBold();
+                            });
                         }
+
+                        MetaRow("Quotation #", quote.QuoteNumber, true);
+                        MetaRow("Date", quote.CreatedAt.ToString("dd-MMM-yyyy"));
+                        MetaRow("Valid Until", quote.ValidUntil.ToString("dd-MMM-yyyy"));
+                        if (quote.RevisionNumber > 0)
+                            MetaRow("Revision", $"R{quote.RevisionNumber}");
                     });
                 });
-
-                // Headline
-                if (!string.IsNullOrWhiteSpace(quote.QuoteHeadline))
-                {
-                    col.Item().PaddingTop(10).Background(BrandColorLight).Padding(8).AlignCenter()
-                        .Text($"QUOTATION FOR {quote.QuoteHeadline}")
-                        .Bold().FontSize(11).FontColor(BrandColor);
-                }
             });
         }
 
+        // ─────────────────────────────────────────────────────────
+        //  CONTENT — item sections + summary
+        // ─────────────────────────────────────────────────────────
         void ComposeContent(IContainer container, QuotationDto quote)
-        {
-            container.PaddingTop(15).Column(col =>
-            {
-                // Determine which sections exist based on actual items
-                var importedItems = quote.Items.Where(i => i.ItemType == "Imported").ToList();
-                var localItems = quote.Items.Where(i => i.ItemType == "Local").ToList();
-                var serviceItems = quote.Items.Where(i => i.ItemType == "Service").ToList();
-
-                char sectionLetter = 'A';
-
-                // Section A: Imported
-                if (importedItems.Any())
-                {
-                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, $"Section {sectionLetter}: Imported Supply Items", importedItems, quote.Currency));
-                    sectionLetter++;
-                }
-
-                // Section B: Local
-                if (localItems.Any())
-                {
-                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, $"Section {sectionLetter}: Local Supply Items", localItems, quote.Currency));
-                    sectionLetter++;
-                }
-
-                // Section C: Services
-                if (serviceItems.Any())
-                {
-                    col.Item().PaddingBottom(10).Element(c => DrawTableSection(c, $"Section {sectionLetter}: Services", serviceItems, quote.Currency));
-                }
-
-                // Summary
-                col.Item().Row(row =>
-                {
-                    row.RelativeItem(); 
-                    row.ConstantItem(260).Element(c => ComposeSummary(c, quote));
-                });
-
-                // Terms
-                col.Item().PaddingTop(20).Element(c => ComposeTerms(c, quote));
-            });
-        }
-
-        void DrawTableSection(IContainer container, string title, List<QuotationItemDto> items, string currency)
         {
             container.Column(col =>
             {
-                col.Item().Background(BrandColor).Padding(6).AlignCenter().Text(title)
-                    .Bold().FontColor(Colors.White).FontSize(10);
+                var importedItems = quote.Items.Where(i => i.ItemType == "Imported").ToList();
+                var localItems    = quote.Items.Where(i => i.ItemType == "Local").ToList();
+                var serviceItems  = quote.Items.Where(i => i.ItemType == "Service").ToList();
+
+                char sectionLetter = 'A';
+
+                if (importedItems.Any())
+                {
+                    col.Item().PaddingBottom(8)
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Imported Supply Items", importedItems, quote.Currency, true));
+                    sectionLetter++;
+                }
+
+                if (localItems.Any())
+                {
+                    col.Item().PaddingBottom(8)
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Local Supply Items", localItems, quote.Currency, false));
+                    sectionLetter++;
+                }
+
+                if (serviceItems.Any())
+                {
+                    col.Item().PaddingBottom(8)
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Services", serviceItems, quote.Currency, false));
+                }
+
+                // Grand summary
+                col.Item().PaddingTop(4).Row(row =>
+                {
+                    row.RelativeItem();
+                    row.ConstantItem(280).Element(c => ComposeSummary(c, quote));
+                });
+
+                // Terms & Conditions
+                col.Item().PaddingTop(16).Element(c => ComposeTerms(c, quote));
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────
+        //  SECTION TABLE
+        // ─────────────────────────────────────────────────────────
+        void DrawSection(IContainer container, string title, List<QuotationItemDto> items, string currency, bool showCalcBreakdown)
+        {
+            container.Column(col =>
+            {
+                // Section header bar
+                col.Item()
+                    .Background(Brand)
+                    .PaddingHorizontal(8).PaddingVertical(5)
+                    .Row(row =>
+                    {
+                        row.RelativeItem().Text(title).Bold().FontSize(9).FontColor(Colors.White);
+                        row.ConstantItem(120).AlignRight()
+                            .Text($"Amount in {currency}").FontSize(7.5f).FontColor(Colors.White).Italic();
+                    });
 
                 col.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.ConstantColumn(30);   // Sr
-                        columns.RelativeColumn(4);    // Description
-                        columns.ConstantColumn(35);   // Qty
-                        columns.ConstantColumn(80);   // Rate
-                        columns.ConstantColumn(90);   // Amount
+                        columns.ConstantColumn(22);  // Sr#
+                        columns.RelativeColumn(5);   // Description
+                        columns.ConstantColumn(28);  // Qty
+                        columns.ConstantColumn(80);  // Unit Price
+                        columns.ConstantColumn(90);  // Total
                     });
 
+                    // Column headers
                     table.Header(header =>
                     {
-                        header.Cell().Element(HeaderCellStyle).Text("Sr.#");
-                        header.Cell().Element(HeaderCellStyle).Text("Description");
-                        header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Qty");
-                        header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Rate ({currency})");
-                        header.Cell().Element(HeaderCellStyle).AlignRight().Text($"Amount ({currency})");
+                        header.Cell().Element(TH).AlignCenter().Text("#");
+                        header.Cell().Element(TH).Text("Description");
+                        header.Cell().Element(TH).AlignCenter().Text("Qty");
+                        header.Cell().Element(TH).AlignRight().Text($"Unit Rate");
+                        header.Cell().Element(TH).AlignRight().Text("Amount");
                     });
 
-                    int i = 1;
+                    // Data rows
+                    int rowIndex = 0;
                     foreach (var item in items)
                     {
-                        table.Cell().Element(CellStyle).Text(i++.ToString());
-                        table.Cell().Element(CellStyle).Text(item.Description);
-                        table.Cell().Element(CellStyle).AlignCenter().Text(item.Quantity.ToString());
-                        table.Cell().Element(CellStyle).AlignRight().Text(item.UnitPrice.ToString("N2"));
-                        table.Cell().Element(CellStyle).AlignRight().Text(item.LineTotal.ToString("N2"));
+                        rowIndex++;
+                        bool isAlt = rowIndex % 2 == 0;
+
+                        table.Cell().Element(c => TD(c, isAlt))
+                            .AlignCenter().Text(rowIndex.ToString());
+                        
+                        // Description cell — may include calculation breakdown for imported
+                        table.Cell().Element(c => TD(c, isAlt)).Column(dc =>
+                        {
+                            dc.Item().Text(item.Description).FontSize(8);
+
+                            if (showCalcBreakdown && !string.IsNullOrWhiteSpace(item.CalculationBreakdown))
+                            {
+                                try
+                                {
+                                    var bd = JsonSerializer.Deserialize<JsonElement>(item.CalculationBreakdown);
+                                    
+                                    string Fmt(string key) =>
+                                        bd.TryGetProperty(key, out var v) ? v.GetDecimal().ToString("N2") : "—";
+                                    string FmtPct(string key) =>
+                                        bd.TryGetProperty(key, out var v) ? v.GetDecimal().ToString("N1") + "%" : "—";
+
+                                    dc.Item().PaddingTop(3).Background(BrandLight)
+                                        .Border(0.3f).BorderColor(Brand)
+                                        .PaddingHorizontal(4).PaddingVertical(3)
+                                        .Column(bc =>
+                                        {
+                                            bc.Item().Text("Calculation Breakdown").Bold().FontSize(6.5f).FontColor(Brand);
+                                            bc.Item().PaddingTop(1).Table(bt =>
+                                            {
+                                                bt.ColumnsDefinition(bcd =>
+                                                {
+                                                    bcd.RelativeColumn();
+                                                    bcd.ConstantColumn(65);
+                                                });
+                                                void BRow(string label, string value, bool bold = false)
+                                                {
+                                                    bt.Cell()
+                                                        .DefaultTextStyle(x => bold ? x.Bold().FontColor(Brand).FontSize(6.5f) : x.FontColor(TextMuted).FontSize(6.5f))
+                                                        .Text(label);
+                                                    bt.Cell().AlignRight()
+                                                        .DefaultTextStyle(x => bold ? x.Bold().FontColor(Brand).FontSize(6.5f) : x.FontColor(TextDark).FontSize(6.5f))
+                                                        .Text(value);
+                                                }
+                                                BRow($"Base Price (USD)", $"USD {Fmt("originalPrice")}");
+                                                BRow($"Exchange Rate", $"× {Fmt("exchangeRate")}");
+                                                BRow($"Cost Price (PKR)", $"PKR {Fmt("costPricePKR")}");
+                                                BRow($"Cost Factor ({FmtPct("costFactorPct")})", $"PKR {Fmt("negotiatedCost")}");
+                                                BRow($"Importation ({FmtPct("importationPct")})", $"PKR {Fmt("importationCharge")}");
+                                                BRow($"Transportation ({FmtPct("transportationPct")})", $"PKR {Fmt("transportationCharge")}");
+                                                BRow($"Profit Margin ({FmtPct("profitPct")})", $"PKR {Fmt("profitCharge")}");
+                                                BRow($"Final Selling Price", $"PKR {Fmt("finalPrice")}", true);
+                                            });
+                                        });
+                                }
+                                catch { /* skip on any parse error */ }
+                            }
+                        });
+
+                        table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Quantity.ToString());
+                        table.Cell().Element(c => TD(c, isAlt)).AlignRight()
+                            .Text(item.UnitPrice.ToString("N2")).FontColor(HighlightGold);
+                        table.Cell().Element(c => TD(c, isAlt)).AlignRight()
+                            .Text(item.LineTotal.ToString("N2")).SemiBold();
                     }
 
                     // Section sub-total row
                     decimal sectionTotal = items.Sum(x => x.LineTotal);
-                    table.Cell().Element(SubTotalCellStyle).Text("");
-                    table.Cell().Element(SubTotalCellStyle).AlignRight().Text("Section Sub-Total:").Bold();
-                    table.Cell().Element(SubTotalCellStyle).Text("");
-                    table.Cell().Element(SubTotalCellStyle).Text("");
-                    table.Cell().Element(SubTotalCellStyle).AlignRight().Text(sectionTotal.ToString("N2")).Bold();
+                    table.Cell().ColumnSpan(3)
+                        .Background(BrandLight).Border(0.5f).BorderColor(Brand)
+                        .PaddingHorizontal(5).PaddingVertical(4)
+                        .AlignRight().DefaultTextStyle(x => x.FontSize(8.5f).FontColor(Brand))
+                        .Text("Section Sub-Total  →");
+                    table.Cell()
+                        .Background(BrandLight).Border(0.5f).BorderColor(Brand)
+                        .PaddingHorizontal(5).PaddingVertical(4)
+                        .DefaultTextStyle(x => x.FontSize(8.5f).FontColor(Brand))
+                        .Text("");
+                    table.Cell()
+                        .Background(BrandLight).Border(0.5f).BorderColor(Brand)
+                        .PaddingHorizontal(5).PaddingVertical(4)
+                        .AlignRight().DefaultTextStyle(x => x.Bold().FontSize(8.5f).FontColor(Brand))
+                        .Text(sectionTotal.ToString("N2"));
                 });
             });
         }
 
+        // ─────────────────────────────────────────────────────────
+        //  SUMMARY TABLE
+        // ─────────────────────────────────────────────────────────
         void ComposeSummary(IContainer container, QuotationDto quote)
         {
-            container.PaddingTop(10).Table(table =>
+            container.Column(col =>
             {
-                table.ColumnsDefinition(columns =>
+                col.Item().Background(BrandAccent).PaddingHorizontal(8).PaddingVertical(5)
+                    .Text("FINANCIAL SUMMARY").Bold().FontSize(9).FontColor(Colors.White);
+
+                col.Item().Table(table =>
                 {
-                    columns.RelativeColumn();
-                    columns.ConstantColumn(100); 
+                    table.ColumnsDefinition(cd =>
+                    {
+                        cd.RelativeColumn();
+                        cd.ConstantColumn(90);
+                    });
+
+                    void SRow(string label, string value, bool bold = false, Color? bg = null, Color? textColor = null)
+                    {
+                        Func<TextStyle, TextStyle> lStyle = bold
+                            ? (TextStyle x) => x.Bold().FontSize(8.5f).FontColor(textColor ?? TextDark)
+                            : (TextStyle x) => x.FontSize(8.5f).FontColor(textColor ?? TextDark);
+
+                        table.Cell()
+                            .Background(bg ?? RowAlt2)
+                            .Border(0.5f).BorderColor(BorderGrey)
+                            .PaddingHorizontal(6).PaddingVertical(4)
+                            .DefaultTextStyle(lStyle)
+                            .Text(label);
+
+                        table.Cell()
+                            .Background(bg ?? RowAlt2)
+                            .Border(0.5f).BorderColor(BorderGrey)
+                            .PaddingHorizontal(6).PaddingVertical(4)
+                            .AlignRight()
+                            .DefaultTextStyle(lStyle)
+                            .Text(value);
+                    }
+
+                    SRow("Sub Total (Before Taxes)", quote.SubTotal.ToString("N2"), bg: BrandLight);
+
+                    if (quote.GSTPercentage > 0)
+                        SRow($"GST @ {quote.GSTPercentage:N0}%", quote.GSTAmount.ToString("N2"));
+
+                    if (quote.IncomeTaxPercentage > 0)
+                        SRow($"Income Tax @ {quote.IncomeTaxPercentage:N0}%", quote.IncomeTaxAmount.ToString("N2"));
+
+                    if (quote.Adjustment != 0)
+                        SRow("Adjustment", quote.Adjustment.ToString("N2"));
+
+                    SRow($"GRAND TOTAL PAYABLE ({quote.Currency})", quote.GrandTotal.ToString("N2"),
+                         bold: true, bg: BrandAccent, textColor: Colors.White);
                 });
-
-                // Header
-                table.Header(header =>
-                {
-                    header.Cell().Element(SummaryHeaderStyle).Text("Description");
-                    header.Cell().Element(SummaryHeaderStyle).AlignRight().Text($"Amount ({quote.Currency})");
-                });
-
-                // Rows
-                table.Cell().Element(SummaryCellStyle).Text("SUB Total Before Taxes");
-                table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.SubTotal.ToString("N2"));
-
-                if (quote.GSTPercentage > 0)
-                {
-                    table.Cell().Element(SummaryCellStyle).Text($"GST @ {quote.GSTPercentage}%");
-                    table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.GSTAmount.ToString("N2"));
-                }
-
-                if (quote.IncomeTaxPercentage > 0)
-                {
-                    table.Cell().Element(SummaryCellStyle).Text($"Income Tax @ {quote.IncomeTaxPercentage}%");
-                    table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.IncomeTaxAmount.ToString("N2"));
-                }
-
-                if (quote.Adjustment != 0)
-                {
-                    table.Cell().Element(SummaryCellStyle).Text("Adjustment");
-                    table.Cell().Element(SummaryCellStyle).AlignRight().Text(quote.Adjustment.ToString("N2"));
-                }
-
-                // Grand Total
-                table.Cell().Element(GrandTotalCellStyle).Text("Grand Total Payable").Bold();
-                table.Cell().Element(GrandTotalCellStyle).AlignRight().Text(quote.GrandTotal.ToString("N2")).Bold();
             });
         }
 
+        // ─────────────────────────────────────────────────────────
+        //  TERMS & CONDITIONS + SIGNATURES
+        // ─────────────────────────────────────────────────────────
         void ComposeTerms(IContainer container, QuotationDto quote)
         {
             container.Column(col =>
             {
-                col.Item().Text("Terms & Conditions:").Bold().Underline().FontSize(10);
-                
-                void AddTerm(string title, params string[] points)
+                // Header
+                col.Item().Background(BrandLight).Border(0.5f).BorderColor(Brand)
+                    .PaddingHorizontal(8).PaddingVertical(5)
+                    .Text("TERMS & CONDITIONS").Bold().FontSize(9).FontColor(Brand);
+
+                col.Item().PaddingTop(4).Table(tcTerms =>
                 {
-                    col.Item().PaddingTop(5).Text(title).Bold().FontSize(8);
-                    foreach (var p in points)
+                    tcTerms.ColumnsDefinition(tcd => { tcd.RelativeColumn(); tcd.RelativeColumn(); });
+
+                    void TermBlock(string title, string[] points)
                     {
-                        col.Item().PaddingLeft(5).Text($"- {p}").FontSize(8);
+                        tcTerms.Cell().Element(tc => tc.Padding(3)).Column(bc =>
+                        {
+                            bc.Item().Text(title).Bold().FontSize(7.5f).FontColor(Brand);
+                            foreach (var p in points)
+                                bc.Item().PaddingLeft(4).Text($"\u2022 {p}").FontSize(7f).FontColor(TextMuted);
+                        });
                     }
-                }
 
-                AddTerm("Payment & Taxes Terms:", 
-                    "Price are as per actual basis.",
-                    "GST Tax is mentioned separately on Supply Rates",
-                    "Service Tax is mentioned separately on Installation Rates",
-                    $"Currency : Unit of Currency of this quotations is {quote.Currency}.",
-                    "Payment : 30% Advance Payment and 60% on Order Confirmation and 10% on completion.",
-                    "Payment : 100% Advance Payment after Order Confirmation and Advance Payment."
-                );
+                    TermBlock("Payment & Tax", new[]
+                    {
+                        "Prices are on actual basis.",
+                        "GST shown separately on supply rates.",
+                        "Service tax shown separately on installation.",
+                        $"Currency: {quote.Currency}.",
+                        "30% Advance | 60% on Order Confirmation | 10% on Completion.",
+                        "100% Advance after Order & advance Payment confirmation."
+                    });
 
-                AddTerm("Delivery terms:",
-                    "Stock Available in EX Pakistan.",
-                    "Items will be delivered in 8 to 12 working weeks after order confirmation."
-                );
+                    TermBlock("Delivery", new[]
+                    {
+                        "Stock Available EX-Pakistan.",
+                        "Delivery: 8-12 working weeks after order confirmation."
+                    });
 
-                AddTerm("Warranty terms:",
-                    "This Warranty covers the defects resulting from defective parts, items, materials or manufacturing if such defects are revealed during the period of 12 months since the date of purchase.",
-                    "The Warranty does not cover consumables or parts of limited regular functionality due to their natural wear and tear.",
-                    "The Warranty does not cover Damages: Mechanical or electric damages resulting from incorrect installation, configuration, usage, Improper Maintenance or other activities incompatible with the operation manual.",
-                    "The Warranty does not cover Damages caused by acts of God, floods, fires, lighting or other natural disasters, wars, unexpected events.",
-                    "The Warranty does not cover Damages result as a result of using chemical cleaning materials."
-                );
+                    TermBlock("Warranty", new[]
+                    {
+                        "12-month warranty from date of purchase against defective parts.",
+                        "Does not cover consumables, wear & tear.",
+                        "Does not cover misuse, incorrect installation, or natural disasters.",
+                        "Does not cover chemical cleaning damage."
+                    });
 
-                AddTerm("Validity terms:",
-                    "Quotation validity is 20 days.",
-                    "Due to currency devaluation, Seller will reserve the right to adjust their prices if the exchange rate varies greater than +1% of the Quotation Value."
-                );
+                    TermBlock("Validity & Transportation", new[]
+                    {
+                        "Quotation validity: 20 days.",
+                        "Prices may be adjusted if exchange rate varies > +1%.",
+                        "Equipment prices are EX-Karachi; further transport is client scope.",
+                        "Site power, travel & accommodation are client scope."
+                    });
 
-                AddTerm("Transportation/Accommodation/Food/Power for work terms:",
-                    "Prices Equipments are for Ex-Karachi. Any further transportation from Karachi to Site will be in client's scope.",
-                    "Power for the Work at Site will be in client's scope.",
-                    "Travelling and Residence of Team from Karachi to Site will be in client's scope.",
-                    "Continuous Supply of Storage will be in client's scope."
-                );
+                    TermBlock("Purchase Order", new[]
+                    {
+                        "Cancellation after PO: 30% of item value charged.",
+                        "Partial purchases are not accepted.",
+                        "PO must reference our Quotation Number."
+                    });
 
-                AddTerm("PO Terms:",
-                    "After placing the Purchase Order, Any item if cancelled by client, 30% of its value shall be charged.",
-                    "The Prices in the above Quotation are based on Total Purchase, No Partial Purchase shall be accepted.",
-                    "Purchase Orders must contain our Quotation Number for which it is issue."
-                );
+                    TermBlock("General", new[]
+                    {
+                        "LOI must be shared before PO if quotation is awarded.",
+                        "Agreement governed by laws of Islamic Republic of Pakistan."
+                    });
+                });
 
-                AddTerm("General Terms:",
-                    "If Quotation finally gets the winning marks, then LOI must be shared with us before Purchase Order.",
-                    "This agreement shall be performed by the BUYER and the SUPPLIER with sincerity. Any questions arising in connection with this agreement shall be promptly resolved through good faith discussion.",
-                    "This agreement is to be governed by, and interpreted strictly in accordance with the laws of Islamic Republic of Pakistan."
-                );
-
-                // Signatures
-                col.Item().PaddingTop(20).Row(row =>
+                // Signature row
+                col.Item().PaddingTop(20).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
                 {
-                    row.RelativeItem().Column(c =>
+                    void SigBlock(string role, string name, string title, string phone, string email)
                     {
-                        c.Item().Text("Approved By:").FontSize(8).Bold();
-                        c.Item().Text("Mr. Munawar Hasan").FontSize(9).SemiBold();
-                        c.Item().Text("Director Sales & Projects").FontSize(8);
-                        c.Item().Text("+92-300-9233273").FontSize(8);
-                        c.Item().Text("munawar.hasan@mytecheng.com").FontSize(8);
-                    });
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text(role).Bold().FontSize(7.5f).FontColor(Brand);
+                            c.Item().PaddingTop(18).LineHorizontal(0.5f).LineColor(BorderGrey);
+                            c.Item().PaddingTop(3).Text(name).SemiBold().FontSize(8.5f);
+                            c.Item().Text(title).FontSize(7.5f).FontColor(TextMuted);
+                            c.Item().Text(phone).FontSize(7.5f).FontColor(TextMuted);
+                            c.Item().Text(email).FontSize(7f).FontColor(BrandAccent);
+                        });
+                    }
 
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Prepared By:").FontSize(8).Bold();
-                        c.Item().Text("Engr. Ali Azeem").FontSize(9).SemiBold();
-                        c.Item().Text("Estimation & Design Engineer").FontSize(8);
-                        c.Item().Text("+92-323-7886379").FontSize(8);
-                        c.Item().Text("ali.azeem@mytecheng.com").FontSize(8);
-                    });
+                    SigBlock("Approved By:", "Mr. Munawar Hasan", "Director Sales & Projects",
+                        "+92-300-9233273", "munawar.hasan@mytecheng.com");
+
+                    row.ConstantItem(30);
+
+                    SigBlock("Prepared By:", "Engr. Ali Azeem", "Estimation & Design Engineer",
+                        "+92-323-7886379", "ali.azeem@mytecheng.com");
                 });
             });
         }
 
-        void ComposeFooter(IContainer container)
+        // ─────────────────────────────────────────────────────────
+        //  FOOTER — image + page number
+        // ─────────────────────────────────────────────────────────
+        void ComposeFooter(IContainer container, string footerImagePath)
         {
-            var footerPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image3.jpeg");
             container.Column(col =>
             {
-                if (File.Exists(footerPath))
+                col.Item().LineHorizontal(0.5f).LineColor(BorderGrey);
+
+                col.Item().PaddingTop(4).Row(row =>
                 {
-                    col.Item().Image(footerPath).FitWidth();
-                }
-                
-                col.Item().PaddingTop(5).AlignCenter().Text(x =>
-                {
-                    x.Span("Page ");
-                    x.CurrentPageNumber();
+                    if (File.Exists(footerImagePath))
+                    {
+                        row.RelativeItem().AlignLeft()
+                            .Width(120).Image(footerImagePath).FitWidth();
+                    }
+                    else
+                    {
+                        row.RelativeItem().AlignLeft()
+                            .Text("MY TECH ENGINEERING COMPANY").FontSize(7).FontColor(TextMuted);
+                    }
+
+                    row.RelativeItem().AlignRight().AlignMiddle().Text(x =>
+                    {
+                        x.Span("Page ").FontSize(7.5f).FontColor(TextMuted);
+                        x.CurrentPageNumber().FontSize(7.5f).FontColor(TextMuted);
+                        x.Span(" of ").FontSize(7.5f).FontColor(TextMuted);
+                        x.TotalPages().FontSize(7.5f).FontColor(TextMuted);
+                    });
                 });
             });
         }
 
-        // ================= STYLES =================
+        // ─────────────────────────────────────────────────────────
+        //  CELL STYLE HELPERS
+        // ─────────────────────────────────────────────────────────
+        static IContainer TH(IContainer c) =>
+            c.Background(Brand)
+             .Border(0.5f).BorderColor(Colors.White)
+             .PaddingHorizontal(5).PaddingVertical(4)
+             .DefaultTextStyle(x => x.Bold().FontColor(Colors.White).FontSize(7.5f));
 
-        static IContainer HeaderCellStyle(IContainer container)
-        {
-            return container
-                .Background(BrandColor)
-                .Border(1)
-                .BorderColor(Colors.White)
-                .Padding(5)
-                .DefaultTextStyle(x => x.Bold().FontColor(Colors.White).FontSize(8));
-        }
+        static IContainer TD(IContainer c, bool alt) =>
+            c.Background(alt ? RowAlt : RowAlt2)
+             .BorderBottom(0.4f).BorderColor(BorderGrey)
+             .PaddingHorizontal(4).PaddingVertical(4)
+             .DefaultTextStyle(x => x.FontSize(8f));
 
-        static IContainer CellStyle(IContainer container)
-        {
-            return container
-                .BorderBottom(1)
-                .BorderColor(LightBorder)
-                .Padding(4)
-                .DefaultTextStyle(x => x.FontSize(8));
-        }
-
-        static IContainer SubTotalCellStyle(IContainer container)
-        {
-            return container
-                .Background(BrandColorLight)
-                .BorderBottom(1)
-                .BorderColor(LightBorder)
-                .Padding(5)
-                .DefaultTextStyle(x => x.FontSize(9).SemiBold());
-        }
-
-        static IContainer SummaryHeaderStyle(IContainer container)
-        {
-            return container
-                .Background(Color.FromHex("#1ABC9C")) 
-                .Padding(5)
-                .DefaultTextStyle(x => x.Bold().FontColor(Colors.White).FontSize(9));
-        }
-
-        static IContainer SummaryCellStyle(IContainer container)
-        {
-             return container
-                .Border(1)
-                .BorderColor(Colors.Grey.Lighten2)
-                .Padding(5)
-                .DefaultTextStyle(x => x.FontSize(9));
-        }
-
-        static IContainer GrandTotalCellStyle(IContainer container)
-        {
-             return container
-                .Background(Color.FromHex("#E8F8F5"))
-                .Border(1)
-                .BorderColor(Color.FromHex("#1ABC9C"))
-                .Padding(6)
-                .DefaultTextStyle(x => x.FontSize(10).Bold());
-        }
-    }
-    
-    // Extensions for standardizing cells
-    public static class QuestExtensions 
-    {
-        public static void LabelCell(this IContainer container, string text) => container.Text(text).FontSize(9).SemiBold().FontColor(Colors.Grey.Darken2);
-        public static void ValueCell(this IContainer container, string text) => container.AlignRight().Text(text).FontSize(9);
+        // Note: STD style applied inline (no static factory — avoids Container() missing context)
     }
 }
