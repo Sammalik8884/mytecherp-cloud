@@ -12,8 +12,8 @@ namespace MyTechERP.Infrastructure.Services
         // ── Brand palette ─────────────────────────────────────────
         private static readonly Color Brand       = Color.FromHex("#005B9A");   // deep blue
         private static readonly Color BrandLight  = Color.FromHex("#E8F4FC");   // pale blue
-        private static readonly Color BrandAccent = Color.FromHex("#1B8F5E");   // green accent
-        private static readonly Color BrandAccentLight = Color.FromHex("#E8F5EE");
+        private static readonly Color BrandAccent = Color.FromHex("#4B5563");   // dark gray for summary
+        private static readonly Color BrandAccentLight = Color.FromHex("#F3F4F6");  // light gray
         private static readonly Color RowAlt      = Color.FromHex("#F7FAFE");   // alternating row
         private static readonly Color RowAlt2     = Color.FromHex("#FFFFFF");
         private static readonly Color BorderGrey  = Color.FromHex("#D1D5DB");
@@ -82,12 +82,7 @@ namespace MyTechERP.Infrastructure.Services
                 // Brand image (lightened with white overlay or fallback)
                 if (File.Exists(headerImagePath))
                 {
-                    col.Item().Layers(layers =>
-                    {
-                        layers.Layer().Image(headerImagePath).FitWidth();
-                        // Semi-transparent overlay — lightens the background image so text is readable
-                        layers.PrimaryLayer().Background(Color.FromHex("#CCFFFFFF")).Height(0);
-                    });
+                    col.Item().Image(headerImagePath).FitWidth();
                 }
                 else
                 {
@@ -110,18 +105,18 @@ namespace MyTechERP.Infrastructure.Services
                     // LEFT: To / Attention / Company
                     row.RelativeItem(3).Column(c =>
                     {
-                        c.Item().Text("To,").FontSize(8).FontColor(TextMuted);
+                        c.Item().PaddingBottom(2).Text("To:").Bold().FontSize(8.5f).FontColor(Brand);
                         if (!string.IsNullOrWhiteSpace(quote.ContactPersonName))
                         {
-                            c.Item().Text($"Attn: {quote.ContactPersonName}").SemiBold().FontSize(9);
+                            c.Item().Text($"Attn: {quote.ContactPersonName}").SemiBold().FontSize(9).FontColor(TextDark);
                         }
-                        c.Item().Text(quote.CustomerName).Bold().FontSize(10).FontColor(Brand);
+                        c.Item().PaddingTop(2).Text(quote.CustomerName).Bold().FontSize(11).FontColor(Brand);
                         if (!string.IsNullOrWhiteSpace(quote.SiteName))
                         {
-                            c.Item().PaddingTop(2).Text(text =>
+                            c.Item().PaddingTop(4).Row(sr =>
                             {
-                                text.Span("Project / Site:  ").SemiBold().FontSize(8).FontColor(TextMuted);
-                                text.Span(quote.SiteName).FontSize(8);
+                                sr.AutoItem().Text("Project / Site: ").SemiBold().FontSize(8.5f).FontColor(TextMuted);
+                                sr.RelativeItem().Text(quote.SiteName).FontSize(8.5f).FontColor(TextDark);
                             });
                         }
                     });
@@ -150,7 +145,6 @@ namespace MyTechERP.Infrastructure.Services
 
                         MetaRow("Quotation #", quote.QuoteNumber, true);
                         MetaRow("Date", quote.CreatedAt.ToString("dd-MMM-yyyy"));
-                        MetaRow("Valid Until", quote.ValidUntil.ToString("dd-MMM-yyyy"));
                         if (quote.RevisionNumber > 0)
                             MetaRow("Revision", $"R{quote.RevisionNumber}");
                     });

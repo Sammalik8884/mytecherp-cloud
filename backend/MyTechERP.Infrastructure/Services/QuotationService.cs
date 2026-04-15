@@ -54,7 +54,7 @@ namespace MyTechERP.Infrastructure.Services
             if (dto.Items == null || !dto.Items.Any())
                 throw new Exception("Cannot create a quotation with 0 items.");
 
-            // Generate MTQ-XXXXX-{ProjectCode}-R0 format
+            // Generate MTQ-{AlphaSeq}-{ProjectCode}-R0 format (e.g. MTQ-AA01173-FPS-R0)
             int nextSeq = 1;
             var lastQuote = await _context.Quotations
                 .Where(q => q.QuoteNumber.StartsWith("MTQ-"))
@@ -63,11 +63,31 @@ namespace MyTechERP.Infrastructure.Services
             if (lastQuote != null)
             {
                 var parts = lastQuote.QuoteNumber.Split('-');
-                if (parts.Length >= 2 && int.TryParse(parts[1], out int parsed))
-                    nextSeq = parsed + 1;
+                if (parts.Length >= 2)
+                {
+                    string seqPart = parts[1]; // e.g. "AA01173" or old "00001"
+                    // Try new alphanumeric format first (2 letters + digits)
+                    if (seqPart.Length >= 3 && char.IsLetter(seqPart[0]) && char.IsLetter(seqPart[1]))
+                    {
+                        int letterVal = (seqPart[0] - 'A') * 26 + (seqPart[1] - 'A');
+                        if (int.TryParse(seqPart.Substring(2), out int numPart))
+                            nextSeq = letterVal * 100000 + numPart + 1;
+                    }
+                    else if (int.TryParse(seqPart, out int parsed))
+                    {
+                        nextSeq = parsed + 1;
+                    }
+                }
             }
+            // Convert seq to alphanumeric: AA00001, AA00002, ..., AA99999, AB00001, ...
+            int letterGroup = (nextSeq - 1) / 100000;
+            int digitPart = ((nextSeq - 1) % 100000) + 1;
+            char c1 = (char)('A' + (letterGroup / 26));
+            char c2 = (char)('A' + (letterGroup % 26));
+            string alphaSeq = $"{c1}{c2}{digitPart:D5}";
+
             string projectCode = string.IsNullOrWhiteSpace(dto.ProjectCode) ? "FPS" : dto.ProjectCode;
-            string quoteNumber = $"MTQ-{nextSeq:D5}-{projectCode}-R0";
+            string quoteNumber = $"MTQ-{alphaSeq}-{projectCode}-R0";
 
             // Auto-generate headline if not provided
             string headline = dto.QuoteHeadline;

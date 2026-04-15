@@ -528,7 +528,7 @@ export const QuotationFormPage = () => {
                     <div>
                         <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Project Code (Quote Suffix)</label>
                         <input type="text" placeholder="FPS" value={formData.projectCode || ""} onChange={e => setFormData({...formData, projectCode: e.target.value.toUpperCase()})} className={inputCls} />
-                        <p className="text-xs text-muted-foreground mt-1">Quote # will be: MTQ-XXXXX-{formData.projectCode || "FPS"}-R0</p>
+                        <p className="text-xs text-muted-foreground mt-1">Quote # will be: MTQ-AA#####-{formData.projectCode || "FPS"}-R0</p>
                     </div>
                     <div>
                         <label className="text-xs font-semibold text-muted-foreground block mb-1.5">PDF Headline (auto-generated if blank)</label>
