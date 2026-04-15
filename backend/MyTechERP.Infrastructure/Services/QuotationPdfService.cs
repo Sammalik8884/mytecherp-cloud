@@ -102,23 +102,30 @@ namespace MyTechERP.Infrastructure.Services
                 // Meta info row
                 col.Item().PaddingTop(10).PaddingBottom(2).Row(row =>
                 {
-                    // LEFT: To / Attention / Company
+                    // LEFT: Customer info boxes (same style as quote # boxes)
                     row.RelativeItem(3).Column(c =>
                     {
-                        c.Item().PaddingBottom(2).Text("To:").Bold().FontSize(8.5f).FontColor(Brand);
-                        if (!string.IsNullOrWhiteSpace(quote.ContactPersonName))
+                        void InfoRow(string label, string value, bool highlight = false)
                         {
-                            c.Item().Text($"Attn: {quote.ContactPersonName}").SemiBold().FontSize(9).FontColor(TextDark);
-                        }
-                        c.Item().PaddingTop(2).Text(quote.CustomerName).Bold().FontSize(11).FontColor(Brand);
-                        if (!string.IsNullOrWhiteSpace(quote.SiteName))
-                        {
-                            c.Item().PaddingTop(4).Row(sr =>
+                            c.Item().Table(t =>
                             {
-                                sr.AutoItem().Text("Project / Site: ").SemiBold().FontSize(8.5f).FontColor(TextMuted);
-                                sr.RelativeItem().Text(quote.SiteName).FontSize(8.5f).FontColor(TextDark);
+                                t.ColumnsDefinition(cd => { cd.RelativeColumn(); cd.RelativeColumn(1.8f); });
+                                t.Cell().Background(highlight ? Brand : BrandLight)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(label).FontSize(8)
+                                    .FontColor(highlight ? Colors.White : TextMuted).SemiBold();
+                                t.Cell().Border(0.5f).BorderColor(BorderGrey)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(value).FontSize(8)
+                                    .FontColor(highlight ? Brand : TextDark).SemiBold();
                             });
                         }
+
+                        InfoRow("To", quote.CustomerName, true);
+                        if (!string.IsNullOrWhiteSpace(quote.ContactPersonName))
+                            InfoRow("Contact Person", quote.ContactPersonName);
+                        if (!string.IsNullOrWhiteSpace(quote.SiteName))
+                            InfoRow("Project / Site", quote.SiteName);
                     });
 
                     // CENTER spacer
@@ -449,16 +456,16 @@ namespace MyTechERP.Infrastructure.Services
                 {
                     if (File.Exists(footerImagePath))
                     {
-                        row.RelativeItem().AlignLeft()
-                            .Width(120).Image(footerImagePath).FitWidth();
+                        row.RelativeItem(3).AlignLeft()
+                            .Image(footerImagePath).FitWidth();
                     }
                     else
                     {
-                        row.RelativeItem().AlignLeft()
+                        row.RelativeItem(3).AlignLeft()
                             .Text("MY TECH ENGINEERING COMPANY").FontSize(7).FontColor(TextMuted);
                     }
 
-                    row.RelativeItem().AlignRight().AlignMiddle().Text(x =>
+                    row.RelativeItem(1).AlignRight().AlignMiddle().Text(x =>
                     {
                         x.Span("Page ").FontSize(7.5f).FontColor(TextMuted);
                         x.CurrentPageNumber().FontSize(7.5f).FontColor(TextMuted);
