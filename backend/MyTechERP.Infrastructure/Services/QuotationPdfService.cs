@@ -427,8 +427,8 @@ namespace MyTechERP.Infrastructure.Services
                     });
                 });
 
-                // Signature row
-                col.Item().PaddingTop(20).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
+                // Signature row (pushed to the very bottom of the last page)
+                col.Item().ExtendVertical().AlignBottom().PaddingTop(20).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
                 {
                     void SigBlock(string role, string name, string title, string phone, string email)
                     {
