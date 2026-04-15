@@ -41,7 +41,7 @@ namespace MyTechERP.Infrastructure.Services
                         .FontSize(8.5f)
                         .FontColor(TextDark));
 
-                    page.Header().Element(c => ComposeHeader(c, quote, headerImagePath));
+                    page.Header().Element(c => ComposeCompanyLogo(c, headerImagePath));
                     page.Content().Element(c => ComposeFullDocument(c, quote));
                     page.Footer().Element(c => ComposeFooter(c, footerImagePath));
                 });
@@ -57,11 +57,13 @@ namespace MyTechERP.Infrastructure.Services
         {
             container.Column(col =>
             {
+                // ── Meta Info (Only on Page 1) ──
+                col.Item().PaddingTop(10).PaddingBottom(6).Element(c => ComposeQuoteMetaInfo(c, quote));
 
                 // ── Headline banner ──
                 if (!string.IsNullOrWhiteSpace(quote.QuoteHeadline))
                 {
-                    col.Item().ShowOnce().PaddingTop(4).PaddingBottom(6)
+                    col.Item().ShowOnce().PaddingTop(4).PaddingBottom(8)
                         .Background(Brand).Padding(8).AlignCenter()
                         .Text($"QUOTATION FOR: {quote.QuoteHeadline.ToUpper()}")
                         .Bold().FontSize(9.5f).FontColor(Colors.White).LetterSpacing(0.5f);
@@ -73,9 +75,9 @@ namespace MyTechERP.Infrastructure.Services
         }
 
         // ─────────────────────────────────────────────────────────
-        //  HEADER — company letterhead + quote metadata
+        //  HEADER — Repeating Company Letterhead ONLY
         // ─────────────────────────────────────────────────────────
-        void ComposeHeader(IContainer container, QuotationDto quote, string headerImagePath)
+        void ComposeCompanyLogo(IContainer container, string headerImagePath)
         {
             container.Column(col =>
             {
@@ -98,9 +100,18 @@ namespace MyTechERP.Infrastructure.Services
                         });
                     });
                 }
+            });
+        }
 
+        // ─────────────────────────────────────────────────────────
+        //  META INFO — Non-repeating quote details
+        // ─────────────────────────────────────────────────────────
+        void ComposeQuoteMetaInfo(IContainer container, QuotationDto quote)
+        {
+            container.Column(col =>
+            {
                 // Meta info row
-                col.Item().PaddingTop(10).PaddingBottom(2).Row(row =>
+                col.Item().Row(row =>
                 {
                     // LEFT: Customer info boxes (same style as quote # boxes)
                     row.RelativeItem(3).Column(c =>
@@ -174,21 +185,21 @@ namespace MyTechERP.Infrastructure.Services
 
                 if (importedItems.Any())
                 {
-                    col.Item().PaddingBottom(8)
+                    col.Item().PaddingBottom(14)
                         .Element(c => DrawSection(c, $"Section {sectionLetter}: Imported Supply Items", importedItems, quote.Currency, true));
                     sectionLetter++;
                 }
 
                 if (localItems.Any())
                 {
-                    col.Item().PaddingBottom(8)
+                    col.Item().PaddingBottom(14)
                         .Element(c => DrawSection(c, $"Section {sectionLetter}: Local Supply Items", localItems, quote.Currency, false));
                     sectionLetter++;
                 }
 
                 if (serviceItems.Any())
                 {
-                    col.Item().PaddingBottom(8)
+                    col.Item().PaddingBottom(14)
                         .Element(c => DrawSection(c, $"Section {sectionLetter}: Services", serviceItems, quote.Currency, false));
                 }
 
