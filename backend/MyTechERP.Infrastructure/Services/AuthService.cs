@@ -87,13 +87,10 @@ namespace MyTechERP.Infrastructure.Services
         public async Task<string> CreateUserAsync(CreateUserRequest request, string currentAdminTenantId)
         {
             int tenantId = int.Parse(currentAdminTenantId);
-
-            // ── Step 1: Enforce MaxUsers limit ────────────────────────────────────────
-            // Count existing users for this tenant.
+            
             var currentUserCount = await _userManager.Users
                 .CountAsync(u => u.TenantId == tenantId);
 
-            // Resolve the plan's MaxUsers. Default to 5 (trial limit) when no paid subscription exists.
             int maxUsers = 5;
             var tenantSubscription = await _context.TenantSubscriptions
                 .AsNoTracking()
@@ -113,8 +110,7 @@ namespace MyTechERP.Infrastructure.Services
                     "Please upgrade your subscription to add more users.");
             }
 
-            // ── Step 2: Customer account validation ───────────────────────────────────
-            // If creating a Customer account, verify there is a matching Customer record in CRM
+
             if (request.Role == "Customer")
             {
                 var customerRecord = await _context.Customers
@@ -163,7 +159,6 @@ namespace MyTechERP.Infrastructure.Services
                 throw new Exception("Invalid Credentials");
             }
 
-            // Check password ONCE against the first account (all tenant accounts share the same password)
             bool isPasswordValid = await _userManager.CheckPasswordAsync(allUsersWithEmail.First(), request.Password);
 
             if (!isPasswordValid)
@@ -172,12 +167,10 @@ namespace MyTechERP.Infrastructure.Services
                 throw new Exception("Invalid Credentials");
             }
 
-            // Password is valid — all tenant accounts for this email are now authorized
             var validUsers = allUsersWithEmail;
 
             if (validUsers.Count > 1)
             {
-                // Multi-tenant case -> Step 1 returns requires selection
                 var authClaims = new List<Claim> { new Claim(ClaimTypes.Email, request.Email) };
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
                 var tokenDescriptor = new SecurityTokenDescriptor
@@ -207,7 +200,6 @@ namespace MyTechERP.Infrastructure.Services
                 };
             }
 
-            // Exactly 1 user matches -> Generate token straight away
             return await GenerateAuthResponse(validUsers.First());
         }
 

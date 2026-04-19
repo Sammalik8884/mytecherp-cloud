@@ -136,7 +136,7 @@ namespace MytechERP.API.Controllers
             {
                 Console.WriteLine($"PDF GENERATION ERROR for ID {id}: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
-                return BadRequest(new { Error = "Failed to generate PDF.", Details = ex.Message });
+                return BadRequest(new { Error = "Failed to generate PDF.", Details = ex.ToString() });
             }
         }
         [HttpPost("{id}/submit")]

@@ -128,11 +128,8 @@ export const QuotationFormPage = () => {
         }
     }, [showLocal]);
 
-    useEffect(() => {
-        if (showServices && serviceItems.length === 0) {
-            setServiceItems([makeEmptyRow("Service")]);
-        }
-    }, [showServices]);
+    // Note: Services section does NOT auto-create empty rows.
+    // Service rows are auto-populated from product selections or added manually via "+ Add Row".
 
     // Initial Fetch
     useEffect(() => {
@@ -415,60 +412,12 @@ export const QuotationFormPage = () => {
     const selectCls = inputCls + " appearance-none";
     const tinyInputCls = "w-16 bg-background text-foreground border border-border rounded px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50";
 
-    /* ─── Unit selector component ─── */
-    const UnitSelector = ({ item, idx, list }: { item: UiItem, idx: number, list: "imported" | "local" | "service" }) => {
-        const setItems = list === "imported" ? setImportedItems : list === "local" ? setLocalItems : setServiceItems;
-        const items = list === "imported" ? importedItems : list === "local" ? localItems : serviceItems;
-        
-        return (
-            <div className="flex flex-col gap-1">
-                <select 
-                    className={selectCls + " !py-1.5 !text-xs"}
-                    value={item.unit || ""}
-                    onChange={e => {
-                        const newArr = [...items];
-                        newArr[idx] = { ...newArr[idx], unit: e.target.value, customUnit: e.target.value === "Custom" ? newArr[idx].customUnit : "" };
-                        setItems(newArr as any);
-                    }}
-                >
-                    <option value="">Select unit...</option>
-                    {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
-                {item.unit === "Custom" && (
-                    <input 
-                        type="text" 
-                        placeholder="Custom unit..." 
-                        className={inputCls + " !py-1 !text-xs"}
-                        value={item.customUnit || ""}
-                        onChange={e => {
-                            const newArr = [...items];
-                            newArr[idx] = { ...newArr[idx], customUnit: e.target.value };
-                            setItems(newArr as any);
-                        }}
-                    />
-                )}
-                <input 
-                    type="number" 
-                    step="any"
-                    min="0"
-                    placeholder="Qty (e.g. 20)"
-                    className={inputCls + " !py-1 !text-xs"}
-                    value={item.unitQty || ""}
-                    onChange={e => {
-                        const newArr = [...items];
-                        newArr[idx] = { ...newArr[idx], unitQty: Number(e.target.value) };
-                        setItems(newArr as any);
-                    }}
-                />
-            </div>
-        );
-    };
-
     /* ─── Service name display with edit ─── */
     const ServiceNameDisplay = ({ item, idx, list }: { item: UiItem, idx: number, list: "imported" | "local" | "service" }) => {
         const isEditing = editingServiceName?.list === list && editingServiceName?.index === idx;
         const setItems = list === "imported" ? setImportedItems : list === "local" ? setLocalItems : setServiceItems;
         const items = list === "imported" ? importedItems : list === "local" ? localItems : serviceItems;
+        
         const displayName = item.serviceName || (item.product?.name ? item.product.name : "");
         
         if (isEditing) {
@@ -476,8 +425,9 @@ export const QuotationFormPage = () => {
                 <input 
                     type="text"
                     className={inputCls}
-                    value={item.serviceName || ""}
+                    value={item.serviceName !== undefined ? item.serviceName : (item.product ? item.product.name : "")}
                     autoFocus
+                    placeholder="Enter custom service name..."
                     onBlur={() => setEditingServiceName(null)}
                     onKeyDown={e => { if (e.key === 'Enter') setEditingServiceName(null); }}
                     onChange={e => {
@@ -490,38 +440,55 @@ export const QuotationFormPage = () => {
         }
         
         return (
-            <div className="flex items-center gap-2 min-w-0">
-                <span className="truncate text-sm text-foreground">{displayName || "No name set"}</span>
-                <button 
-                    type="button" 
-                    onClick={() => setEditingServiceName({ list, index: idx })}
-                    className="p-1 rounded hover:bg-primary/10 transition-colors shrink-0"
-                    title="Edit service name"
-                >
-                    <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+            <div className="flex items-center justify-between w-full min-w-0 bg-background border border-input rounded-lg px-3 py-2 text-sm cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingServiceName({ list, index: idx });
+                }}>
+                <span className="truncate text-foreground font-medium">{displayName || "Tap to enter service name..."}</span>
+                <button type="button" className="p-1 shrink-0 text-muted-foreground hover:text-primary transition-colors" title="Edit Service Name">
+                    <Pencil className="h-4 w-4" />
                 </button>
             </div>
         );
     };
-
     /* ─── Mobile card renderer for items ─── */
     const renderImportedCard = (item: UiItem, idx: number) => (
         <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
-            <div onClick={() => setProductModalTarget({ list: "imported", index: idx })}
-                className="flex items-center justify-between bg-secondary/30 border border-border rounded-lg p-3 cursor-pointer hover:border-primary/50 transition-colors">
+            <div 
+                onClick={() => setProductModalTarget({ list: "imported", index: idx })}
+                className="flex items-center justify-between bg-secondary/30 border border-border rounded-lg p-3 cursor-pointer hover:border-primary/50 transition-colors"
+            >
                 <span className="truncate text-sm text-foreground">
                     {item.product ? `${item.product.name}` : "Tap to select product..."}
                 </span>
                 <Search className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
             </div>
-            {/* Service Name / Edit */}
-            {item.product && (
-                <ServiceNameDisplay item={{...item, serviceName: item.serviceName || item.product?.name || ""}} idx={idx} list="imported" />
-            )}
             <div className="grid grid-cols-2 gap-3">
                 <div>
                     <label className="text-xs text-muted-foreground">Unit</label>
-                    <UnitSelector item={item} idx={idx} list="imported" />
+                    <div className="flex flex-col gap-1 mt-1">
+                        <select className={selectCls + " !py-1.5 !text-xs"} value={item.unit || ""} onChange={e => {
+                            const newArr = [...importedItems];
+                            newArr[idx] = { ...newArr[idx], unit: e.target.value, customUnit: e.target.value === "Custom" ? newArr[idx].customUnit : "" };
+                            setImportedItems(newArr);
+                        }}>
+                            <option value="">Select unit...</option>
+                            {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+                        </select>
+                        {item.unit === "Custom" && (
+                            <input type="text" placeholder="Custom unit..." className={inputCls + " !py-1 !text-xs"} value={item.customUnit || ""} onChange={e => {
+                                const newArr = [...importedItems];
+                                newArr[idx] = { ...newArr[idx], customUnit: e.target.value };
+                                setImportedItems(newArr);
+                            }}/>
+                        )}
+                        <input type="number" step="any" min="0" placeholder="Qty (e.g. 20)" className={inputCls + " !py-1 !text-xs"} value={item.unitQty || ""} onChange={e => {
+                            const newArr = [...importedItems];
+                            newArr[idx] = { ...newArr[idx], unitQty: Number(e.target.value) };
+                            setImportedItems(newArr);
+                        }}/>
+                    </div>
                 </div>
                 <div>
                     <label className="text-xs text-muted-foreground">Qty</label>
@@ -561,21 +528,40 @@ export const QuotationFormPage = () => {
 
     const renderLocalCard = (item: UiItem, idx: number) => (
         <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
-            <div onClick={() => setProductModalTarget({ list: "local", index: idx })}
-                className="flex items-center justify-between bg-secondary/30 border border-border rounded-lg p-3 cursor-pointer hover:border-primary/50 transition-colors">
+            <div 
+                onClick={() => setProductModalTarget({ list: "local", index: idx })}
+                className="flex items-center justify-between bg-secondary/30 border border-border rounded-lg p-3 cursor-pointer hover:border-primary/50 transition-colors"
+            >
                 <span className="truncate text-sm text-foreground">
                     {item.product ? `${item.product.name}` : "Tap to select product..."}
                 </span>
                 <Search className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
             </div>
-            {/* Service Name / Edit */}
-            {item.product && (
-                <ServiceNameDisplay item={{...item, serviceName: item.serviceName || item.product?.name || ""}} idx={idx} list="local" />
-            )}
             <div className="grid grid-cols-2 gap-3">
                 <div>
                     <label className="text-xs text-muted-foreground">Unit</label>
-                    <UnitSelector item={item} idx={idx} list="local" />
+                    <div className="flex flex-col gap-1 mt-1">
+                        <select className={selectCls + " !py-1.5 !text-xs"} value={item.unit || ""} onChange={e => {
+                            const newArr = [...localItems];
+                            newArr[idx] = { ...newArr[idx], unit: e.target.value, customUnit: e.target.value === "Custom" ? newArr[idx].customUnit : "" };
+                            setLocalItems(newArr);
+                        }}>
+                            <option value="">Select unit...</option>
+                            {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+                        </select>
+                        {item.unit === "Custom" && (
+                            <input type="text" placeholder="Custom unit..." className={inputCls + " !py-1 !text-xs"} value={item.customUnit || ""} onChange={e => {
+                                const newArr = [...localItems];
+                                newArr[idx] = { ...newArr[idx], customUnit: e.target.value };
+                                setLocalItems(newArr);
+                            }}/>
+                        )}
+                        <input type="number" step="any" min="0" placeholder="Qty (e.g. 20)" className={inputCls + " !py-1 !text-xs"} value={item.unitQty || ""} onChange={e => {
+                            const newArr = [...localItems];
+                            newArr[idx] = { ...newArr[idx], unitQty: Number(e.target.value) };
+                            setLocalItems(newArr);
+                        }}/>
+                    </div>
                 </div>
                 <div>
                     <label className="text-xs text-muted-foreground">Qty</label>
@@ -725,15 +711,30 @@ export const QuotationFormPage = () => {
                                                   </span>
                                                   <Search className="h-3.5 w-3.5 text-muted-foreground ml-2 shrink-0" />
                                               </div>
-                                              {/* Show service name with edit if product is selected */}
-                                              {item.product && (
-                                                  <div className="mt-1">
-                                                      <ServiceNameDisplay item={{...item, serviceName: item.serviceName || item.product?.name || ""}} idx={idx} list="imported" />
-                                                  </div>
-                                              )}
                                          </td>
                                          <td className="px-1">
-                                              <UnitSelector item={item} idx={idx} list="imported" />
+                                              <div className="flex flex-col gap-1">
+                                                  <select className={selectCls + " !py-1.5 !text-xs"} value={item.unit || ""} onChange={e => {
+                                                      const newArr = [...importedItems];
+                                                      newArr[idx] = { ...newArr[idx], unit: e.target.value, customUnit: e.target.value === "Custom" ? newArr[idx].customUnit : "" };
+                                                      setImportedItems(newArr);
+                                                  }}>
+                                                      <option value="">Select unit...</option>
+                                                      {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+                                                  </select>
+                                                  {item.unit === "Custom" && (
+                                                      <input type="text" placeholder="Custom unit..." className={inputCls + " !py-1 !text-xs"} value={item.customUnit || ""} onChange={e => {
+                                                          const newArr = [...importedItems];
+                                                          newArr[idx] = { ...newArr[idx], customUnit: e.target.value };
+                                                          setImportedItems(newArr);
+                                                      }}/>
+                                                  )}
+                                                  <input type="number" step="any" min="0" placeholder="Qty (e.g. 20)" className={inputCls + " !py-1 !text-xs"} value={item.unitQty || ""} onChange={e => {
+                                                      const newArr = [...importedItems];
+                                                      newArr[idx] = { ...newArr[idx], unitQty: Number(e.target.value) };
+                                                      setImportedItems(newArr);
+                                                  }}/>
+                                              </div>
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
@@ -814,15 +815,30 @@ export const QuotationFormPage = () => {
                                                   </span>
                                                   <Search className="h-3.5 w-3.5 text-muted-foreground ml-2 shrink-0" />
                                               </div>
-                                              {/* Show service name with edit if product is selected */}
-                                              {item.product && (
-                                                  <div className="mt-1">
-                                                      <ServiceNameDisplay item={{...item, serviceName: item.serviceName || item.product?.name || ""}} idx={idx} list="local" />
-                                                  </div>
-                                              )}
                                          </td>
                                          <td className="px-1">
-                                              <UnitSelector item={item} idx={idx} list="local" />
+                                              <div className="flex flex-col gap-1">
+                                                  <select className={selectCls + " !py-1.5 !text-xs"} value={item.unit || ""} onChange={e => {
+                                                      const newArr = [...localItems];
+                                                      newArr[idx] = { ...newArr[idx], unit: e.target.value, customUnit: e.target.value === "Custom" ? newArr[idx].customUnit : "" };
+                                                      setLocalItems(newArr);
+                                                  }}>
+                                                      <option value="">Select unit...</option>
+                                                      {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
+                                                  </select>
+                                                  {item.unit === "Custom" && (
+                                                      <input type="text" placeholder="Custom unit..." className={inputCls + " !py-1 !text-xs"} value={item.customUnit || ""} onChange={e => {
+                                                          const newArr = [...localItems];
+                                                          newArr[idx] = { ...newArr[idx], customUnit: e.target.value };
+                                                          setLocalItems(newArr);
+                                                      }}/>
+                                                  )}
+                                                  <input type="number" step="any" min="0" placeholder="Qty (e.g. 20)" className={inputCls + " !py-1 !text-xs"} value={item.unitQty || ""} onChange={e => {
+                                                          const newArr = [...localItems];
+                                                          newArr[idx] = { ...newArr[idx], unitQty: Number(e.target.value) };
+                                                          setLocalItems(newArr);
+                                                  }}/>
+                                              </div>
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
@@ -886,19 +902,12 @@ export const QuotationFormPage = () => {
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm table-fixed">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 w-[30%]">Service Name</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {serviceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
-                                              <input type="text" placeholder="Installation, Commissioning, etc." className={inputCls} value={item.serviceName||""} onChange={e => {
-                                                  const newArr = [...serviceItems];
-                                                  newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
-                                                  setServiceItems(newArr);
-                                              }}/>
-                                         </td>
-                                         <td className="px-1">
-                                              <UnitSelector item={item} idx={idx} list="service" />
+                                              <ServiceNameDisplay item={item} idx={idx} list="service" />
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
@@ -930,13 +939,7 @@ export const QuotationFormPage = () => {
                          <div className="md:hidden space-y-3 ml-3">
                              {serviceItems.map((item, idx) => (
                                  <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
-                                     <input type="text" placeholder="Service name..." className={inputCls} value={item.serviceName||""} onChange={e => {
-                                         const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], serviceName: e.target.value }; setServiceItems(newArr);
-                                     }}/>
-                                     <div>
-                                         <label className="text-xs text-muted-foreground">Unit</label>
-                                         <UnitSelector item={item} idx={idx} list="service" />
-                                     </div>
+                                     <ServiceNameDisplay item={item} idx={idx} list="service" />
                                      <div className="grid grid-cols-2 gap-3">
                                          <div><label className="text-xs text-muted-foreground">Qty</label><input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => { const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) }; setServiceItems(newArr); }}/></div>
                                          <div><label className="text-xs text-muted-foreground">Price</label><input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.servicePrice||0} onChange={e => { const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) }; setServiceItems(newArr); }}/></div>
@@ -1061,12 +1064,39 @@ export const QuotationFormPage = () => {
                 onSelect={(p) => {
                     if (productModalTarget?.list === "imported") {
                         const newArr = [...importedItems];
+                        const quantity = newArr[productModalTarget.index].quantity || 1;
                         newArr[productModalTarget.index] = calculateImportedItem({ ...newArr[productModalTarget.index], productId: p.id, product: p, serviceName: p.name }, formData);
                         setImportedItems(newArr);
+                        
+                        setShowServices(true);
+                        setServiceItems(prev => {
+                            // Replace a blank placeholder row if one exists, otherwise append
+                            const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
+                            if (prev.some(s => s.serviceName === p.name)) return prev;
+                            if (blankIdx !== -1) {
+                                const updated = [...prev];
+                                updated[blankIdx] = { ...updated[blankIdx], serviceName: p.name, quantity: quantity };
+                                return updated;
+                            }
+                            return [...prev, { ...makeEmptyRow("Service"), serviceName: p.name, quantity: quantity }];
+                        });
                     } else if (productModalTarget?.list === "local") {
                         const newArr = [...localItems];
-                        newArr[productModalTarget.index] = { ...newArr[productModalTarget.index], productId: p.id, product: p, serviceName: p.name, unitPrice: p.price, lineTotal: newArr[productModalTarget.index].quantity * p.price * (1 - (newArr[productModalTarget.index].manualCommissionPct||0)/100) };
+                        const quantity = newArr[productModalTarget.index].quantity || 1;
+                        newArr[productModalTarget.index] = { ...newArr[productModalTarget.index], productId: p.id, product: p, serviceName: p.name, unitPrice: p.price, lineTotal: quantity * p.price * (1 - (newArr[productModalTarget.index].manualCommissionPct||0)/100) };
                         setLocalItems(newArr);
+                        
+                        setShowServices(true);
+                        setServiceItems(prev => {
+                            const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
+                            if (prev.some(s => s.serviceName === p.name)) return prev;
+                            if (blankIdx !== -1) {
+                                const updated = [...prev];
+                                updated[blankIdx] = { ...updated[blankIdx], serviceName: p.name, quantity: quantity };
+                                return updated;
+                            }
+                            return [...prev, { ...makeEmptyRow("Service"), serviceName: p.name, quantity: quantity }];
+                        });
                     }
                     setProductModalTarget(null);
                 }}

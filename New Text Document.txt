@@ -1,0 +1,11 @@
+Fire Fighting Quotation– Marka-e-Haq Monument (2).xlsx
+read this file some again and implement the missing calculations in imported 
+also when clicked on imported dont just show the calculations on section it should show when click icon named calculations create this icon and show all the calculations after which the price is calculated
+also  read this document and implement on header of the pdf like company details and to should be the contact person name. 
+then company name  and other side quotation # starts with MTQ-auto increament # -FPS-R0 by default if qoutation revised then R1 and so on 
+ and date on which quotation is created 
+also in the pdf show the headline which is selected for example if local supply and services is selected show that and so on others like this.
+and create  sections in pdf for example if  imported is selected then dont show anything or local dont or services dont if selected imported show its separate section and calculations in pdf then show  other selected all or one  section by section and at last terms and conditions
+also light the color of background image it is too bright text is not shown 
+and the  columns in the imported  or  local or services are rigid and laying over  each other 
+at last  make  this module for  mobile  optimize too so user can generate quote from mobile too without any hussle

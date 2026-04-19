@@ -24,6 +24,7 @@ namespace MyTechERP.Infrastructure.Services
         public byte[] GeneratePdf(QuotationDto quote)
         {
             QuestPDF.Settings.License = LicenseType.Community;
+            QuestPDF.Settings.EnableDebugging = true; // Temporary: enable debugging to expose exact element causing conflict
 
             var headerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image2.png");
             var footerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image3.jpeg");
@@ -200,7 +201,7 @@ namespace MyTechERP.Infrastructure.Services
                 if (serviceItems.Any())
                 {
                     col.Item().PaddingBottom(14)
-                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Services", serviceItems, quote.Currency, false));
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Services", serviceItems, quote.Currency, false, false));
                 }
 
                 // Grand summary
@@ -218,7 +219,7 @@ namespace MyTechERP.Infrastructure.Services
         // ─────────────────────────────────────────────────────────
         //  SECTION TABLE (with Unit column)
         // ─────────────────────────────────────────────────────────
-        void DrawSection(IContainer container, string title, List<QuotationItemDto> items, string currency, bool showCalcBreakdown)
+        void DrawSection(IContainer container, string title, List<QuotationItemDto> items, string currency, bool showCalcBreakdown, bool showUnit = true)
         {
             container.Column(col =>
             {
@@ -228,9 +229,9 @@ namespace MyTechERP.Infrastructure.Services
                     .PaddingHorizontal(8).PaddingVertical(5)
                     .Row(row =>
                     {
-                        row.RelativeItem().Text(title).Bold().FontSize(9).FontColor(Colors.White);
+                        row.RelativeItem().Text(title ?? "").Bold().FontSize(9).FontColor(Colors.White);
                         row.ConstantItem(120).AlignRight()
-                            .Text($"Amount in {currency}").FontSize(7.5f).FontColor(Colors.White).Italic();
+                            .Text($"Amount in {currency ?? ""}").FontSize(7.5f).FontColor(Colors.White).Italic();
                     });
 
                 col.Item().Table(table =>
@@ -239,7 +240,10 @@ namespace MyTechERP.Infrastructure.Services
                     {
                         columns.ConstantColumn(22);  // Sr#
                         columns.RelativeColumn(5);   // Description
-                        columns.ConstantColumn(55);  // Unit
+                        if (showUnit)
+                        {
+                            columns.ConstantColumn(55);  // Unit
+                        }
                         columns.ConstantColumn(28);  // Qty
                         columns.ConstantColumn(75);  // Unit Price
                         columns.ConstantColumn(85);  // Total
@@ -250,7 +254,10 @@ namespace MyTechERP.Infrastructure.Services
                     {
                         header.Cell().Element(TH).AlignCenter().Text("#");
                         header.Cell().Element(TH).Text("Description");
-                        header.Cell().Element(TH).AlignCenter().Text("Unit");
+                        if (showUnit)
+                        {
+                            header.Cell().Element(TH).AlignCenter().Text("Unit");
+                        }
                         header.Cell().Element(TH).AlignCenter().Text("Qty");
                         header.Cell().Element(TH).AlignRight().Text($"Unit Rate");
                         header.Cell().Element(TH).AlignRight().Text("Amount");
@@ -269,25 +276,28 @@ namespace MyTechERP.Infrastructure.Services
                         // Description cell
                         table.Cell().Element(c => TD(c, isAlt)).Column(dc =>
                         {
-                            dc.Item().Text(item.Description).FontSize(8);
+                            dc.Item().Text(item.Description ?? "Unknown Service").FontSize(8);
                         });
 
-                        // Unit cell - show unit type and quantity
-                        table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(text =>
+                        // Unit cell - show unit type and quantity (conditional)
+                        if (showUnit)
                         {
-                            if (!string.IsNullOrWhiteSpace(item.Unit) && item.UnitQty > 0)
+                            table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(text =>
                             {
-                                text.Span($"{item.UnitQty:G29} {item.Unit}").FontSize(7.5f);
-                            }
-                            else if (!string.IsNullOrWhiteSpace(item.Unit))
-                            {
-                                text.Span(item.Unit).FontSize(7.5f);
-                            }
-                            else
-                            {
-                                text.Span("-").FontSize(7.5f).FontColor(TextMuted);
-                            }
-                        });
+                                if (!string.IsNullOrWhiteSpace(item.Unit) && item.UnitQty > 0)
+                                {
+                                    text.Span($"{item.UnitQty:G29} {item.Unit}").FontSize(7.5f);
+                                }
+                                else if (!string.IsNullOrWhiteSpace(item.Unit))
+                                {
+                                    text.Span(item.Unit).FontSize(7.5f);
+                                }
+                                else
+                                {
+                                    text.Span("-").FontSize(7.5f).FontColor(TextMuted);
+                                }
+                            });
+                        }
 
                         table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Quantity.ToString());
                         table.Cell().Element(c => TD(c, isAlt)).AlignRight()
@@ -298,7 +308,7 @@ namespace MyTechERP.Infrastructure.Services
 
                     // Section sub-total row
                     decimal sectionTotal = items.Sum(x => x.LineTotal);
-                    table.Cell().ColumnSpan(4)
+                    table.Cell().ColumnSpan(showUnit ? (uint)4 : (uint)3)
                         .Background(BrandLight).Border(0.5f).BorderColor(Brand)
                         .PaddingHorizontal(5).PaddingVertical(4)
                         .AlignRight().DefaultTextStyle(x => x.FontSize(8.5f).FontColor(Brand))
@@ -368,7 +378,7 @@ namespace MyTechERP.Infrastructure.Services
                     if (quote.Adjustment != 0)
                         SRow("Adjustment", quote.Adjustment.ToString("N2"));
 
-                    SRow($"GRAND TOTAL PAYABLE ({quote.Currency})", quote.GrandTotal.ToString("N2"),
+                    SRow($"GRAND TOTAL PAYABLE ({quote.Currency ?? ""})", quote.GrandTotal.ToString("N2"),
                          bold: true, bg: BrandAccent, textColor: Colors.White);
                 });
             });
@@ -446,8 +456,8 @@ namespace MyTechERP.Infrastructure.Services
                     });
                 });
 
-                // Signature row (pushed to the very bottom of the last page)
-                col.Item().ExtendVertical().AlignBottom().PaddingTop(20).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
+                // Signature row
+                col.Item().PaddingTop(30).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
                 {
                     void SigBlock(string role, string name, string title, string phone, string email)
                     {
@@ -467,7 +477,7 @@ namespace MyTechERP.Infrastructure.Services
 
                     row.ConstantItem(30);
 
-                    SigBlock("Prepared By:", "Engr. Ali Azeem", "Estimation & Design Engineer",
+                    SigBlock("Prepared By:", "Engr. Muhammad Huzaifa", "Estimation & Design Engineer",
                         "+92-323-7886379", "ali.azeem@mytecheng.com");
                 });
             });
@@ -483,41 +493,36 @@ namespace MyTechERP.Infrastructure.Services
                 // Top separator
                 col.Item().LineHorizontal(1f).LineColor(Brand);
 
-                // Expanded footer content
-                col.Item().PaddingTop(4).PaddingBottom(2).Row(row =>
+                if (File.Exists(footerImagePath))
                 {
-                    // LEFT: Company details
-                    row.RelativeItem(2).Column(c =>
+                    col.Item().PaddingTop(2).Image(footerImagePath).FitWidth();
+                }
+                else
+                {
+                    // Expanded footer text content (Fallback if no image)
+                    col.Item().PaddingTop(4).PaddingBottom(2).Row(row =>
                     {
-                        c.Item().Text("MY TECH ENGINEERING COMPANY (PVT) LTD")
-                            .Bold().FontSize(7f).FontColor(Brand);
-                        c.Item().Text("Office# 301, 3rd Floor, Munawar Centre, Jinnah Road, Quetta")
-                            .FontSize(6f).FontColor(TextMuted);
-                        c.Item().Text("NTN: 5277714-4  |  STRN: 0408990001131")
-                            .FontSize(6f).FontColor(TextMuted);
-                    });
+                        // LEFT: Company details
+                        row.RelativeItem(2).Column(c =>
+                        {
+                            c.Item().Text("MY TECH ENGINEERING COMPANY (PVT) LTD")
+                                .Bold().FontSize(7f).FontColor(Brand);
+                            c.Item().Text("Office# 301, 3rd Floor, Munawar Centre, Jinnah Road, Quetta")
+                                .FontSize(6f).FontColor(TextMuted);
+                            c.Item().Text("NTN: 5277714-4  |  STRN: 0408990001131")
+                                .FontSize(6f).FontColor(TextMuted);
+                        });
 
-                    // CENTER: Contact info
-                    row.RelativeItem(2).AlignCenter().Column(c =>
-                    {
-                        c.Item().AlignCenter().Text("Phone: +92-81-2844718  |  Cell: +92-300-9233273")
-                            .FontSize(6f).FontColor(TextMuted);
-                        c.Item().AlignCenter().Text("Email: info@mytecheng.com  |  Web: www.mytecheng.com")
-                            .FontSize(6f).FontColor(TextMuted);
+                        // CENTER: Contact info
+                        row.RelativeItem(2).AlignCenter().Column(c =>
+                        {
+                            c.Item().AlignCenter().Text("Phone: +92-81-2844718  |  Cell: +92-300-9233273")
+                                .FontSize(6f).FontColor(TextMuted);
+                            c.Item().AlignCenter().Text("Email: info@mytecheng.com  |  Web: www.mytecheng.com")
+                                .FontSize(6f).FontColor(TextMuted);
+                        });
                     });
-
-                    // RIGHT: Footer image (if exists)
-                    if (File.Exists(footerImagePath))
-                    {
-                        row.RelativeItem(1).AlignRight().AlignMiddle()
-                            .MaxHeight(30).Image(footerImagePath).FitHeight();
-                    }
-                    else
-                    {
-                        row.RelativeItem(1).AlignRight().AlignMiddle()
-                            .Text("").FontSize(6);
-                    }
-                });
+                }
 
                 // Bottom separator line
                 col.Item().LineHorizontal(0.5f).LineColor(BorderGrey);
