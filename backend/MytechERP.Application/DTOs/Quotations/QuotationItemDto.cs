@@ -17,5 +17,7 @@ namespace MytechERP.Application.DTOs.Quotations
         public string? ServiceName { get; set; }
         public decimal OriginalPrice { get; set; }
         public string? CalculationBreakdown { get; set; }
+        public string? Unit { get; set; }
+        public decimal UnitQty { get; set; }
     }
 }

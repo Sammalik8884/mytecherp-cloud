@@ -359,7 +359,9 @@ namespace MyTechERP.Infrastructure.Services
                         ItemType = parsedType,
                         ServiceName = itemDto.ServiceName,
                         OriginalPrice = originalPrice,
-                        CalculationBreakdown = calcBreakdown
+                        CalculationBreakdown = calcBreakdown,
+                        Unit = itemDto.Unit,
+                        UnitQty = itemDto.UnitQty
                     });
 
                     runningSubTotal += lineTotal;
@@ -411,7 +413,9 @@ namespace MyTechERP.Infrastructure.Services
                     ItemType = i.ItemType.ToString(),
                     ServiceName = i.ServiceName,
                     OriginalPrice = i.OriginalPrice,
-                    CalculationBreakdown = i.CalculationBreakdown
+                    CalculationBreakdown = i.CalculationBreakdown,
+                    Unit = i.Unit,
+                    UnitQty = i.UnitQty
                 }).ToList() ?? new List<QuotationItemDto>()
             };
         }

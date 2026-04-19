@@ -21,6 +21,8 @@ namespace MytechERP.Application.DTOs.Quotations
         public decimal? ServicePrice { get; set; }
         public decimal? OverridePrice { get; set; }
 
+        public string? Unit { get; set; }
+        public decimal UnitQty { get; set; }
         
        
     }

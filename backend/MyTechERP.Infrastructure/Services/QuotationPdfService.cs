@@ -35,7 +35,7 @@ namespace MyTechERP.Infrastructure.Services
                     page.Size(PageSizes.A4);
                     page.MarginHorizontal(28);
                     page.MarginTop(22);
-                    page.MarginBottom(20);
+                    page.MarginBottom(14);
                     page.DefaultTextStyle(x => x
                         .FontFamily(Fonts.Arial)
                         .FontSize(8.5f)
@@ -216,7 +216,7 @@ namespace MyTechERP.Infrastructure.Services
         }
 
         // ─────────────────────────────────────────────────────────
-        //  SECTION TABLE
+        //  SECTION TABLE (with Unit column)
         // ─────────────────────────────────────────────────────────
         void DrawSection(IContainer container, string title, List<QuotationItemDto> items, string currency, bool showCalcBreakdown)
         {
@@ -239,9 +239,10 @@ namespace MyTechERP.Infrastructure.Services
                     {
                         columns.ConstantColumn(22);  // Sr#
                         columns.RelativeColumn(5);   // Description
+                        columns.ConstantColumn(55);  // Unit
                         columns.ConstantColumn(28);  // Qty
-                        columns.ConstantColumn(80);  // Unit Price
-                        columns.ConstantColumn(90);  // Total
+                        columns.ConstantColumn(75);  // Unit Price
+                        columns.ConstantColumn(85);  // Total
                     });
 
                     // Column headers
@@ -249,6 +250,7 @@ namespace MyTechERP.Infrastructure.Services
                     {
                         header.Cell().Element(TH).AlignCenter().Text("#");
                         header.Cell().Element(TH).Text("Description");
+                        header.Cell().Element(TH).AlignCenter().Text("Unit");
                         header.Cell().Element(TH).AlignCenter().Text("Qty");
                         header.Cell().Element(TH).AlignRight().Text($"Unit Rate");
                         header.Cell().Element(TH).AlignRight().Text("Amount");
@@ -270,6 +272,23 @@ namespace MyTechERP.Infrastructure.Services
                             dc.Item().Text(item.Description).FontSize(8);
                         });
 
+                        // Unit cell - show unit type and quantity
+                        table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(text =>
+                        {
+                            if (!string.IsNullOrWhiteSpace(item.Unit) && item.UnitQty > 0)
+                            {
+                                text.Span($"{item.UnitQty:G29} {item.Unit}").FontSize(7.5f);
+                            }
+                            else if (!string.IsNullOrWhiteSpace(item.Unit))
+                            {
+                                text.Span(item.Unit).FontSize(7.5f);
+                            }
+                            else
+                            {
+                                text.Span("-").FontSize(7.5f).FontColor(TextMuted);
+                            }
+                        });
+
                         table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Quantity.ToString());
                         table.Cell().Element(c => TD(c, isAlt)).AlignRight()
                             .Text(item.UnitPrice.ToString("N2")).FontColor(HighlightGold);
@@ -279,7 +298,7 @@ namespace MyTechERP.Infrastructure.Services
 
                     // Section sub-total row
                     decimal sectionTotal = items.Sum(x => x.LineTotal);
-                    table.Cell().ColumnSpan(3)
+                    table.Cell().ColumnSpan(4)
                         .Background(BrandLight).Border(0.5f).BorderColor(Brand)
                         .PaddingHorizontal(5).PaddingVertical(4)
                         .AlignRight().DefaultTextStyle(x => x.FontSize(8.5f).FontColor(Brand))
@@ -455,34 +474,61 @@ namespace MyTechERP.Infrastructure.Services
         }
 
         // ─────────────────────────────────────────────────────────
-        //  FOOTER — image + page number
+        //  FOOTER — Expanded with company info, image, and page number below
         // ─────────────────────────────────────────────────────────
         void ComposeFooter(IContainer container, string footerImagePath)
         {
             container.Column(col =>
             {
-                col.Item().LineHorizontal(0.5f).LineColor(BorderGrey);
+                // Top separator
+                col.Item().LineHorizontal(1f).LineColor(Brand);
 
-                col.Item().PaddingTop(4).Row(row =>
+                // Expanded footer content
+                col.Item().PaddingTop(4).PaddingBottom(2).Row(row =>
                 {
+                    // LEFT: Company details
+                    row.RelativeItem(2).Column(c =>
+                    {
+                        c.Item().Text("MY TECH ENGINEERING COMPANY (PVT) LTD")
+                            .Bold().FontSize(7f).FontColor(Brand);
+                        c.Item().Text("Office# 301, 3rd Floor, Munawar Centre, Jinnah Road, Quetta")
+                            .FontSize(6f).FontColor(TextMuted);
+                        c.Item().Text("NTN: 5277714-4  |  STRN: 0408990001131")
+                            .FontSize(6f).FontColor(TextMuted);
+                    });
+
+                    // CENTER: Contact info
+                    row.RelativeItem(2).AlignCenter().Column(c =>
+                    {
+                        c.Item().AlignCenter().Text("Phone: +92-81-2844718  |  Cell: +92-300-9233273")
+                            .FontSize(6f).FontColor(TextMuted);
+                        c.Item().AlignCenter().Text("Email: info@mytecheng.com  |  Web: www.mytecheng.com")
+                            .FontSize(6f).FontColor(TextMuted);
+                    });
+
+                    // RIGHT: Footer image (if exists)
                     if (File.Exists(footerImagePath))
                     {
-                        row.RelativeItem(3).AlignLeft()
-                            .Image(footerImagePath).FitWidth();
+                        row.RelativeItem(1).AlignRight().AlignMiddle()
+                            .MaxHeight(30).Image(footerImagePath).FitHeight();
                     }
                     else
                     {
-                        row.RelativeItem(3).AlignLeft()
-                            .Text("MY TECH ENGINEERING COMPANY").FontSize(7).FontColor(TextMuted);
+                        row.RelativeItem(1).AlignRight().AlignMiddle()
+                            .Text("").FontSize(6);
                     }
+                });
 
-                    row.RelativeItem(1).AlignRight().AlignMiddle().Text(x =>
-                    {
-                        x.Span("Page ").FontSize(7.5f).FontColor(TextMuted);
-                        x.CurrentPageNumber().FontSize(7.5f).FontColor(TextMuted);
-                        x.Span(" of ").FontSize(7.5f).FontColor(TextMuted);
-                        x.TotalPages().FontSize(7.5f).FontColor(TextMuted);
-                    });
+                // Bottom separator line
+                col.Item().LineHorizontal(0.5f).LineColor(BorderGrey);
+
+                // Page number — below the footer
+                col.Item().PaddingTop(2).AlignCenter().Text(x =>
+                {
+                    x.Span("Page ").FontSize(7f).FontColor(TextMuted);
+                    x.CurrentPageNumber().FontSize(7f).FontColor(TextMuted);
+                    x.Span(" of ").FontSize(7f).FontColor(TextMuted);
+                    x.TotalPages().FontSize(7f).FontColor(TextMuted);
                 });
             });
         }

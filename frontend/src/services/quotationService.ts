@@ -11,6 +11,8 @@ export interface QuotationItemDto {
     serviceName?: string;
     originalPrice: number;
     calculationBreakdown?: string;
+    unit?: string;
+    unitQty?: number;
 }
 
 export interface QuotationDto {
@@ -47,6 +49,8 @@ export interface CreateQuotationItemDto {
     serviceName?: string;
     servicePrice?: number;
     overridePrice?: number;
+    unit?: string;
+    unitQty?: number;
 }
 
 export interface CreateQuotationDto {
