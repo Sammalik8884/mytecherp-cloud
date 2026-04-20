@@ -1,4 +1,4 @@
-﻿using MytechERP.domain.Common;
+using MytechERP.domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +13,6 @@ namespace MytechERP.Application.DTOs.CRM
         public string Email { get; set; }
         public string Password { get; set; }
         public string Role { get; set; }
+        public string? Designation { get; set; }
     }
 }

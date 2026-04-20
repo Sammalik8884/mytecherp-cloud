@@ -22,6 +22,7 @@ export interface RegisterDto {
 export interface UserDto {
     id?: string;
     fullName?: string;
+    designation?: string;
     email: string;
     roles?: string[];
     tenantId?: string | null;
@@ -32,6 +33,7 @@ export interface AuthResponse {
     token: string;
     email: string;
     fullName: string;
+    designation: string;
     roles: string[];
     planFeatures: number;
     requiresTenantSelection?: boolean;

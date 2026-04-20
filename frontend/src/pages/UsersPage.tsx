@@ -15,7 +15,8 @@ export const UsersPage = () => {
         fullName: "",
         email: "",
         password: "",
-        role: ""
+        role: "",
+        designation: ""
     });
 
     const fetchData = async () => {
@@ -49,7 +50,8 @@ export const UsersPage = () => {
             fullName: "",
             email: "",
             password: "",
-            role: roles.length > 0 ? roles[0] : ""
+            role: roles.length > 0 ? roles[0] : "",
+            designation: ""
         });
         setIsModalOpen(true);
     };
@@ -102,6 +104,7 @@ export const UsersPage = () => {
                         <thead className="text-xs text-muted-foreground uppercase bg-secondary/50 border-b border-border/40">
                             <tr>
                                 <th className="px-6 py-4 font-medium">User</th>
+                                <th className="px-6 py-4 font-medium">Designation</th>
                                 <th className="px-6 py-4 font-medium">Role(s)</th>
                                 <th className="px-6 py-4 font-medium text-center">Status</th>
                             </tr>
@@ -109,13 +112,13 @@ export const UsersPage = () => {
                         <tbody className="divide-y divide-border/30">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={3} className="px-6 py-12 text-center">
+                                    <td colSpan={4} className="px-6 py-12 text-center">
                                         <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary opacity-50" />
                                     </td>
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan={3} className="px-6 py-12 text-center text-muted-foreground">
+                                    <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
                                         No users found.
                                     </td>
                                 </tr>
@@ -135,6 +138,15 @@ export const UsersPage = () => {
                                                     </span>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {user.designation ? (
+                                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent border border-accent/20">
+                                                    {user.designation}
+                                                </span>
+                                            ) : (
+                                                <span className="text-muted-foreground italic text-xs">—</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-wrap gap-2">
@@ -210,6 +222,16 @@ export const UsersPage = () => {
                                     <p className="text-[10px] text-muted-foreground mt-1">
                                         Password must contain an uppercase letter, lowercase letter, number, and special character.
                                     </p>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Designation</label>
+                                    <input
+                                        type="text"
+                                        value={formData.designation}
+                                        onChange={e => setFormData({ ...formData, designation: e.target.value })}
+                                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                        placeholder="e.g. Sales Executive, Project Manager"
+                                    />
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-muted-foreground mb-1 block">Assign Role *</label>

@@ -298,19 +298,19 @@ export const SalesmanDashboardPage = () => {
     };
 
     return (
-        <div className="space-y-6 max-w-6xl mx-auto">
+        <div className="space-y-4 md:space-y-6 max-w-6xl mx-auto">
             {/* Header */}
-            <div className="bg-gradient-to-br from-primary to-accent text-white p-8 rounded-3xl shadow-xl relative overflow-hidden">
+            <div className="bg-gradient-to-br from-primary to-accent text-white p-5 sm:p-7 md:p-8 rounded-2xl md:rounded-3xl shadow-xl relative overflow-hidden">
                 <div className="absolute right-0 top-0 w-[400px] h-[400px] bg-white opacity-10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
-                <div className="relative z-10 flex flex-col md:flex-row md:justify-between md:items-end h-full w-full">
+                <div className="relative z-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
                     <div>
-                        <h1 className="text-3xl font-extrabold tracking-tight mb-2">My Clients & Visits</h1>
-                        <p className="text-white/80 font-medium">Register clients to automatically log your first visit, and track subsequent visits.</p>
+                        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1 sm:mb-2">My Clients & Visits</h1>
+                        <p className="text-white/80 font-medium text-sm sm:text-base">Register clients to automatically log your first visit, and track subsequent visits.</p>
                     </div>
-                    <div className="mt-6 md:mt-0 flex flex-col sm:flex-row gap-3">
+                    <div className="shrink-0">
                         <button 
                             onClick={openCreateModal}
-                            className="px-6 py-3 bg-white text-primary rounded-xl font-bold hover:bg-gray-100 transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2"
+                            className="w-full sm:w-auto px-5 py-3 bg-white text-primary rounded-xl font-bold hover:bg-gray-100 transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2 text-sm sm:text-base"
                         >
                             <Plus className="h-5 w-5" />
                             <span>Add Client & Start Visit</span>
@@ -331,20 +331,20 @@ export const SalesmanDashboardPage = () => {
                     <p className="text-muted-foreground mt-2">Start your journey by adding your first client.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-start">
                     {leads.map(lead => (
                         <div key={lead.id} className="bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-all flex flex-col relative overflow-hidden group">
                             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
                             
-                            <div className="p-6 flex-1">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center space-x-2">
-                                        <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-mono font-bold tracking-wider">
+                            <div className="p-4 sm:p-6 flex-1">
+                                <div className="flex justify-between items-start mb-3 sm:mb-4">
+                                    <div className="flex items-center space-x-2 min-w-0 mr-2">
+                                        <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-mono font-bold tracking-wider truncate max-w-[90px]">
                                             {lead.leadNumber}
                                         </div>
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); handleEditClient(lead.id); }}
-                                            className="p-1 text-muted-foreground hover:text-primary transition-colors bg-secondary/50 rounded-md"
+                                            className="p-1 text-muted-foreground hover:text-primary transition-colors bg-secondary/50 rounded-md shrink-0"
                                             title="Edit Client Information"
                                         >
                                             <Edit className="h-4 w-4" />
@@ -352,19 +352,19 @@ export const SalesmanDashboardPage = () => {
                                     </div>
                                     <StatusWidget status={lead.status} />
                                 </div>
-                                <h3 className="text-lg font-bold text-foreground mb-1 line-clamp-1">{lead.customerName}</h3>
-                                <div className="flex items-center text-sm text-muted-foreground mb-4">
-                                    <Building className="h-4 w-4 mr-2 text-primary" />
+                                <h3 className="text-base sm:text-lg font-bold text-foreground mb-1 line-clamp-1">{lead.customerName}</h3>
+                                <div className="flex items-center text-sm text-muted-foreground mb-3 sm:mb-4">
+                                    <Building className="h-4 w-4 mr-2 text-primary shrink-0" />
                                     <span className="truncate">{lead.siteName}</span>
                                 </div>
                                 
-                                <div className="flex items-center space-x-4 text-xs font-medium text-muted-foreground/80 mt-auto bg-secondary/50 p-3 rounded-xl border border-border">
+                                <div className="flex flex-wrap gap-2 text-xs font-medium text-muted-foreground/80 mt-auto bg-secondary/50 p-2.5 sm:p-3 rounded-xl border border-border">
                                     <div className="flex items-center">
-                                        <Calendar className="mr-1.5 h-4 w-4 text-foreground/50" />
+                                        <Calendar className="mr-1.5 h-3.5 w-3.5 text-foreground/50" />
                                         {new Date(lead.createdAt).toLocaleDateString()}
                                     </div>
                                     <div className="flex items-center">
-                                        <Activity className="mr-1.5 h-4 w-4 text-foreground/50" />
+                                        <Activity className="mr-1.5 h-3.5 w-3.5 text-foreground/50" />
                                         {lead.visitCount} visits
                                     </div>
                                 </div>
@@ -408,23 +408,23 @@ export const SalesmanDashboardPage = () => {
 
             {/* Create Client Modal (Now acts as Client + Site + Lead + First Visit combo) */}
             {isClientModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsClientModalOpen(false)} />
-                    <div className="bg-card w-full max-w-3xl rounded-2xl shadow-xl border border-border relative z-10 animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30 shrink-0">
-                            <div>
-                                <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+                    <div className="bg-card w-full sm:max-w-3xl rounded-t-2xl sm:rounded-2xl shadow-xl border border-border relative z-10 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[93dvh] sm:max-h-[90vh]">
+                        <div className="p-4 sm:p-6 border-b border-border flex justify-between items-start gap-3 bg-muted/30 shrink-0">
+                            <div className="min-w-0">
+                                <h2 className="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent leading-tight">
                                     {editingLeadId ? "Edit Client & Project Data" : "Register New Client & Initial Visit"}
                                 </h2>
-                                <p className="text-xs text-muted-foreground mt-1">
+                                <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
                                     {editingLeadId ? "Update your previously entered details as needed." : "Completing this form will automatically generate the client profile and log your first visit."}
                                 </p>
                             </div>
-                            <button onClick={() => setIsClientModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+                            <button onClick={() => setIsClientModalOpen(false)} className="text-muted-foreground hover:text-foreground shrink-0 mt-0.5">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
-                        <div className="overflow-y-auto flex-1 p-6">
+                        <div className="overflow-y-auto flex-1 p-4 sm:p-6">
                             <form id="createClientForm" onSubmit={handleSaveClientModal} className="space-y-8">
                                 <div className="space-y-4">
                                     <h3 className="text-sm font-bold text-primary uppercase tracking-wider border-b border-border/50 pb-2">Client Details</h3>
@@ -531,14 +531,14 @@ export const SalesmanDashboardPage = () => {
                                             <label className="block text-xs font-semibold text-muted-foreground mb-1">Complete Site Address *</label>
                                             <input required value={clientForm.siteAddress} onChange={e => setClientForm({...clientForm, siteAddress: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
                                         </div>
-                                        <div className="md:col-span-2 bg-secondary/30 p-4 rounded-xl border border-border flex items-center justify-between">
-                                            <div className="text-xs text-muted-foreground">
+                                        <div className="md:col-span-2 bg-secondary/30 p-3 sm:p-4 rounded-xl border border-border flex flex-col sm:flex-row sm:items-center gap-3">
+                                            <div className="text-xs text-muted-foreground flex-1">
                                                 <strong>GPS Coordinates:</strong><br />
                                                 {clientForm.latitude && clientForm.longitude 
-                                                    ? <span className="text-primary font-mono">{clientForm.latitude.toFixed(6)}, {clientForm.longitude.toFixed(6)}</span>
+                                                    ? <span className="text-primary font-mono break-all">{clientForm.latitude.toFixed(6)}, {clientForm.longitude.toFixed(6)}</span>
                                                     : "Not acquired yet"}
                                             </div>
-                                            <button type="button" onClick={fetchLocation} className="text-xs font-bold bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center">
+                                            <button type="button" onClick={fetchLocation} className="text-xs font-bold bg-primary text-primary-foreground px-4 py-2.5 rounded-lg flex items-center justify-center w-full sm:w-auto">
                                                 <MapPin className="h-3.5 w-3.5 mr-1" /> Fetch Live Location
                                             </button>
                                         </div>
@@ -558,9 +558,9 @@ export const SalesmanDashboardPage = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-muted-foreground mb-1 flex items-center">Photo Evidence (Optional - Skip if not needed)</label>
+                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Photo Evidence (Optional - Skip if not needed)</label>
                                                 <div className="flex flex-col space-y-2">
-                                                    <div className="flex items-center space-x-3">
+                                                    <div className="flex flex-wrap items-center gap-2">
                                                         <input 
                                                             type="file" 
                                                             accept="image/*" 
@@ -601,17 +601,17 @@ export const SalesmanDashboardPage = () => {
                                 </div>
                             </form>
                         </div>
-                        <div className="p-6 border-t border-border shrink-0 bg-background">
+                        <div className="p-4 sm:p-6 border-t border-border shrink-0 bg-background">
                             <button
                                 type="submit"
                                 form="createClientForm"
                                 disabled={clientFormLoading}
-                                className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl transition-colors flex items-center justify-center disabled:opacity-50 text-sm shadow-lg shadow-primary/20"
+                                className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl transition-colors flex items-center justify-center disabled:opacity-50 text-sm shadow-lg shadow-primary/20 active:scale-[0.99]"
                             >
                                 {clientFormLoading ? (
                                     <span className="flex items-center"><Activity className="animate-spin h-5 w-5 mr-2" /> Saving Everything...</span>
                                 ) : (
-                                    editingLeadId ? "Update Client Profile" : "Save Profile AND Establish Initial Visit"
+                                    editingLeadId ? "Update Client Profile" : "Save & Log Initial Visit"
                                 )}
                             </button>
                         </div>

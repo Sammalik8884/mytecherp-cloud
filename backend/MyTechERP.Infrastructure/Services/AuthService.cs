@@ -127,6 +127,7 @@ namespace MyTechERP.Infrastructure.Services
                 UserName = $"{request.Email}_{tenantId}",
                 Email = request.Email,
                 FullName = request.FullName,
+                Designation = request.Designation ?? string.Empty,
                 TenantId = tenantId,
                 IsActive = true
             };
@@ -281,6 +282,7 @@ namespace MyTechERP.Infrastructure.Services
                 Token = tokenHandler.WriteToken(token),
                 Email = user.Email,
                 FullName = user.FullName,
+                Designation = user.Designation,
                 Roles = userRoles.ToList(),
                 PlanFeatures = planFeaturesVal
             };
@@ -336,6 +338,7 @@ namespace MyTechERP.Infrastructure.Services
                     user.Id,
                     user.FullName,
                     user.Email,
+                    user.Designation,
                     Roles = roles,
                     user.IsActive
                 });

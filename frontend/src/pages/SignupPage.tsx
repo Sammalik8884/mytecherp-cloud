@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { Navigate, useNavigate, Link } from "react-router-dom";
-import { Briefcase, KeyRound, Mail, User, Building, AlertCircle, Loader2 } from "lucide-react";
+import { Briefcase, KeyRound, Mail, User, Building, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -20,6 +20,7 @@ export const SignupPage = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     if (isAuthenticated) {
         return <Navigate to="/" replace />;
@@ -131,13 +132,22 @@ export const SignupPage = () => {
                                 <div className="relative group">
                                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                     <input
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm shadow-inner"
+                                        className="w-full bg-background border border-border rounded-xl pl-10 pr-11 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm shadow-inner"
                                         placeholder="••••••••"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(prev => !prev)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                                        tabIndex={-1}
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
                                 </div>
                             </div>
                         </div>
