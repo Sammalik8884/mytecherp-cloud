@@ -12,7 +12,8 @@ namespace MyTechERP.Infrastructure.PDF
     {
         public Invoice Invoice { get; }
         public string QuoteNumber { get; }
-        
+        public string QuoteHeadline { get; }
+
         // ── Brand palette ─────────────────────────────────────────
         private static readonly Color Brand       = Color.FromHex("#005B9A");   // deep blue
         private static readonly Color BrandLight  = Color.FromHex("#E8F4FC");   // pale blue
@@ -25,10 +26,11 @@ namespace MyTechERP.Infrastructure.PDF
         private static readonly Color TextMuted   = Color.FromHex("#6B7280");
         private static readonly Color HighlightGold = Color.FromHex("#CA8A04");
 
-        public InvoiceDocument(Invoice invoice, string quoteNumber = null)
+        public InvoiceDocument(Invoice invoice, string quoteNumber = null, string quoteHeadline = null)
         {
             Invoice = invoice;
             QuoteNumber = quoteNumber;
+            QuoteHeadline = quoteHeadline;
         }
 
         public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
@@ -64,10 +66,11 @@ namespace MyTechERP.Infrastructure.PDF
                 col.Item().PaddingTop(10).PaddingBottom(6).Element(ComposeMetaInfo);
 
                 // ── Headline banner ──
+                var headlineText = !string.IsNullOrWhiteSpace(QuoteHeadline) ? QuoteHeadline.ToUpper() : "TAX INVOICE";
                 col.Item().ShowOnce().PaddingTop(4).PaddingBottom(8)
                     .Background(Brand).Padding(8).AlignCenter()
-                    .Text("TAX INVOICE")
-                    .Bold().FontSize(11f).FontColor(Colors.White).LetterSpacing(1.5f);
+                    .Text(headlineText)
+                    .Bold().FontSize(11f).FontColor(Colors.White);
 
                 // ── CONTENT ──
                 col.Item().PaddingTop(6).Element(ComposeContent);
@@ -338,6 +341,31 @@ namespace MyTechERP.Infrastructure.PDF
                         "Late payments may be subject to additional fees.",
                         "Thank you for your business!"
                     });
+                });
+
+                // Signature row
+                col.Item().EnsureSpace().ExtendVertical().AlignBottom().PaddingTop(30).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
+                {
+                    void SigBlock(string role, string name, string title, string phone, string email)
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text(role).Bold().FontSize(7.5f).FontColor(Brand);
+                            c.Item().PaddingTop(18).LineHorizontal(0.5f).LineColor(BorderGrey);
+                            c.Item().PaddingTop(3).Text(name).SemiBold().FontSize(8.5f);
+                            c.Item().Text(title).FontSize(7.5f).FontColor(TextMuted);
+                            c.Item().Text(phone).FontSize(7.5f).FontColor(TextMuted);
+                            c.Item().Text(email).FontSize(7f).FontColor(HighlightGold);
+                        });
+                    }
+
+                    SigBlock("Approved By:", "Mr. Munawar Hasan", "Director Sales & Projects",
+                        "+92-300-9233273", "munawar.hasan@mytecheng.com");
+
+                    row.ConstantItem(30);
+
+                    SigBlock("Prepared By:", "Engr. Muhammad Huzaifa", "Estimation & Design Engineer",
+                        "+92-323-7886379", "ali.azeem@mytecheng.com");
                 });
             });
         }
