@@ -19,5 +19,8 @@ namespace MytechERP.Application.DTOs.Quotations
         public string? CalculationBreakdown { get; set; }
         public string? Unit { get; set; }
         public decimal UnitQty { get; set; }
+        
+        public decimal InvoicedQuantity { get; set; }
+        public bool IsFullyInvoiced { get; set; }
     }
 }

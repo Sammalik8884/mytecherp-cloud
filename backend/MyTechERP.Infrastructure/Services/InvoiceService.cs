@@ -91,6 +91,7 @@ namespace MyTechERP.Infrastructure.Services
                     Description = item.Description,
                     Quantity = item.Quantity,
                     UnitPrice = item.UnitPrice,
+                    QuotationItemId = item.QuotationItemId, // Add this
                     TotalPrice = item.Quantity * item.UnitPrice,
                     TenantId = tId
                 });

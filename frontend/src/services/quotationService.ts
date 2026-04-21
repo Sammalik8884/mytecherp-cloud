@@ -13,6 +13,8 @@ export interface QuotationItemDto {
     calculationBreakdown?: string;
     unit?: string;
     unitQty?: number;
+    invoicedQuantity?: number;
+    isFullyInvoiced?: boolean;
 }
 
 export interface QuotationDto {

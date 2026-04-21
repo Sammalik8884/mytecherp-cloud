@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static MytechERP.domain.Quotations.Quotation;
+using MytechERP.domain.Entities.Finance;
 
 namespace MyTechERP.Infrastructure.Services
 {
@@ -229,7 +230,28 @@ namespace MyTechERP.Infrastructure.Services
         {
             var quote = await _quotationRepository.GetQuoteWithItemsAsync(id);
             if (quote == null) return null;
-            return MapToDto(quote);
+            
+            var dto = MapToDto(quote);
+            
+            // Calculate Invoiced quantities
+            var invoicedQuantities = await _context.Invoices
+                .Where(i => i.QuotationId == id && i.Status != InvoiceStatus.Cancelled)
+                .SelectMany(i => i.Items)
+                .Where(i => i.QuotationItemId != null)
+                .GroupBy(i => i.QuotationItemId.Value)
+                .Select(g => new { QuotationItemId = g.Key, InvoicedQty = g.Sum(x => x.Quantity) })
+                .ToDictionaryAsync(x => x.QuotationItemId, x => x.InvoicedQty);
+                
+            foreach (var item in dto.Items)
+            {
+                if (invoicedQuantities.TryGetValue(item.Id, out var invoicedQty))
+                {
+                    item.InvoicedQuantity = invoicedQty;
+                    item.IsFullyInvoiced = invoicedQty >= item.Quantity;
+                }
+            }
+            
+            return dto;
         }
 
         public async Task<IEnumerable<QuotationDto>> GetAllQuotesAsync()

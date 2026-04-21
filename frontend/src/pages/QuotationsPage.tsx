@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Loader2, Search, Plus, FileText, DownloadCloud, Send, Edit, Trash2, FilePlus2, Briefcase, CheckCircle, XCircle, FileSignature, Activity, AlertTriangle } from "lucide-react";
 import { StatCard } from "../components/dashboard/StatCard";
 import { quotationService, QuotationDto } from "../services/quotationService";
-import { invoiceService } from "../services/invoiceService";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { ConfirmModal } from "../components/common/ConfirmModal";
 import { PromptModal } from "../components/common/PromptModal";
+import { GenerateInvoiceFromQuoteModal } from "../components/common/GenerateInvoiceFromQuoteModal";
 
 const extractApiError = (error: any, fallback: string) => {
     if (!error || !error.response || !error.response.data) {
@@ -28,6 +28,8 @@ export const QuotationsPage = () => {
 
     const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'info'|'warning'|'danger'; onConfirm: () => void }>({ isOpen: false, title: "", message: "", type: "info", onConfirm: () => {} });
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: (val: string) => void }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
+    
+    const [quoteInvoiceModal, setQuoteInvoiceModal] = useState<{isOpen: boolean, quote: QuotationDto | null}>({ isOpen: false, quote: null });
 
     const totalQuotations = quotations.length;
     const pendingQuotes = quotations.filter(q => ['draft', 'pendingapproval'].includes(q.status.toLowerCase())).length;
@@ -117,15 +119,10 @@ export const QuotationsPage = () => {
     };
 
     const handleGenerateInvoice = (id: number) => {
-        confirmAction("Generate Invoice", "Generate an invoice from this quotation?", "info", async () => {
-            try {
-                toast.loading("Generating Invoice...", { id: `inv-${id}` });
-                const result = await invoiceService.generateFromQuote(id);
-                toast.success(`Invoice ${result.invoiceNumber} Generated Successfully`, { id: `inv-${id}` });
-            } catch (error: any) {
-                toast.error(extractApiError(error, "Failed to generate invoice"), { id: `inv-${id}` });
-            }
-        });
+        const quote = quotations.find(q => q.id === id);
+        if (quote) {
+            setQuoteInvoiceModal({ isOpen: true, quote });
+        }
     };
 
     const handleConvertToWorkOrder = (id: number) => {
@@ -410,6 +407,19 @@ export const QuotationsPage = () => {
                 onConfirm={promptModal.onConfirm}
                 onCancel={() => setPromptModal(prev => ({ ...prev, isOpen: false }))}
             />
+
+            {quoteInvoiceModal.quote && (
+                <GenerateInvoiceFromQuoteModal
+                    isOpen={quoteInvoiceModal.isOpen}
+                    onClose={() => setQuoteInvoiceModal({ isOpen: false, quote: null })}
+                    onSuccess={() => {
+                        setQuoteInvoiceModal({ isOpen: false, quote: null });
+                        // Optionally refresh data
+                        fetchData();
+                    }}
+                    quotation={quoteInvoiceModal.quote}
+                />
+            )}
         </div>
     );
 };

@@ -23,5 +23,6 @@ namespace MytechERP.Application.DTOs.Finance
         public string Description { get; set; } = string.Empty;
         public decimal Quantity { get; set; }
         public decimal UnitPrice { get; set; }
+        public int? QuotationItemId { get; set; }
     }
 }

@@ -5,6 +5,9 @@ import { invoiceService } from "../services/invoiceService";
 import { InvoiceDto } from "../types/finance";
 import { CreateInvoiceModal } from "../components/CreateInvoiceModal";
 import { ConfirmModal } from "../components/common/ConfirmModal";
+import { QuoteSelectorModal } from "../components/common/QuoteSelectorModal";
+import { GenerateInvoiceFromQuoteModal } from "../components/common/GenerateInvoiceFromQuoteModal";
+import { QuotationDto } from "../services/quotationService";
 import { toast } from "react-hot-toast";
 
 export const InvoicesPage = () => {
@@ -13,6 +16,8 @@ export const InvoicesPage = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [processingId, setProcessingId] = useState<number | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isQuoteSelectorOpen, setIsQuoteSelectorOpen] = useState(false);
+    const [quoteInvoiceModalQuote, setQuoteInvoiceModalQuote] = useState<QuotationDto | null>(null);
 
     const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'info'|'warning'|'danger'; confirmText: string; onConfirm: () => void }>({ isOpen: false, title: "", message: "", type: "info", confirmText: "Confirm", onConfirm: () => {} });
 
@@ -183,13 +188,22 @@ export const InvoicesPage = () => {
                             className="bg-background/50 border border-border text-sm rounded-lg pl-9 pr-4 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                     </div>
-                    <button
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        <span>Create Invoice</span>
-                    </button>
+                    <div className="flex space-x-2">
+                        <button
+                            onClick={() => setIsQuoteSelectorOpen(true)}
+                            className="bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+                        >
+                            <FileText className="h-4 w-4" />
+                            <span className="hidden sm:inline">From Quote</span>
+                        </button>
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            <span className="hidden sm:inline">Custom Invoice</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -315,6 +329,27 @@ export const InvoicesPage = () => {
                 onConfirm={confirmModal.onConfirm}
                 onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
             />
+
+            <QuoteSelectorModal
+                isOpen={isQuoteSelectorOpen}
+                onClose={() => setIsQuoteSelectorOpen(false)}
+                onSelect={(q) => {
+                    setIsQuoteSelectorOpen(false);
+                    setQuoteInvoiceModalQuote(q);
+                }}
+            />
+
+            {quoteInvoiceModalQuote && (
+                <GenerateInvoiceFromQuoteModal
+                    isOpen={!!quoteInvoiceModalQuote}
+                    onClose={() => setQuoteInvoiceModalQuote(null)}
+                    onSuccess={() => {
+                        setQuoteInvoiceModalQuote(null);
+                        fetchInvoices();
+                    }}
+                    quotation={quoteInvoiceModalQuote}
+                />
+            )}
         </div>
     );
 };

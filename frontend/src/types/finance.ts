@@ -4,12 +4,14 @@ export interface InvoiceItemDto {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    quotationItemId?: number;
 }
 
 export interface CreateInvoiceItemDto {
     description: string;
     quantity: number;
     unitPrice: number;
+    quotationItemId?: number;
 }
 
 export interface CreateInvoiceDto {

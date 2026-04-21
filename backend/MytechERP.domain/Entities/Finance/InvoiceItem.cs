@@ -1,4 +1,4 @@
-﻿using MytechERP.domain.Common;
+using MytechERP.domain.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -23,6 +23,8 @@ namespace MytechERP.domain.Entities.Finance
         public decimal Total => Quantity * UnitPrice;
 
         public decimal TotalPrice { get; set; }
+
+        public int? QuotationItemId { get; set; }
     }
 }
 
