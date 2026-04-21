@@ -126,20 +126,31 @@ namespace MyTechERP.Infrastructure.Services
             return document.GeneratePdf();
         }
 
+
         public async Task<byte[]> GenerateInvoicePdfAsync(int invoiceId)
         {
             var invoice = await _context.Invoices
                 .Include(i => i.Customer)
                 .Include(i => i.Items)
-                .Include(i => i.Quotation)
                 .FirstOrDefaultAsync(i => i.Id == invoiceId);
 
             if (invoice == null) throw new Exception("Invoice not found.");
 
-            var document = new MyTechERP.Infrastructure.PDF.InvoiceDocument(invoice);
+            // Fetch quote number separately since Invoice entity has no Quotation nav property
+            string quoteNumber = null;
+            if (invoice.QuotationId.HasValue)
+            {
+                quoteNumber = await _context.Quotations
+                    .Where(q => q.Id == invoice.QuotationId.Value)
+                    .Select(q => q.QuoteNumber)
+                    .FirstOrDefaultAsync();
+            }
+
+            var document = new MyTechERP.Infrastructure.PDF.InvoiceDocument(invoice, quoteNumber);
 
             return document.GeneratePdf();
         }
+
 
         public async Task<byte[]> GeneratePurchaseOrderPdfAsync(int poId)
         {

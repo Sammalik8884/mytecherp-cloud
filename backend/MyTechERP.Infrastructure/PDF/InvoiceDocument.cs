@@ -11,6 +11,7 @@ namespace MyTechERP.Infrastructure.PDF
     public class InvoiceDocument : IDocument
     {
         public Invoice Invoice { get; }
+        public string QuoteNumber { get; }
         
         // ── Brand palette ─────────────────────────────────────────
         private static readonly Color Brand       = Color.FromHex("#005B9A");   // deep blue
@@ -24,9 +25,10 @@ namespace MyTechERP.Infrastructure.PDF
         private static readonly Color TextMuted   = Color.FromHex("#6B7280");
         private static readonly Color HighlightGold = Color.FromHex("#CA8A04");
 
-        public InvoiceDocument(Invoice invoice)
+        public InvoiceDocument(Invoice invoice, string quoteNumber = null)
         {
             Invoice = invoice;
+            QuoteNumber = quoteNumber;
         }
 
         public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
@@ -161,9 +163,9 @@ namespace MyTechERP.Infrastructure.PDF
                         MetaRow("Issue Date", Invoice.IssueDate.ToString("dd-MMM-yyyy"));
                         MetaRow("Due Date", Invoice.DueDate.ToString("dd-MMM-yyyy"));
 
-                        if (Invoice.QuotationId.HasValue && Invoice.Quotation != null && !string.IsNullOrEmpty(Invoice.Quotation.QuoteNumber))
+                        if (!string.IsNullOrEmpty(QuoteNumber))
                         {
-                            MetaRow("Ref Quote #", Invoice.Quotation.QuoteNumber);
+                            MetaRow("Ref Quote #", QuoteNumber);
                         }
                         else if (Invoice.WorkOrderId.HasValue)
                         {
