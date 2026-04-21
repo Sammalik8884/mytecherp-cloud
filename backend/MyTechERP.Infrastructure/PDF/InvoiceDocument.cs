@@ -105,7 +105,10 @@ namespace MyTechERP.Infrastructure.PDF
                             if (Invoice.QuotationId.HasValue)
                             {
                                 table.Cell().Text("Ref Quote:").SemiBold();
-                                table.Cell().AlignRight().Text($"QT-{Invoice.QuotationId}");
+                                var refText = Invoice.Quotation != null && !string.IsNullOrEmpty(Invoice.Quotation.QuoteNumber) 
+                                    ? Invoice.Quotation.QuoteNumber 
+                                    : $"QT-{Invoice.QuotationId}";
+                                table.Cell().AlignRight().Text(refText);
                             }
                             if (Invoice.WorkOrderId.HasValue)
                             {

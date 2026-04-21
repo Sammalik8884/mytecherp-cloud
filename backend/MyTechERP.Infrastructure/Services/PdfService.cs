@@ -131,6 +131,7 @@ namespace MyTechERP.Infrastructure.Services
             var invoice = await _context.Invoices
                 .Include(i => i.Customer)
                 .Include(i => i.Items)
+                .Include(i => i.Quotation)
                 .FirstOrDefaultAsync(i => i.Id == invoiceId);
 
             if (invoice == null) throw new Exception("Invoice not found.");
