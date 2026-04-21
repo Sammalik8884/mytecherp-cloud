@@ -61,13 +61,12 @@ namespace MyTechERP.Infrastructure.Services
                 // ── Meta Info (Only on Page 1) ──
                 col.Item().PaddingTop(10).PaddingBottom(6).Element(c => ComposeQuoteMetaInfo(c, quote));
 
-                // ── Headline banner ──
                 if (!string.IsNullOrWhiteSpace(quote.QuoteHeadline))
                 {
                     col.Item().ShowOnce().PaddingTop(4).PaddingBottom(8)
                         .Background(Brand).Padding(8).AlignCenter()
                         .Text($"QUOTATION FOR: {quote.QuoteHeadline.ToUpper()}")
-                        .Bold().FontSize(9.5f).FontColor(Colors.White).LetterSpacing(0.5f);
+                        .Bold().FontSize(9.5f).FontColor(Colors.White);
                 }
 
                 // ── CONTENT ──

@@ -66,7 +66,7 @@ namespace MyTechERP.Infrastructure.PDF
                 col.Item().PaddingTop(10).PaddingBottom(6).Element(ComposeMetaInfo);
 
                 // ── Headline banner ──
-                var headlineText = !string.IsNullOrWhiteSpace(QuoteHeadline) ? QuoteHeadline.ToUpper() : "TAX INVOICE";
+                var headlineText = !string.IsNullOrWhiteSpace(QuoteHeadline) ? $"INVOICE : {QuoteHeadline.ToUpper()}" : "TAX INVOICE";
                 col.Item().ShowOnce().PaddingTop(4).PaddingBottom(8)
                     .Background(Brand).Padding(8).AlignCenter()
                     .Text(headlineText)
@@ -206,6 +206,8 @@ namespace MyTechERP.Infrastructure.PDF
                     .Row(row =>
                     {
                         row.RelativeItem().Text("Invoice Items").Bold().FontSize(9).FontColor(Colors.White);
+                        row.ConstantItem(120).AlignRight()
+                            .Text("Amount in PKR").FontSize(7.5f).FontColor(Colors.White).Italic();
                     });
 
                 col.Item().Table(table =>
@@ -222,7 +224,7 @@ namespace MyTechERP.Infrastructure.PDF
                     table.Header(header =>
                     {
                         header.Cell().Element(TH).AlignCenter().Text("#");
-                        header.Cell().Element(TH).Text("Description / Service");
+                        header.Cell().Element(TH).Text("Description");
                         header.Cell().Element(TH).AlignCenter().Text("Qty");
                         header.Cell().Element(TH).AlignRight().Text("Unit Rate");
                         header.Cell().Element(TH).AlignRight().Text("Amount");
@@ -248,6 +250,24 @@ namespace MyTechERP.Infrastructure.PDF
                         table.Cell().Element(c => TD(c, isAlt)).AlignRight()
                             .Text((item.TotalPrice > 0 ? item.TotalPrice : item.Total).ToString("N2")).SemiBold();
                     }
+
+                    // Section sub-total row
+                    decimal sectionTotal = Invoice.Items.Sum(x => x.TotalPrice > 0 ? x.TotalPrice : x.Total);
+                    table.Cell().ColumnSpan(3)
+                        .Background(BrandLight).Border(0.5f).BorderColor(Brand)
+                        .PaddingHorizontal(5).PaddingVertical(4)
+                        .AlignRight().DefaultTextStyle(x => x.FontSize(8.5f).FontColor(Brand))
+                        .Text("Section Sub-Total  →");
+                    table.Cell()
+                        .Background(BrandLight).Border(0.5f).BorderColor(Brand)
+                        .PaddingHorizontal(5).PaddingVertical(4)
+                        .DefaultTextStyle(x => x.FontSize(8.5f).FontColor(Brand))
+                        .Text("");
+                    table.Cell()
+                        .Background(BrandLight).Border(0.5f).BorderColor(Brand)
+                        .PaddingHorizontal(5).PaddingVertical(4)
+                        .AlignRight().DefaultTextStyle(x => x.Bold().FontSize(8.5f).FontColor(Brand))
+                        .Text(sectionTotal.ToString("N2"));
                 });
             });
         }
@@ -289,17 +309,17 @@ namespace MyTechERP.Infrastructure.PDF
                             .Text(value);
                     }
 
-                    SRow("Sub Total", Invoice.SubTotal.ToString("N2"), bg: BrandLight);
+                    SRow("Sub Total (Before Taxes)", Invoice.SubTotal.ToString("N2"), bg: BrandLight);
 
                     if (Invoice.TaxAmount > 0)
-                        SRow("Tax", Invoice.TaxAmount.ToString("N2"));
+                        SRow("Tax Amount", Invoice.TaxAmount.ToString("N2"));
 
-                    SRow("GRAND TOTAL", Invoice.TotalAmount.ToString("N2"),
+                    SRow("GRAND TOTAL PAYABLE (PKR)", Invoice.TotalAmount.ToString("N2"),
                          bold: true, bg: BrandAccent, textColor: Colors.White);
                          
                     if (Invoice.AmountPaid > 0)
                     {
-                        SRow("Amount Paid", Invoice.AmountPaid.ToString("N2"), bold: true, textColor: Colors.Green.Darken2);
+                        SRow("Amount Paid", Invoice.AmountPaid.ToString("N2"), bold: true, textColor: Brand);
                         SRow("Balance Due", (Invoice.TotalAmount - Invoice.AmountPaid).ToString("N2"), bold: true, bg: BrandLight);
                     }
                 });
