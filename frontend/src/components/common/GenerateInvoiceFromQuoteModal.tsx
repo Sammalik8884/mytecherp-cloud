@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Loader2, AlertCircle, Trash2 } from "lucide-react";
 import { CreateInvoiceDto } from "../../types/finance";
 import { invoiceService } from "../../services/invoiceService";
-import { QuotationDto, QuotationItemDto } from "../../services/quotationService";
+import { QuotationDto, QuotationItemDto, quotationService } from "../../services/quotationService";
 import { toast } from "react-hot-toast";
 
 interface GenerateInvoiceFromQuoteModalProps {
@@ -25,43 +25,75 @@ interface SelectedItem {
 
 export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quotation }: GenerateInvoiceFromQuoteModalProps) => {
     const [loading, setLoading] = useState(false);
+    const [fetchingQuote, setFetchingQuote] = useState(false);
     const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
     const [dueDate, setDueDate] = useState(new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0]);
     
     const [items, setItems] = useState<SelectedItem[]>([]);
     const [ignoreFullyInvoiced, setIgnoreFullyInvoiced] = useState(false);
     const [showEmptyPrompt, setShowEmptyPrompt] = useState(false);
+    const [freshQuotation, setFreshQuotation] = useState<QuotationDto | null>(null);
 
+    // Re-fetch the quote by ID to get fresh invoiced quantity tracking data
     useEffect(() => {
-        if (isOpen && quotation && quotation.items) {
-            const mappedItems = quotation.items.map((item: QuotationItemDto) => {
-                const remaining = (item.quantity || 0) - (item.invoicedQuantity || 0);
-                const isFully = item.isFullyInvoiced || remaining <= 0;
-                return {
-                    quotationItemId: item.id,
-                    description: item.description,
-                    quantity: isFully ? item.quantity : remaining, // if fully invoiced but ignored later, we use original quantity
-                    maxQuantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                    included: !isFully, // Included by default if not fully invoiced
-                    isFullyInvoiced: isFully,
-                    itemType: item.itemType
-                };
-            });
-            
-            setItems(mappedItems);
-            setIgnoreFullyInvoiced(false);
-            
-            const allFullyInvoiced = mappedItems.every((i: SelectedItem) => i.isFullyInvoiced);
-            if (allFullyInvoiced) {
-                setShowEmptyPrompt(true);
-            } else {
-                setShowEmptyPrompt(false);
-            }
+        if (isOpen && quotation) {
+            const fetchFreshQuote = async () => {
+                setFetchingQuote(true);
+                try {
+                    const fresh = await quotationService.getQuotationById(quotation.id);
+                    setFreshQuotation(fresh);
+
+                    if (fresh && fresh.items) {
+                        const mappedItems = fresh.items.map((item: QuotationItemDto) => {
+                            const remaining = (item.quantity || 0) - (item.invoicedQuantity || 0);
+                            const isFully = item.isFullyInvoiced || remaining <= 0;
+                            return {
+                                quotationItemId: item.id,
+                                description: item.description,
+                                quantity: isFully ? item.quantity : remaining,
+                                maxQuantity: item.quantity,
+                                unitPrice: item.unitPrice,
+                                included: !isFully,
+                                isFullyInvoiced: isFully,
+                                itemType: item.itemType
+                            };
+                        });
+                        
+                        setItems(mappedItems);
+                        setIgnoreFullyInvoiced(false);
+                        
+                        const allFullyInvoiced = mappedItems.every((i: SelectedItem) => i.isFullyInvoiced);
+                        if (allFullyInvoiced) {
+                            setShowEmptyPrompt(true);
+                        } else {
+                            setShowEmptyPrompt(false);
+                        }
+                    }
+                } catch (error) {
+                    toast.error("Failed to load quote details for tracking.");
+                    onClose();
+                } finally {
+                    setFetchingQuote(false);
+                }
+            };
+            fetchFreshQuote();
         }
-    }, [isOpen, quotation]);
+    }, [isOpen, quotation?.id]);
 
     if (!isOpen) return null;
+
+    const activeQuote = freshQuotation || quotation;
+
+    if (fetchingQuote) {
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="bg-card w-full max-w-md p-12 rounded-2xl shadow-2xl border border-border flex flex-col items-center">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+                    <p className="text-muted-foreground text-sm">Loading quote tracking data...</p>
+                </div>
+            </div>
+        );
+    }
 
     const handlePromptYes = () => {
         setIgnoreFullyInvoiced(true);
@@ -100,8 +132,8 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
     const includedItems = items.filter(i => i.included && (!i.isFullyInvoiced || ignoreFullyInvoiced));
 
     const subTotal = includedItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
-    const taxAmount = subTotal * (quotation.gstPercentage / 100);
-    const totalAmount = subTotal + taxAmount; // We ignore income tax + adjustment for simplicity or adapt as needed. Let's just calculate basic subtotal/tax
+    const taxAmount = subTotal * ((activeQuote.gstPercentage || 0) / 100);
+    const totalAmount = subTotal + taxAmount;
 
     const toggleItem = (index: number) => {
         const newItems = [...items];
@@ -160,7 +192,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
             <div className="bg-card w-full max-w-4xl max-h-[90vh] flex flex-col border border-border rounded-2xl shadow-2xl relative my-auto">
                 <div className="flex justify-between items-center p-6 border-b border-border shrink-0 bg-card z-10 rounded-t-2xl">
                     <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                        Generate Invoice from Quote: {quotation.quoteNumber}
+                        Generate Invoice from Quote: {activeQuote.quoteNumber}
                     </h2>
                     <button onClick={onClose} className="p-2 text-muted-foreground hover:bg-secondary hover:text-foreground rounded-full transition-colors">
                         <X className="h-5 w-5" />
@@ -265,7 +297,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                     <span>${subTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm text-muted-foreground">
-                                    <span>Tax ({quotation.gstPercentage}%):</span>
+                                    <span>Tax ({activeQuote.gstPercentage || 0}%):</span>
                                     <span>${taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-lg font-bold text-foreground border-t border-border pt-3">

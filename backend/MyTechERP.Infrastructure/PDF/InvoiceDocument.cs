@@ -4,14 +4,25 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace MyTechERP.Infrastructure.PDF
 {
     public class InvoiceDocument : IDocument
     {
         public Invoice Invoice { get; }
-        private readonly Color BrandColor = Color.FromHex("#006CA9");
-        private readonly Color AccentColor = Color.FromHex("#333333");
+        
+        // ── Brand palette ─────────────────────────────────────────
+        private static readonly Color Brand       = Color.FromHex("#005B9A");   // deep blue
+        private static readonly Color BrandLight  = Color.FromHex("#E8F4FC");   // pale blue
+        private static readonly Color BrandAccent = Color.FromHex("#4B5563");   // dark gray for summary
+        private static readonly Color BrandAccentLight = Color.FromHex("#F3F4F6");  // light gray
+        private static readonly Color RowAlt      = Color.FromHex("#F7FAFE");   // alternating row
+        private static readonly Color RowAlt2     = Color.FromHex("#FFFFFF");
+        private static readonly Color BorderGrey  = Color.FromHex("#D1D5DB");
+        private static readonly Color TextDark    = Color.FromHex("#111827");
+        private static readonly Color TextMuted   = Color.FromHex("#6B7280");
+        private static readonly Color HighlightGold = Color.FromHex("#CA8A04");
 
         public InvoiceDocument(Invoice invoice)
         {
@@ -22,221 +33,369 @@ namespace MyTechERP.Infrastructure.PDF
 
         public void Compose(IDocumentContainer container)
         {
+            var headerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image2.png");
+            var footerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image3.jpeg");
+
             container
                 .Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(40);
-                    page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial).FontColor(Colors.Black));
+                    page.MarginHorizontal(28);
+                    page.MarginTop(22);
+                    page.MarginBottom(14);
+                    page.DefaultTextStyle(x => x
+                        .FontFamily(Fonts.Arial)
+                        .FontSize(8.5f)
+                        .FontColor(TextDark));
 
-                    page.Header().Element(ComposeHeader);
-                    page.Content().Element(ComposeContent);
-                    page.Footer().Element(ComposeFooter);
+                    page.Header().Element(c => ComposeCompanyLogo(c, headerImagePath));
+                    page.Content().Element(ComposeFullDocument);
+                    page.Footer().Element(c => ComposeFooter(c, footerImagePath));
                 });
         }
 
-        void ComposeHeader(IContainer container)
+        void ComposeFullDocument(IContainer container)
         {
-            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo.png");
-
-            container.Row(row =>
+            container.Column(col =>
             {
-                row.RelativeItem().Column(col =>
-                {
-                    if (File.Exists(logoPath))
-                    {
-                        col.Item().Height(60).Image(logoPath).FitArea();
-                    }
-                    else
-                    {
-                        col.Item().Text("MY TECH").FontSize(24).Bold().FontColor(BrandColor);
-                        col.Item().Text("ENGINEERING COMPANY PVT LTD").FontSize(14).Bold().FontColor(BrandColor);
-                    }
-                    col.Item().PaddingTop(2).Text("Fire Protection | HVAC | Fabrication | Services").FontSize(9).Italic().FontColor(Colors.Grey.Medium);
-                });
+                // ── Meta Info (Only on Page 1) ──
+                col.Item().PaddingTop(10).PaddingBottom(6).Element(ComposeMetaInfo);
 
-                row.ConstantItem(200).AlignRight().Column(col =>
+                // ── Headline banner ──
+                col.Item().ShowOnce().PaddingTop(4).PaddingBottom(8)
+                    .Background(Brand).Padding(8).AlignCenter()
+                    .Text("TAX INVOICE")
+                    .Bold().FontSize(11f).FontColor(Colors.White).LetterSpacing(1.5f);
+
+                // ── CONTENT ──
+                col.Item().PaddingTop(6).Element(ComposeContent);
+            });
+        }
+
+        void ComposeCompanyLogo(IContainer container, string headerImagePath)
+        {
+            container.Column(col =>
+            {
+                if (File.Exists(headerImagePath))
                 {
-                    col.Item().Text("I N V O I C E").FontSize(24).Bold().FontColor(AccentColor);
-                    col.Item().Text($"# {Invoice.InvoiceNumber}").FontSize(14).SemiBold().FontColor(Colors.Grey.Darken2);
-                    
-                    var statusColor = Invoice.Status == InvoiceStatus.Paid ? Colors.Green.Darken1 : Colors.Red.Darken1;
-                    col.Item().PaddingTop(5).Text(Invoice.Status.ToString().ToUpper()).FontSize(12).Bold().FontColor(statusColor);
+                    col.Item().Image(headerImagePath).FitWidth();
+                }
+                else
+                {
+                    col.Item().Padding(10).Background(Brand).Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("MY TECH ENGINEERING COMPANY PVT LTD")
+                                .Bold().FontSize(14).FontColor(Colors.White);
+                            c.Item().Text("Industrial & Commercial Solutions")
+                                .FontSize(8).FontColor(Colors.White);
+                        });
+                    });
+                }
+            });
+        }
+
+        void ComposeMetaInfo(IContainer container)
+        {
+            container.Column(col =>
+            {
+                col.Item().Row(row =>
+                {
+                    // LEFT: Customer info
+                    row.RelativeItem(3).Column(c =>
+                    {
+                        void InfoRow(string label, string value, bool highlight = false)
+                        {
+                            c.Item().Table(t =>
+                            {
+                                t.ColumnsDefinition(cd => { cd.RelativeColumn(); cd.RelativeColumn(1.8f); });
+                                t.Cell().Background(highlight ? Brand : BrandLight)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(label).FontSize(8)
+                                    .FontColor(highlight ? Colors.White : TextMuted).SemiBold();
+                                t.Cell().Border(0.5f).BorderColor(BorderGrey)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(value).FontSize(8)
+                                    .FontColor(highlight ? Brand : TextDark).SemiBold();
+                            });
+                        }
+
+                        var custName = Invoice.Customer != null ? Invoice.Customer.Name : "Standard Customer";
+                        InfoRow("To", custName, true);
+                        
+                        if (Invoice.Customer != null)
+                        {
+                            if (!string.IsNullOrWhiteSpace(Invoice.Customer.Email))
+                                InfoRow("Email", Invoice.Customer.Email);
+                            if (!string.IsNullOrWhiteSpace(Invoice.Customer.Phone))
+                                InfoRow("Contact", Invoice.Customer.Phone);
+                            if (!string.IsNullOrWhiteSpace(Invoice.Customer.Address))
+                                InfoRow("Address", Invoice.Customer.Address);
+                        }
+                    });
+
+                    // CENTER spacer
+                    row.ConstantItem(20);
+
+                    // RIGHT: Invoice number block
+                    row.RelativeItem(2).Column(c =>
+                    {
+                        void MetaRow(string label, string value, bool highlight = false)
+                        {
+                            c.Item().Table(t =>
+                            {
+                                t.ColumnsDefinition(cd => { cd.RelativeColumn(); cd.RelativeColumn(1.2f); });
+                                t.Cell().Background(highlight ? Brand : BrandLight)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(label).FontSize(8)
+                                    .FontColor(highlight ? Colors.White : TextMuted).SemiBold();
+                                t.Cell().Border(0.5f).BorderColor(BorderGrey)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(value).FontSize(8)
+                                    .FontColor(highlight ? Brand : TextDark).SemiBold();
+                            });
+                        }
+
+                        MetaRow("Invoice #", Invoice.InvoiceNumber, true);
+                        MetaRow("Issue Date", Invoice.IssueDate.ToString("dd-MMM-yyyy"));
+                        MetaRow("Due Date", Invoice.DueDate.ToString("dd-MMM-yyyy"));
+
+                        if (Invoice.QuotationId.HasValue && Invoice.Quotation != null && !string.IsNullOrEmpty(Invoice.Quotation.QuoteNumber))
+                        {
+                            MetaRow("Ref Quote #", Invoice.Quotation.QuoteNumber);
+                        }
+                        else if (Invoice.WorkOrderId.HasValue)
+                        {
+                            MetaRow("Ref Job #", $"WO-{Invoice.WorkOrderId}");
+                        }
+                    });
                 });
             });
         }
 
         void ComposeContent(IContainer container)
         {
-            container.PaddingVertical(1, Unit.Centimetre).Column(col =>
+            container.Column(col =>
             {
-                col.Item().Row(row =>
+                col.Item().PaddingBottom(14).Element(DrawSection);
+                
+                col.Item().PaddingTop(4).Row(row =>
                 {
-                    row.RelativeItem().Column(c =>
-                    {
-                        c.Item().Text("Bill To:").SemiBold().FontColor(Colors.Grey.Medium);
-                        var custName = Invoice.Customer != null ? Invoice.Customer.Name : "Standard Customer";
-                        c.Item().Text(custName).FontSize(12).Bold();
-                        if (Invoice.Customer != null)
-                        {
-                            c.Item().Text(Invoice.Customer.Email);
-                            c.Item().Text(Invoice.Customer.Phone);
-                            c.Item().Text(Invoice.Customer.Address);
-                        }
-                    });
-
-                    row.ConstantItem(200).Column(c =>
-                    {
-                        c.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.RelativeColumn();
-                                columns.RelativeColumn();
-                            });
-                            
-                            table.Cell().Text("Issue Date:").SemiBold();
-                            table.Cell().AlignRight().Text(Invoice.IssueDate.ToString("MMM dd, yyyy"));
-
-                            table.Cell().Text("Due Date:").SemiBold();
-                            table.Cell().AlignRight().Text(Invoice.DueDate.ToString("MMM dd, yyyy"));
-                            
-                            if (Invoice.QuotationId.HasValue)
-                            {
-                                table.Cell().Text("Ref Quote:").SemiBold();
-                                var refText = Invoice.Quotation != null && !string.IsNullOrEmpty(Invoice.Quotation.QuoteNumber) 
-                                    ? Invoice.Quotation.QuoteNumber 
-                                    : $"QT-{Invoice.QuotationId}";
-                                table.Cell().AlignRight().Text(refText);
-                            }
-                            if (Invoice.WorkOrderId.HasValue)
-                            {
-                                table.Cell().Text("Ref Job:").SemiBold();
-                                table.Cell().AlignRight().Text($"WO-{Invoice.WorkOrderId}");
-                            }
-                        });
-                    });
+                    row.RelativeItem();
+                    row.ConstantItem(280).Element(ComposeSummary);
                 });
-
-                col.Item().PaddingTop(25).Element(ComposeTable);
-
-                col.Item().PaddingTop(25).Row(row =>
-                {
-                    row.RelativeItem(2).Column(c =>
-                    {
-                        c.Item().Text("Payment Instructions:").Bold().FontColor(BrandColor);
-                        c.Item().Text("Please make all cheques payable to MY TECH ENGINEERING COMPANY PVT LTD. Direct bank transfers can be sent to standard account on file. Thank you for your business!").FontSize(9);
-                    });
-
-                    row.RelativeItem(1).Column(c =>
-                    {
-                        c.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.RelativeColumn();
-                                columns.RelativeColumn();
-                            });
-
-                            table.Cell().PaddingBottom(5).Text("Subtotal:").SemiBold();
-                            table.Cell().AlignRight().PaddingBottom(5).Text($"${Invoice.SubTotal:N2}");
-
-                            if (Invoice.TaxAmount > 0)
-                            {
-                                table.Cell().PaddingBottom(5).Text("Tax:").SemiBold();
-                                table.Cell().AlignRight().PaddingBottom(5).Text($"${Invoice.TaxAmount:N2}");
-                            }
-
-                            table.Cell().BorderTop(1).BorderColor(Colors.Grey.Lighten2).PaddingTop(5).Text("Total:").Bold().FontSize(12);
-                            table.Cell().BorderTop(1).BorderColor(Colors.Grey.Lighten2).AlignRight().PaddingTop(5).Text($"${Invoice.TotalAmount:N2}").Bold().FontSize(12).FontColor(BrandColor);
-                            
-                            if (Invoice.AmountPaid > 0)
-                            {
-                                table.Cell().PaddingTop(5).Text("Amount Paid:").SemiBold().FontColor(Colors.Green.Darken2);
-                                table.Cell().AlignRight().PaddingTop(5).Text($"${Invoice.AmountPaid:N2}").SemiBold().FontColor(Colors.Green.Darken2);
-                                
-                                table.Cell().PaddingTop(5).Text("Balance Due:").Bold();
-                                table.Cell().AlignRight().PaddingTop(5).Text($"${(Invoice.TotalAmount - Invoice.AmountPaid):N2}").Bold();
-                            }
-                        });
-                    });
-                });
+                
+                // Payment instructions / terms
+                col.Item().PaddingTop(16).Element(ComposeTerms);
             });
         }
 
-        void ComposeTable(IContainer container)
-        {
-            var headerStyle = TextStyle.Default.SemiBold().FontColor(Colors.White);
-
-            container.Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.ConstantColumn(30);
-                    columns.RelativeColumn(4);
-                    columns.RelativeColumn(1);
-                    columns.RelativeColumn(1);
-                    columns.RelativeColumn(1);
-                });
-
-                table.Header(header =>
-                {
-                    header.Cell().Background(BrandColor).Padding(5).Text("#").Style(headerStyle);
-                    header.Cell().Background(BrandColor).Padding(5).Text("Description / Service").Style(headerStyle);
-                    header.Cell().Background(BrandColor).Padding(5).AlignRight().Text("Qty").Style(headerStyle);
-                    header.Cell().Background(BrandColor).Padding(5).AlignRight().Text("Unit Price").Style(headerStyle);
-                    header.Cell().Background(BrandColor).Padding(5).AlignRight().Text("Total").Style(headerStyle);
-                });
-
-                int index = 1;
-                foreach (var item in Invoice.Items)
-                {
-                    var bgColor = index % 2 == 0 ? Colors.Grey.Lighten4 : Colors.White;
-
-                    table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).Text(index.ToString());
-                    table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).Text(item.Description);
-                    table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).AlignRight().Text(item.Quantity.ToString());
-                    table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).AlignRight().Text($"${item.UnitPrice:N2}");
-                    table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(5).AlignRight().Text($"${(item.TotalPrice > 0 ? item.TotalPrice : item.Total):N2}").SemiBold();
-                    
-                    index++;
-                }
-            });
-        }
-
-        void ComposeFooter(IContainer container)
+        void DrawSection(IContainer container)
         {
             container.Column(col =>
             {
-                col.Item().LineHorizontal(2).LineColor(BrandColor);
-                col.Item().PaddingTop(5).Row(row => 
+                col.Item()
+                    .Background(Brand)
+                    .PaddingHorizontal(8).PaddingVertical(5)
+                    .Row(row =>
+                    {
+                        row.RelativeItem().Text("Invoice Items").Bold().FontSize(9).FontColor(Colors.White);
+                    });
+
+                col.Item().Table(table =>
                 {
-                    row.RelativeItem().Column(c => {
-                        c.Item().Text("Head Office:").Bold().FontSize(8);
-                        c.Item().Text("B-278, Basement Floor, Gulistan-e-Jouhar\nBlock 2 Opposite Shaikh Zaid University,\nKarachi, Pakistan, 75200.").FontSize(7);
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.ConstantColumn(22);  // Sr#
+                        columns.RelativeColumn(5);   // Description
+                        columns.ConstantColumn(28);  // Qty
+                        columns.ConstantColumn(75);  // Unit Price
+                        columns.ConstantColumn(85);  // Total
                     });
-                    row.AutoItem().PaddingHorizontal(5).LineVertical(30).LineColor(Colors.Grey.Medium);
-                    row.RelativeItem().Column(c => {
-                        c.Item().Text("Contact:").Bold().FontSize(8);
-                        c.Item().Text("+92-213-4187188").FontSize(7);
-                        c.Item().Text("info@mytecheng.com").FontSize(7);
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(TH).AlignCenter().Text("#");
+                        header.Cell().Element(TH).Text("Description / Service");
+                        header.Cell().Element(TH).AlignCenter().Text("Qty");
+                        header.Cell().Element(TH).AlignRight().Text("Unit Rate");
+                        header.Cell().Element(TH).AlignRight().Text("Amount");
                     });
-                    row.AutoItem().PaddingHorizontal(5).LineVertical(30).LineColor(Colors.Grey.Medium);
-                    row.RelativeItem().Column(c => {
-                        c.Item().Text("Business Identity:").Bold().FontSize(8);
-                        c.Item().Text("NTN: 8129759-4").FontSize(7);
-                        c.Item().Text("www.mytecheng.com").FontSize(7).FontColor(BrandColor);
-                    });
-                });
-                col.Item().PaddingTop(5).AlignCenter().Text(x =>
-                {
-                    x.Span("Page ");
-                    x.CurrentPageNumber();
-                    x.Span(" of ");
-                    x.TotalPages();
+
+                    int rowIndex = 0;
+                    foreach (var item in Invoice.Items)
+                    {
+                        rowIndex++;
+                        bool isAlt = rowIndex % 2 == 0;
+
+                        table.Cell().Element(c => TD(c, isAlt))
+                            .AlignCenter().Text(rowIndex.ToString());
+                        
+                        table.Cell().Element(c => TD(c, isAlt)).Column(dc =>
+                        {
+                            dc.Item().Text(item.Description ?? "Unknown Item").FontSize(8);
+                        });
+
+                        table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Quantity.ToString("0.##"));
+                        table.Cell().Element(c => TD(c, isAlt)).AlignRight()
+                            .Text(item.UnitPrice.ToString("N2")).FontColor(HighlightGold);
+                        table.Cell().Element(c => TD(c, isAlt)).AlignRight()
+                            .Text((item.TotalPrice > 0 ? item.TotalPrice : item.Total).ToString("N2")).SemiBold();
+                    }
                 });
             });
         }
+
+        void ComposeSummary(IContainer container)
+        {
+            container.Column(col =>
+            {
+                col.Item().Background(BrandAccent).PaddingHorizontal(8).PaddingVertical(5)
+                    .Text("FINANCIAL SUMMARY").Bold().FontSize(9).FontColor(Colors.White);
+
+                col.Item().Table(table =>
+                {
+                    table.ColumnsDefinition(cd =>
+                    {
+                        cd.RelativeColumn();
+                        cd.ConstantColumn(90);
+                    });
+
+                    void SRow(string label, string value, bool bold = false, Color? bg = null, Color? textColor = null)
+                    {
+                        Func<TextStyle, TextStyle> lStyle = bold
+                            ? (TextStyle x) => x.Bold().FontSize(8.5f).FontColor(textColor ?? TextDark)
+                            : (TextStyle x) => x.FontSize(8.5f).FontColor(textColor ?? TextDark);
+
+                        table.Cell()
+                            .Background(bg ?? RowAlt2)
+                            .Border(0.5f).BorderColor(BorderGrey)
+                            .PaddingHorizontal(6).PaddingVertical(4)
+                            .DefaultTextStyle(lStyle)
+                            .Text(label);
+
+                        table.Cell()
+                            .Background(bg ?? RowAlt2)
+                            .Border(0.5f).BorderColor(BorderGrey)
+                            .PaddingHorizontal(6).PaddingVertical(4)
+                            .AlignRight()
+                            .DefaultTextStyle(lStyle)
+                            .Text(value);
+                    }
+
+                    SRow("Sub Total", Invoice.SubTotal.ToString("N2"), bg: BrandLight);
+
+                    if (Invoice.TaxAmount > 0)
+                        SRow("Tax", Invoice.TaxAmount.ToString("N2"));
+
+                    SRow("GRAND TOTAL", Invoice.TotalAmount.ToString("N2"),
+                         bold: true, bg: BrandAccent, textColor: Colors.White);
+                         
+                    if (Invoice.AmountPaid > 0)
+                    {
+                        SRow("Amount Paid", Invoice.AmountPaid.ToString("N2"), bold: true, textColor: Colors.Green.Darken2);
+                        SRow("Balance Due", (Invoice.TotalAmount - Invoice.AmountPaid).ToString("N2"), bold: true, bg: BrandLight);
+                    }
+                });
+            });
+        }
+
+        void ComposeTerms(IContainer container)
+        {
+            container.Column(col =>
+            {
+                col.Item().Background(BrandLight).Border(0.5f).BorderColor(Brand)
+                    .PaddingHorizontal(8).PaddingVertical(5)
+                    .Text("PAYMENT INSTRUCTIONS & TERMS").Bold().FontSize(9).FontColor(Brand);
+
+                col.Item().PaddingTop(4).Table(tcTerms =>
+                {
+                    tcTerms.ColumnsDefinition(tcd => { tcd.RelativeColumn(); tcd.RelativeColumn(); });
+
+                    void TermBlock(string title, string[] points)
+                    {
+                        tcTerms.Cell().Element(tc => tc.Padding(3)).Column(bc =>
+                        {
+                            bc.Item().Text(title).Bold().FontSize(7.5f).FontColor(Brand);
+                            foreach (var p in points)
+                                bc.Item().PaddingLeft(4).Text($"\u2022 {p}").FontSize(7f).FontColor(TextMuted);
+                        });
+                    }
+
+                    TermBlock("Payment Methods", new[]
+                    {
+                        "All cheques must be payable to MY TECH ENGINEERING COMPANY PVT LTD.",
+                        "Direct bank transfers can be sent to the standard account on file.",
+                        "Please reference the Invoice Number on all payments."
+                    });
+
+                    TermBlock("Terms", new[]
+                    {
+                        $"Payment is due by {Invoice.DueDate.ToString("dd-MMM-yyyy")}.",
+                        "Late payments may be subject to additional fees.",
+                        "Thank you for your business!"
+                    });
+                });
+            });
+        }
+
+        void ComposeFooter(IContainer container, string footerImagePath)
+        {
+            container.Column(col =>
+            {
+                col.Item().LineHorizontal(1f).LineColor(Brand);
+
+                if (File.Exists(footerImagePath))
+                {
+                    col.Item().PaddingTop(2).Image(footerImagePath).FitWidth();
+                }
+                else
+                {
+                    col.Item().PaddingTop(4).PaddingBottom(2).Row(row =>
+                    {
+                        row.RelativeItem(2).Column(c =>
+                        {
+                            c.Item().Text("MY TECH ENGINEERING COMPANY (PVT) LTD")
+                                .Bold().FontSize(7f).FontColor(Brand);
+                            c.Item().Text("Office# 301, 3rd Floor, Munawar Centre, Jinnah Road, Quetta")
+                                .FontSize(6f).FontColor(TextMuted);
+                            c.Item().Text("NTN: 5277714-4  |  STRN: 0408990001131")
+                                .FontSize(6f).FontColor(TextMuted);
+                        });
+
+                        row.RelativeItem(2).AlignCenter().Column(c =>
+                        {
+                            c.Item().AlignCenter().Text("Phone: +92-81-2844718  |  Cell: +92-300-9233273")
+                                .FontSize(6f).FontColor(TextMuted);
+                            c.Item().AlignCenter().Text("Email: info@mytecheng.com  |  Web: www.mytecheng.com")
+                                .FontSize(6f).FontColor(TextMuted);
+                        });
+                    });
+                }
+
+                col.Item().LineHorizontal(0.5f).LineColor(BorderGrey);
+
+                col.Item().PaddingTop(2).AlignCenter().Text(x =>
+                {
+                    x.Span("Page ").FontSize(7f).FontColor(TextMuted);
+                    x.CurrentPageNumber().FontSize(7f).FontColor(TextMuted);
+                    x.Span(" of ").FontSize(7f).FontColor(TextMuted);
+                    x.TotalPages().FontSize(7f).FontColor(TextMuted);
+                });
+            });
+        }
+
+        static IContainer TH(IContainer c) =>
+            c.Background(Brand)
+             .Border(0.5f).BorderColor(Colors.White)
+             .PaddingHorizontal(5).PaddingVertical(4)
+             .DefaultTextStyle(x => x.Bold().FontColor(Colors.White).FontSize(7.5f));
+
+        static IContainer TD(IContainer c, bool alt) =>
+            c.Background(alt ? RowAlt : RowAlt2)
+             .BorderBottom(0.4f).BorderColor(BorderGrey)
+             .PaddingHorizontal(4).PaddingVertical(4)
+             .DefaultTextStyle(x => x.FontSize(8f));
     }
 }
