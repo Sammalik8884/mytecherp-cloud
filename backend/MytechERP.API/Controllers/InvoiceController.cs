@@ -18,7 +18,7 @@ namespace MytechERP.API.Controllers
             _service = service;
         }
 
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         [HttpPost("from-quote/{id}")]
         public async Task<IActionResult> CreateFromQuote(int id)
         {
@@ -37,7 +37,7 @@ namespace MytechERP.API.Controllers
                 return BadRequest(new { Error = ex.Message });
             }
         }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         [HttpPost("generate-from-job/{workOrderId}")]
         public async Task<IActionResult> GenerateInvoice(int workOrderId)
         {
@@ -52,7 +52,7 @@ namespace MytechERP.API.Controllers
             }
         }
 
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         [HttpPost("custom")]
         public async Task<IActionResult> CreateCustom([FromBody] MytechERP.Application.DTOs.Finance.CreateInvoiceDto dto)
         {
@@ -73,7 +73,7 @@ namespace MytechERP.API.Controllers
             }
         }
 
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -98,7 +98,7 @@ namespace MytechERP.API.Controllers
             }
         }
 
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         [HttpPut("{id}/status")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] int status)
         {
