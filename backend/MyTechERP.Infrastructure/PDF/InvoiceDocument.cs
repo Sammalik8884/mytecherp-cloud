@@ -384,8 +384,8 @@ namespace MyTechERP.Infrastructure.PDF
 
                     row.ConstantItem(30);
 
-                    SigBlock("Prepared By:", "Engr. Muhammad Huzaifa", "Estimation & Design Engineer",
-                        "+92-323-7886379", "ali.azeem@mytecheng.com");
+                    SigBlock("Prepared By:", "Engr. Muhammad Huzefa", "Estimation & Design Engineer",
+                        "+92-306-7666644", "m.huzefa@mytecheng.com");
                 });
             });
         }
