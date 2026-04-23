@@ -277,6 +277,18 @@ namespace MyTechERP.Infrastructure.Services
                     "0.00"
                 );
 
+                // Clear any sales leads referencing this quotation so they revert to "Ready for Quote"
+                var linkedLeads = await _context.SalesLeads
+                    .Where(l => l.QuotationId == id)
+                    .ToListAsync();
+                foreach (var lead in linkedLeads)
+                {
+                    lead.QuotationId = null;
+                    lead.Status = LeadStatus.Closed; // Shows as "Ready for Quote" in the UI
+                }
+                if (linkedLeads.Any())
+                    await _context.SaveChangesAsync();
+
                 await _quotationRepository.DeleteQuoteWithItemsAsync(id);
             }
         }
