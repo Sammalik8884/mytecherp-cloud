@@ -228,9 +228,14 @@ export const QuotationFormPage = () => {
                                     const transCharge = negotiatedCost * (savedTransPct / 100);
                                     const profCharge = negotiatedCost * (savedProfitPct / 100);
                                     const finalPrice = negotiatedCost + impCharge + transCharge + profCharge;
+                                    
+                                    const isManual = Math.abs(finalPrice - i.unitPrice) > 0.05;
+                                    const actualUnitPrice = isManual ? i.unitPrice : finalPrice;
+                                    
                                     return {
-                                        unitPrice: finalPrice,
-                                        lineTotal: finalPrice * i.quantity,
+                                        unitPrice: actualUnitPrice,
+                                        lineTotal: actualUnitPrice * i.quantity,
+                                        isManualFinalPrice: isManual,
                                         calcBreakdown: {
                                             originalPrice: base, exchangeRate: savedExchangeRate, costPricePKR,
                                             costFactorPct: savedCostFactor, negotiatedCost,
