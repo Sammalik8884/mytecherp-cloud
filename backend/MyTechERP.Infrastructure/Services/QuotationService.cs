@@ -315,50 +315,62 @@ namespace MyTechERP.Infrastructure.Services
                     }
                     else
                     {
-                        var product = await _context.Products.FindAsync(itemDto.ProductId);
-                        if (product == null)
-                            throw new Exception($"Product with ID {itemDto.ProductId} not found.");
+                        // Try to load product — may be null for custom-named items
+                        var product = itemDto.ProductId.HasValue && itemDto.ProductId.Value > 0
+                            ? await _context.Products.FindAsync(itemDto.ProductId.Value)
+                            : null;
 
-                        finalDescription = !string.IsNullOrEmpty(product.Description) ? product.Description : product.Name;
+                        if (product != null)
+                        {
+                            finalDescription = !string.IsNullOrEmpty(product.Description) ? product.Description : product.Name;
+                        }
+                        else
+                        {
+                            // Custom item — use the ServiceName field as the description
+                            finalDescription = !string.IsNullOrWhiteSpace(itemDto.ServiceName) ? itemDto.ServiceName : "Custom Item";
+                        }
+
                         if (itemDto.OverridePrice.HasValue && itemDto.OverridePrice.Value > 0)
                         {
                             originalPrice = itemDto.OverridePrice.Value;
                         }
-                        else
+                        else if (product != null)
                         {
                             originalPrice = (product.PriceAED.HasValue && product.PriceAED.Value > 0) ? product.PriceAED.Value : product.Price;
                         }
 
                         if (parsedType == ItemType.Imported)
                         {
-                            decimal costPricePKR = originalPrice * exchangeRate;
-                            decimal negotiatedCost = costPricePKR * (costFactorPct / 100m);
-                            decimal importationCharge = negotiatedCost * (importationPct / 100m);
-                            decimal transportationCharge = negotiatedCost * (transportationPct / 100m);
-                            decimal profitCharge = negotiatedCost * (profitPct / 100m);
-                            
-                            finalSellingPrice = negotiatedCost + importationCharge + transportationCharge + profitCharge;
-                            unitCost = negotiatedCost;
-                            
-                            calcBreakdown = System.Text.Json.JsonSerializer.Serialize(new {
-                                originalPrice = originalPrice,
-                                exchangeRate = exchangeRate,
-                                costPricePKR = costPricePKR,
-                                costFactorPct = costFactorPct,
-                                negotiatedCost = negotiatedCost,
-                                importationPct = importationPct,
-                                importationCharge = importationCharge,
-                                transportationPct = transportationPct,
-                                transportationCharge = transportationCharge,
-                                profitPct = profitPct,
-                                profitCharge = profitCharge,
-                                finalPrice = finalSellingPrice
-                            });
+                            if (originalPrice > 0)
+                            {
+                                decimal costPricePKR = originalPrice * exchangeRate;
+                                decimal negotiatedCost = costPricePKR * (costFactorPct / 100m);
+                                decimal importationCharge = negotiatedCost * (importationPct / 100m);
+                                decimal transportationCharge = negotiatedCost * (transportationPct / 100m);
+                                decimal profitCharge = negotiatedCost * (profitPct / 100m);
+                                
+                                finalSellingPrice = negotiatedCost + importationCharge + transportationCharge + profitCharge;
+                                unitCost = negotiatedCost;
+                                
+                                calcBreakdown = System.Text.Json.JsonSerializer.Serialize(new {
+                                    originalPrice = originalPrice,
+                                    exchangeRate = exchangeRate,
+                                    costPricePKR = costPricePKR,
+                                    costFactorPct = costFactorPct,
+                                    negotiatedCost = negotiatedCost,
+                                    importationPct = importationPct,
+                                    importationCharge = importationCharge,
+                                    transportationPct = transportationPct,
+                                    transportationCharge = transportationCharge,
+                                    profitPct = profitPct,
+                                    profitCharge = profitCharge,
+                                    finalPrice = finalSellingPrice
+                                });
+                            }
                         }
                         else // Local
                         {
                             // Local directly uses price (PKR) unless overridden
-                            originalPrice = (itemDto.OverridePrice.HasValue && itemDto.OverridePrice.Value > 0) ? itemDto.OverridePrice.Value : product.Price;
                             decimal costInQuoteCurrency = originalPrice;
                             decimal appliedCommission = itemDto.ManualCommissionPct ?? quote.GlobalCommissionPct;
                             decimal marginAmount = costInQuoteCurrency * (appliedCommission / 100m);

@@ -364,12 +364,31 @@ export const QuotationFormPage = () => {
         const payloadItems: CreateQuotationItemDto[] = [];
         
         if (showImported) {
-             const valid = importedItems.filter(i => i.productId && i.productId > 0);
-             payloadItems.push(...valid.map(i => ({ productId: i.productId, quantity: i.quantity, itemType: "Imported", overridePrice: i.originalPrice, finalPriceOverride: i.isManualFinalPrice ? i.unitPrice : undefined, unit: resolveUnit(i), unitQty: i.unitQty || 0 })));
+             // Accept items that have a product OR a custom name typed in
+             const valid = importedItems.filter(i => (i.productId && i.productId > 0) || (i.serviceName && i.serviceName.trim() !== ""));
+             payloadItems.push(...valid.map(i => ({
+                 productId: (i.productId && i.productId > 0) ? i.productId : null,
+                 quantity: i.quantity,
+                 itemType: "Imported",
+                 serviceName: i.serviceName || undefined,
+                 overridePrice: i.originalPrice,
+                 finalPriceOverride: i.isManualFinalPrice ? i.unitPrice : undefined,
+                 unit: resolveUnit(i),
+                 unitQty: i.unitQty || 0
+             })));
         }
         if (showLocal) {
-             const valid = localItems.filter(i => i.productId && i.productId > 0);
-             payloadItems.push(...valid.map(i => ({ productId: i.productId, quantity: i.quantity, itemType: "Local", manualCommissionPct: i.manualCommissionPct, overridePrice: i.unitPrice, unit: resolveUnit(i), unitQty: i.unitQty || 0 })));
+             const valid = localItems.filter(i => (i.productId && i.productId > 0) || (i.serviceName && i.serviceName.trim() !== ""));
+             payloadItems.push(...valid.map(i => ({
+                 productId: (i.productId && i.productId > 0) ? i.productId : null,
+                 quantity: i.quantity,
+                 itemType: "Local",
+                 serviceName: i.serviceName || undefined,
+                 manualCommissionPct: i.manualCommissionPct,
+                 overridePrice: i.unitPrice,
+                 unit: resolveUnit(i),
+                 unitQty: i.unitQty || 0
+             })));
         }
         if (showServices) {
              const valid = serviceItems.filter(i => i.serviceName && i.serviceName.trim() !== "");
