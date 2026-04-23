@@ -53,6 +53,31 @@ namespace MytechERP.API.Controllers
 
             var leads = await query.OrderByDescending(l => l.CreatedAt).ToListAsync();
 
+            // Find any leads whose QuotationId references a deleted quotation and clean up
+            var staleLeads = leads
+                .Where(l => l.QuotationId.HasValue)
+                .ToList();
+
+            if (staleLeads.Any())
+            {
+                var referencedIds = staleLeads.Select(l => l.QuotationId!.Value).Distinct().ToList();
+                var existingQuoteIds = await _context.Quotations
+                    .Where(q => referencedIds.Contains(q.Id))
+                    .Select(q => q.Id)
+                    .ToListAsync();
+
+                var toFix = staleLeads.Where(l => !existingQuoteIds.Contains(l.QuotationId!.Value)).ToList();
+                if (toFix.Any())
+                {
+                    foreach (var lead in toFix)
+                    {
+                        lead.QuotationId = null;
+                        lead.Status = domain.Enums.LeadStatus.Closed;
+                    }
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             var dtos = leads.Select(l => new SalesLeadDto
             {
                 Id = l.Id,
@@ -94,6 +119,18 @@ namespace MytechERP.API.Controllers
             if (userRole == Roles.Salesman && lead.SalesmanUserId != userId)
             {
                 return Forbid();
+            }
+
+            // Validate QuotationId — clear if the quotation was deleted
+            if (lead.QuotationId.HasValue)
+            {
+                var quotationExists = await _context.Quotations.AnyAsync(q => q.Id == lead.QuotationId.Value);
+                if (!quotationExists)
+                {
+                    lead.QuotationId = null;
+                    lead.Status = domain.Enums.LeadStatus.Closed;
+                    await _context.SaveChangesAsync();
+                }
             }
 
             return Ok(new SalesLeadDto
