@@ -1065,18 +1065,22 @@ export const QuotationFormPage = () => {
                     if (productModalTarget?.list === "imported") {
                         const newArr = [...importedItems];
                         const quantity = newArr[productModalTarget.index].quantity || 1;
-                        // Step 1: Use product.price as the USD base price (labelled "Price ($)" in the product catalog, shown as $ in the selection modal)
+                        // Use product.price as the USD base price (shown as "$" in the product catalog/selection modal)
                         const listBasePrice = p.price ?? 0;
-                        // Step 2: Build the item with the product set and originalPrice seeded from list
-                        const itemWithProduct = { 
-                            ...newArr[productModalTarget.index], 
-                            productId: p.id, 
-                            product: p, 
+                        // Build a CLEAN item: explicitly wipe stale originalPrice & calcBreakdown
+                        // so that switching products on the same row always recalculates fresh
+                        const cleanItem = {
+                            ...newArr[productModalTarget.index],
+                            originalPrice: undefined,   // clear stale price
+                            calcBreakdown: undefined,   // clear stale breakdown
+                            unitPrice: 0,
+                            lineTotal: 0,
+                            productId: p.id,
+                            product: p,
                             serviceName: p.name,
-                            originalPrice: listBasePrice  // seed from list price
                         };
-                        // Step 3: Run the full calculation pipeline on the seeded price
-                        newArr[productModalTarget.index] = calculateImportedItem(itemWithProduct, formData, listBasePrice);
+                        // Run the full calculation pipeline with the product's USD list price forced
+                        newArr[productModalTarget.index] = calculateImportedItem(cleanItem, formData, listBasePrice);
                         setImportedItems(newArr);
                         
                         setShowServices(true);

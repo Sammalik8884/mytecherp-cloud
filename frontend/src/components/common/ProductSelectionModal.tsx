@@ -112,7 +112,12 @@ export const ProductSelectionModal: React.FC<ProductSelectionModalProps> = ({ is
                                             {item.brand || "-"}
                                         </td>
                                         <td className="px-6 py-3 text-right font-medium text-primary">
-                                            ${item.price.toFixed(2)}
+                                            <div className="flex flex-col items-end">
+                                                <span className="font-bold">${item.price.toFixed(2)} <span className="text-xs font-normal text-muted-foreground">USD</span></span>
+                                                {item.priceAED && item.priceAED > 0 && (
+                                                    <span className="text-xs text-muted-foreground">AED {item.priceAED.toFixed(2)}</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-3 text-center">
                                             <button
