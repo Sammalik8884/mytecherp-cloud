@@ -145,7 +145,15 @@ export const QuotationFormPage = () => {
                 setSites(siteData);
 
                 if (isEditMode) {
-                    const quote = await quotationService.getQuotationById(Number(id));
+                    let quote;
+                    try {
+                        quote = await quotationService.getQuotationById(Number(id));
+                    } catch (err: any) {
+                        const msg = err?.response?.data?.error || err?.response?.data?.Error || "Quotation not found.";
+                        toast.error(msg);
+                        navigate('/quotations');
+                        return;
+                    }
                     // Extract config percentages from saved calculation breakdown
                     const firstImported = quote.items.find(i => i.itemType === "Imported" && i.calculationBreakdown);
                     let savedCostFactor = 60, savedImportPct = 13.75, savedTransPct = 2, savedProfitPct = 15, savedExchangeRate = 300;
@@ -198,6 +206,15 @@ export const QuotationFormPage = () => {
                         
                         // Determine if unit is custom
                         const isCustomUnit = i.unit && !UNIT_OPTIONS.includes(i.unit) && i.unit !== "Custom";
+
+                        // For custom-named items (no product found), use the saved description as serviceName
+                        // Also use it if the saved description differs from the product name (user edited the name)
+                        let restoredServiceName = i.serviceName;
+                        if (!p && i.description && i.itemType !== "Service") {
+                            restoredServiceName = i.description;
+                        } else if (p && i.description && i.description !== p.name && i.description !== p.description) {
+                            restoredServiceName = i.description;
+                        }
                         
                         let uiItem: UiItem = {
                             id: Math.random().toString(36).substr(2, 9),
@@ -207,7 +224,7 @@ export const QuotationFormPage = () => {
                             product: p,
                             unitPrice: i.unitPrice,
                             lineTotal: i.lineTotal,
-                            serviceName: i.serviceName,
+                            serviceName: restoredServiceName,
                             servicePrice: i.originalPrice,
                             originalPrice: i.originalPrice,
                             calcBreakdown: i.calculationBreakdown ? JSON.parse(i.calculationBreakdown) : null,
@@ -220,7 +237,7 @@ export const QuotationFormPage = () => {
                             uiItem = { ...uiItem, originalPrice: i.originalPrice };
                             uiItem = {
                                 ...uiItem,
-                                ...(() => {
+                                ...((() => {
                                     const base = i.originalPrice;
                                     const costPricePKR = base * savedExchangeRate;
                                     const negotiatedCost = costPricePKR * (savedCostFactor / 100);
@@ -228,14 +245,9 @@ export const QuotationFormPage = () => {
                                     const transCharge = negotiatedCost * (savedTransPct / 100);
                                     const profCharge = negotiatedCost * (savedProfitPct / 100);
                                     const finalPrice = negotiatedCost + impCharge + transCharge + profCharge;
-                                    
-                                    const isManual = Math.abs(finalPrice - i.unitPrice) > 0.05;
-                                    const actualUnitPrice = isManual ? i.unitPrice : finalPrice;
-                                    
                                     return {
-                                        unitPrice: actualUnitPrice,
-                                        lineTotal: actualUnitPrice * i.quantity,
-                                        isManualFinalPrice: isManual,
+                                        unitPrice: finalPrice,
+                                        lineTotal: finalPrice * i.quantity,
                                         calcBreakdown: {
                                             originalPrice: base, exchangeRate: savedExchangeRate, costPricePKR,
                                             costFactorPct: savedCostFactor, negotiatedCost,
@@ -244,7 +256,7 @@ export const QuotationFormPage = () => {
                                             profitPct: savedProfitPct, profitCharge: profCharge, finalPrice
                                         }
                                     };
-                                })()
+                                })())
                             };
                         }
                         

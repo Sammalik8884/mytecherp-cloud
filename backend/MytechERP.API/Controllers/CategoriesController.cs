@@ -18,7 +18,7 @@ namespace MytechERP.API.Controllers
             _categoryService = categoryService;
         }
 
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation + "," + Roles.Salesman)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

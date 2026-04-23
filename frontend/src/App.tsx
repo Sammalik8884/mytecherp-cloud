@@ -81,7 +81,7 @@ function App() {
                             </Route>
 
                             {/* Catalog & Sales - Engineer/Manager/Admin Only */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Estimation"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Estimation", "Salesman"]} />}>
                                 <Route path="/categories" element={<CategoriesPage />} />
                                 <Route path="/products" element={<ProductsPage />} />
                                 <Route path="/quotations" element={<QuotationsPage />} />

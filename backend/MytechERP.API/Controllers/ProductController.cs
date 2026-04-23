@@ -42,7 +42,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation + "," + Roles.Salesman)]
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
             var searchFilter = ProductSearchHelper.GetSearchExpression(filter.SearchText);
@@ -58,7 +58,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation + "," + Roles.Salesman)]
         public async Task<IActionResult> GetById(int id)
         {
             var product = await _genericRepository.GetByIdAsync(id, includeProperties: "Category");

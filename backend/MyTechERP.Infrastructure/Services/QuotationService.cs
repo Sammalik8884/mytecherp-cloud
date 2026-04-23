@@ -322,7 +322,11 @@ namespace MyTechERP.Infrastructure.Services
 
                         if (product != null)
                         {
-                            finalDescription = !string.IsNullOrEmpty(product.Description) ? product.Description : product.Name;
+                            // If user provided a custom name via ServiceName, use that; otherwise use product's description/name
+                            if (!string.IsNullOrWhiteSpace(itemDto.ServiceName))
+                                finalDescription = itemDto.ServiceName;
+                            else
+                                finalDescription = !string.IsNullOrEmpty(product.Description) ? product.Description : product.Name;
                         }
                         else
                         {
