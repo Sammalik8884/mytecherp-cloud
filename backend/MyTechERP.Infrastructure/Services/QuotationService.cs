@@ -204,6 +204,7 @@ namespace MyTechERP.Infrastructure.Services
 
             existingQuote.QuoteMode = dto.QuoteMode;
             existingQuote.SupplyColumnMode = dto.SupplyColumnMode;
+            existingQuote.QuoteHeadline = dto.QuoteHeadline;
 
             existingQuote.Items.Clear();
             await CalculateAndAddItemsAsync(existingQuote, dto);
