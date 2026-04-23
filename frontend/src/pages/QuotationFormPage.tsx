@@ -45,6 +45,7 @@ type UiItem = CreateQuotationItemDto & {
     unit?: string;
     unitQty?: number;
     customUnit?: string;
+    isManualFinalPrice?: boolean;
 };
 
 /* ─── Main Page Component ─────────────────────────────────────── */
@@ -282,6 +283,12 @@ export const QuotationFormPage = () => {
     /* ─── Calculation pipeline (matches Excel & Backend exactly) ─── */
     // basePrice param allows edit-mode to force a saved original price instead of reading from product catalog
     const calculateImportedItem = (item: UiItem, config: Omit<CreateQuotationDto, 'items'>, forcedBasePrice?: number): UiItem => {
+         if (item.isManualFinalPrice) {
+             return {
+                 ...item,
+                 lineTotal: item.unitPrice * item.quantity
+             };
+         }
          // Use forced price (edit restore), then item.originalPrice already set, then product.price (the USD list price shown as $ in the catalog)
          const basePrice = forcedBasePrice ?? item.originalPrice ?? (item.product?.price ?? 0);
          if (!basePrice || basePrice === 0) return item;
@@ -358,7 +365,7 @@ export const QuotationFormPage = () => {
         
         if (showImported) {
              const valid = importedItems.filter(i => i.productId && i.productId > 0);
-             payloadItems.push(...valid.map(i => ({ productId: i.productId, quantity: i.quantity, itemType: "Imported", overridePrice: i.originalPrice, unit: resolveUnit(i), unitQty: i.unitQty || 0 })));
+             payloadItems.push(...valid.map(i => ({ productId: i.productId, quantity: i.quantity, itemType: "Imported", overridePrice: i.originalPrice, finalPriceOverride: i.isManualFinalPrice ? i.unitPrice : undefined, unit: resolveUnit(i), unitQty: i.unitQty || 0 })));
         }
         if (showLocal) {
              const valid = localItems.filter(i => i.productId && i.productId > 0);
@@ -526,7 +533,23 @@ export const QuotationFormPage = () => {
                             <Calculator className="h-4 w-4 text-blue-500"/>
                         </button>
                     )}
-                    <span className="text-sm font-medium">{item.unitPrice > 0 ? `PKR ${item.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '—'}</span>
+                    <input 
+                        type="number" 
+                        step="any" 
+                        className={inputCls + " !px-2 !py-1 text-right w-24 text-sm font-medium"} 
+                        min="0" 
+                        value={item.unitPrice || 0} 
+                        onChange={e => {
+                            const newArr = [...importedItems];
+                            newArr[idx] = { 
+                                ...newArr[idx], 
+                                unitPrice: Number(e.target.value), 
+                                lineTotal: Number(e.target.value) * newArr[idx].quantity,
+                                isManualFinalPrice: true 
+                            };
+                            setImportedItems(newArr);
+                        }}
+                    />
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
@@ -793,7 +816,23 @@ export const QuotationFormPage = () => {
                                                          <Calculator className="h-4 w-4 text-blue-400 hover:text-blue-500"/>
                                                      </button>
                                                  )}
-                                                 <span>{item.unitPrice > 0 ? item.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
+                                                 <input 
+                                                     type="number" 
+                                                     step="any" 
+                                                     className={inputCls + " !px-2 !py-1.5 text-right w-24"} 
+                                                     min="0" 
+                                                     value={item.unitPrice || 0} 
+                                                     onChange={e => {
+                                                         const newArr = [...importedItems];
+                                                         newArr[idx] = { 
+                                                             ...newArr[idx], 
+                                                             unitPrice: Number(e.target.value), 
+                                                             lineTotal: Number(e.target.value) * newArr[idx].quantity,
+                                                             isManualFinalPrice: true 
+                                                         };
+                                                         setImportedItems(newArr);
+                                                     }}
+                                                 />
                                              </div>
                                          </td>
                                          <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>

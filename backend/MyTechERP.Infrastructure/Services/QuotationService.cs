@@ -357,14 +357,19 @@ namespace MyTechERP.Infrastructure.Services
                         }
                         else // Local
                         {
-                            // Local directly uses price (PKR)
-                            originalPrice = product.Price;
+                            // Local directly uses price (PKR) unless overridden
+                            originalPrice = (itemDto.OverridePrice.HasValue && itemDto.OverridePrice.Value > 0) ? itemDto.OverridePrice.Value : product.Price;
                             decimal costInQuoteCurrency = originalPrice;
                             decimal appliedCommission = itemDto.ManualCommissionPct ?? quote.GlobalCommissionPct;
                             decimal marginAmount = costInQuoteCurrency * (appliedCommission / 100m);
                             finalSellingPrice = costInQuoteCurrency + marginAmount;
                             unitCost = costInQuoteCurrency;
                         }
+                    } // end else (non-service)
+
+                    if (itemDto.FinalPriceOverride.HasValue)
+                    {
+                        finalSellingPrice = itemDto.FinalPriceOverride.Value;
                     }
 
                     decimal lineTotal = finalSellingPrice * itemDto.Quantity;
