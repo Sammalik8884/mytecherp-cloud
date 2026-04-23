@@ -32,7 +32,6 @@ namespace MytechERP.API.Controllers
             var results = new List<GlobalSearchDto>();
             int limit = 5;
 
-            // ─── CRM ──────────────────────────────────────────────────────
             // Customers
             var customers = await _context.Customers
                 .Where(c => c.TenantId == tenantId &&
@@ -101,8 +100,7 @@ namespace MytechERP.API.Controllers
                 .ToListAsync();
             results.AddRange(invoices);
 
-            // ─── Inventory ────────────────────────────────────────────────
-            // Products
+           
             var products = await _context.Products
                 .Where(p => p.TenantId == tenantId &&
                            p.Name.ToLower().Contains(q))

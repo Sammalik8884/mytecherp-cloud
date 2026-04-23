@@ -282,8 +282,8 @@ export const QuotationFormPage = () => {
     /* ─── Calculation pipeline (matches Excel & Backend exactly) ─── */
     // basePrice param allows edit-mode to force a saved original price instead of reading from product catalog
     const calculateImportedItem = (item: UiItem, config: Omit<CreateQuotationDto, 'items'>, forcedBasePrice?: number): UiItem => {
-         // Use forced price (edit restore), then item.originalPrice already set, then product catalog
-         const basePrice = forcedBasePrice ?? item.originalPrice ?? (item.product ? (item.product.priceAED && item.product.priceAED > 0 ? item.product.priceAED : item.product.price) : 0);
+         // Use forced price (edit restore), then item.originalPrice already set, then product.price (the USD list price shown as $ in the catalog)
+         const basePrice = forcedBasePrice ?? item.originalPrice ?? (item.product?.price ?? 0);
          if (!basePrice || basePrice === 0) return item;
          const costPricePKR = basePrice * config.exchangeRate;
          const negotiatedCost = costPricePKR * (config.costFactorPct! / 100);
@@ -1065,7 +1065,18 @@ export const QuotationFormPage = () => {
                     if (productModalTarget?.list === "imported") {
                         const newArr = [...importedItems];
                         const quantity = newArr[productModalTarget.index].quantity || 1;
-                        newArr[productModalTarget.index] = calculateImportedItem({ ...newArr[productModalTarget.index], productId: p.id, product: p, serviceName: p.name }, formData);
+                        // Step 1: Use product.price as the USD base price (labelled "Price ($)" in the product catalog, shown as $ in the selection modal)
+                        const listBasePrice = p.price ?? 0;
+                        // Step 2: Build the item with the product set and originalPrice seeded from list
+                        const itemWithProduct = { 
+                            ...newArr[productModalTarget.index], 
+                            productId: p.id, 
+                            product: p, 
+                            serviceName: p.name,
+                            originalPrice: listBasePrice  // seed from list price
+                        };
+                        // Step 3: Run the full calculation pipeline on the seeded price
+                        newArr[productModalTarget.index] = calculateImportedItem(itemWithProduct, formData, listBasePrice);
                         setImportedItems(newArr);
                         
                         setShowServices(true);

@@ -68,7 +68,7 @@ namespace MytechERP.API.Controllers
 
 
         [HttpPost("create-manual")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer +","+ Roles.Estimation)]
         public async Task<IActionResult> Create([FromForm] CreateProductDto request)
         {
             var category = await _context.Categories
@@ -107,7 +107,7 @@ namespace MytechERP.API.Controllers
         [HttpPost("import-excel")]
         [DisableRequestSizeLimit]
         [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> ImportExcel(IFormFile file, [FromQuery] string brand = "LIFECO")
         {
             if (file == null || file.Length == 0) return BadRequest(new { error = "File is empty" });
@@ -116,7 +116,6 @@ namespace MytechERP.API.Controllers
             {
                 int tenantId = _currentUserService.TenantId ?? 1;
 
-                // Read file into byte array so it can be passed to a background job
                 byte[] fileBytes;
                 using (var ms = new MemoryStream())
                 {
@@ -124,7 +123,6 @@ namespace MytechERP.API.Controllers
                     fileBytes = ms.ToArray();
                 }
 
-                // Queue the import as a Hangfire background job to avoid Azure's 230s timeout
                 if (brand.Equals("FIKE", StringComparison.OrdinalIgnoreCase))
                 {
                     BackgroundJob.Enqueue<IFikeProductImportService>(
@@ -145,7 +143,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -174,7 +172,7 @@ namespace MytechERP.API.Controllers
         
         [HttpPut("{id}")]
 
-        [Authorize(Roles = Roles.Admin +","+Roles.Manager)]
+        [Authorize(Roles = Roles.Admin +","+Roles.Manager + "," + Roles.Estimation)]
         public async Task<IActionResult> Update(int id, [FromForm] CreateProductDto request)
         {
             var existingProduct = await _genericRepository.GetByIdAsync(id);
