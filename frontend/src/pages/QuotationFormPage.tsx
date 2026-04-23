@@ -455,14 +455,26 @@ export const QuotationFormPage = () => {
     /* ─── Mobile card renderer for items ─── */
     const renderImportedCard = (item: UiItem, idx: number) => (
         <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
-            <div 
-                onClick={() => setProductModalTarget({ list: "imported", index: idx })}
-                className="flex items-center justify-between bg-secondary/30 border border-border rounded-lg p-3 cursor-pointer hover:border-primary/50 transition-colors"
-            >
-                <span className="truncate text-sm text-foreground">
-                    {item.product ? `${item.product.name}` : "Tap to select product..."}
-                </span>
-                <Search className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+            <div className="flex items-center w-full gap-1.5">
+                <input 
+                    type="text" 
+                    className={inputCls + " flex-1 min-w-0"} 
+                    placeholder="Custom product name..."
+                    value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name}` : "")}
+                    onChange={e => {
+                        const newArr = [...importedItems];
+                        newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
+                        setImportedItems(newArr);
+                    }}
+                />
+                <button
+                    type="button"
+                    onClick={() => setProductModalTarget({ list: "imported", index: idx })}
+                    className="p-2 bg-secondary border border-border rounded-md hover:bg-secondary/80 shrink-0 flex items-center justify-center"
+                    title="Browse Catalog"
+                >
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                </button>
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -528,14 +540,26 @@ export const QuotationFormPage = () => {
 
     const renderLocalCard = (item: UiItem, idx: number) => (
         <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
-            <div 
-                onClick={() => setProductModalTarget({ list: "local", index: idx })}
-                className="flex items-center justify-between bg-secondary/30 border border-border rounded-lg p-3 cursor-pointer hover:border-primary/50 transition-colors"
-            >
-                <span className="truncate text-sm text-foreground">
-                    {item.product ? `${item.product.name}` : "Tap to select product..."}
-                </span>
-                <Search className="h-4 w-4 text-muted-foreground shrink-0 ml-2" />
+            <div className="flex items-center w-full gap-1.5">
+                <input 
+                    type="text" 
+                    className={inputCls + " flex-1 min-w-0"} 
+                    placeholder="Custom product name..."
+                    value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name}` : "")}
+                    onChange={e => {
+                        const newArr = [...localItems];
+                        newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
+                        setLocalItems(newArr);
+                    }}
+                />
+                <button
+                    type="button"
+                    onClick={() => setProductModalTarget({ list: "local", index: idx })}
+                    className="p-2 bg-secondary border border-border rounded-md hover:bg-secondary/80 shrink-0 flex items-center justify-center"
+                    title="Browse Catalog"
+                >
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                </button>
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -702,14 +726,26 @@ export const QuotationFormPage = () => {
                                  {importedItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
-                                              <div 
-                                                  onClick={() => setProductModalTarget({ list: "imported", index: idx })}
-                                                  className="flex items-center min-w-0 w-full justify-between bg-background border border-border rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors px-3 py-2 text-sm"
-                                              >
-                                                  <span className="truncate text-foreground">
-                                                      {item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "Browse to select product..."}
-                                                  </span>
-                                                  <Search className="h-3.5 w-3.5 text-muted-foreground ml-2 shrink-0" />
+                                              <div className="flex items-center w-full gap-1.5">
+                                                  <input 
+                                                      type="text" 
+                                                      className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm"} 
+                                                      placeholder="Custom product name..."
+                                                      value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
+                                                      onChange={e => {
+                                                          const newArr = [...importedItems];
+                                                          newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
+                                                          setImportedItems(newArr);
+                                                      }}
+                                                  />
+                                                  <button
+                                                      type="button"
+                                                      onClick={() => setProductModalTarget({ list: "imported", index: idx })}
+                                                      className="p-1.5 bg-secondary border border-border rounded-md hover:bg-secondary/80 shrink-0 flex items-center justify-center"
+                                                      title="Browse Catalog"
+                                                  >
+                                                      <Search className="h-4 w-4 text-muted-foreground" />
+                                                  </button>
                                               </div>
                                          </td>
                                          <td className="px-1">
@@ -806,14 +842,26 @@ export const QuotationFormPage = () => {
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
-                                              <div 
-                                                  onClick={() => setProductModalTarget({ list: "local", index: idx })}
-                                                  className="flex items-center min-w-0 w-full justify-between bg-background border border-border rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors px-3 py-2 text-sm"
-                                              >
-                                                  <span className="truncate text-foreground">
-                                                      {item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "Browse to select product..."}
-                                                  </span>
-                                                  <Search className="h-3.5 w-3.5 text-muted-foreground ml-2 shrink-0" />
+                                              <div className="flex items-center w-full gap-1.5">
+                                                  <input 
+                                                      type="text" 
+                                                      className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm"} 
+                                                      placeholder="Custom product name..."
+                                                      value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
+                                                      onChange={e => {
+                                                          const newArr = [...localItems];
+                                                          newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
+                                                          setLocalItems(newArr);
+                                                      }}
+                                                  />
+                                                  <button
+                                                      type="button"
+                                                      onClick={() => setProductModalTarget({ list: "local", index: idx })}
+                                                      className="p-1.5 bg-secondary border border-border rounded-md hover:bg-secondary/80 shrink-0 flex items-center justify-center"
+                                                      title="Browse Catalog"
+                                                  >
+                                                      <Search className="h-4 w-4 text-muted-foreground" />
+                                                  </button>
                                               </div>
                                          </td>
                                          <td className="px-1">
