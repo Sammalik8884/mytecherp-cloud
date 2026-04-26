@@ -13,6 +13,7 @@ namespace MytechERP.Application.DTOs.Quotations
         public int? SiteId { get; set; }
 
         public int? AssetId { get; set; }
+        public int? ReviseQuoteId { get; set; }
 
         public string Currency { get; set; } = "PKR";
         public decimal ExchangeRate { get; set; } = 1.0m;

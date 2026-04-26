@@ -87,6 +87,7 @@ function App() {
                                 <Route path="/quotations" element={<QuotationsPage />} />
                                 <Route path="/quotations/new" element={<QuotationFormPage />} />
                                 <Route path="/quotations/edit/:id" element={<QuotationFormPage />} />
+                                <Route path="/quotations/revise/:id" element={<QuotationFormPage />} />
                                 <Route path="/contracts" element={<ContractsPage />} />
                                 <Route path="/sales/boq-portal" element={<BoqDrawingsPortalPage />} />
                             </Route>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Trash2, ArrowLeft, Loader2, Search, Calculator, Pencil } from "lucide-react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 import { quotationService, CreateQuotationDto, CreateQuotationItemDto } from "../services/quotationService";
@@ -51,7 +51,10 @@ type UiItem = CreateQuotationItemDto & {
 /* ─── Main Page Component ─────────────────────────────────────── */
 export const QuotationFormPage = () => {
     const { id } = useParams<{ id: string }>();
-    const isEditMode = Boolean(id);
+    const location = useLocation();
+    const isReviseMode = location.pathname.includes('/revise');
+    const hasId = Boolean(id);
+    const isEditMode = hasId && !isReviseMode;
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const leadIdParam = searchParams.get("leadId");
@@ -116,6 +119,22 @@ export const QuotationFormPage = () => {
         customUnit: "",
     });
 
+    const handleCustomProductNameBlur = (name: string | undefined, quantity: number) => {
+        if (!name || name.trim() === "") return;
+        
+        setShowServices(true);
+        setServiceItems(prev => {
+            if (prev.some(s => s.serviceName === name)) return prev;
+            const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
+            if (blankIdx !== -1) {
+                const updated = [...prev];
+                updated[blankIdx] = { ...updated[blankIdx], serviceName: name, quantity: quantity };
+                return updated;
+            }
+            return [...prev, { ...makeEmptyRow("Service"), serviceName: name, quantity: quantity }];
+        });
+    };
+
     // Auto-add first row when section is toggled on
     useEffect(() => {
         if (showImported && importedItems.length === 0) {
@@ -144,7 +163,7 @@ export const QuotationFormPage = () => {
                 setCustomers(custData);
                 setSites(siteData);
 
-                if (isEditMode) {
+                if (hasId) {
                     let quote;
                     try {
                         quote = await quotationService.getQuotationById(Number(id));
@@ -288,7 +307,7 @@ export const QuotationFormPage = () => {
         };
 
         fetchDependencies();
-    }, [id, isEditMode, leadIdParam]);
+    }, [id, hasId, leadIdParam]);
 
     // Recalculate imported items when config changes
     useEffect(() => {
@@ -431,12 +450,16 @@ export const QuotationFormPage = () => {
                 items: payloadItems
             };
 
+            if (isReviseMode) {
+                payload.reviseQuoteId = Number(id);
+            }
+
             if (isEditMode) {
                 await quotationService.updateQuotation(Number(id), payload);
                 toast.success("Quotation updated successfully");
             } else {
                 await quotationService.createQuotation(payload);
-                toast.success("Quotation created successfully");
+                toast.success(isReviseMode ? "Quotation revised successfully" : "Quotation created successfully");
             }
             navigate('/quotations');
         } catch (error: any) {
@@ -509,6 +532,7 @@ export const QuotationFormPage = () => {
                         newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                         setImportedItems(newArr);
                     }}
+                    onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity)}
                 />
                 <button
                     type="button"
@@ -610,6 +634,7 @@ export const QuotationFormPage = () => {
                         newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                         setLocalItems(newArr);
                     }}
+                    onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity)}
                 />
                 <button
                     type="button"
@@ -688,7 +713,7 @@ export const QuotationFormPage = () => {
                 <button onClick={() => navigate('/quotations')} className="p-2 hover:bg-secondary/50 rounded-lg text-muted-foreground"><ArrowLeft className="h-5 w-5"/></button>
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-                        {isEditMode ? "Edit Quotation" : "Create Quotation"}
+                        {isEditMode ? "Edit Quotation" : isReviseMode ? "Revise Quotation" : "Create Quotation"}
                     </h1>
                     <p className="text-muted-foreground text-sm">Select sections and build your quote</p>
                 </div>
@@ -796,6 +821,7 @@ export const QuotationFormPage = () => {
                                                           newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                                                           setImportedItems(newArr);
                                                       }}
+                                                      onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity)}
                                                   />
                                                   <button
                                                       type="button"
@@ -928,6 +954,7 @@ export const QuotationFormPage = () => {
                                                           newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                                                           setLocalItems(newArr);
                                                       }}
+                                                      onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity)}
                                                   />
                                                   <button
                                                       type="button"
@@ -1118,7 +1145,7 @@ export const QuotationFormPage = () => {
                          <div className="mt-6 md:mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">
                              <button type="button" onClick={() => navigate('/quotations')} className="px-6 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary/50 transition-colors">Cancel</button>
                              <button type="submit" disabled={saving} className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl shadow-lg hover:-translate-y-0.5 transition-all font-bold flex items-center justify-center gap-2 hover:shadow-primary/25">
-                                 {saving && <Loader2 className="w-4 h-4 animate-spin"/>} {isEditMode ? "Update" : "Save Quotation"}
+                                 {saving && <Loader2 className="w-4 h-4 animate-spin"/>} {isEditMode ? "Update" : isReviseMode ? "Revise" : "Save Quotation"}
                              </button>
                          </div>
                      </div>

@@ -61,6 +61,7 @@ export interface CreateQuotationDto {
     opportunityId?: number;
     siteId?: number;
     assetId?: number;
+    reviseQuoteId?: number;
     currency: string;
     exchangeRate: number;
     globalCommissionPct: number;

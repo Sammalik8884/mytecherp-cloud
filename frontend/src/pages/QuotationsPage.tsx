@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Search, Plus, FileText, DownloadCloud, Send, Edit, Trash2, FilePlus2, Briefcase, CheckCircle, XCircle, FileSignature, Activity, AlertTriangle } from "lucide-react";
+import { Loader2, Search, Plus, FileText, DownloadCloud, Send, Edit, Trash2, FilePlus2, Briefcase, CheckCircle, XCircle, FileSignature, Activity, AlertTriangle, Copy } from "lucide-react";
 import { StatCard } from "../components/dashboard/StatCard";
 import { quotationService, QuotationDto } from "../services/quotationService";
 import { toast } from "react-hot-toast";
@@ -349,6 +349,9 @@ export const QuotationsPage = () => {
                                                 )}
                                                 <button onClick={() => navigate(`/quotations/edit/${quote.id}`)} title="Edit" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
                                                     <Edit className="h-4 w-4" />
+                                                </button>
+                                                <button onClick={() => navigate(`/quotations/revise/${quote.id}`)} title="Revise" className="p-2 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-lg transition-colors">
+                                                    <Copy className="h-4 w-4" />
                                                 </button>
                                                 {quote.status.toLowerCase() === 'draft' && (
                                                     <button onClick={() => handleSubmitForApproval(quote.id)} title="Submit for Approval" className="p-2 text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors">
