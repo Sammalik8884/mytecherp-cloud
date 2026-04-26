@@ -202,6 +202,20 @@ namespace MyTechERP.Infrastructure.Services
             var existingQuote = await _quotationRepository.GetQuoteWithItemsAsync(id);
             if (existingQuote == null) throw new Exception($"Quotation {id} not found");
 
+            if (dto.ReviseQuoteId.HasValue && dto.ReviseQuoteId.Value == id)
+            {
+                existingQuote.RevisionNumber += 1;
+                
+                string baseNumber = existingQuote.QuoteNumber;
+                int lastDashIndex = baseNumber.LastIndexOf("-R");
+                if (lastDashIndex > 0)
+                {
+                    baseNumber = baseNumber.Substring(0, lastDashIndex);
+                }
+                
+                existingQuote.QuoteNumber = $"{baseNumber}-R{existingQuote.RevisionNumber}";
+            }
+
             var oldGrandTotal = existingQuote.GrandTotal;
             var userId = _currentUserService.UserId ?? "System";
 

@@ -454,12 +454,12 @@ export const QuotationFormPage = () => {
                 payload.reviseQuoteId = Number(id);
             }
 
-            if (isEditMode) {
+            if (isEditMode || isReviseMode) {
                 await quotationService.updateQuotation(Number(id), payload);
-                toast.success("Quotation updated successfully");
+                toast.success(isReviseMode ? "Quotation revised successfully" : "Quotation updated successfully");
             } else {
                 await quotationService.createQuotation(payload);
-                toast.success(isReviseMode ? "Quotation revised successfully" : "Quotation created successfully");
+                toast.success("Quotation created successfully");
             }
             navigate('/quotations');
         } catch (error: any) {
