@@ -74,6 +74,8 @@ export const QuotationFormPage = () => {
         globalCommissionPct: 0,
         gstPercentage: 18,
         incomeTaxPercentage: 0,
+        provincialTaxType: "",
+        provincialTaxPercentage: 0,
         adjustment: 0,
         quoteMode: "Local",
         supplyColumnMode: "Both",
@@ -211,6 +213,8 @@ export const QuotationFormPage = () => {
                         exchangeRate: savedExchangeRate,
                         gstPercentage: quote.gstPercentage,
                         incomeTaxPercentage: quote.incomeTaxPercentage,
+                        provincialTaxType: quote.provincialTaxType || "",
+                        provincialTaxPercentage: quote.provincialTaxPercentage || 0,
                         adjustment: quote.adjustment,
                         quoteMode: quote.quoteMode || "Local",
                         supplyColumnMode: quote.supplyColumnMode || "Both",
@@ -407,9 +411,10 @@ export const QuotationFormPage = () => {
 
         const gst = subTotal * (formData.gstPercentage / 100);
         const income = subTotal * (formData.incomeTaxPercentage / 100);
-        const grand = subTotal + gst + income - formData.adjustment;
+        const provincial = subTotal * ((formData.provincialTaxPercentage || 0) / 100);
+        const grand = subTotal + gst + income + provincial - formData.adjustment;
 
-        return { subTotal, gst, income, grand };
+        return { subTotal, gst, income, provincial, grand };
     };
 
     const totals = renderTotals();
@@ -1229,6 +1234,26 @@ export const QuotationFormPage = () => {
                                  <input type="number" step="any" className={inputCls} value={formData.incomeTaxPercentage} onChange={e => setFormData({...formData, incomeTaxPercentage: Number(e.target.value)})}/>
                              </div>
                              <div>
+                                 <label className="text-xs font-semibold text-muted-foreground block mb-1">Provincial Tax</label>
+                                 <select className={inputCls} value={formData.provincialTaxType} onChange={e => {
+                                     const val = e.target.value;
+                                     let pct = 0;
+                                     if (val === "Punjab") pct = 16;
+                                     if (val === "KPK") pct = 15;
+                                     if (val === "Sindh") pct = 13;
+                                     if (val === "Balochistan") pct = 15;
+                                     if (val === "ICT") pct = 16;
+                                     setFormData({...formData, provincialTaxType: val, provincialTaxPercentage: pct});
+                                 }}>
+                                     <option value="">None</option>
+                                     <option value="Punjab">Punjab (PRA) - 16%</option>
+                                     <option value="KPK">KPK (KPRA) - 15%</option>
+                                     <option value="Sindh">Sindh (SRB) - 13%</option>
+                                     <option value="Balochistan">Balochistan (BRA) - 15%</option>
+                                     <option value="ICT">ICT - 16%</option>
+                                 </select>
+                             </div>
+                             <div>
                                  <label className="text-xs font-semibold text-muted-foreground block mb-1">Global Discount (−)</label>
                                  <input type="number" step="any" className={inputCls + " !text-destructive"} value={formData.adjustment} onChange={e => setFormData({...formData, adjustment: Number(e.target.value)})}/>
                              </div>
@@ -1239,6 +1264,7 @@ export const QuotationFormPage = () => {
                              <div className="flex justify-between text-muted-foreground"><span>Sub Total</span><span className="text-foreground font-medium">{totals.subTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
                              {formData.gstPercentage > 0 && <div className="flex justify-between text-muted-foreground"><span>GST ({formData.gstPercentage}%)</span><span className="text-foreground">+ {totals.gst.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
                              {formData.incomeTaxPercentage > 0 && <div className="flex justify-between text-muted-foreground"><span>Income Tax ({formData.incomeTaxPercentage}%)</span><span className="text-foreground">+ {totals.income.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
+                             {(formData.provincialTaxPercentage || 0) > 0 && <div className="flex justify-between text-muted-foreground"><span>{formData.provincialTaxType || "Provincial Tax"} ({(formData.provincialTaxPercentage || 0)}%)</span><span className="text-foreground">+ {totals.provincial.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
                              {formData.adjustment > 0 && <div className="flex justify-between text-destructive"><span>Global Discount</span><span>- {formData.adjustment.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
                              
                              <div className="border-t border-border pt-3 flex justify-between items-end">

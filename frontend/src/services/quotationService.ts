@@ -33,6 +33,9 @@ export interface QuotationDto {
     gstAmount: number;
     incomeTaxPercentage: number;
     incomeTaxAmount: number;
+    provincialTaxType?: string;
+    provincialTaxPercentage?: number;
+    provincialTaxAmount?: number;
     adjustment: number;
     grandTotal: number;
     quoteMode: string;
@@ -67,6 +70,8 @@ export interface CreateQuotationDto {
     globalCommissionPct: number;
     gstPercentage: number;
     incomeTaxPercentage: number;
+    provincialTaxType?: string;
+    provincialTaxPercentage?: number;
     adjustment: number;
     quoteMode: string;
     supplyColumnMode: string;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +16,8 @@ namespace MytechERP.Application.DTOs.Quotations
        
         public decimal GSTPercentage { get; set; }
         public decimal IncomeTaxPercentage { get; set; }
+        public string? ProvincialTaxType { get; set; }
+        public decimal ProvincialTaxPercentage { get; set; }
         public decimal Adjustment { get; set; } 
 
         public List<QuotationItemDto> Items { get; set; } = new();

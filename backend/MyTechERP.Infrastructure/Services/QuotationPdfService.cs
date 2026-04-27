@@ -180,6 +180,8 @@ namespace MyTechERP.Infrastructure.Services
                 var importedItems = quote.Items.Where(i => i.ItemType == "Imported").ToList();
                 var localItems    = quote.Items.Where(i => i.ItemType == "Local").ToList();
                 var serviceItems  = quote.Items.Where(i => i.ItemType == "Service").ToList();
+                var importedServiceItems = quote.Items.Where(i => i.ItemType == "ImportedService").ToList();
+                var localServiceItems = quote.Items.Where(i => i.ItemType == "LocalService").ToList();
 
                 char sectionLetter = 'A';
 
@@ -201,6 +203,21 @@ namespace MyTechERP.Infrastructure.Services
                 {
                     col.Item().PaddingBottom(14)
                         .Element(c => DrawSection(c, $"Section {sectionLetter}: Services", serviceItems, quote.Currency, false, false));
+                    sectionLetter++;
+                }
+
+                if (importedServiceItems.Any())
+                {
+                    col.Item().PaddingBottom(14)
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Imported Services", importedServiceItems, quote.Currency, false, false));
+                    sectionLetter++;
+                }
+
+                if (localServiceItems.Any())
+                {
+                    col.Item().PaddingBottom(14)
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Local Services", localServiceItems, quote.Currency, false, false));
+                    sectionLetter++;
                 }
 
                 // Grand summary
@@ -373,6 +390,12 @@ namespace MyTechERP.Infrastructure.Services
 
                     if (quote.IncomeTaxPercentage > 0)
                         SRow($"Income Tax @ {quote.IncomeTaxPercentage:N0}%", quote.IncomeTaxAmount.ToString("N2"));
+                        
+                    if (quote.ProvincialTaxPercentage > 0)
+                    {
+                        string taxTypeDisplay = string.IsNullOrWhiteSpace(quote.ProvincialTaxType) ? "Provincial Tax" : quote.ProvincialTaxType;
+                        SRow($"{taxTypeDisplay} @ {quote.ProvincialTaxPercentage:N0}%", quote.ProvincialTaxAmount.ToString("N2"));
+                    }
 
                     if (quote.Adjustment != 0)
                         SRow("Adjustment", quote.Adjustment.ToString("N2"));

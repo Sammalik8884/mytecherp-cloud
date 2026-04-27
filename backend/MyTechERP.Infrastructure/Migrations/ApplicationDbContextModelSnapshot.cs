@@ -2278,6 +2278,15 @@ namespace MyTechERP.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("ProvincialTaxAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ProvincialTaxPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ProvincialTaxType")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("QuoteHeadline")
                         .HasColumnType("nvarchar(max)");
 

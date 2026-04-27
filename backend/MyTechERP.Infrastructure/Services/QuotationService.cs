@@ -159,6 +159,8 @@ namespace MyTechERP.Infrastructure.Services
                 GlobalCommissionPct = dto.GlobalCommissionPct,
                 GSTPercentage = dto.GSTPercentage,
                 IncomeTaxPercentage = dto.IncomeTaxPercentage,
+                ProvincialTaxType = dto.ProvincialTaxType,
+                ProvincialTaxPercentage = dto.ProvincialTaxPercentage,
                 Adjustment = dto.Adjustment,
                 CreatedByUserId= _currentUserService.UserId,
                 QuoteMode = dto.QuoteMode,
@@ -243,6 +245,8 @@ namespace MyTechERP.Infrastructure.Services
             existingQuote.GlobalCommissionPct = dto.GlobalCommissionPct;
             existingQuote.GSTPercentage = dto.GSTPercentage;
             existingQuote.IncomeTaxPercentage = dto.IncomeTaxPercentage;
+            existingQuote.ProvincialTaxType = dto.ProvincialTaxType;
+            existingQuote.ProvincialTaxPercentage = dto.ProvincialTaxPercentage;
             existingQuote.Adjustment = dto.Adjustment;
 
             existingQuote.QuoteMode = dto.QuoteMode;
@@ -470,7 +474,8 @@ namespace MyTechERP.Infrastructure.Services
             quote.SubTotal = runningSubTotal;
             quote.GSTAmount = quote.SubTotal * (quote.GSTPercentage / 100m);
             quote.IncomeTaxAmount = quote.SubTotal * (quote.IncomeTaxPercentage / 100m);
-            quote.GrandTotal = quote.SubTotal + quote.GSTAmount + quote.IncomeTaxAmount + quote.Adjustment;
+            quote.ProvincialTaxAmount = quote.SubTotal * (quote.ProvincialTaxPercentage / 100m);
+            quote.GrandTotal = quote.SubTotal + quote.GSTAmount + quote.IncomeTaxAmount + quote.ProvincialTaxAmount + quote.Adjustment;
         }
         private QuotationDto MapToDto(Quotation q)
         {
@@ -494,6 +499,9 @@ namespace MyTechERP.Infrastructure.Services
                 GSTAmount = q.GSTAmount,
                 IncomeTaxPercentage = q.IncomeTaxPercentage,
                 IncomeTaxAmount = q.IncomeTaxAmount,
+                ProvincialTaxType = q.ProvincialTaxType,
+                ProvincialTaxPercentage = q.ProvincialTaxPercentage,
+                ProvincialTaxAmount = q.ProvincialTaxAmount,
                 Adjustment = q.Adjustment,
                 GrandTotal = q.GrandTotal,
 
@@ -680,6 +688,8 @@ namespace MyTechERP.Infrastructure.Services
             
             q.GSTPercentage = request.GSTPercentage;
             q.IncomeTaxPercentage = request.IncomeTaxPercentage;
+            q.ProvincialTaxType = request.ProvincialTaxType;
+            q.ProvincialTaxPercentage = request.ProvincialTaxPercentage;
             q.Adjustment = request.Adjustment;
 
             _context.QuotationsItem.RemoveRange(q.Items);
@@ -697,11 +707,13 @@ namespace MyTechERP.Infrastructure.Services
 
             decimal gstAmount = (subTotal * q.GSTPercentage) / 100;
             decimal incomeTaxAmount = (subTotal * q.IncomeTaxPercentage) / 100;
+            decimal provincialTaxAmount = (subTotal * q.ProvincialTaxPercentage) / 100;
 
             q.SubTotal = subTotal;
             q.GSTAmount = gstAmount;
             q.IncomeTaxAmount = incomeTaxAmount;
-            q.GrandTotal = subTotal + gstAmount + incomeTaxAmount + q.Adjustment;
+            q.ProvincialTaxAmount = provincialTaxAmount;
+            q.GrandTotal = subTotal + gstAmount + incomeTaxAmount + provincialTaxAmount + q.Adjustment;
 
             await _context.SaveChangesAsync();
         }

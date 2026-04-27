@@ -50,6 +50,14 @@ namespace MytechERP.domain.Quotations
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal IncomeTaxAmount { get; set; }
+        
+        public string? ProvincialTaxType { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ProvincialTaxPercentage { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ProvincialTaxAmount { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Adjustment { get; set; }

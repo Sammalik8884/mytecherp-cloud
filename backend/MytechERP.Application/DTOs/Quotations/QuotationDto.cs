@@ -28,6 +28,10 @@ namespace MytechERP.Application.DTOs.Quotations
         public decimal IncomeTaxPercentage { get; set; }
         public decimal IncomeTaxAmount { get; set; }
 
+        public string? ProvincialTaxType { get; set; }
+        public decimal ProvincialTaxPercentage { get; set; }
+        public decimal ProvincialTaxAmount { get; set; }
+
         public decimal Adjustment { get; set; }
         public decimal GrandTotal { get; set; }
 

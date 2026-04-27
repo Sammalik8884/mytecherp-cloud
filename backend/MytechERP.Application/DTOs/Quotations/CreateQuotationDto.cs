@@ -23,6 +23,10 @@ namespace MytechERP.Application.DTOs.Quotations
 
         public decimal GSTPercentage { get; set; } = 0;
         public decimal IncomeTaxPercentage { get; set; } = 0;
+        
+        public string? ProvincialTaxType { get; set; }
+        public decimal ProvincialTaxPercentage { get; set; } = 0;
+
         public decimal Adjustment { get; set; } = 0; 
 
         public string QuoteMode { get; set; } = "Local";
