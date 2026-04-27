@@ -46,7 +46,7 @@ namespace MytechERP.API.Controllers
                 .Include(l => l.SiteVisits)
                 .AsQueryable();
 
-            if (userRole == Roles.Salesman || userRole == Roles.Estimation || myLeadsOnly)
+            if (userRole == Roles.Salesman || myLeadsOnly)
             {
                 query = query.Where(l => l.SalesmanUserId == userId);
             }
