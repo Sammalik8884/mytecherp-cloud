@@ -230,6 +230,12 @@ export const SiteVisitPage = () => {
 
     const handleEndVisit = async () => {
         if (!activeVisitId) return;
+        
+        if (!meetingNotes || meetingNotes.trim() === "") {
+            toast.error("Please provide Meeting Information & Notes before ending the visit.");
+            return;
+        }
+
         try {
             toast.loading("Acquiring checkout GPS Signal...", { id: "gpsEnd" });
             const coords = await getGPSCoordinates();
