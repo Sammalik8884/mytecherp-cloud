@@ -365,7 +365,7 @@ namespace MyTechERP.Infrastructure.Services
                     ItemType parsedType = ItemType.Local;
                     if (Enum.TryParse<ItemType>(itemDto.ItemType, out var t)) parsedType = t;
 
-                    if (parsedType == ItemType.Service)
+                    if (parsedType == ItemType.Service || parsedType == ItemType.ImportedService || parsedType == ItemType.LocalService)
                     {
                         finalDescription = itemDto.ServiceName ?? "Custom Service";
                         originalPrice = itemDto.ServicePrice ?? 0;

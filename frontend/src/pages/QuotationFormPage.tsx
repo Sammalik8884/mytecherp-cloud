@@ -1237,12 +1237,13 @@ export const QuotationFormPage = () => {
                                  <label className="text-xs font-semibold text-muted-foreground block mb-1">Provincial Tax</label>
                                  <select className={inputCls} value={formData.provincialTaxType} onChange={e => {
                                      const val = e.target.value;
-                                     let pct = 0;
+                                     let pct = formData.provincialTaxPercentage;
                                      if (val === "Punjab") pct = 16;
-                                     if (val === "KPK") pct = 15;
-                                     if (val === "Sindh") pct = 13;
-                                     if (val === "Balochistan") pct = 15;
-                                     if (val === "ICT") pct = 16;
+                                     else if (val === "KPK") pct = 15;
+                                     else if (val === "Sindh") pct = 13;
+                                     else if (val === "Balochistan") pct = 15;
+                                     else if (val === "ICT") pct = 16;
+                                     else if (val === "") pct = 0;
                                      setFormData({...formData, provincialTaxType: val, provincialTaxPercentage: pct});
                                  }}>
                                      <option value="">None</option>
@@ -1251,7 +1252,13 @@ export const QuotationFormPage = () => {
                                      <option value="Sindh">Sindh (SRB) - 13%</option>
                                      <option value="Balochistan">Balochistan (BRA) - 15%</option>
                                      <option value="ICT">ICT - 16%</option>
+                                     <option value="Custom">Custom</option>
                                  </select>
+                                 {formData.provincialTaxType === "Custom" && (
+                                     <div className="mt-2">
+                                         <input type="number" step="any" className={inputCls} placeholder="Custom Tax %" value={formData.provincialTaxPercentage} onChange={e => setFormData({...formData, provincialTaxPercentage: Number(e.target.value)})}/>
+                                     </div>
+                                 )}
                              </div>
                              <div>
                                  <label className="text-xs font-semibold text-muted-foreground block mb-1">Global Discount (−)</label>
