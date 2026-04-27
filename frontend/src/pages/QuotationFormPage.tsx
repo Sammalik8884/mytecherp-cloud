@@ -1247,16 +1247,17 @@ export const QuotationFormPage = () => {
                                      setFormData({...formData, provincialTaxType: val, provincialTaxPercentage: pct});
                                  }}>
                                      <option value="">None</option>
-                                     <option value="Punjab">Punjab (PRA) - 16%</option>
-                                     <option value="KPK">KPK (KPRA) - 15%</option>
-                                     <option value="Sindh">Sindh (SRB) - 13%</option>
-                                     <option value="Balochistan">Balochistan (BRA) - 15%</option>
-                                     <option value="ICT">ICT - 16%</option>
+                                     <option value="Punjab">Punjab (PRA)</option>
+                                     <option value="KPK">KPK (KPRA)</option>
+                                     <option value="Sindh">Sindh (SRB)</option>
+                                     <option value="Balochistan">Balochistan (BRA)</option>
+                                     <option value="ICT">ICT</option>
                                      <option value="Custom">Custom</option>
                                  </select>
-                                 {formData.provincialTaxType === "Custom" && (
-                                     <div className="mt-2">
-                                         <input type="number" step="any" className={inputCls} placeholder="Custom Tax %" value={formData.provincialTaxPercentage} onChange={e => setFormData({...formData, provincialTaxPercentage: Number(e.target.value)})}/>
+                                 {formData.provincialTaxType !== "" && (
+                                     <div className="mt-2 flex items-center gap-2">
+                                         <span className="text-xs text-muted-foreground whitespace-nowrap">Tax %</span>
+                                         <input type="number" step="any" className={inputCls} placeholder="%" value={formData.provincialTaxPercentage} onChange={e => setFormData({...formData, provincialTaxPercentage: Number(e.target.value)})}/>
                                      </div>
                                  )}
                              </div>
