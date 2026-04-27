@@ -208,7 +208,7 @@ export const SalesmanDashboardPage = () => {
     const fetchLeads = async () => {
         setLoading(true);
         try {
-            const data = await salesService.getLeads();
+            const data = await salesService.getLeads(true);
             setLeads(data);
         } catch (error: any) {
             toast.error(extractApiError(error, "Failed to fetch your leads"));

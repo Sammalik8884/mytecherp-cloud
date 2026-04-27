@@ -7,8 +7,8 @@ import {
 
 export const salesService = {
     // --- LEADS ---
-    getLeads: async (): Promise<SalesLeadDto[]> => {
-        const response = await apiClient.get<SalesLeadDto[]>("/Sales/leads");
+    getLeads: async (myLeadsOnly: boolean = false): Promise<SalesLeadDto[]> => {
+        const response = await apiClient.get<SalesLeadDto[]>(`/Sales/leads${myLeadsOnly ? '?myLeadsOnly=true' : ''}`);
         return response.data;
     },
 

@@ -34,7 +34,7 @@ namespace MytechERP.API.Controllers
 
         [HttpGet("leads")]
         [Authorize(Roles = Roles.AllInternal)]
-        public async Task<ActionResult<IEnumerable<SalesLeadDto>>> GetLeads()
+        public async Task<ActionResult<IEnumerable<SalesLeadDto>>> GetLeads([FromQuery] bool myLeadsOnly = false)
         {
             var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
             var userId = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -46,7 +46,7 @@ namespace MytechERP.API.Controllers
                 .Include(l => l.SiteVisits)
                 .AsQueryable();
 
-            if (userRole == Roles.Salesman)
+            if (userRole == Roles.Salesman || myLeadsOnly)
             {
                 query = query.Where(l => l.SalesmanUserId == userId);
             }
