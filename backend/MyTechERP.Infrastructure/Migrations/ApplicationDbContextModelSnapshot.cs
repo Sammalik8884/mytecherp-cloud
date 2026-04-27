@@ -737,6 +737,46 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.ToTable("InspectionQuestions");
                 });
 
+            modelBuilder.Entity("MytechERP.domain.Entities.Finance.BankAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("AccountTitle")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BankAccounts");
+                });
+
             modelBuilder.Entity("MytechERP.domain.Entities.Finance.Invoice", b =>
                 {
                     b.Property<int>("Id")
@@ -747,6 +787,15 @@ namespace MyTechERP.Infrastructure.Migrations
 
                     b.Property<decimal>("AmountPaid")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("BankAccountNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankAccountTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
@@ -763,6 +812,12 @@ namespace MyTechERP.Infrastructure.Migrations
 
                     b.Property<DateTime>("IssueDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("IssuedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IssuedByPhone")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("QuotationId")
                         .HasColumnType("int");

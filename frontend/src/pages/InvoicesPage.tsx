@@ -7,6 +7,7 @@ import { CreateInvoiceModal } from "../components/CreateInvoiceModal";
 import { ConfirmModal } from "../components/common/ConfirmModal";
 import { QuoteSelectorModal } from "../components/common/QuoteSelectorModal";
 import { GenerateInvoiceFromQuoteModal } from "../components/common/GenerateInvoiceFromQuoteModal";
+import { ManageBankAccountsModal } from "../components/common/ManageBankAccountsModal";
 import { QuotationDto } from "../services/quotationService";
 import { toast } from "react-hot-toast";
 
@@ -17,6 +18,7 @@ export const InvoicesPage = () => {
     const [processingId, setProcessingId] = useState<number | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isQuoteSelectorOpen, setIsQuoteSelectorOpen] = useState(false);
+    const [isBankModalOpen, setIsBankModalOpen] = useState(false);
     const [quoteInvoiceModalQuote, setQuoteInvoiceModalQuote] = useState<QuotationDto | null>(null);
 
     const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'info'|'warning'|'danger'; confirmText: string; onConfirm: () => void }>({ isOpen: false, title: "", message: "", type: "info", confirmText: "Confirm", onConfirm: () => {} });
@@ -190,6 +192,13 @@ export const InvoicesPage = () => {
                     </div>
                     <div className="flex space-x-2">
                         <button
+                            onClick={() => setIsBankModalOpen(true)}
+                            className="bg-secondary hover:bg-secondary/80 text-foreground border border-border px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+                        >
+                            <DollarSign className="h-4 w-4" />
+                            <span className="hidden sm:inline">Bank Accounts</span>
+                        </button>
+                        <button
                             onClick={() => setIsQuoteSelectorOpen(true)}
                             className="bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
                         >
@@ -350,6 +359,11 @@ export const InvoicesPage = () => {
                     quotation={quoteInvoiceModalQuote}
                 />
             )}
+
+            <ManageBankAccountsModal 
+                isOpen={isBankModalOpen} 
+                onClose={() => setIsBankModalOpen(false)} 
+            />
         </div>
     );
 };

@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { InvoiceDto } from '../types/finance';
+import { InvoiceDto, BankAccountDto } from '../types/finance';
 
 export const invoiceService = {
     getAll: async (): Promise<InvoiceDto[]> => {
@@ -46,6 +46,16 @@ export const invoiceService = {
         const response = await apiClient.get(`/Invoice/${id}/pdf`, {
             responseType: 'blob'
         });
+        return response.data;
+    },
+
+    getBankAccounts: async (): Promise<BankAccountDto[]> => {
+        const response = await apiClient.get<BankAccountDto[]>('/Invoice/bank-accounts');
+        return response.data;
+    },
+
+    addBankAccount: async (dto: any): Promise<BankAccountDto> => {
+        const response = await apiClient.post<BankAccountDto>('/Invoice/bank-accounts', dto);
         return response.data;
     }
 };

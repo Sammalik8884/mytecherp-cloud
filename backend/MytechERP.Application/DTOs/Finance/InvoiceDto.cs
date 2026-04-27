@@ -20,6 +20,13 @@ namespace MytechERP.Application.DTOs.Finance
         public int Status { get; set; }
         public string? StatusString { get; set; }
 
+        public string? BankName { get; set; }
+        public string? BankAccountNumber { get; set; }
+        public string? BankAccountTitle { get; set; }
+
+        public string? IssuedByName { get; set; }
+        public string? IssuedByPhone { get; set; }
+
         public List<InvoiceItemDto> Items { get; set; } = new List<InvoiceItemDto>();
     }
 }

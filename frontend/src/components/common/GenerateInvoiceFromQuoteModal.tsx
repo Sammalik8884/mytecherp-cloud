@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Loader2, AlertCircle, Trash2 } from "lucide-react";
-import { CreateInvoiceDto } from "../../types/finance";
+import { CreateInvoiceDto, BankAccountDto } from "../../types/finance";
 import { invoiceService } from "../../services/invoiceService";
 import { QuotationDto, QuotationItemDto, quotationService } from "../../services/quotationService";
 import { toast } from "react-hot-toast";
@@ -33,6 +33,32 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
     const [ignoreFullyInvoiced, setIgnoreFullyInvoiced] = useState(false);
     const [showEmptyPrompt, setShowEmptyPrompt] = useState(false);
     const [freshQuotation, setFreshQuotation] = useState<QuotationDto | null>(null);
+
+    const [bankAccounts, setBankAccounts] = useState<BankAccountDto[]>([]);
+    const [selectedBankId, setSelectedBankId] = useState<string>('');
+    const [bankName, setBankName] = useState('');
+    const [bankAccountNumber, setBankAccountNumber] = useState('');
+    const [bankAccountTitle, setBankAccountTitle] = useState('');
+
+    const [issuedByName, setIssuedByName] = useState('');
+    const [issuedByPhone, setIssuedByPhone] = useState('');
+
+    useEffect(() => {
+        if (isOpen) {
+            invoiceService.getBankAccounts()
+                .then(data => {
+                    setBankAccounts(data);
+                    const defaultBank = data.find(b => b.isDefault);
+                    if (defaultBank) {
+                        setSelectedBankId(defaultBank.id.toString());
+                        setBankName(defaultBank.bankName);
+                        setBankAccountNumber(defaultBank.accountNumber);
+                        setBankAccountTitle(defaultBank.accountTitle);
+                    }
+                })
+                .catch(err => console.error("Failed to load bank accounts", err));
+        }
+    }, [isOpen]);
 
     // Re-fetch the quote by ID to get fresh invoiced quantity tracking data
     useEffect(() => {
@@ -171,7 +197,12 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                 quantity: i.quantity,
                 unitPrice: i.unitPrice,
                 quotationItemId: i.quotationItemId
-            }))
+            })),
+            bankName: bankName || undefined,
+            bankAccountNumber: bankAccountNumber || undefined,
+            bankAccountTitle: bankAccountTitle || undefined,
+            issuedByName: issuedByName || undefined,
+            issuedByPhone: issuedByPhone || undefined
         };
 
         try {
@@ -223,6 +254,97 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                     onChange={(e) => setDueDate(e.target.value)}
                                     className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
                                 />
+                            </div>
+                        </div>
+
+                        {/* Bank Details & Issuer */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Bank Accounts */}
+                            <div className="bg-card border border-border p-4 rounded-xl shadow-sm">
+                                <h3 className="text-sm font-semibold text-foreground mb-4">Bank Details</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-muted-foreground mb-1">Select Bank Account</label>
+                                        <select
+                                            value={selectedBankId}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setSelectedBankId(val);
+                                                if (val !== 'custom' && val !== '') {
+                                                    const bank = bankAccounts.find(b => b.id.toString() === val);
+                                                    if (bank) {
+                                                        setBankName(bank.bankName);
+                                                        setBankAccountNumber(bank.accountNumber);
+                                                        setBankAccountTitle(bank.accountTitle);
+                                                    }
+                                                } else {
+                                                    setBankName('');
+                                                    setBankAccountNumber('');
+                                                    setBankAccountTitle('');
+                                                }
+                                            }}
+                                            className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                        >
+                                            <option value="">-- No Bank Details --</option>
+                                            {bankAccounts.map(b => (
+                                                <option key={b.id} value={b.id}>{b.bankName} - {b.accountNumber}</option>
+                                            ))}
+                                            <option value="custom">Custom (Enter below)</option>
+                                        </select>
+                                    </div>
+                                    {selectedBankId === 'custom' && (
+                                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Bank Name"
+                                                value={bankName}
+                                                onChange={e => setBankName(e.target.value)}
+                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Account Number"
+                                                value={bankAccountNumber}
+                                                onChange={e => setBankAccountNumber(e.target.value)}
+                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Account Title"
+                                                value={bankAccountTitle}
+                                                onChange={e => setBankAccountTitle(e.target.value)}
+                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Issuer Details */}
+                            <div className="bg-card border border-border p-4 rounded-xl shadow-sm">
+                                <h3 className="text-sm font-semibold text-foreground mb-4">Issued By (Optional)</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. John Doe"
+                                            value={issuedByName}
+                                            onChange={e => setIssuedByName(e.target.value)}
+                                            className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-muted-foreground mb-1">Phone</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. +1 234 567 8900"
+                                            value={issuedByPhone}
+                                            onChange={e => setIssuedByPhone(e.target.value)}
+                                            className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

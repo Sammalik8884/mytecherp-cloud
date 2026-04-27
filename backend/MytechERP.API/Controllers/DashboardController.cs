@@ -22,7 +22,6 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("metrics")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
         [RequirePlanFeature(PlanFeature.AdvancedAnalytics)]
         public async Task<IActionResult> GetMetrics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
@@ -37,7 +36,6 @@ namespace MytechERP.API.Controllers
             }
         }
         [HttpGet("sales-activity")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
         public async Task<IActionResult> GetSalesmanActivity([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             try
@@ -52,7 +50,6 @@ namespace MytechERP.API.Controllers
         }
         
         [HttpGet("sales-activity/export/csv")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
         public async Task<IActionResult> ExportSalesActivityCsv([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             try
@@ -79,7 +76,6 @@ namespace MytechERP.API.Controllers
         }
         
         [HttpGet("sales-activity/export/pdf")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
         public async Task<IActionResult> ExportSalesActivityPdf([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             try

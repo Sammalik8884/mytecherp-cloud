@@ -25,6 +25,12 @@ export interface CreateInvoiceDto {
     totalAmount: number;
     status: number;
     items: CreateInvoiceItemDto[];
+
+    bankName?: string;
+    bankAccountNumber?: string;
+    bankAccountTitle?: string;
+    issuedByName?: string;
+    issuedByPhone?: string;
 }
 
 export interface InvoiceDto {
@@ -43,6 +49,20 @@ export interface InvoiceDto {
     status: number; // Enum: 0=Draft, 1=Issued, 2=Paid, 3=Overdue, 4=Void
     statusString?: string;
     items?: InvoiceItemDto[];
+
+    bankName?: string;
+    bankAccountNumber?: string;
+    bankAccountTitle?: string;
+    issuedByName?: string;
+    issuedByPhone?: string;
+}
+
+export interface BankAccountDto {
+    id: number;
+    bankName: string;
+    accountNumber: string;
+    accountTitle: string;
+    isDefault: boolean;
 }
 
 export interface PaymentRequestDto {

@@ -126,15 +126,21 @@ namespace MyTechERP.Infrastructure.PDF
                             });
                         }
 
-                        var custName = Invoice.Customer != null ? Invoice.Customer.Name : "Standard Customer";
-                        InfoRow("To", custName, true);
+                        var companyName = Invoice.Customer != null && !string.IsNullOrWhiteSpace(Invoice.Customer.CompanyName) 
+                                        ? Invoice.Customer.CompanyName 
+                                        : (Invoice.Customer != null ? Invoice.Customer.Name : "Standard Customer");
+                        InfoRow("To", companyName, true);
                         
                         if (Invoice.Customer != null)
                         {
-                            if (!string.IsNullOrWhiteSpace(Invoice.Customer.Email))
-                                InfoRow("Email", Invoice.Customer.Email);
+                            var contactPerson = Invoice.Customer.ContactPersonName ?? Invoice.Customer.Name;
+                            if (!string.IsNullOrWhiteSpace(contactPerson) && contactPerson != companyName)
+                                InfoRow("Contact Person", contactPerson);
+
                             if (!string.IsNullOrWhiteSpace(Invoice.Customer.Phone))
                                 InfoRow("Contact", Invoice.Customer.Phone);
+                            if (!string.IsNullOrWhiteSpace(Invoice.Customer.Email))
+                                InfoRow("Email", Invoice.Customer.Email);
                             if (!string.IsNullOrWhiteSpace(Invoice.Customer.Address))
                                 InfoRow("Address", Invoice.Customer.Address);
                         }
@@ -334,33 +340,65 @@ namespace MyTechERP.Infrastructure.PDF
                     .PaddingHorizontal(8).PaddingVertical(5)
                     .Text("PAYMENT INSTRUCTIONS & TERMS").Bold().FontSize(9).FontColor(Brand);
 
-                col.Item().PaddingTop(4).Table(tcTerms =>
+                col.Item().PaddingTop(8).Row(rTerms =>
                 {
-                    tcTerms.ColumnsDefinition(tcd => { tcd.RelativeColumn(); tcd.RelativeColumn(); });
-
-                    void TermBlock(string title, string[] points)
+                    rTerms.RelativeItem(6).Column(leftCol => 
                     {
-                        tcTerms.Cell().Element(tc => tc.Padding(3)).Column(bc =>
+                        void TermBlock(string title, string[] points)
                         {
-                            bc.Item().Text(title).Bold().FontSize(7.5f).FontColor(Brand);
-                            foreach (var p in points)
-                                bc.Item().PaddingLeft(4).Text($"\u2022 {p}").FontSize(7f).FontColor(TextMuted);
+                            leftCol.Item().PaddingBottom(8).Column(bc =>
+                            {
+                                bc.Item().Text(title).Bold().FontSize(8f).FontColor(Brand);
+                                foreach (var p in points)
+                                    bc.Item().PaddingLeft(4).Text($"\u2022 {p}").FontSize(7.5f).FontColor(TextMuted);
+                            });
+                        }
+
+                        var paymentMethods = new System.Collections.Generic.List<string>
+                        {
+                            "All cheques must be payable to MY TECH ENGINEERING COMPANY PVT LTD.",
+                            "Please reference the Invoice Number on all payments."
+                        };
+                        
+                        if (string.IsNullOrWhiteSpace(Invoice.BankName))
+                        {
+                            paymentMethods.Add("Direct bank transfers can be sent to the standard account on file.");
+                        }
+
+                        TermBlock("Payment Methods", paymentMethods.ToArray());
+
+                        TermBlock("Terms", new[]
+                        {
+                            $"Payment is due by {Invoice.DueDate.ToString("dd-MMM-yyyy")}.",
+                            "Late payments may be subject to additional fees.",
+                            "Thank you for your business!"
+                        });
+                    });
+
+                    if (!string.IsNullOrWhiteSpace(Invoice.BankName))
+                    {
+                        rTerms.RelativeItem(4).PaddingLeft(15).Column(rightCol => 
+                        {
+                            rightCol.Item().Text("BANK DETAILS").Bold().FontSize(8f).FontColor(Brand);
+                            rightCol.Item().PaddingTop(3).Background(Colors.Grey.Lighten4).Border(1f).BorderColor(Brand).Padding(8).Column(bankCol => 
+                            {
+                                bankCol.Item().Text("Bank Name:").FontSize(7f).FontColor(TextMuted);
+                                bankCol.Item().Text(Invoice.BankName).Bold().FontSize(9f).FontColor(TextDark);
+                                
+                                if (!string.IsNullOrWhiteSpace(Invoice.BankAccountTitle))
+                                {
+                                    bankCol.Item().PaddingTop(4).Text("Account Title:").FontSize(7f).FontColor(TextMuted);
+                                    bankCol.Item().Text(Invoice.BankAccountTitle).SemiBold().FontSize(8.5f).FontColor(TextDark);
+                                }
+                                
+                                if (!string.IsNullOrWhiteSpace(Invoice.BankAccountNumber))
+                                {
+                                    bankCol.Item().PaddingTop(4).Text("Account Number:").FontSize(7f).FontColor(TextMuted);
+                                    bankCol.Item().Text(Invoice.BankAccountNumber).Bold().FontSize(10f).FontColor(Brand);
+                                }
+                            });
                         });
                     }
-
-                    TermBlock("Payment Methods", new[]
-                    {
-                        "All cheques must be payable to MY TECH ENGINEERING COMPANY PVT LTD.",
-                        "Direct bank transfers can be sent to the standard account on file.",
-                        "Please reference the Invoice Number on all payments."
-                    });
-
-                    TermBlock("Terms", new[]
-                    {
-                        $"Payment is due by {Invoice.DueDate.ToString("dd-MMM-yyyy")}.",
-                        "Late payments may be subject to additional fees.",
-                        "Thank you for your business!"
-                    });
                 });
 
                 // Signature row
@@ -370,12 +408,12 @@ namespace MyTechERP.Infrastructure.PDF
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text(role).Bold().FontSize(7.5f).FontColor(Brand);
-                            c.Item().PaddingTop(18).LineHorizontal(0.5f).LineColor(BorderGrey);
-                            c.Item().PaddingTop(3).Text(name).SemiBold().FontSize(8.5f);
-                            c.Item().Text(title).FontSize(7.5f).FontColor(TextMuted);
-                            c.Item().Text(phone).FontSize(7.5f).FontColor(TextMuted);
-                            c.Item().Text(email).FontSize(7f).FontColor(HighlightGold);
+                            c.Item().Text(role).Bold().FontSize(8f).FontColor(Brand);
+                            c.Item().PaddingTop(22).LineHorizontal(0.5f).LineColor(BorderGrey);
+                            c.Item().PaddingTop(4).Text(name).Bold().FontSize(9.5f).FontColor(TextDark);
+                            if (!string.IsNullOrWhiteSpace(title)) c.Item().Text(title).FontSize(8f).FontColor(TextMuted);
+                            if (!string.IsNullOrWhiteSpace(phone)) c.Item().Text(phone).FontSize(8f).FontColor(TextMuted);
+                            if (!string.IsNullOrWhiteSpace(email)) c.Item().Text(email).FontSize(7.5f).FontColor(HighlightGold);
                         });
                     }
 
@@ -384,8 +422,11 @@ namespace MyTechERP.Infrastructure.PDF
 
                     row.ConstantItem(30);
 
-                    SigBlock("Prepared By:", "Engr. Muhammad Huzefa", "Estimation & Design Engineer",
-                        "+92-306-7666644", "m.huzefa@mytecheng.com");
+                    var preparedByName = !string.IsNullOrWhiteSpace(Invoice.IssuedByName) ? Invoice.IssuedByName : "Engr. Muhammad Huzefa";
+                    var preparedByPhone = !string.IsNullOrWhiteSpace(Invoice.IssuedByPhone) ? Invoice.IssuedByPhone : "+92-306-7666644";
+                    
+                    SigBlock("Issued By:", preparedByName, "",
+                        preparedByPhone, "");
                 });
             });
         }

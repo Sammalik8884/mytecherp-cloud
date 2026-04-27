@@ -1,4 +1,4 @@
-﻿using MytechERP.domain.Entities.Finance;
+using MytechERP.domain.Entities.Finance;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,5 +17,7 @@ namespace MytechERP.Application.Interfaces
         Task<InvoiceDto> GetByIdAsync(int id, string tenantId);
         Task<bool> UpdateStatusAsync(int id, int status, string tenantId);
         Task<IEnumerable<InvoiceDto>> GetByCustomerEmailAsync(string email);
+        Task<IEnumerable<BankAccountDto>> GetBankAccountsAsync(string tenantId);
+        Task<BankAccountDto> AddBankAccountAsync(BankAccountDto dto, string tenantId);
     }
 }

@@ -33,7 +33,7 @@ namespace MytechERP.API.Controllers
         // ======================= LEADS =======================
 
         [HttpGet("leads")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman + "," + Roles.Engineer + "," + Roles.Estimation)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult<IEnumerable<SalesLeadDto>>> GetLeads()
         {
             var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
@@ -101,7 +101,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("leads/{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman + "," + Roles.Engineer + "," + Roles.Estimation)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult<SalesLeadDto>> GetLead(int id)
         {
             var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
@@ -154,7 +154,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("leads")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> CreateLead(CreateSalesLeadDto dto)
         {
             var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
@@ -187,7 +187,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("initial-client-visit")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> CreateInitialClientVisit([FromForm] CreateInitialClientVisitDto dto, [FromForm] IFormFile? photo, [FromForm] IFormFile? visitingCardPhoto)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -297,7 +297,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("leads/{id}/initial-data")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult<CreateInitialClientVisitDto>> GetInitialClientData(int id)
         {
             var lead = await _context.SalesLeads
@@ -338,7 +338,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPut("leads/{id}/initial-data")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> UpdateInitialClientData(int id, [FromForm] CreateInitialClientVisitDto dto, [FromForm] IFormFile? photo, [FromForm] IFormFile? visitingCardPhoto)
         {
             var lead = await _context.SalesLeads
@@ -440,7 +440,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPut("leads/{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> UpdateLead(int id, UpdateSalesLeadDto dto)
         {
             var lead = await _context.SalesLeads.FindAsync(id);
@@ -462,7 +462,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpDelete("leads/{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> DeleteLead(int id)
         {
             var lead = await _context.SalesLeads.FindAsync(id);
@@ -474,7 +474,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("leads/{id}/close")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> CloseLead(int id, [FromForm] CloseSalesLeadDto dto)
         {
             var lead = await _context.SalesLeads.FindAsync(id);
@@ -506,7 +506,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPut("leads/{id}/revise-boq")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> ReviseBoq(int id, [FromForm] CloseSalesLeadDto dto)
         {
             var lead = await _context.SalesLeads.FindAsync(id);
@@ -545,7 +545,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("leads/{id}/reopen")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> ReopenLead(int id)
         {
             var lead = await _context.SalesLeads.FindAsync(id);
@@ -569,7 +569,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("leads/{leadId}/quotes")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> GetLeadQuotes(int leadId)
         {
             var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
@@ -599,7 +599,7 @@ namespace MytechERP.API.Controllers
         // ======================= VISITS =======================
 
         [HttpGet("leads/{leadId}/visits")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult<IEnumerable<SiteVisitDto>>> GetVisits(int leadId)
         {
             var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
@@ -642,7 +642,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("leads/{leadId}/visits/start")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> StartVisit(int leadId, StartSiteVisitDto dto)
         {
             var lead = await _context.SalesLeads.Include(l => l.SiteVisits).FirstOrDefaultAsync(l => l.Id == leadId);
@@ -674,7 +674,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPut("visits/{visitId}/end")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> EndVisit(int visitId, EndSiteVisitDto dto)
         {
             var visit = await _context.SiteVisits.Include(v => v.SalesLead).FirstOrDefaultAsync(v => v.Id == visitId);
@@ -695,7 +695,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("visits/{visitId}/photos")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> UploadVisitPhoto(int visitId, [FromForm] IFormFile file, [FromForm] string? caption)
         {
             if (file == null) return BadRequest("File is required");

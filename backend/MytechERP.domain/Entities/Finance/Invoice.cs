@@ -1,4 +1,4 @@
-﻿using MytechERP.domain.Common;
+using MytechERP.domain.Common;
 using MytechERP.domain.Entities.CRM;
 using System;
 using System.Collections.Generic;
@@ -35,6 +35,13 @@ namespace MytechERP.domain.Entities.Finance
         public InvoiceStatus Status { get; set; } = InvoiceStatus.Draft;
         public virtual ICollection<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();
         public int? SubscriptionId { get; set; }
+
+        public string? BankName { get; set; }
+        public string? BankAccountNumber { get; set; }
+        public string? BankAccountTitle { get; set; }
+
+        public string? IssuedByName { get; set; }
+        public string? IssuedByPhone { get; set; }
     }
 
     public enum InvoiceStatus { Draft = 0, Issued = 1, Paid = 2, Overdue = 3, Cancelled = 4 }

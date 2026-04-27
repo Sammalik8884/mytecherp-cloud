@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2, Loader2 } from "lucide-react";
-import { CreateInvoiceDto, CreateInvoiceItemDto } from "../types/finance";
+import { CreateInvoiceDto, CreateInvoiceItemDto, BankAccountDto } from "../types/finance";
 import { invoiceService } from "../services/invoiceService";
 import { customerService } from "../services/customerService";
 import { productService } from "../services/productService";
@@ -39,6 +39,15 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
     ]);
     const [taxRate, setTaxRate] = useState(0);
 
+    const [bankAccounts, setBankAccounts] = useState<BankAccountDto[]>([]);
+    const [selectedBankId, setSelectedBankId] = useState<string>('');
+    const [bankName, setBankName] = useState('');
+    const [bankAccountNumber, setBankAccountNumber] = useState('');
+    const [bankAccountTitle, setBankAccountTitle] = useState('');
+
+    const [issuedByName, setIssuedByName] = useState('');
+    const [issuedByPhone, setIssuedByPhone] = useState('');
+
     // Derived values
     const subTotal = items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
     const taxAmount = subTotal * (taxRate / 100);
@@ -49,14 +58,23 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
             const loadData = async () => {
                 setDataLoading(true);
                 try {
-                    const [custs, prods, asts] = await Promise.all([
+                    const [custs, prods, asts, banks] = await Promise.all([
                         customerService.getAll(),
                         productService.getAll(1, 200), // Get lots of products for the dropdown
-                        assetService.getAll()
+                        assetService.getAll(),
+                        invoiceService.getBankAccounts()
                     ]);
                     setCustomers(custs);
                     setProducts(prods);
                     setAssets(asts);
+                    setBankAccounts(banks);
+                    const defaultBank = banks.find(b => b.isDefault);
+                    if (defaultBank) {
+                        setSelectedBankId(defaultBank.id.toString());
+                        setBankName(defaultBank.bankName);
+                        setBankAccountNumber(defaultBank.accountNumber);
+                        setBankAccountTitle(defaultBank.accountTitle);
+                    }
                 } catch (error) {
                     toast.error("Failed to load select options.");
                     console.error("Failed to load options", error);
@@ -133,7 +151,12 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                 description: i.description,
                 quantity: i.quantity,
                 unitPrice: i.unitPrice
-            }))
+            })),
+            bankName: bankName || undefined,
+            bankAccountNumber: bankAccountNumber || undefined,
+            bankAccountTitle: bankAccountTitle || undefined,
+            issuedByName: issuedByName || undefined,
+            issuedByPhone: issuedByPhone || undefined
         };
 
         try {
@@ -201,6 +224,97 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                     onChange={(e) => setDueDate(e.target.value)}
                                     className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
                                 />
+                            </div>
+                        </div>
+
+                        {/* Bank Details & Issuer */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Bank Accounts */}
+                            <div className="bg-card border border-border p-4 rounded-xl shadow-sm">
+                                <h3 className="text-sm font-semibold text-foreground mb-4">Bank Details</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-muted-foreground mb-1">Select Bank Account</label>
+                                        <select
+                                            value={selectedBankId}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setSelectedBankId(val);
+                                                if (val !== 'custom' && val !== '') {
+                                                    const bank = bankAccounts.find(b => b.id.toString() === val);
+                                                    if (bank) {
+                                                        setBankName(bank.bankName);
+                                                        setBankAccountNumber(bank.accountNumber);
+                                                        setBankAccountTitle(bank.accountTitle);
+                                                    }
+                                                } else {
+                                                    setBankName('');
+                                                    setBankAccountNumber('');
+                                                    setBankAccountTitle('');
+                                                }
+                                            }}
+                                            className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                        >
+                                            <option value="">-- No Bank Details --</option>
+                                            {bankAccounts.map(b => (
+                                                <option key={b.id} value={b.id}>{b.bankName} - {b.accountNumber}</option>
+                                            ))}
+                                            <option value="custom">Custom (Enter below)</option>
+                                        </select>
+                                    </div>
+                                    {selectedBankId === 'custom' && (
+                                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Bank Name"
+                                                value={bankName}
+                                                onChange={e => setBankName(e.target.value)}
+                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Account Number"
+                                                value={bankAccountNumber}
+                                                onChange={e => setBankAccountNumber(e.target.value)}
+                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Account Title"
+                                                value={bankAccountTitle}
+                                                onChange={e => setBankAccountTitle(e.target.value)}
+                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Issuer Details */}
+                            <div className="bg-card border border-border p-4 rounded-xl shadow-sm">
+                                <h3 className="text-sm font-semibold text-foreground mb-4">Issued By (Optional)</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. John Doe"
+                                            value={issuedByName}
+                                            onChange={e => setIssuedByName(e.target.value)}
+                                            className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-muted-foreground mb-1">Phone</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. +1 234 567 8900"
+                                            value={issuedByPhone}
+                                            onChange={e => setIssuedByPhone(e.target.value)}
+                                            className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

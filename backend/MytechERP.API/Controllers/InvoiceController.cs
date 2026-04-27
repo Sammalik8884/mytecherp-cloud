@@ -135,6 +135,30 @@ namespace MytechERP.API.Controllers
                 return BadRequest(new { Error = ex.Message });
             }
         }
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
+        [HttpGet("bank-accounts")]
+        public async Task<IActionResult> GetBankAccounts()
+        {
+            var tenantId = User.FindFirst("TenantId")?.Value ?? "1";
+            var accounts = await _service.GetBankAccountsAsync(tenantId);
+            return Ok(accounts);
+        }
+
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
+        [HttpPost("bank-accounts")]
+        public async Task<IActionResult> AddBankAccount([FromBody] MytechERP.Application.DTOs.Finance.BankAccountDto dto)
+        {
+            try
+            {
+                var tenantId = User.FindFirst("TenantId")?.Value ?? "1";
+                var result = await _service.AddBankAccountAsync(dto, tenantId);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
     }
 }
 

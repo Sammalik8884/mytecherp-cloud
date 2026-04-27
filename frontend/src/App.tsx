@@ -92,17 +92,11 @@ function App() {
                                 <Route path="/sales/boq-portal" element={<BoqDrawingsPortalPage />} />
                             </Route>
 
-                            {/* Sales & Leads - Salesman/Manager/Admin */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Salesman", "Estimation"]} />}>
+                            {/* Sales & Leads - Internal Roles */}
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"]} />}>
                                 <Route path="/sales/leads" element={<SalesLeadsPage />} />
                                 <Route path="/sales/visit/:id" element={<SiteVisitPage />} />
-                            </Route>
-
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager"]} />}>
                                 <Route path="/sales/activity" element={<ActivityPage />} />
-                            </Route>
-                            
-                            <Route element={<RoleProtectedRoute allowedRoles={["Salesman"]} />}>
                                 <Route path="/sales/my-dashboard" element={<SalesmanDashboardPage />} />
                             </Route>
 

@@ -78,7 +78,7 @@ export const DashboardPage: React.FC = () => {
     };
 
     useEffect(() => {
-        if (user?.roles?.includes('Admin') || user?.roles?.includes('Manager')) {
+        if (user) {
             fetchMetrics();
         }
     }, [dateRange, user]);
@@ -86,22 +86,6 @@ export const DashboardPage: React.FC = () => {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
-    if (!(user?.roles?.includes('Admin') || user?.roles?.includes('Manager'))) {
-        return (
-            <div className="min-h-screen p-8 animate-in fade-in duration-500">
-                <h1 className="text-4xl font-black tracking-tight text-foreground leading-tight">
-                    {greeting},&nbsp;
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-cyan-400 to-blue-400">
-                        {user?.fullName?.split(' ')[0] ?? 'User'}
-                    </span>
-                </h1>
-                <p className="text-muted-foreground mt-4 text-lg">Welcome to your dashboard.</p>
-                <div className="mt-8">
-                    <SystemSetupGuide />
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen pb-20 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

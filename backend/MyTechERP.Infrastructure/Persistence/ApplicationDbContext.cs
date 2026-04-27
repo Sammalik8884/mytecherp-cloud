@@ -78,6 +78,7 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<StockTransferItem> stockTransferItems { get; set; }
         public DbSet<StockAdjustment> StockAdjustments { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<BankAccount> BankAccounts { get; set; }
         public DbSet<TimeLog> TimeLogs { get; set; }
         public DbSet<InvoiceItem> InvoiceItems { get; set; }
         public DbSet<EmployeePayrollProfile> EmployeeProfiles { get; set; }
@@ -186,6 +187,7 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<StockTransfer>().HasQueryFilter(st => st.TenantId == _currentUserService.TenantId && !st.IsDeleted);
             builder.Entity<StockAdjustment>().HasQueryFilter(sa => sa.TenantId == _currentUserService.TenantId && !sa.IsDeleted);
             builder.Entity<PaymentTransaction>().HasQueryFilter(pt => pt.TenantId == _currentUserService.TenantId && !pt.IsDeleted);
+            builder.Entity<BankAccount>().HasQueryFilter(ba => ba.TenantId == _currentUserService.TenantId && !ba.IsDeleted);
             builder.Entity<Product>().HasQueryFilter(p => p.TenantId == _currentUserService.TenantId && !p.IsDeleted);
             builder.Entity<Category>().HasQueryFilter(c => c.TenantId == _currentUserService.TenantId && !c.IsDeleted);
             builder.Entity<TimeLog>().HasQueryFilter(tl => tl.TenantId == _currentUserService.TenantId);

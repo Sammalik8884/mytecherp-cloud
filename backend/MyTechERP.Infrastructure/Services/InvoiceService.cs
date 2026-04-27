@@ -23,6 +23,25 @@ namespace MyTechERP.Infrastructure.Services
             _context = context;
         }
 
+        private async Task<string> GenerateNextInvoiceNumberAsync(int tenantId)
+        {
+            var maxInvoice = await _context.Invoices
+                .Where(i => i.TenantId == tenantId && i.InvoiceNumber.StartsWith("MTI-A"))
+                .OrderByDescending(i => i.InvoiceNumber)
+                .FirstOrDefaultAsync();
+
+            int nextNumber = 1;
+            if (maxInvoice != null)
+            {
+                var numStr = maxInvoice.InvoiceNumber.Replace("MTI-A", "");
+                if (int.TryParse(numStr, out int lastNum))
+                {
+                    nextNumber = lastNum + 1;
+                }
+            }
+            return $"MTI-A{nextNumber:D4}";
+        }
+
         public async Task<Invoice> CreateFromQuotationAsync(int quotationId)
         {
             var quote = await _context.Quotations
@@ -37,7 +56,7 @@ namespace MyTechERP.Infrastructure.Services
 
             var invoice = new Invoice
             {
-                InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMM}-{quote.Id}",
+                InvoiceNumber = await GenerateNextInvoiceNumberAsync(quote.TenantId),
                 CustomerId = quote.CustomerId,
                 QuotationId = quote.Id,
                 IssueDate = DateTime.UtcNow,
@@ -71,7 +90,7 @@ namespace MyTechERP.Infrastructure.Services
             int tId = int.Parse(tenantId);
             var invoice = new Invoice
             {
-                InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMdd}-{new Random().Next(1000, 9999)}",
+                InvoiceNumber = await GenerateNextInvoiceNumberAsync(tId),
                 CustomerId = dto.CustomerId,
                 QuotationId = dto.QuotationId,
                 WorkOrderId = dto.WorkOrderId,
@@ -81,7 +100,12 @@ namespace MyTechERP.Infrastructure.Services
                 TaxAmount = dto.TaxAmount,
                 TotalAmount = dto.TotalAmount,
                 Status = (InvoiceStatus)dto.Status,
-                TenantId = tId
+                TenantId = tId,
+                BankName = dto.BankName,
+                BankAccountNumber = dto.BankAccountNumber,
+                BankAccountTitle = dto.BankAccountTitle,
+                IssuedByName = dto.IssuedByName,
+                IssuedByPhone = dto.IssuedByPhone
             };
 
             foreach (var item in dto.Items)
@@ -114,7 +138,7 @@ namespace MyTechERP.Infrastructure.Services
             {
                 CustomerId = job.CustomerId,
                 WorkOrderId = workOrderId,
-                InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMdd}-{new Random().Next(1000, 9999)}",
+                InvoiceNumber = await GenerateNextInvoiceNumberAsync(job.TenantId),
                 IssueDate = DateTime.UtcNow,
                 DueDate = DateTime.UtcNow.AddDays(30),
                 Status = InvoiceStatus.Issued, 
@@ -204,6 +228,11 @@ namespace MyTechERP.Infrastructure.Services
                 AmountPaid = i.AmountPaid,
                 Status = (int)i.Status,
                 StatusString = i.Status.ToString(),
+                BankName = i.BankName,
+                BankAccountNumber = i.BankAccountNumber,
+                BankAccountTitle = i.BankAccountTitle,
+                IssuedByName = i.IssuedByName,
+                IssuedByPhone = i.IssuedByPhone,
                 Items = i.Items.Select(item => new InvoiceItemDto
                 {
                     Id = item.Id,
@@ -266,6 +295,40 @@ namespace MyTechERP.Infrastructure.Services
                     TotalPrice = item.TotalPrice > 0 ? item.TotalPrice : (item.Quantity * item.UnitPrice)
                 }).ToList()
             });
+        }
+        public async Task<IEnumerable<BankAccountDto>> GetBankAccountsAsync(string tenantId)
+        {
+            int tId = int.Parse(tenantId);
+            var accounts = await _context.BankAccounts
+                .Where(b => b.TenantId == tId && !b.IsDeleted)
+                .ToListAsync();
+
+            return accounts.Select(b => new BankAccountDto
+            {
+                Id = b.Id,
+                BankName = b.BankName,
+                AccountNumber = b.AccountNumber,
+                AccountTitle = b.AccountTitle,
+                IsDefault = b.IsDefault
+            });
+        }
+
+        public async Task<BankAccountDto> AddBankAccountAsync(BankAccountDto dto, string tenantId)
+        {
+            int tId = int.Parse(tenantId);
+            var bank = new BankAccount
+            {
+                BankName = dto.BankName,
+                AccountNumber = dto.AccountNumber,
+                AccountTitle = dto.AccountTitle,
+                IsDefault = dto.IsDefault,
+                TenantId = tId
+            };
+            _context.BankAccounts.Add(bank);
+            await _context.SaveChangesAsync();
+            
+            dto.Id = bank.Id;
+            return dto;
         }
     }
 }

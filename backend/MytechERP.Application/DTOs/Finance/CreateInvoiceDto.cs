@@ -15,6 +15,13 @@ namespace MytechERP.Application.DTOs.Finance
         public decimal TotalAmount { get; set; }
         public int Status { get; set; }
 
+        public string? BankName { get; set; }
+        public string? BankAccountNumber { get; set; }
+        public string? BankAccountTitle { get; set; }
+
+        public string? IssuedByName { get; set; }
+        public string? IssuedByPhone { get; set; }
+
         public List<CreateInvoiceItemDto> Items { get; set; } = new List<CreateInvoiceItemDto>();
     }
 

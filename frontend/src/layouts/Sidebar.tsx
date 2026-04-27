@@ -26,11 +26,11 @@ type SidebarItem = {
 const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Dashboard", href: "/dashboard", icon: Home },
 
-    { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman"] },
-    { label: "Sales Management", href: "/sales/leads", icon: Target, allowedRoles: ["Admin", "Manager", "Salesman"] },
-    { label: "BOQ / Drawings Portal", href: "/sales/boq-portal", icon: FileText, allowedRoles: ["Admin", "Manager", "Engineer", "Estimation"] },
-    { label: "Activity (Salesmen)", href: "/sales/activity", icon: Activity, allowedRoles: ["Admin", "Manager"] },
-    { label: "My Sales Dashboard", href: "/sales/my-dashboard", icon: MapPin, allowedRoles: ["Salesman"] },
+    { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
+    { label: "Sales Management", href: "/sales/leads", icon: Target, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
+    { label: "BOQ / Drawings Portal", href: "/sales/boq-portal", icon: FileText, allowedRoles: ["Admin", "Manager", "Engineer", "Estimation", "Salesman", "Worker", "Technician"] },
+    { label: "Activity (Salesmen)", href: "/sales/activity", icon: Activity, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
+    { label: "My Sales Dashboard", href: "/sales/my-dashboard", icon: MapPin, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
 
     { label: "Foundation", isHeader: true, allowedRoles: ["Admin", "Manager"] },
     { label: "Users & Roles", href: "/users", icon: ShieldAlert, allowedRoles: ["Admin", "Manager"] },
