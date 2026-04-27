@@ -725,7 +725,7 @@ namespace MytechERP.API.Controllers
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to parse NewContactsJson in EndVisit");
+                        Console.WriteLine($"Failed to parse NewContactsJson in EndVisit: {ex.Message}");
                     }
                 }
             }
