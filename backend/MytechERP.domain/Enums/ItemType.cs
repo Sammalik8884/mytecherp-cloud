@@ -4,6 +4,8 @@ namespace MytechERP.domain.Enums
     {
         Imported = 0,
         Local = 1,
-        Service = 2
+        Service = 2,
+        ImportedService = 3,
+        LocalService = 4
     }
 }

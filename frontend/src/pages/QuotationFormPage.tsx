@@ -88,12 +88,14 @@ export const QuotationFormPage = () => {
     // Selections for Quote Sections
     const [showImported, setShowImported] = useState(false);
     const [showLocal, setShowLocal] = useState(false);
-    const [showServices, setShowServices] = useState(false);
+    const [showImportedServices, setShowImportedServices] = useState(false);
+    const [showLocalServices, setShowLocalServices] = useState(false);
     
     // Lists holding our UI items
     const [importedItems, setImportedItems] = useState<UiItem[]>([]);
     const [localItems, setLocalItems] = useState<UiItem[]>([]);
-    const [serviceItems, setServiceItems] = useState<UiItem[]>([]);
+    const [importedServiceItems, setImportedServiceItems] = useState<UiItem[]>([]);
+    const [localServiceItems, setLocalServiceItems] = useState<UiItem[]>([]);
 
     // Breakdown Modal state
     const [modalBreakdown, setModalBreakdown] = useState<any>(null);
@@ -102,7 +104,7 @@ export const QuotationFormPage = () => {
     const [productModalTarget, setProductModalTarget] = useState<{ list: "imported" | "local", index: number } | null>(null);
 
     // Service name edit state
-    const [editingServiceName, setEditingServiceName] = useState<{ list: "imported" | "local" | "service", index: number } | null>(null);
+    const [editingServiceName, setEditingServiceName] = useState<{ list: "imported" | "local" | "service" | "importedService" | "localService", index: number } | null>(null);
 
     // Helper: make empty row
     const makeEmptyRow = (itemType: string): UiItem => ({
@@ -119,20 +121,34 @@ export const QuotationFormPage = () => {
         customUnit: "",
     });
 
-    const handleCustomProductNameBlur = (name: string | undefined, quantity: number) => {
+    const handleCustomProductNameBlur = (name: string | undefined, quantity: number, listType: 'imported' | 'local') => {
         if (!name || name.trim() === "") return;
         
-        setShowServices(true);
-        setServiceItems(prev => {
-            if (prev.some(s => s.serviceName === name)) return prev;
-            const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
-            if (blankIdx !== -1) {
-                const updated = [...prev];
-                updated[blankIdx] = { ...updated[blankIdx], serviceName: name, quantity: quantity };
-                return updated;
-            }
-            return [...prev, { ...makeEmptyRow("Service"), serviceName: name, quantity: quantity }];
-        });
+        if (listType === 'imported') {
+            setShowImportedServices(true);
+            setImportedServiceItems(prev => {
+                if (prev.some(s => s.serviceName === name)) return prev;
+                const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
+                if (blankIdx !== -1) {
+                    const updated = [...prev];
+                    updated[blankIdx] = { ...updated[blankIdx], serviceName: name, quantity: quantity };
+                    return updated;
+                }
+                return [...prev, { ...makeEmptyRow("ImportedService"), serviceName: name, quantity: quantity }];
+            });
+        } else {
+            setShowLocalServices(true);
+            setLocalServiceItems(prev => {
+                if (prev.some(s => s.serviceName === name)) return prev;
+                const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
+                if (blankIdx !== -1) {
+                    const updated = [...prev];
+                    updated[blankIdx] = { ...updated[blankIdx], serviceName: name, quantity: quantity };
+                    return updated;
+                }
+                return [...prev, { ...makeEmptyRow("LocalService"), serviceName: name, quantity: quantity }];
+            });
+        }
     };
 
     // Auto-add first row when section is toggled on
@@ -208,11 +224,13 @@ export const QuotationFormPage = () => {
 
                     setShowImported(quote.items.some(i => i.itemType === "Imported"));
                     setShowLocal(quote.items.some(i => i.itemType === "Local"));
-                    setShowServices(quote.items.some(i => i.itemType === "Service"));
+                    setShowImportedServices(quote.items.some(i => i.itemType === "ImportedService"));
+                    setShowLocalServices(quote.items.some(i => i.itemType === "LocalService" || i.itemType === "Service"));
 
                     const imp: UiItem[] = [];
                     const loc: UiItem[] = [];
-                    const srv: UiItem[] = [];
+                    const impSrv: UiItem[] = [];
+                    const locSrv: UiItem[] = [];
 
                     // Fetch previously selected products to display their names correctly
                     const productIds = quote.items.filter(i => i.productId).map(i => i.productId as number);
@@ -281,12 +299,14 @@ export const QuotationFormPage = () => {
                         
                         if (i.itemType === "Imported") imp.push(uiItem);
                         else if (i.itemType === "Local") loc.push(uiItem);
-                        else srv.push(uiItem);
+                        else if (i.itemType === "ImportedService") impSrv.push(uiItem);
+                        else locSrv.push(uiItem);
                     });
 
                     setImportedItems(imp);
                     setLocalItems(loc);
-                    setServiceItems(srv);
+                    setImportedServiceItems(impSrv);
+                    setLocalServiceItems(locSrv);
 
                 } else if (leadIdParam) {
                     const leadData = await salesService.getLead(Number(leadIdParam)).catch(() => null);
@@ -365,10 +385,13 @@ export const QuotationFormPage = () => {
         setLocalItems([...localItems, makeEmptyRow("Local")]);
     };
 
-    const handleAddService = () => {
-        setServiceItems([...serviceItems, makeEmptyRow("Service")]);
+    const handleAddImportedService = () => {
+        setImportedServiceItems([...importedServiceItems, makeEmptyRow("ImportedService")]);
     };
-
+    
+    const handleAddLocalService = () => {
+        setLocalServiceItems([...localServiceItems, makeEmptyRow("LocalService")]);
+    };
     /* ─── Resolve unit for payload ─── */
     const resolveUnit = (item: UiItem) => {
         if (item.unit === "Custom" && item.customUnit) return item.customUnit;
@@ -379,7 +402,8 @@ export const QuotationFormPage = () => {
         let subTotal = 0;
         if (showImported) subTotal += importedItems.reduce((acc, i) => acc + i.lineTotal, 0);
         if (showLocal) subTotal += localItems.reduce((acc, i) => acc + i.lineTotal, 0);
-        if (showServices) subTotal += serviceItems.reduce((acc, i) => acc + i.lineTotal, 0);
+        if (showImportedServices) subTotal += importedServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
+        if (showLocalServices) subTotal += localServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
 
         const gst = subTotal * (formData.gstPercentage / 100);
         const income = subTotal * (formData.incomeTaxPercentage / 100);
@@ -426,9 +450,13 @@ export const QuotationFormPage = () => {
                  unitQty: i.unitQty || 0
              })));
         }
-        if (showServices) {
-             const valid = serviceItems.filter(i => i.serviceName && i.serviceName.trim() !== "");
-             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "Service", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0 })));
+        if (showImportedServices) {
+             const valid = importedServiceItems.filter(i => i.serviceName && i.serviceName.trim() !== "");
+             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "ImportedService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0 })));
+        }
+        if (showLocalServices) {
+             const valid = localServiceItems.filter(i => i.serviceName && i.serviceName.trim() !== "");
+             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "LocalService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0 })));
         }
 
         if (payloadItems.length === 0) {
@@ -438,7 +466,8 @@ export const QuotationFormPage = () => {
         const modes = [];
         if (showImported) modes.push("Imported");
         if (showLocal) modes.push("Local");
-        if (showServices) modes.push("Services");
+        if (showImportedServices) modes.push("Imported Services");
+        if (showLocalServices) modes.push("Local Services");
         
         const finalQuoteMode = modes.length > 0 ? modes.join(",") : "Local";
 
@@ -479,10 +508,10 @@ export const QuotationFormPage = () => {
     const tinyInputCls = "w-16 bg-background text-foreground border border-border rounded px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50";
 
     /* ─── Service name display with edit ─── */
-    const ServiceNameDisplay = ({ item, idx, list }: { item: UiItem, idx: number, list: "imported" | "local" | "service" }) => {
+    const ServiceNameDisplay = ({ item, idx, list }: { item: UiItem, idx: number, list: "imported" | "local" | "service" | "importedService" | "localService" }) => {
         const isEditing = editingServiceName?.list === list && editingServiceName?.index === idx;
-        const setItems = list === "imported" ? setImportedItems : list === "local" ? setLocalItems : setServiceItems;
-        const items = list === "imported" ? importedItems : list === "local" ? localItems : serviceItems;
+        const setItems = list === "imported" ? setImportedItems : list === "local" ? setLocalItems : list === "importedService" ? setImportedServiceItems : setLocalServiceItems;
+        const items = list === "imported" ? importedItems : list === "local" ? localItems : list === "importedService" ? importedServiceItems : localServiceItems;
         
         const displayName = item.serviceName || (item.product?.name ? item.product.name : "");
         
@@ -532,7 +561,7 @@ export const QuotationFormPage = () => {
                         newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                         setImportedItems(newArr);
                     }}
-                    onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity)}
+                    onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity, "imported")}
                 />
                 <button
                     type="button"
@@ -634,7 +663,7 @@ export const QuotationFormPage = () => {
                         newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                         setLocalItems(newArr);
                     }}
-                    onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity)}
+                    onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity, "imported")}
                 />
                 <button
                     type="button"
@@ -725,7 +754,8 @@ export const QuotationFormPage = () => {
                      {[
                          { label: "Imported Items", checked: showImported, onChange: setShowImported, color: "blue" },
                          { label: "Local Items", checked: showLocal, onChange: setShowLocal, color: "emerald" },
-                         { label: "Services", checked: showServices, onChange: setShowServices, color: "purple" },
+                         { label: "Imported Services", checked: showImportedServices, onChange: setShowImportedServices, color: "purple" },
+                           { label: "Local Services", checked: showLocalServices, onChange: setShowLocalServices, color: "orange" },
                      ].map(opt => (
                          <label key={opt.label} className={`flex items-center gap-2 md:gap-3 cursor-pointer p-3 md:p-4 rounded-xl border-2 transition-all text-sm md:text-base ${opt.checked ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-border hover:border-primary/40'}`}>
                              <input type="checkbox" className="hidden" checked={opt.checked} onChange={e => opt.onChange(e.target.checked)}/>
@@ -821,7 +851,7 @@ export const QuotationFormPage = () => {
                                                           newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                                                           setImportedItems(newArr);
                                                       }}
-                                                      onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity)}
+                                                      onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity, "imported")}
                                                   />
                                                   <button
                                                       type="button"
@@ -954,7 +984,7 @@ export const QuotationFormPage = () => {
                                                           newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                                                           setLocalItems(newArr);
                                                       }}
-                                                      onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity)}
+                                                      onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity, "local")}
                                                   />
                                                   <button
                                                       type="button"
@@ -1036,16 +1066,16 @@ export const QuotationFormPage = () => {
                      </div>
                 )}
 
-                {/* ── SERVICES SECTION ── */}
-                {showServices && (
+                {/* ── IMPORTED SERVICES SECTION ── */}
+                {showImportedServices && (
                      <div className="bg-card border border-border rounded-2xl p-4 md:p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
                          <div className="absolute top-0 left-0 w-1 h-full bg-purple-500 rounded-l-2xl" />
                          <div className="flex justify-between items-center mb-4 pl-3">
                              <h3 className="text-base md:text-lg font-bold text-purple-500 dark:text-purple-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
-                                 Services
+                                 Imported Services
                              </h3>
-                             <button type="button" onClick={handleAddService} className="text-sm bg-purple-500/10 text-purple-500 dark:text-purple-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-purple-500/20 transition-colors">
+                             <button type="button" onClick={handleAddImportedService} className="text-sm bg-purple-500/10 text-purple-500 dark:text-purple-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-purple-500/20 transition-colors">
                                  <Plus className="w-4 h-4 mr-1"/> Add Row
                              </button>
                          </div>
@@ -1054,28 +1084,28 @@ export const QuotationFormPage = () => {
                          <table className="w-full text-sm table-fixed">
                              <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
-                                 {serviceItems.map((item, idx) => (
+                                 {importedServiceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
-                                              <ServiceNameDisplay item={item} idx={idx} list="service" />
+                                              <ServiceNameDisplay item={item} idx={idx} list="importedService" />
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
-                                                  const newArr = [...serviceItems];
+                                                  const newArr = [...importedServiceItems];
                                                   newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) };
-                                                  setServiceItems(newArr);
+                                                  setImportedServiceItems(newArr);
                                               }}/>
                                          </td>
                                          <td className="pl-1">
                                               <input type="number" step="any" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.servicePrice||0} onChange={e => {
-                                                  const newArr = [...serviceItems];
+                                                  const newArr = [...importedServiceItems];
                                                   newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) };
-                                                  setServiceItems(newArr);
+                                                  setImportedServiceItems(newArr);
                                               }}/>
                                          </td>
                                          <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
                                          <td className="text-center">
-                                             <button type="button" onClick={() => setServiceItems(serviceItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
+                                             <button type="button" onClick={() => setImportedServiceItems(importedServiceItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
                                                  <Trash2 className="w-4 h-4 text-destructive"/>
                                              </button>
                                          </td>
@@ -1087,24 +1117,99 @@ export const QuotationFormPage = () => {
 
                          {/* Mobile cards for services */}
                          <div className="md:hidden space-y-3 ml-3">
-                             {serviceItems.map((item, idx) => (
+                             {importedServiceItems.map((item, idx) => (
                                  <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
-                                     <ServiceNameDisplay item={item} idx={idx} list="service" />
+                                     <ServiceNameDisplay item={item} idx={idx} list="importedService" />
                                      <div className="grid grid-cols-2 gap-3">
-                                         <div><label className="text-xs text-muted-foreground">Qty</label><input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => { const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) }; setServiceItems(newArr); }}/></div>
-                                         <div><label className="text-xs text-muted-foreground">Price</label><input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.servicePrice||0} onChange={e => { const newArr = [...serviceItems]; newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) }; setServiceItems(newArr); }}/></div>
+                                         <div><label className="text-xs text-muted-foreground">Qty</label><input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => { const newArr = [...importedServiceItems]; newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) }; setImportedServiceItems(newArr); }}/></div>
+                                         <div><label className="text-xs text-muted-foreground">Price</label><input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.servicePrice||0} onChange={e => { const newArr = [...importedServiceItems]; newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) }; setImportedServiceItems(newArr); }}/></div>
                                      </div>
                                      <div className="flex items-center justify-between">
                                          <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
-                                         <button type="button" onClick={() => setServiceItems(serviceItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors"><Trash2 className="w-4 h-4 text-destructive"/></button>
+                                         <button type="button" onClick={() => setImportedServiceItems(importedServiceItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors"><Trash2 className="w-4 h-4 text-destructive"/></button>
                                      </div>
                                  </div>
                              ))}
                          </div>
 
-                         {serviceItems.length > 0 && (
+                         {importedServiceItems.length > 0 && (
                              <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-4 md:pr-14">
-                                 Section Total: {serviceItems.reduce((s, i) => s + i.lineTotal, 0).toLocaleString(undefined, {maximumFractionDigits:2})} PKR
+                                 Section Total: {importedServiceItems.reduce((s, i) => s + i.lineTotal, 0).toLocaleString(undefined, {maximumFractionDigits:2})} PKR
+                             </div>
+                         )}
+                     </div>
+                )}
+
+                
+                {/* ── LOCAL SERVICES SECTION ── */}
+                {showLocalServices && (
+                     <div className="bg-card border border-border rounded-2xl p-4 md:p-6 shadow-xl animate-in slide-in-from-bottom-4 relative">
+                         <div className="absolute top-0 left-0 w-1 h-full bg-orange-500 rounded-l-2xl" />
+                         <div className="flex justify-between items-center mb-4 pl-3">
+                             <h3 className="text-base md:text-lg font-bold text-orange-500 dark:text-orange-400 flex items-center gap-2">
+                                 <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                                 Local Services
+                             </h3>
+                             <button type="button" onClick={handleAddLocalService} className="text-sm bg-orange-500/10 text-orange-500 dark:text-orange-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-orange-500/20 transition-colors">
+                                 <Plus className="w-4 h-4 mr-1"/> Add Row
+                             </button>
+                         </div>
+                         {/* Desktop table */}
+                         <div className="hidden md:block overflow-x-auto ml-3">
+                         <table className="w-full text-sm table-fixed">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <tbody>
+                                 {localServiceItems.map((item, idx) => (
+                                     <tr key={item.id} className="border-t border-border/30">
+                                         <td className="py-2 pr-2">
+                                              <ServiceNameDisplay item={item} idx={idx} list="localService" />
+                                         </td>
+                                         <td className="px-1">
+                                              <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
+                                                  const newArr = [...localServiceItems];
+                                                  newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) };
+                                                  setLocalServiceItems(newArr);
+                                              }}/>
+                                         </td>
+                                         <td className="pl-1">
+                                              <input type="number" step="any" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.servicePrice||0} onChange={e => {
+                                                  const newArr = [...localServiceItems];
+                                                  newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) };
+                                                  setLocalServiceItems(newArr);
+                                              }}/>
+                                         </td>
+                                         <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
+                                         <td className="text-center">
+                                             <button type="button" onClick={() => setLocalServiceItems(localServiceItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
+                                                 <Trash2 className="w-4 h-4 text-destructive"/>
+                                             </button>
+                                         </td>
+                                     </tr>
+                                 ))}
+                             </tbody>
+                         </table>
+                         </div>
+
+                         {/* Mobile cards for services */}
+                         <div className="md:hidden space-y-3 ml-3">
+                             {localServiceItems.map((item, idx) => (
+                                 <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
+                                     <ServiceNameDisplay item={item} idx={idx} list="localService" />
+                                     <div className="grid grid-cols-2 gap-3">
+                                         <div><label className="text-xs text-muted-foreground">Qty</label><input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => { const newArr = [...localServiceItems]; newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) }; setLocalServiceItems(newArr); }}/></div>
+                                         <div><label className="text-xs text-muted-foreground">Price</label><input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.servicePrice||0} onChange={e => { const newArr = [...localServiceItems]; newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) }; setLocalServiceItems(newArr); }}/></div>
+                                     </div>
+                                     <div className="flex items-center justify-between">
+                                         <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
+                                         <button type="button" onClick={() => setLocalServiceItems(localServiceItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors"><Trash2 className="w-4 h-4 text-destructive"/></button>
+                                     </div>
+                                 </div>
+                             ))}
+                         </div>
+
+                         {localServiceItems.length > 0 && (
+                             <div className="mt-3 ml-3 text-right text-sm font-bold text-foreground border-t border-border/40 pt-3 pr-4 md:pr-14">
+                                 Section Total: {localServiceItems.reduce((s, i) => s + i.lineTotal, 0).toLocaleString(undefined, {maximumFractionDigits:2})} PKR
                              </div>
                          )}
                      </div>
@@ -1233,8 +1338,8 @@ export const QuotationFormPage = () => {
                         newArr[productModalTarget.index] = calculateImportedItem(cleanItem, formData, listBasePrice);
                         setImportedItems(newArr);
                         
-                        setShowServices(true);
-                        setServiceItems(prev => {
+                        setShowImportedServices(true);
+                        setImportedServiceItems(prev => {
                             // Replace a blank placeholder row if one exists, otherwise append
                             const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
                             if (prev.some(s => s.serviceName === p.name)) return prev;
@@ -1243,7 +1348,7 @@ export const QuotationFormPage = () => {
                                 updated[blankIdx] = { ...updated[blankIdx], serviceName: p.name, quantity: quantity };
                                 return updated;
                             }
-                            return [...prev, { ...makeEmptyRow("Service"), serviceName: p.name, quantity: quantity }];
+                            return [...prev, { ...makeEmptyRow("ImportedService"), serviceName: p.name, quantity: quantity }];
                         });
                     } else if (productModalTarget?.list === "local") {
                         const newArr = [...localItems];
@@ -1251,8 +1356,8 @@ export const QuotationFormPage = () => {
                         newArr[productModalTarget.index] = { ...newArr[productModalTarget.index], productId: p.id, product: p, serviceName: p.name, unitPrice: p.price, lineTotal: quantity * p.price * (1 - (newArr[productModalTarget.index].manualCommissionPct||0)/100) };
                         setLocalItems(newArr);
                         
-                        setShowServices(true);
-                        setServiceItems(prev => {
+                        setShowLocalServices(true);
+                        setLocalServiceItems(prev => {
                             const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
                             if (prev.some(s => s.serviceName === p.name)) return prev;
                             if (blankIdx !== -1) {
@@ -1260,7 +1365,7 @@ export const QuotationFormPage = () => {
                                 updated[blankIdx] = { ...updated[blankIdx], serviceName: p.name, quantity: quantity };
                                 return updated;
                             }
-                            return [...prev, { ...makeEmptyRow("Service"), serviceName: p.name, quantity: quantity }];
+                            return [...prev, { ...makeEmptyRow("LocalService"), serviceName: p.name, quantity: quantity }];
                         });
                     }
                     setProductModalTarget(null);
@@ -1270,3 +1375,4 @@ export const QuotationFormPage = () => {
         </div>
     );
 };
+

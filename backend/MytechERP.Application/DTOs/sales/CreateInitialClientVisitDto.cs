@@ -16,6 +16,7 @@ namespace MytechERP.Application.DTOs.Sales
         public bool HasVisitingCard { get; set; }
         public string? ContractorCompanyName { get; set; }
         public string? FurtherDetails { get; set; }
+        public string? AdditionalContactsJson { get; set; }
 
         // Site Attributes
         public string SiteName { get; set; } = string.Empty;

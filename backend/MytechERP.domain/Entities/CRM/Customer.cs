@@ -25,6 +25,7 @@ namespace MytechERP.domain.Entities.CRM
         public bool HasVisitingCard { get; set; } = false;
         public string? ContractorCompanyName { get; set; }
         public string? FurtherDetails { get; set; }
+        public string? AdditionalContactsJson { get; set; }
 
         public ICollection<Site> Sites { get; set; } = new List<Site>();
         public ICollection<Contract> Contracts { get;set; } = new List<Contract>();

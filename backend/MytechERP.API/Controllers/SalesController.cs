@@ -188,7 +188,7 @@ namespace MytechERP.API.Controllers
 
         [HttpPost("initial-client-visit")]
         [Authorize(Roles = Roles.AllInternal)]
-        public async Task<ActionResult> CreateInitialClientVisit([FromForm] CreateInitialClientVisitDto dto, [FromForm] IFormFile? photo, [FromForm] IFormFile? visitingCardPhoto)
+        public async Task<ActionResult> CreateInitialClientVisit([FromForm] CreateInitialClientVisitDto dto, [FromForm] List<IFormFile>? attachments, [FromForm] IFormFile? visitingCardPhoto)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             var userName = User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? dto.SalespersonSignatureName;
@@ -208,7 +208,8 @@ namespace MytechERP.API.Controllers
                     ContactPersonName = dto.ContactPersonName,
                     HasVisitingCard = dto.HasVisitingCard,
                     ContractorCompanyName = dto.ContractorCompanyName,
-                    FurtherDetails = dto.FurtherDetails
+                    FurtherDetails = dto.FurtherDetails,
+                    AdditionalContactsJson = dto.AdditionalContactsJson
                 };
                 _context.Customers.Add(customer);
                 await _context.SaveChangesAsync();
@@ -257,17 +258,20 @@ namespace MytechERP.API.Controllers
                 _context.SiteVisits.Add(visit);
                 await _context.SaveChangesAsync();
 
-                // 5. If Photo exists
-                if (photo != null)
+                // 5. If Attachments exist
+                if (attachments != null && attachments.Any())
                 {
-                    var blobUrl = await _blobService.UploadAsync(photo, $"visit-{visit.Id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(photo.FileName)}");
-                    var visitPhoto = new VisitPhoto
+                    foreach (var file in attachments)
                     {
-                        SiteVisitId = visit.Id,
-                        PhotoUrl = blobUrl,
-                        Caption = "Initial Visit Photo"
-                    };
-                    _context.VisitPhotos.Add(visitPhoto);
+                        var blobUrl = await _blobService.UploadAsync(file, $"visit-{visit.Id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}");
+                        var visitPhoto = new VisitPhoto
+                        {
+                            SiteVisitId = visit.Id,
+                            PhotoUrl = blobUrl,
+                            Caption = "Initial Visit Attachment"
+                        };
+                        _context.VisitPhotos.Add(visitPhoto);
+                    }
                     await _context.SaveChangesAsync();
                 }
 
@@ -326,6 +330,7 @@ namespace MytechERP.API.Controllers
                 HasVisitingCard = lead.Customer?.HasVisitingCard ?? false,
                 ContractorCompanyName = lead.Customer?.ContractorCompanyName,
                 FurtherDetails = lead.Customer?.FurtherDetails,
+                AdditionalContactsJson = lead.Customer?.AdditionalContactsJson,
                 SiteName = lead.Site?.Name ?? "",
                 SiteCity = lead.Site?.City ?? "",
                 SiteAddress = lead.Site?.Address ?? "",
@@ -339,7 +344,7 @@ namespace MytechERP.API.Controllers
 
         [HttpPut("leads/{id}/initial-data")]
         [Authorize(Roles = Roles.AllInternal)]
-        public async Task<ActionResult> UpdateInitialClientData(int id, [FromForm] CreateInitialClientVisitDto dto, [FromForm] IFormFile? photo, [FromForm] IFormFile? visitingCardPhoto)
+        public async Task<ActionResult> UpdateInitialClientData(int id, [FromForm] CreateInitialClientVisitDto dto, [FromForm] List<IFormFile>? attachments, [FromForm] IFormFile? visitingCardPhoto)
         {
             var lead = await _context.SalesLeads
                 .Include(l => l.Customer)
@@ -369,6 +374,7 @@ namespace MytechERP.API.Controllers
                     lead.Customer.HasVisitingCard = dto.HasVisitingCard;
                     lead.Customer.ContractorCompanyName = dto.ContractorCompanyName;
                     lead.Customer.FurtherDetails = dto.FurtherDetails;
+                    lead.Customer.AdditionalContactsJson = dto.AdditionalContactsJson;
                 }
 
                 // Update Site
@@ -399,17 +405,20 @@ namespace MytechERP.API.Controllers
                         if (firstVisit.EndLongitude == null) firstVisit.EndLongitude = dto.Longitude;
                     }
 
-                    // If they provided a new photo during edit, attach it to the initial visit
-                    if (photo != null)
+                    // If they provided new attachments during edit, attach them to the initial visit
+                    if (attachments != null && attachments.Any())
                     {
-                        var blobUrl = await _blobService.UploadAsync(photo, $"visit-{firstVisit.Id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(photo.FileName)}");
-                        var visitPhoto = new VisitPhoto
+                        foreach (var file in attachments)
                         {
-                            SiteVisitId = firstVisit.Id,
-                            PhotoUrl = blobUrl,
-                            Caption = "Initial Visit Photo (Added via Edit)"
-                        };
-                        _context.VisitPhotos.Add(visitPhoto);
+                            var blobUrl = await _blobService.UploadAsync(file, $"visit-{firstVisit.Id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}");
+                            var visitPhoto = new VisitPhoto
+                            {
+                                SiteVisitId = firstVisit.Id,
+                                PhotoUrl = blobUrl,
+                                Caption = "Initial Visit Attachment (Added via Edit)"
+                            };
+                            _context.VisitPhotos.Add(visitPhoto);
+                        }
                     }
 
                     if (visitingCardPhoto != null)

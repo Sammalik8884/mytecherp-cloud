@@ -153,7 +153,8 @@ export const SalesmanDashboardPage = () => {
         siteName: "", siteCity: "", siteAddress: "", projectStatus: "Building", remarks: "",
         salespersonSignatureName: user?.id || ""
     });
-    const [clientPhoto, setClientPhoto] = useState<File | null>(null);
+    const [clientContacts, setClientContacts] = useState<{ contactNumber: string, designation: string }[]>([]);
+    const [clientAttachments, setClientAttachments] = useState<File[]>([]);
     const [visitingCardPhoto, setVisitingCardPhoto] = useState<File | null>(null);
 
     const openCreateModal = () => {
@@ -164,7 +165,8 @@ export const SalesmanDashboardPage = () => {
             siteName: "", siteCity: "", siteAddress: "", projectStatus: "Building", remarks: "",
             salespersonSignatureName: user?.id || ""
         });
-        setClientPhoto(null);
+        setClientContacts([]);
+        setClientAttachments([]);
         setVisitingCardPhoto(null);
         setIsClientModalOpen(true);
     };
@@ -192,6 +194,12 @@ export const SalesmanDashboardPage = () => {
                 remarks: data.remarks || "",
                 salespersonSignatureName: data.salespersonSignatureName || user?.id || ""
             });
+            try {
+                const parsedContacts = data.additionalContactsJson ? JSON.parse(data.additionalContactsJson) : [];
+                setClientContacts(Array.isArray(parsedContacts) ? parsedContacts : []);
+            } catch { setClientContacts([]); }
+            
+            setClientAttachments([]);
             setEditingLeadId(leadId);
             setIsClientModalOpen(true);
         } catch (error) {
@@ -250,19 +258,20 @@ export const SalesmanDashboardPage = () => {
                 dataToSubmit.salespersonSignatureName = user?.id || "";
             }
 
+            if (clientContacts.length > 0) {
+                dataToSubmit.additionalContactsJson = JSON.stringify(clientContacts);
+            }
+            if (clientAttachments.length > 0) {
+                dataToSubmit.attachments = clientAttachments;
+            }
+
             if (editingLeadId) {
-                if (clientPhoto) {
-                    dataToSubmit.photo = clientPhoto;
-                }
                 if (visitingCardPhoto) {
                     dataToSubmit.visitingCardPhoto = visitingCardPhoto;
                 }
                 await salesService.updateInitialClientData(editingLeadId, dataToSubmit);
                 toast.success("Client profile and project data successfully updated!");
             } else {
-                if (clientPhoto) {
-                    dataToSubmit.photo = clientPhoto;
-                }
                 if (visitingCardPhoto) {
                     dataToSubmit.visitingCardPhoto = visitingCardPhoto;
                 }
@@ -271,7 +280,7 @@ export const SalesmanDashboardPage = () => {
             }
             
             setIsClientModalOpen(false);
-            setClientPhoto(null);
+            setClientAttachments([]);
             setVisitingCardPhoto(null);
             fetchLeads();
         } catch (error: any) {
@@ -445,6 +454,24 @@ export const SalesmanDashboardPage = () => {
                                             <label className="block text-xs font-semibold text-muted-foreground mb-1">Email</label>
                                             <input type="email" value={clientForm.email} onChange={e => setClientForm({...clientForm, email: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
                                         </div>
+                                        <div className="md:col-span-2 space-y-3 mt-2 bg-secondary/20 p-3 rounded-lg border border-border/50">
+                                            <div className="flex items-center justify-between">
+                                                <label className="block text-xs font-semibold text-foreground">Additional Contacts</label>
+                                                <button type="button" onClick={() => setClientContacts([...clientContacts, { contactNumber: "", designation: "" }])} className="text-xs text-primary font-bold flex items-center hover:bg-primary/10 px-2 py-1 rounded transition-colors">
+                                                    <Plus className="h-3 w-3 mr-1" /> Add Contact Number
+                                                </button>
+                                            </div>
+                                            {clientContacts.length === 0 && <p className="text-xs text-muted-foreground italic">No additional contacts added.</p>}
+                                            {clientContacts.map((contact, idx) => (
+                                                <div key={idx} className="flex items-center space-x-2 animate-in fade-in zoom-in duration-200">
+                                                    <input placeholder="Designation (e.g. Manager)" value={contact.designation} onChange={e => { const newC = [...clientContacts]; newC[idx].designation = e.target.value; setClientContacts(newC); }} className="w-1/3 text-sm rounded-md border border-input px-3 py-2 bg-background focus:border-primary transition-colors" />
+                                                    <input placeholder="Contact Number" value={contact.contactNumber} onChange={e => { const newC = [...clientContacts]; newC[idx].contactNumber = e.target.value; setClientContacts(newC); }} className="flex-1 text-sm rounded-md border border-input px-3 py-2 bg-background focus:border-primary transition-colors" />
+                                                    <button type="button" onClick={() => { const newC = [...clientContacts]; newC.splice(idx, 1); setClientContacts(newC); }} className="text-destructive p-2 hover:bg-destructive/10 rounded-lg transition-colors">
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
                                         <div className="flex flex-col space-y-2 pt-5 md:col-span-2">
                                             <div className="flex items-center space-x-2">
                                                 <input type="checkbox" id="visitingCard" checked={clientForm.hasVisitingCard} onChange={e => setClientForm({...clientForm, hasVisitingCard: e.target.checked})} className="rounded text-primary focus:ring-primary h-4 w-4" />
@@ -558,39 +585,42 @@ export const SalesmanDashboardPage = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Photo Evidence (Optional - Skip if not needed)</label>
-                                                <div className="flex flex-col space-y-2">
+                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Attachments (Documents, PDFs, Images)</label>
+                                                <div className="flex flex-col space-y-3">
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <input 
                                                             type="file" 
-                                                            accept="image/*" 
-                                                            capture="environment" 
+                                                            multiple
                                                             className="hidden" 
                                                             ref={fileInputRef} 
                                                             onChange={e => {
                                                                 if (e.target.files && e.target.files.length > 0) {
-                                                                    setClientPhoto(e.target.files[0]);
+                                                                    setClientAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
                                                                 }
+                                                                if (e.target) e.target.value = '';
                                                             }}
                                                         />
                                                         <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs font-bold border-2 border-dashed border-primary/50 text-primary px-4 py-3 rounded-xl hover:bg-primary/5 transition-colors flex items-center">
-                                                            <Camera className="h-4 w-4 mr-2" /> 
-                                                            {clientPhoto ? "Change Photo" : "Upload Picture (Optional)"}
+                                                            <Plus className="h-4 w-4 mr-2" /> 
+                                                            Add Documents
                                                         </button>
-                                                        {clientPhoto && (
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => {
-                                                                    setClientPhoto(null);
-                                                                    if (fileInputRef.current) fileInputRef.current.value = "";
-                                                                }} 
-                                                                className="text-xs text-destructive hover:text-destructive/80 font-bold px-2"
-                                                            >
-                                                                Remove
-                                                            </button>
-                                                        )}
                                                     </div>
-                                                    {clientPhoto && <span className="text-xs text-muted-foreground font-mono truncate max-w-[200px]">{clientPhoto.name}</span>}
+                                                    {clientAttachments.length > 0 && (
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                                            {clientAttachments.map((file, idx) => (
+                                                                <div key={idx} className="flex items-center justify-between p-2 border border-border rounded-lg bg-secondary/20">
+                                                                    <span className="text-xs text-muted-foreground font-mono truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                                                                    <button 
+                                                                        type="button" 
+                                                                        onClick={() => setClientAttachments(prev => prev.filter((_, i) => i !== idx))}
+                                                                        className="text-xs text-destructive hover:bg-destructive/10 p-1.5 rounded-md transition-colors"
+                                                                    >
+                                                                        <X className="h-3 w-3" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         <div>

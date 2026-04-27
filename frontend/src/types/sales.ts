@@ -83,9 +83,10 @@ export interface CreateInitialClientVisitDto {
     latitude?: number;
     longitude?: number;
     projectStatus?: string;
+    additionalContactsJson?: string;
     remarks?: string;
     salespersonSignatureName?: string;
-    photo?: File;
+    attachments?: File[];
     visitingCardPhoto?: File;
 }
 

@@ -60,8 +60,14 @@ export const salesService = {
         const formData = new FormData();
         Object.entries(data).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
-                if (key === 'photo' || key === 'visitingCardPhoto') {
+                if (key === 'attachments') {
+                    (value as File[]).forEach(file => {
+                        formData.append('attachments', file);
+                    });
+                } else if (key === 'visitingCardPhoto') {
                     formData.append(key, value as File);
+                } else if (typeof value === 'object') {
+                    formData.append(key, JSON.stringify(value));
                 } else {
                     formData.append(key, value.toString());
                 }
@@ -83,8 +89,14 @@ export const salesService = {
         const formData = new FormData();
         Object.entries(data).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
-                if (key === 'photo' || key === 'visitingCardPhoto') {
+                if (key === 'attachments') {
+                    (value as File[]).forEach(file => {
+                        formData.append('attachments', file);
+                    });
+                } else if (key === 'visitingCardPhoto') {
                     formData.append(key, value as File);
+                } else if (typeof value === 'object') {
+                    formData.append(key, JSON.stringify(value));
                 } else {
                     formData.append(key, value.toString());
                 }
