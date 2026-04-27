@@ -704,6 +704,32 @@ namespace MytechERP.API.Controllers
             visit.MeetingNotes = dto.MeetingNotes;
             visit.EndTime = DateTime.UtcNow;
 
+            if (!string.IsNullOrWhiteSpace(dto.NewContactsJson) && dto.NewContactsJson != "[]")
+            {
+                var customer = await _context.Customers.FindAsync(visit.SalesLead.CustomerId);
+                if (customer != null)
+                {
+                    try
+                    {
+                        var newContacts = System.Text.Json.JsonSerializer.Deserialize<List<object>>(dto.NewContactsJson) ?? new List<object>();
+                        if (newContacts.Any())
+                        {
+                            var existingContacts = new List<object>();
+                            if (!string.IsNullOrWhiteSpace(customer.AdditionalContactsJson))
+                            {
+                                existingContacts = System.Text.Json.JsonSerializer.Deserialize<List<object>>(customer.AdditionalContactsJson) ?? new List<object>();
+                            }
+                            existingContacts.AddRange(newContacts);
+                            customer.AdditionalContactsJson = System.Text.Json.JsonSerializer.Serialize(existingContacts);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to parse NewContactsJson in EndVisit");
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync();
             return Ok(new { Message = "Visit ended successfully" });
         }

@@ -65,6 +65,7 @@ export interface EndSiteVisitDto {
     endLatitude: number;
     endLongitude: number;
     meetingNotes: string;
+    newContactsJson?: string;
 }
 
 export interface CreateInitialClientVisitDto {

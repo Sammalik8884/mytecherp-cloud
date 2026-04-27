@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
-    MapPin, Camera, Play, Square, ArrowLeft, FileCheck, Info, FileText, X, RefreshCw, DownloadCloud
+    MapPin, Camera, Play, Square, ArrowLeft, FileCheck, Info, FileText, X, RefreshCw, DownloadCloud, Plus
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { salesService } from "../services/salesService";
@@ -34,6 +34,7 @@ export const SiteVisitPage = () => {
     const [photos, setPhotos] = useState<{file: File, url: string}[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cardInputRef = useRef<HTMLInputElement>(null);
+    const [newContacts, setNewContacts] = useState<{ designation: string; contactNumber: string }[]>([]);
 
     // Closure state
     const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
@@ -241,14 +242,18 @@ export const SiteVisitPage = () => {
             const coords = await getGPSCoordinates();
             toast.success("Checkout location acquired!", { id: "gpsEnd" });
 
+            const validContacts = newContacts.filter(c => c.designation.trim() && c.contactNumber.trim());
+
             await salesService.endVisit(activeVisitId, {
                 endLatitude: coords.lat,
                 endLongitude: coords.lng,
-                meetingNotes: meetingNotes
+                meetingNotes: meetingNotes,
+                newContactsJson: validContacts.length > 0 ? JSON.stringify(validContacts) : undefined
             });
             toast.success("Visit ended successfully.");
             setActiveVisitId(null);
             setPhotos([]);
+            setNewContacts([]);
             fetchData();
         } catch (error: any) {
             toast.error(extractApiError(error, "Failed to end visit"), { id: "gpsEnd" });
@@ -395,6 +400,57 @@ export const SiteVisitPage = () => {
                                     value={meetingNotes}
                                     onChange={(e) => setMeetingNotes(e.target.value)}
                                 />
+                            </div>
+
+                            {/* Additional Contacts Section */}
+                            <div>
+                                <label className="block text-sm font-semibold mb-2">New Contacts Met (Optional)</label>
+                                <div className="space-y-3">
+                                    {newContacts.map((contact, index) => (
+                                        <div key={index} className="flex flex-col sm:flex-row items-center gap-2 bg-secondary/30 p-2 rounded-xl border border-border">
+                                            <input
+                                                type="text"
+                                                className="w-full bg-background border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
+                                                placeholder="Designation / Role"
+                                                value={contact.designation}
+                                                onChange={(e) => {
+                                                    const updated = [...newContacts];
+                                                    updated[index].designation = e.target.value;
+                                                    setNewContacts(updated);
+                                                }}
+                                            />
+                                            <input
+                                                type="tel"
+                                                className="w-full bg-background border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
+                                                placeholder="Contact Number"
+                                                value={contact.contactNumber}
+                                                onChange={(e) => {
+                                                    const updated = [...newContacts];
+                                                    updated[index].contactNumber = e.target.value;
+                                                    setNewContacts(updated);
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const updated = [...newContacts];
+                                                    updated.splice(index, 1);
+                                                    setNewContacts(updated);
+                                                }}
+                                                className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => setNewContacts([...newContacts, { designation: '', contactNumber: '' }])}
+                                        className="text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-lg flex items-center hover:bg-primary/20 transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4 mr-1" /> Add Contact Number
+                                    </button>
+                                </div>
                             </div>
 
                             <div>

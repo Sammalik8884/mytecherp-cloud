@@ -11,5 +11,8 @@ namespace MytechERP.Application.DTOs.Sales
         public double EndLongitude { get; set; }
         
         public string MeetingNotes { get; set; } = string.Empty;
+        
+        // JSON array of new contacts added during this visit
+        public string? NewContactsJson { get; set; }
     }
 }
