@@ -34,6 +34,8 @@ export const SiteVisitPage = () => {
     const [photos, setPhotos] = useState<{file: File, url: string}[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cardInputRef = useRef<HTMLInputElement>(null);
+    const extraFilesInputRef = useRef<HTMLInputElement>(null);
+    const revExtraFilesInputRef = useRef<HTMLInputElement>(null);
     const [newContacts, setNewContacts] = useState<{ designation: string; contactNumber: string }[]>([]);
 
     // Closure state
@@ -299,6 +301,34 @@ export const SiteVisitPage = () => {
 
     return (
         <div className="w-full max-w-4xl mx-auto space-y-6 animate-fade-in relative pb-20">
+            {/* Hidden file inputs for extra attachments (refs) */}
+            <input
+                ref={extraFilesInputRef}
+                type="file"
+                multiple
+                accept="*/*"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                        setExtraAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
+                        e.target.value = "";
+                    }
+                }}
+            />
+            <input
+                ref={revExtraFilesInputRef}
+                type="file"
+                multiple
+                accept="*/*"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                        setRevExtraAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
+                        e.target.value = "";
+                    }
+                }}
+            />
+
             {/* Header */}
             <div className="flex items-center space-x-4 mb-8 text-muted-foreground">
                 <button onClick={() => navigate(-1)} className="p-2 bg-secondary rounded-lg hover:bg-secondary/70 transition-colors">
@@ -565,21 +595,13 @@ export const SiteVisitPage = () => {
                             <div>
                                 <div className="flex justify-between items-center mb-2">
                                     <label className="block text-sm font-semibold">Additional Documents (Optional)</label>
-                                    <label className="cursor-pointer text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors font-medium">
+                                    <button
+                                        type="button"
+                                        onClick={() => extraFilesInputRef.current?.click()}
+                                        className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors font-medium"
+                                    >
                                         + Add File
-                                        <input
-                                            type="file"
-                                            multiple
-                                            accept="*/*"
-                                            className="hidden"
-                                            onChange={(e) => {
-                                                if (e.target.files) {
-                                                    setExtraAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
-                                                    e.target.value = "";
-                                                }
-                                            }}
-                                        />
-                                    </label>
+                                    </button>
                                 </div>
                                 <p className="text-xs text-muted-foreground mb-2">PDF, Word, Excel, Images — any document type accepted</p>
                                 {extraAttachments.length > 0 && (
@@ -646,21 +668,13 @@ export const SiteVisitPage = () => {
                             <div>
                                 <div className="flex justify-between items-center mb-2">
                                     <label className="block text-sm font-semibold">Additional Documents (Optional)</label>
-                                    <label className="cursor-pointer text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors font-medium">
+                                    <button
+                                        type="button"
+                                        onClick={() => revExtraFilesInputRef.current?.click()}
+                                        className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors font-medium"
+                                    >
                                         + Add File
-                                        <input
-                                            type="file"
-                                            multiple
-                                            accept="*/*"
-                                            className="hidden"
-                                            onChange={(e) => {
-                                                if (e.target.files) {
-                                                    setRevExtraAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
-                                                    e.target.value = "";
-                                                }
-                                            }}
-                                        />
-                                    </label>
+                                    </button>
                                 </div>
                                 <p className="text-xs text-muted-foreground mb-2">PDF, Word, Excel, Images — any document type accepted</p>
                                 {revExtraAttachments.length > 0 && (

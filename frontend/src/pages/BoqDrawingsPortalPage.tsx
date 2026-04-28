@@ -160,6 +160,12 @@ export const BoqDrawingsPortalPage = () => {
                                                         <span>Drawings</span>
                                                     </a>
                                                 ) : <span className="text-xs text-muted-foreground/50">No Drawings</span>}
+                                                {lead.extraFileUrls && lead.extraFileUrls.length > 0 && lead.extraFileUrls.map((url, i) => (
+                                                    <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-xs font-medium text-amber-500 hover:underline">
+                                                        <FileText className="h-3.5 w-3.5" />
+                                                        <span>Extra Doc {i + 1}</span>
+                                                    </a>
+                                                ))}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -280,6 +286,28 @@ export const BoqDrawingsPortalPage = () => {
                                         </div>
                                     )}
                                 </div>
+                                {/* Extra / Additional Files */}
+                                {selectedLead.extraFileUrls && selectedLead.extraFileUrls.length > 0 && (
+                                    <div className="mt-3">
+                                        <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Additional Documents ({selectedLead.extraFileUrls.length})</div>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {selectedLead.extraFileUrls.map((url, i) => {
+                                                const filename = url.split('/').pop()?.split('?')[0] || `Document ${i + 1}`;
+                                                return (
+                                                    <a key={i} href={url} target="_blank" rel="noreferrer" className="flex items-center space-x-3 p-3 border border-amber-500/30 bg-amber-500/5 rounded-xl hover:bg-amber-500/10 transition-colors">
+                                                        <div className="h-8 w-8 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-500 shrink-0">
+                                                            <FileText className="h-4 w-4" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="font-medium text-sm truncate">{filename}</div>
+                                                            <div className="text-xs text-amber-500">Additional Doc {i + 1} · Click to open</div>
+                                                        </div>
+                                                    </a>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Generate Quotation Action */}

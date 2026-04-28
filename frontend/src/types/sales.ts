@@ -11,6 +11,7 @@ export interface SalesLeadDto {
     notes: string;
     boqFileUrl?: string;
     drawingsFileUrl?: string;
+    extraFileUrls?: string[];
     quotationId?: number;
     createdAt: string;
     visitCount: number;

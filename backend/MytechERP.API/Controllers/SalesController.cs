@@ -98,6 +98,9 @@ namespace MytechERP.API.Controllers
                 Notes = l.Notes,
                 BoqFileUrl = _blobService.GenerateSasUrl(l.BOQFileUrl, 120),
                 DrawingsFileUrl = _blobService.GenerateSasUrl(l.DrawingsFileUrl, 120),
+                ExtraFileUrls = !string.IsNullOrEmpty(l.ExtraFileUrlsJson)
+                    ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(l.ExtraFileUrlsJson)
+                    : null,
                 QuotationId = l.QuotationId,
                 CreatedAt = l.CreatedAt,
                 VisitCount = l.SiteVisits.Count(v => !v.IsDeleted)
@@ -153,6 +156,9 @@ namespace MytechERP.API.Controllers
                 Notes = lead.Notes,
                 BoqFileUrl = _blobService.GenerateSasUrl(lead.BOQFileUrl, 120),
                 DrawingsFileUrl = _blobService.GenerateSasUrl(lead.DrawingsFileUrl, 120),
+                ExtraFileUrls = !string.IsNullOrEmpty(lead.ExtraFileUrlsJson)
+                    ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(lead.ExtraFileUrlsJson)
+                    : null,
                 QuotationId = lead.QuotationId,
                 CreatedAt = lead.CreatedAt,
                 VisitCount = lead.SiteVisits.Count(v => !v.IsDeleted)

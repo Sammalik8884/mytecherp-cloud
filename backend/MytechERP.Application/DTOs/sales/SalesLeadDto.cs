@@ -22,6 +22,7 @@ namespace MytechERP.Application.DTOs.Sales
         
         public string? BoqFileUrl { get; set; }
         public string? DrawingsFileUrl { get; set; }
+        public List<string>? ExtraFileUrls { get; set; }
         
         public int? QuotationId { get; set; }
         
