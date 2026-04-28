@@ -136,6 +136,23 @@ namespace MyTechERP.Infrastructure.Services
 
             if (invoice == null) throw new Exception("Invoice not found.");
 
+            // If invoice has no bank details (e.g. created before bank feature or via quote flow),
+            // fall back to the tenant's default bank account so Bank Details always appear in the PDF.
+            if (string.IsNullOrWhiteSpace(invoice.BankName))
+            {
+                var defaultBank = await _context.BankAccounts
+                    .Where(b => b.TenantId == invoice.TenantId && b.IsDefault && !b.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (defaultBank != null)
+                {
+                    // Populate in-memory only – does NOT save to the database
+                    invoice.BankName = defaultBank.BankName;
+                    invoice.BankAccountTitle = defaultBank.AccountTitle;
+                    invoice.BankAccountNumber = defaultBank.AccountNumber;
+                }
+            }
+
             // Fetch quote number and headline separately since Invoice entity has no Quotation nav property
             string quoteNumber = null;
             string quoteHeadline = null;
