@@ -42,10 +42,10 @@ export const InvoicesPage = () => {
 
     const fmt = (n: number) =>
         n >= 1_000_000
-            ? `$${(n / 1_000_000).toFixed(1)}M`
+            ? `PKR ${(n / 1_000_000).toFixed(1)}M`
             : n >= 1_000
-            ? `$${(n / 1_000).toFixed(1)}K`
-            : `$${n.toFixed(0)}`;
+            ? `PKR ${(n / 1_000).toFixed(1)}K`
+            : `PKR ${n.toFixed(0)}`;
 
     const fetchInvoices = async () => {
         try {
@@ -256,9 +256,9 @@ export const InvoicesPage = () => {
                                             {inv.customerName || `Customer ID: ${inv.customerId}`}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-foreground">${inv.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                                            <div className="font-bold text-foreground">PKR {inv.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                                             {inv.status === 2 && (
-                                                <div className="text-xs text-green-500 mt-0.5">Paid: ${inv.amountPaid.toLocaleString()}</div>
+                                                <div className="text-xs text-green-500 mt-0.5">Paid: PKR {inv.amountPaid.toLocaleString()}</div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
