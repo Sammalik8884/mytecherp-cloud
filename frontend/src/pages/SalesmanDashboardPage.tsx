@@ -143,6 +143,7 @@ export const SalesmanDashboardPage = () => {
 
     const [isClientModalOpen, setIsClientModalOpen] = useState(false);
     const [clientFormLoading, setClientFormLoading] = useState(false);
+    const [isLeadByCall, setIsLeadByCall] = useState(false);
     
     // Track if we are editing an existing lead
     const [editingLeadId, setEditingLeadId] = useState<number | null>(null);
@@ -168,6 +169,22 @@ export const SalesmanDashboardPage = () => {
         setClientContacts([]);
         setClientAttachments([]);
         setVisitingCardPhoto(null);
+        setIsLeadByCall(false);
+        setIsClientModalOpen(true);
+    };
+
+    const openLeadByCallModal = () => {
+        setEditingLeadId(null);
+        setClientForm({
+            name: "", email: "", phone: "", taxNumber: "", address: "",
+            contactPersonName: "", hasVisitingCard: false, contractorCompanyName: "", furtherDetails: "",
+            siteName: "", siteCity: "", siteAddress: "", projectStatus: "Building", remarks: "",
+            salespersonSignatureName: user?.id || ""
+        });
+        setClientContacts([]);
+        setClientAttachments([]);
+        setVisitingCardPhoto(null);
+        setIsLeadByCall(true);
         setIsClientModalOpen(true);
     };
 
@@ -201,6 +218,7 @@ export const SalesmanDashboardPage = () => {
             
             setClientAttachments([]);
             setEditingLeadId(leadId);
+            setIsLeadByCall(false);
             setIsClientModalOpen(true);
         } catch (error) {
             toast.error("Failed to load client details");
@@ -316,7 +334,16 @@ export const SalesmanDashboardPage = () => {
                         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1 sm:mb-2">My Clients & Visits</h1>
                         <p className="text-white/80 font-medium text-sm sm:text-base">Register clients to automatically log your first visit, and track subsequent visits.</p>
                     </div>
-                    <div className="shrink-0">
+                    <div className="shrink-0 flex flex-col sm:flex-row gap-2">
+                        {(!user?.roles?.includes("Salesman")) && (
+                            <button 
+                                onClick={openLeadByCallModal}
+                                className="w-full sm:w-auto px-5 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2 text-sm sm:text-base border border-white/40"
+                            >
+                                <Target className="h-5 w-5" />
+                                <span>Lead by Call</span>
+                            </button>
+                        )}
                         <button 
                             onClick={openCreateModal}
                             className="w-full sm:w-auto px-5 py-3 bg-white text-primary rounded-xl font-bold hover:bg-gray-100 transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2 text-sm sm:text-base"
@@ -423,10 +450,10 @@ export const SalesmanDashboardPage = () => {
                         <div className="p-4 sm:p-6 border-b border-border flex justify-between items-start gap-3 bg-muted/30 shrink-0">
                             <div className="min-w-0">
                                 <h2 className="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent leading-tight">
-                                    {editingLeadId ? "Edit Client & Project Data" : "Register New Client & Initial Visit"}
+                                    {isLeadByCall ? "Register Lead by Call" : (editingLeadId ? "Edit Client & Project Data" : "Register New Client & Initial Visit")}
                                 </h2>
                                 <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
-                                    {editingLeadId ? "Update your previously entered details as needed." : "Completing this form will automatically generate the client profile and log your first visit."}
+                                    {isLeadByCall ? "Fill in the details from the call. Most fields are optional." : (editingLeadId ? "Update your previously entered details as needed." : "Completing this form will automatically generate the client profile and log your first visit.")}
                                 </p>
                             </div>
                             <button onClick={() => setIsClientModalOpen(false)} className="text-muted-foreground hover:text-foreground shrink-0 mt-0.5">
@@ -439,8 +466,8 @@ export const SalesmanDashboardPage = () => {
                                     <h3 className="text-sm font-bold text-primary uppercase tracking-wider border-b border-border/50 pb-2">Client Details</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="md:col-span-2">
-                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Company / Organization / Client Name *</label>
-                                            <input required value={clientForm.name} onChange={e => setClientForm({...clientForm, name: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
+                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Company / Organization / Client Name {!isLeadByCall && "*"}</label>
+                                            <input required={!isLeadByCall} value={clientForm.name} onChange={e => setClientForm({...clientForm, name: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-muted-foreground mb-1">Contact Person Name</label>
@@ -547,16 +574,16 @@ export const SalesmanDashboardPage = () => {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Site Nickname / Name *</label>
-                                            <input required value={clientForm.siteName} onChange={e => setClientForm({...clientForm, siteName: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
+                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Site Nickname / Name {!isLeadByCall && "*"}</label>
+                                            <input required={!isLeadByCall} value={clientForm.siteName} onChange={e => setClientForm({...clientForm, siteName: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">City *</label>
-                                            <input required value={clientForm.siteCity} onChange={e => setClientForm({...clientForm, siteCity: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
+                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">City {!isLeadByCall && "*"}</label>
+                                            <input required={!isLeadByCall} value={clientForm.siteCity} onChange={e => setClientForm({...clientForm, siteCity: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Complete Site Address *</label>
-                                            <input required value={clientForm.siteAddress} onChange={e => setClientForm({...clientForm, siteAddress: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
+                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Complete Site Address {!isLeadByCall && "*"}</label>
+                                            <input required={!isLeadByCall} value={clientForm.siteAddress} onChange={e => setClientForm({...clientForm, siteAddress: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background" />
                                         </div>
                                         <div className="md:col-span-2 bg-secondary/30 p-3 sm:p-4 rounded-xl border border-border flex flex-col sm:flex-row sm:items-center gap-3">
                                             <div className="text-xs text-muted-foreground flex-1">
