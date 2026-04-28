@@ -32,7 +32,6 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
     const [dueDate, setDueDate] = useState(new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0]);
     
     const [items, setItems] = useState<SelectedItem[]>([]);
-    const [ignoreFullyInvoiced, setIgnoreFullyInvoiced] = useState(false);
     const [showEmptyPrompt, setShowEmptyPrompt] = useState(false);
     const [freshQuotation, setFreshQuotation] = useState<QuotationDto | null>(null);
 
@@ -93,7 +92,6 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                         });
                         
                         setItems(mappedItems);
-                        setIgnoreFullyInvoiced(false);
                         
                         const allFullyInvoiced = mappedItems.every((i: SelectedItem) => i.isFullyInvoiced);
                         if (allFullyInvoiced) {
@@ -129,7 +127,6 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
     }
 
     const handlePromptYes = () => {
-        setIgnoreFullyInvoiced(true);
         setShowEmptyPrompt(false);
         // Reset all to be included with max quantity
         setItems(prev => prev.map(p => ({ ...p, included: true, quantity: p.maxQuantity })));
@@ -162,7 +159,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
         );
     }
 
-    const includedItems = items.filter(i => i.included && (!i.isFullyInvoiced || ignoreFullyInvoiced));
+    const includedItems = items.filter(i => i.included);
 
     const subTotal = includedItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
     const taxAmount = subTotal * ((activeQuote.gstPercentage || 0) / 100);
