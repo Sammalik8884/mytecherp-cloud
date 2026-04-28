@@ -50,7 +50,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
             const user = authService.getCurrentUser();
             if (user) {
                 setIssuedByName(user.fullName || user.name || user.username || '');
-                setIssuedByPhone(user.phoneNumber || user.phone || '');
+                setIssuedByPhone(user.email || '');
             }
             invoiceService.getBankAccounts()
                 .then(data => {

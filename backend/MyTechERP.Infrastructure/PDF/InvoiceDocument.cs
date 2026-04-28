@@ -142,7 +142,7 @@ namespace MyTechERP.Infrastructure.PDF
                             else if (!string.IsNullOrWhiteSpace(Invoice.Customer.CompanyName) && !string.IsNullOrWhiteSpace(Invoice.Customer.Name))
                                 contactPersonToShow = Invoice.Customer.Name;
 
-                            if (!string.IsNullOrWhiteSpace(contactPersonToShow) && contactPersonToShow != companyName)
+                            if (!string.IsNullOrWhiteSpace(contactPersonToShow))
                                 InfoRow("Contact Person", contactPersonToShow);
 
                             if (!string.IsNullOrWhiteSpace(Invoice.Customer.Phone))
@@ -431,10 +431,10 @@ namespace MyTechERP.Infrastructure.PDF
                     row.ConstantItem(30);
 
                     var preparedByName = !string.IsNullOrWhiteSpace(Invoice.IssuedByName) ? Invoice.IssuedByName : "Engr. Muhammad Huzefa";
-                    var preparedByPhone = !string.IsNullOrWhiteSpace(Invoice.IssuedByPhone) ? Invoice.IssuedByPhone : "+92-306-7666644";
+                    var preparedByEmail = !string.IsNullOrWhiteSpace(Invoice.IssuedByPhone) ? Invoice.IssuedByPhone : "m.huzefa@mytecheng.com";
                     
-                    SigBlock("Issued By:", preparedByName, "",
-                        preparedByPhone, "");
+                    SigBlock("Issued By:", preparedByName, "Estimation & Design Engineer",
+                        "", preparedByEmail);
                 });
             });
         }

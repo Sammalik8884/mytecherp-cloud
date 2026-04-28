@@ -62,7 +62,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
             const user = authService.getCurrentUser();
             if (user) {
                 setIssuedByName(user.fullName || user.name || user.username || '');
-                setIssuedByPhone(user.phoneNumber || user.phone || '');
+                setIssuedByPhone(user.email || '');
             }
 
             const loadData = async () => {
