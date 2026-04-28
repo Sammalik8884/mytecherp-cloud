@@ -108,11 +108,14 @@ export const salesService = {
         return response.data;
     },
 
-    reviseBoq: async (id: number, boqFile?: File, drawingsFile?: File, notes?: string): Promise<{ message: string }> => {
+    reviseBoq: async (id: number, boqFile?: File, drawingsFile?: File, notes?: string, extraFiles?: File[]): Promise<{ message: string }> => {
         const formData = new FormData();
         if (boqFile) formData.append("BOQFile", boqFile);
         if (drawingsFile) formData.append("DrawingsFile", drawingsFile);
         if (notes) formData.append("Notes", notes);
+        if (extraFiles && extraFiles.length > 0) {
+            extraFiles.forEach(f => formData.append("ExtraFiles", f));
+        }
 
         const response = await apiClient.put<{ message: string }>(`/Sales/leads/${id}/revise-boq`, formData);
         return response.data;

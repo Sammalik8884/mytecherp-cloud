@@ -48,6 +48,7 @@ export const SiteVisitPage = () => {
     const [revBoqFile, setRevBoqFile] = useState<File | null>(null);
     const [revDrawingFile, setRevDrawingFile] = useState<File | null>(null);
     const [revNotes, setRevNotes] = useState("");
+    const [revExtraAttachments, setRevExtraAttachments] = useState<File[]>([]);
     const [revising, setRevising] = useState(false);
 
     // Quotes state
@@ -126,17 +127,18 @@ export const SiteVisitPage = () => {
     };
 
     const handleReviseBoq = async () => {
-        if (!revBoqFile && !revDrawingFile) {
-            return toast.error("Please provide at least a BOQ or Drawing file.");
+        if (!revBoqFile && !revDrawingFile && revExtraAttachments.length === 0) {
+            return toast.error("Please provide at least a BOQ, Drawing, or additional document.");
         }
         setRevising(true);
         try {
-            await salesService.reviseBoq(Number(id), revBoqFile || undefined, revDrawingFile || undefined, revNotes || undefined);
+            await salesService.reviseBoq(Number(id), revBoqFile || undefined, revDrawingFile || undefined, revNotes || undefined, revExtraAttachments.length > 0 ? revExtraAttachments : undefined);
             toast.success("BOQ/Drawings revised and re-uploaded!");
             setIsReviseModalOpen(false);
             setRevBoqFile(null);
             setRevDrawingFile(null);
             setRevNotes("");
+            setRevExtraAttachments([]);
             fetchData();
         } catch (error: any) {
             toast.error(extractApiError(error, "Failed to revise BOQ."));
@@ -612,7 +614,7 @@ export const SiteVisitPage = () => {
             {isReviseModalOpen && (
                 <div className="fixed inset-0 z-50 flex justify-center items-center">
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsReviseModalOpen(false)} />
-                    <div className="bg-card w-full max-w-md p-6 rounded-2xl border border-border relative z-10 shadow-2xl animate-in zoom-in-95">
+                    <div className="bg-card w-full max-w-md p-6 rounded-2xl border border-border relative z-10 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold">Revise BOQ / Drawings</h2>
                             <button onClick={() => setIsReviseModalOpen(false)}><X className="h-5 w-5 text-muted-foreground" /></button>
@@ -628,6 +630,7 @@ export const SiteVisitPage = () => {
                                     className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                                     onChange={(e) => setRevBoqFile(e.target.files?.[0] || null)}
                                 />
+                                {revBoqFile && <p className="text-xs text-green-500 mt-1">✓ {revBoqFile.name}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold mb-1">Revised Drawings (Optional)</label>
@@ -636,7 +639,46 @@ export const SiteVisitPage = () => {
                                     className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"
                                     onChange={(e) => setRevDrawingFile(e.target.files?.[0] || null)}
                                 />
+                                {revDrawingFile && <p className="text-xs text-green-500 mt-1">✓ {revDrawingFile.name}</p>}
                             </div>
+
+                            {/* Additional Documents for Revision */}
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-semibold">Additional Documents (Optional)</label>
+                                    <label className="cursor-pointer text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors font-medium">
+                                        + Add File
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="*/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                if (e.target.files) {
+                                                    setRevExtraAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
+                                                    e.target.value = "";
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-2">PDF, Word, Excel, Images — any document type accepted</p>
+                                {revExtraAttachments.length > 0 && (
+                                    <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                                        {revExtraAttachments.map((f, idx) => (
+                                            <div key={idx} className="flex items-center justify-between bg-secondary/40 rounded-lg px-3 py-2">
+                                                <span className="text-xs text-foreground truncate max-w-[80%]">📎 {f.name}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRevExtraAttachments(prev => prev.filter((_, i) => i !== idx))}
+                                                    className="text-destructive hover:text-destructive/80 text-xs ml-2 font-bold"
+                                                >✕</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-semibold mb-1">Revision Notes</label>
                                 <textarea 

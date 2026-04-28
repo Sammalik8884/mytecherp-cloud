@@ -556,6 +556,23 @@ namespace MytechERP.API.Controllers
                 changed = true;
             }
 
+            if (dto.ExtraFiles != null && dto.ExtraFiles.Count > 0)
+            {
+                var extraUrls = new List<string>();
+                // Keep existing extra files if any
+                if (!string.IsNullOrEmpty(lead.ExtraFileUrlsJson))
+                {
+                    try { extraUrls = System.Text.Json.JsonSerializer.Deserialize<List<string>>(lead.ExtraFileUrlsJson) ?? new List<string>(); } catch { }
+                }
+                foreach (var extraFile in dto.ExtraFiles)
+                {
+                    var url = await _blobService.UploadAsync(extraFile, $"rev-extra-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(extraFile.FileName)}");
+                    extraUrls.Add(url);
+                }
+                lead.ExtraFileUrlsJson = System.Text.Json.JsonSerializer.Serialize(extraUrls);
+                changed = true;
+            }
+
             if (!string.IsNullOrEmpty(dto.Notes))
             {
                 lead.Notes += "\nRevision Notes: " + dto.Notes;
