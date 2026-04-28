@@ -433,7 +433,7 @@ namespace MyTechERP.Infrastructure.PDF
                     var preparedByName = !string.IsNullOrWhiteSpace(Invoice.IssuedByName) ? Invoice.IssuedByName : "Engr. Muhammad Huzefa";
                     var preparedByEmail = !string.IsNullOrWhiteSpace(Invoice.IssuedByPhone) ? Invoice.IssuedByPhone : "m.huzefa@mytecheng.com";
                     
-                    SigBlock("Issued By:", preparedByName, "Estimation & Design Engineer",
+                    SigBlock("Issued By:", preparedByName, "",
                         "", preparedByEmail);
                 });
             });
