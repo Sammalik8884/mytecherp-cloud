@@ -90,6 +90,10 @@ namespace MyTechERP.Infrastructure.Services
             }
 
             _context.Invoices.Add(invoice);
+            
+            // Mark the quotation as converted so we can track it
+            quote.Status = QuotationStatus.Converted;
+            
             await _context.SaveChangesAsync();
             return invoice;
         }

@@ -253,8 +253,47 @@ namespace MyTechERP.Infrastructure.Services
             existingQuote.SupplyColumnMode = dto.SupplyColumnMode;
             existingQuote.QuoteHeadline = dto.QuoteHeadline;
 
-            existingQuote.Items.Clear();
-            await CalculateAndAddItemsAsync(existingQuote, dto);
+            var newItems = await CalculateItemsAsync(existingQuote, dto);
+
+            // Match and Update existing items to preserve IDs (for invoice tracking)
+            var existingItems = existingQuote.Items.ToList();
+            
+            // 1. Remove items no longer in the new list
+            foreach (var oldItem in existingItems)
+            {
+                if (!newItems.Any(n => n.Description == oldItem.Description && n.ItemType == oldItem.ItemType))
+                {
+                    existingQuote.Items.Remove(oldItem);
+                }
+            }
+
+            // 2. Update existing or add new
+            foreach (var newItem in newItems)
+            {
+                var match = existingQuote.Items.FirstOrDefault(o => o.Description == newItem.Description && o.ItemType == newItem.ItemType);
+                if (match != null)
+                {
+                    // Update properties
+                    match.Quantity = newItem.Quantity;
+                    match.UnitPrice = newItem.UnitPrice;
+                    match.LineTotal = newItem.LineTotal;
+                    match.UnitCost = newItem.UnitCost;
+                    match.MarginPercentage = newItem.MarginPercentage;
+                    match.OriginalPrice = newItem.OriginalPrice;
+                    match.CalculationBreakdown = newItem.CalculationBreakdown;
+                    match.Unit = newItem.Unit;
+                    match.UnitQty = newItem.UnitQty;
+                    match.ProductId = newItem.ProductId;
+                    match.ServiceName = newItem.ServiceName;
+                }
+                else
+                {
+                    existingQuote.Items.Add(newItem);
+                }
+            }
+
+            // Recalculate totals
+            RecalculateTotals(existingQuote);
 
             await _quotationRepository.UpdateQuoteWithItemsAsync(id, existingQuote);
 
@@ -341,12 +380,20 @@ namespace MyTechERP.Infrastructure.Services
         }
 
 
-        private async Task CalculateAndAddItemsAsync(Quotation quote, CreateQuotationDto dto)
+        private void RecalculateTotals(Quotation quote)
         {
-            decimal runningSubTotal = 0;
+            quote.SubTotal = quote.Items.Sum(x => x.LineTotal);
+            quote.GSTAmount = quote.SubTotal * (quote.GSTPercentage / 100m);
+            quote.IncomeTaxAmount = quote.SubTotal * (quote.IncomeTaxPercentage / 100m);
+            quote.ProvincialTaxAmount = quote.SubTotal * (quote.ProvincialTaxPercentage / 100m);
+            quote.GrandTotal = quote.SubTotal + quote.GSTAmount + quote.IncomeTaxAmount + quote.ProvincialTaxAmount + quote.Adjustment;
+        }
+
+        private async Task<List<QuotationItem>> CalculateItemsAsync(Quotation quote, CreateQuotationDto dto)
+        {
+            var items = new List<QuotationItem>();
             var tenantId = _currentUserService.TenantId ?? 0;
             
-            // For now use dto values directly as they carry defaults or overrides
             decimal costFactorPct = dto.CostFactorPct > 0 ? dto.CostFactorPct : 60m;
             decimal importationPct = dto.ImportationPct > 0 ? dto.ImportationPct : 13.75m;
             decimal transportationPct = dto.TransportationPct > 0 ? dto.TransportationPct : 2m;
@@ -374,14 +421,12 @@ namespace MyTechERP.Infrastructure.Services
                     }
                     else
                     {
-                        // Try to load product — may be null for custom-named items
                         var product = itemDto.ProductId.HasValue && itemDto.ProductId.Value > 0
                             ? await _context.Products.FindAsync(itemDto.ProductId.Value)
                             : null;
 
                         if (product != null)
                         {
-                            // If user provided a custom name via ServiceName, use that; otherwise use product's description/name
                             if (!string.IsNullOrWhiteSpace(itemDto.ServiceName))
                                 finalDescription = itemDto.ServiceName;
                             else
@@ -389,7 +434,6 @@ namespace MyTechERP.Infrastructure.Services
                         }
                         else
                         {
-                            // Custom item — use the ServiceName field as the description
                             finalDescription = !string.IsNullOrWhiteSpace(itemDto.ServiceName) ? itemDto.ServiceName : "Custom Item";
                         }
 
@@ -433,14 +477,13 @@ namespace MyTechERP.Infrastructure.Services
                         }
                         else // Local
                         {
-                            // Local directly uses price (PKR) unless overridden
                             decimal costInQuoteCurrency = originalPrice;
                             decimal appliedCommission = itemDto.ManualCommissionPct ?? quote.GlobalCommissionPct;
                             decimal marginAmount = costInQuoteCurrency * (appliedCommission / 100m);
                             finalSellingPrice = costInQuoteCurrency + marginAmount;
                             unitCost = costInQuoteCurrency;
                         }
-                    } // end else (non-service)
+                    }
 
                     if (itemDto.FinalPriceOverride.HasValue)
                     {
@@ -449,9 +492,9 @@ namespace MyTechERP.Infrastructure.Services
 
                     decimal lineTotal = finalSellingPrice * itemDto.Quantity;
 
-                    quote.Items.Add(new QuotationItem
+                    items.Add(new QuotationItem
                     {
-                        ProductId = parsedType == ItemType.Service ? null : itemDto.ProductId,
+                        ProductId = (parsedType == ItemType.Service || parsedType == ItemType.ImportedService || parsedType == ItemType.LocalService) ? null : itemDto.ProductId,
                         Description = finalDescription,
                         Quantity = itemDto.Quantity,
                         TenantId = tenantId,
@@ -466,16 +509,19 @@ namespace MyTechERP.Infrastructure.Services
                         Unit = itemDto.Unit,
                         UnitQty = itemDto.UnitQty
                     });
-
-                    runningSubTotal += lineTotal;
                 }
             }
+            return items;
+        }
 
-            quote.SubTotal = runningSubTotal;
-            quote.GSTAmount = quote.SubTotal * (quote.GSTPercentage / 100m);
-            quote.IncomeTaxAmount = quote.SubTotal * (quote.IncomeTaxPercentage / 100m);
-            quote.ProvincialTaxAmount = quote.SubTotal * (quote.ProvincialTaxPercentage / 100m);
-            quote.GrandTotal = quote.SubTotal + quote.GSTAmount + quote.IncomeTaxAmount + quote.ProvincialTaxAmount + quote.Adjustment;
+        private async Task CalculateAndAddItemsAsync(Quotation quote, CreateQuotationDto dto)
+        {
+            var items = await CalculateItemsAsync(quote, dto);
+            foreach (var item in items)
+            {
+                quote.Items.Add(item);
+            }
+            RecalculateTotals(quote);
         }
         private QuotationDto MapToDto(Quotation q)
         {
