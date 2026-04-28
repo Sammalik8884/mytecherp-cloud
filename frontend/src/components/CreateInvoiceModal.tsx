@@ -3,11 +3,11 @@ import { X, Plus, Trash2, Loader2 } from "lucide-react";
 import { CreateInvoiceDto, CreateInvoiceItemDto, BankAccountDto } from "../types/finance";
 import { invoiceService } from "../services/invoiceService";
 import { customerService } from "../services/customerService";
-import { productService } from "../services/productService";
 import { assetService } from "../services/assetService";
 import { CustomerDto } from "../types/customer";
 import { ProductDto } from "../types/product";
 import { AssetDto } from "../types/field";
+import { toast } from "react-hot-toast";
 import { authService } from "../services/authService";
 import { ProductSelectionModal } from "./common/ProductSelectionModal";
 

@@ -3,11 +3,8 @@ import { X, Plus, Trash2, Loader2 } from "lucide-react";
 import { CreateInvoiceDto, InvoiceDto, CreateInvoiceItemDto, BankAccountDto } from "../types/finance";
 import { invoiceService } from "../services/invoiceService";
 import { customerService } from "../services/customerService";
-import { assetService } from "../services/assetService";
 import { CustomerDto } from "../types/customer";
-import { AssetDto } from "../types/field";
 import { toast } from "react-hot-toast";
-import { authService } from "../services/authService";
 import { ProductSelectionModal } from "./common/ProductSelectionModal";
 import { ProductDto } from "../types/product";
 
@@ -28,7 +25,6 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
     const [dataLoading, setDataLoading] = useState(false);
 
     const [customers, setCustomers] = useState<CustomerDto[]>([]);
-    const [assets, setAssets] = useState<AssetDto[]>([]);
 
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [currentItemIndex, setCurrentItemIndex] = useState<number | null>(null);
@@ -60,15 +56,13 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
             const loadData = async () => {
                 setDataLoading(true);
                 try {
-                    const [custs, asts, banks, inv] = await Promise.all([
+                    const [custs, banks, inv] = await Promise.all([
                         customerService.getAll(),
-                        assetService.getAll(),
                         invoiceService.getBankAccounts(),
                         invoiceService.getById(invoiceId)
                     ]);
                     
                     setCustomers(custs);
-                    setAssets(asts);
                     setBankAccounts(banks);
                     setOriginalInvoice(inv);
 
@@ -152,17 +146,6 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
         }
         setIsProductModalOpen(false);
         setCurrentItemIndex(null);
-    };
-
-    const handleSelectOption = (index: number, itemId: number, type: "asset") => {
-        const newItems = [...items];
-        if (type === "asset") {
-            const asset = assets.find(a => a.id === itemId);
-            if (asset) {
-                newItems[index] = { ...newItems[index], itemId, description: asset.name, unitPrice: 0 };
-            }
-        }
-        setItems(newItems);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
