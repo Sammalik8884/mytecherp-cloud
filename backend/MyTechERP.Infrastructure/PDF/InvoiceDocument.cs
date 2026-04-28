@@ -133,9 +133,17 @@ namespace MyTechERP.Infrastructure.PDF
                         
                         if (Invoice.Customer != null)
                         {
-                            var contactPerson = Invoice.Customer.ContactPersonName ?? Invoice.Customer.Name;
-                            if (!string.IsNullOrWhiteSpace(contactPerson) && contactPerson != companyName)
-                                InfoRow("Contact Person", contactPerson);
+                            // Show ContactPersonName if explicitly set,
+                            // OR use Customer.Name as contact person when CompanyName is separately defined
+                            // (meaning Name = person's name, CompanyName = company)
+                            string contactPersonToShow = null;
+                            if (!string.IsNullOrWhiteSpace(Invoice.Customer.ContactPersonName))
+                                contactPersonToShow = Invoice.Customer.ContactPersonName;
+                            else if (!string.IsNullOrWhiteSpace(Invoice.Customer.CompanyName) && !string.IsNullOrWhiteSpace(Invoice.Customer.Name))
+                                contactPersonToShow = Invoice.Customer.Name;
+
+                            if (!string.IsNullOrWhiteSpace(contactPersonToShow) && contactPersonToShow != companyName)
+                                InfoRow("Contact Person", contactPersonToShow);
 
                             if (!string.IsNullOrWhiteSpace(Invoice.Customer.Phone))
                                 InfoRow("Contact", Invoice.Customer.Phone);

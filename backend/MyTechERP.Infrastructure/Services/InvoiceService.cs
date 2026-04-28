@@ -54,6 +54,11 @@ namespace MyTechERP.Infrastructure.Services
             if (quote.Status != QuotationStatus.Approved && quote.Status != QuotationStatus.SentToCustomer && quote.Status != QuotationStatus.Converted)
                 throw new InvalidOperationException("Cannot invoice a quotation that is not Approved or SentToCustomer.");
 
+            // Load default bank account for this tenant to populate bank details in PDF
+            var defaultBank = await _context.BankAccounts
+                .Where(b => b.TenantId == quote.TenantId && b.IsDefault && !b.IsDeleted)
+                .FirstOrDefaultAsync();
+
             var invoice = new Invoice
             {
                 InvoiceNumber = await GenerateNextInvoiceNumberAsync(quote.TenantId),
@@ -65,10 +70,13 @@ namespace MyTechERP.Infrastructure.Services
                 TaxAmount = quote.GSTAmount + quote.IncomeTaxAmount,
                 TotalAmount = quote.GrandTotal,
                 Status = InvoiceStatus.Draft,
-                TenantId = quote.TenantId 
+                TenantId = quote.TenantId,
+                // Auto-populate bank details from default bank account
+                BankName = defaultBank?.BankName,
+                BankAccountTitle = defaultBank?.AccountTitle,
+                BankAccountNumber = defaultBank?.AccountNumber
             };
 
-            
             foreach (var item in quote.Items)
             {
                 invoice.Items.Add(new InvoiceItem
