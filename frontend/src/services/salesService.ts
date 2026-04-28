@@ -41,11 +41,7 @@ export const salesService = {
             extraFiles.forEach(f => formData.append("ExtraFiles", f));
         }
 
-        const response = await apiClient.post<{ message: string }>(`/Sales/leads/${id}/close`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
+        const response = await apiClient.post<{ message: string }>(`/Sales/leads/${id}/close`, formData);
         return response.data;
     },
 
@@ -118,9 +114,7 @@ export const salesService = {
         if (drawingsFile) formData.append("DrawingsFile", drawingsFile);
         if (notes) formData.append("Notes", notes);
 
-        const response = await apiClient.put<{ message: string }>(`/Sales/leads/${id}/revise-boq`, formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
+        const response = await apiClient.put<{ message: string }>(`/Sales/leads/${id}/revise-boq`, formData);
         return response.data;
     },
 
@@ -150,11 +144,7 @@ export const salesService = {
         formData.append("file", file);
         if (caption) formData.append("caption", caption);
 
-        const response = await apiClient.post<{ message: string, photoUrl: string }>(`/Sales/visits/${visitId}/photos`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
+        const response = await apiClient.post<{ message: string, photoUrl: string }>(`/Sales/visits/${visitId}/photos`, formData);
         return response.data;
     }
 };

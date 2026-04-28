@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
+
 namespace MytechERP.API.Controllers
 {
     [Route("api/[controller]")]
@@ -23,6 +24,11 @@ namespace MytechERP.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IBlobService _blobService;
+
+        // Pakistan Standard Time is UTC+5
+        private static DateTime PakistanNow() =>
+            TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
+                TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time"));
 
         public SalesController(ApplicationDbContext context, IBlobService blobService)
         {
@@ -251,8 +257,8 @@ namespace MytechERP.API.Controllers
                     StartLongitude = dto.Longitude,
                     EndLatitude = dto.Latitude,
                     EndLongitude = dto.Longitude,
-                    StartTime = DateTime.UtcNow.AddMinutes(-5),
-                    EndTime = DateTime.UtcNow,
+                    StartTime = PakistanNow().AddMinutes(-5),
+                    EndTime = PakistanNow(),
                     MeetingNotes = dto.Remarks ?? ""
                 };
                 _context.SiteVisits.Add(visit);
@@ -684,7 +690,7 @@ namespace MytechERP.API.Controllers
                 VisitNumber = visitNumber,
                 StartLatitude = dto.StartLatitude,
                 StartLongitude = dto.StartLongitude,
-                StartTime = DateTime.UtcNow
+                StartTime = PakistanNow()
             };
 
             _context.SiteVisits.Add(visit);
@@ -713,7 +719,7 @@ namespace MytechERP.API.Controllers
             visit.EndLatitude = dto.EndLatitude;
             visit.EndLongitude = dto.EndLongitude;
             visit.MeetingNotes = dto.MeetingNotes;
-            visit.EndTime = DateTime.UtcNow;
+            visit.EndTime = PakistanNow();
 
             if (!string.IsNullOrWhiteSpace(dto.NewContactsJson) && dto.NewContactsJson != "[]")
             {
