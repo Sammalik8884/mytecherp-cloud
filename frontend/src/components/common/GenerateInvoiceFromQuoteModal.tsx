@@ -5,6 +5,8 @@ import { invoiceService } from "../../services/invoiceService";
 import { QuotationDto, QuotationItemDto, quotationService } from "../../services/quotationService";
 import { toast } from "react-hot-toast";
 
+import { authService } from "../../services/authService";
+
 interface GenerateInvoiceFromQuoteModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -45,6 +47,11 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
 
     useEffect(() => {
         if (isOpen) {
+            const user = authService.getCurrentUser();
+            if (user) {
+                setIssuedByName(user.fullName || user.name || user.username || '');
+                setIssuedByPhone(user.phoneNumber || user.phone || '');
+            }
             invoiceService.getBankAccounts()
                 .then(data => {
                     setBankAccounts(data);
@@ -355,22 +362,21 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                             </div>
                             <div className="p-4 space-y-4">
                                 {items.map((item, index) => {
-                                    const isDisabled = item.isFullyInvoiced && !ignoreFullyInvoiced;
+                                    // Remove disabled logic so users can re-invoice items if needed
+                                    const isFullyInvoicedButUnchecked = item.isFullyInvoiced && !item.included;
                                     return (
-                                        <div key={index} className={`flex flex-wrap md:flex-nowrap gap-4 items-center p-3 rounded-lg border transition-all duration-300 ${isDisabled ? 'bg-secondary/30 border-border opacity-50' : item.included ? 'bg-primary/5 border-primary/30 shadow-sm' : 'bg-transparent border-dashed border-border'}`}>
+                                        <div key={index} className={`flex flex-wrap md:flex-nowrap gap-4 items-center p-3 rounded-lg border transition-all duration-300 ${item.included ? 'bg-primary/5 border-primary/30 shadow-sm' : isFullyInvoicedButUnchecked ? 'bg-secondary/30 border-border opacity-60' : 'bg-transparent border-dashed border-border'}`}>
                                             <div className="w-10 flex justify-center">
-                                                {!isDisabled && (
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={item.included}
-                                                        onChange={() => toggleItem(index)}
-                                                        className="w-5 h-5 rounded border-card text-primary focus:ring-primary"
-                                                    />
-                                                )}
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.included}
+                                                    onChange={() => toggleItem(index)}
+                                                    className="w-5 h-5 rounded border-card text-primary focus:ring-primary"
+                                                />
                                             </div>
                                             <div className="flex-1 min-w-[200px]">
                                                 <label className="block text-xs text-muted-foreground mb-1">Description</label>
-                                                <div className={`font-medium ${isDisabled ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{item.description}</div>
+                                                <div className={`font-medium ${isFullyInvoicedButUnchecked ? 'text-muted-foreground' : 'text-foreground'}`}>{item.description}</div>
                                                 <div className="text-[10px] text-muted-foreground uppercase">{item.itemType}</div>
                                             </div>
                                             <div className="w-24">
@@ -378,23 +384,23 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                                 <input
                                                     type="number"
                                                     required
-                                                    min="0.01" max={item.maxQuantity} step="0.01"
+                                                    min="0.01" step="0.01"
                                                     value={item.quantity}
                                                     onChange={(e) => updateQuantity(index, parseFloat(e.target.value))}
-                                                    disabled={isDisabled || !item.included}
+                                                    disabled={!item.included}
                                                     className="w-full bg-white/5 border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary/50 disabled:opacity-50"
                                                 />
                                             </div>
-                                            <div className="w-28">
-                                                <label className="block text-xs text-muted-foreground mb-1">Unit Price ($)</label>
-                                                <div className="text-sm font-medium text-foreground">${item.unitPrice.toFixed(2)}</div>
+                                            <div className="w-32">
+                                                <label className="block text-xs text-muted-foreground mb-1">Unit Price ({activeQuote.currency || 'PKR'})</label>
+                                                <div className="text-sm font-medium text-foreground">{item.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                                             </div>
-                                            <div className="w-28">
-                                                <label className="block text-xs text-muted-foreground mb-1">Total</label>
-                                                <div className="text-sm font-medium text-foreground">${(item.quantity * item.unitPrice).toFixed(2)}</div>
+                                            <div className="w-32">
+                                                <label className="block text-xs text-muted-foreground mb-1">Total ({activeQuote.currency || 'PKR'})</label>
+                                                <div className="text-sm font-medium text-foreground">{(item.quantity * item.unitPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                                             </div>
                                             <div className="w-10 flex justify-center">
-                                                {item.included && !isDisabled && (
+                                                {item.included && (
                                                     <button
                                                         type="button"
                                                         onClick={() => toggleItem(index)}
@@ -415,16 +421,16 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                         <div className="flex justify-end pt-4">
                             <div className="w-full max-w-xs space-y-3">
                                 <div className="flex justify-between items-center text-sm text-muted-foreground">
-                                    <span>Subtotal:</span>
-                                    <span>${subTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    <span>Subtotal ({activeQuote.currency || 'PKR'}):</span>
+                                    <span>{subTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                                     <span>Tax ({activeQuote.gstPercentage || 0}%):</span>
-                                    <span>${taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    <span>{taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-lg font-bold text-foreground border-t border-border pt-3">
-                                    <span>Grand Total:</span>
-                                    <span className="text-primary">${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    <span>Grand Total ({activeQuote.currency || 'PKR'}):</span>
+                                    <span className="text-primary">{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
                         </div>

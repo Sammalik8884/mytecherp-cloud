@@ -8,7 +8,8 @@ import { assetService } from "../services/assetService";
 import { CustomerDto } from "../types/customer";
 import { ProductDto } from "../types/product";
 import { AssetDto } from "../types/field";
-import { toast } from "react-hot-toast";
+import { authService } from "../services/authService";
+import { ProductSelectionModal } from "./common/ProductSelectionModal";
 
 interface CreateInvoiceModalProps {
     isOpen: boolean;
@@ -27,8 +28,11 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
 
     // Dropdown Data State
     const [customers, setCustomers] = useState<CustomerDto[]>([]);
-    const [products, setProducts] = useState<ProductDto[]>([]);
     const [assets, setAssets] = useState<AssetDto[]>([]);
+
+    // Product Selection Modal State
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [currentItemIndex, setCurrentItemIndex] = useState<number | null>(null);
 
     // Form State
     const [customerId, setCustomerId] = useState<number | "">("");
@@ -55,17 +59,21 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
 
     useEffect(() => {
         if (isOpen) {
+            const user = authService.getCurrentUser();
+            if (user) {
+                setIssuedByName(user.fullName || user.name || user.username || '');
+                setIssuedByPhone(user.phoneNumber || user.phone || '');
+            }
+
             const loadData = async () => {
                 setDataLoading(true);
                 try {
-                    const [custs, prods, asts, banks] = await Promise.all([
+                    const [custs, asts, banks] = await Promise.all([
                         customerService.getAll(),
-                        productService.getAll(1, 200), // Get lots of products for the dropdown
                         assetService.getAll(),
                         invoiceService.getBankAccounts()
                     ]);
                     setCustomers(custs);
-                    setProducts(prods);
                     setAssets(asts);
                     setBankAccounts(banks);
                     const defaultBank = banks.find(b => b.isDefault);
@@ -94,7 +102,12 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
     if (!isOpen) return null;
 
     const handleAddItem = (type: "product" | "asset" | "custom") => {
+        const newIndex = items.length;
         setItems([...items, { type, description: "", quantity: 1, unitPrice: 0 }]);
+        if (type === "product") {
+            setCurrentItemIndex(newIndex);
+            setIsProductModalOpen(true);
+        }
     };
 
     const handleRemoveItem = (index: number) => {
@@ -110,14 +123,24 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
         setItems(newItems);
     };
 
-    const handleSelectOption = (index: number, itemId: number, type: "product" | "asset") => {
+    const handleSelectProduct = (product: ProductDto) => {
+        if (currentItemIndex !== null) {
+            const newItems = [...items];
+            newItems[currentItemIndex] = { 
+                ...newItems[currentItemIndex], 
+                itemId: product.id, 
+                description: product.name, 
+                unitPrice: product.price || 0 
+            };
+            setItems(newItems);
+        }
+        setIsProductModalOpen(false);
+        setCurrentItemIndex(null);
+    };
+
+    const handleSelectOption = (index: number, itemId: number, type: "asset") => {
         const newItems = [...items];
-        if (type === "product") {
-            const product = products.find(p => p.id === itemId);
-            if (product) {
-                newItems[index] = { ...newItems[index], itemId, description: product.name, unitPrice: product.price || 0 };
-            }
-        } else if (type === "asset") {
+        if (type === "asset") {
             const asset = assets.find(a => a.id === itemId);
             if (asset) {
                 newItems[index] = { ...newItems[index], itemId, description: asset.name, unitPrice: 0 };
@@ -357,15 +380,24 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                                 {item.type === "product" ? "Product" : item.type === "asset" ? "Asset" : "Service Description"}
                                             </label>
                                             {item.type === "product" ? (
-                                                <select
-                                                    required
-                                                    value={item.itemId || ""}
-                                                    onChange={(e) => handleSelectOption(index, Number(e.target.value), "product")}
-                                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
-                                                >
-                                                    <option value="" className="bg-card text-foreground">Select Product...</option>
-                                                    {products.map(p => <option key={p.id} value={p.id} className="bg-card text-foreground">{p.name} - ${p.price}</option>)}
-                                                </select>
+                                                <div className="flex space-x-2">
+                                                    <input
+                                                        type="text"
+                                                        readOnly
+                                                        value={item.description || "Select a product..."}
+                                                        className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none cursor-not-allowed opacity-80"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setCurrentItemIndex(index);
+                                                            setIsProductModalOpen(true);
+                                                        }}
+                                                        className="px-3 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-colors"
+                                                    >
+                                                        Search
+                                                    </button>
+                                                </div>
                                             ) : item.type === "asset" ? (
                                                 <select
                                                     required
@@ -480,6 +512,15 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                     </button>
                 </div>
             </div>
+
+            <ProductSelectionModal 
+                isOpen={isProductModalOpen} 
+                onClose={() => {
+                    setIsProductModalOpen(false);
+                    setCurrentItemIndex(null);
+                }}
+                onSelect={handleSelectProduct}
+            />
         </div>
     );
 };

@@ -12,6 +12,7 @@ namespace MytechERP.Application.Interfaces
     {
         Task<Invoice> CreateFromQuotationAsync(int quotationId);
         Task<InvoiceDto> CreateCustomInvoiceAsync(CreateInvoiceDto dto, string tenantId);
+        Task<InvoiceDto> UpdateCustomInvoiceAsync(int id, CreateInvoiceDto dto, string tenantId);
         Task<int> GenerateInvoiceFromJobAsync(int workOrderId);
         Task<IEnumerable<InvoiceDto>> GetAllAsync(string tenantId);
         Task<InvoiceDto> GetByIdAsync(int id, string tenantId);

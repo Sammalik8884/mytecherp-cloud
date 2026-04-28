@@ -40,6 +40,7 @@ export const SiteVisitPage = () => {
     const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
     const [boqFile, setBoqFile] = useState<File | null>(null);
     const [drawingFile, setDrawingFile] = useState<File | null>(null);
+    const [extraAttachments, setExtraAttachments] = useState<File[]>([]);
     const [closing, setClosing] = useState(false);
 
     // Revision state
@@ -261,14 +262,15 @@ export const SiteVisitPage = () => {
     };
 
     const handleCloseLead = async () => {
-        if (!boqFile && !drawingFile) {
-            return toast.error("Please provide at least a BOQ or Drawing file to close the lead.");
+        if (!boqFile && !drawingFile && extraAttachments.length === 0) {
+            return toast.error("Please provide at least a BOQ, Drawing, or additional document to close the lead.");
         }
         setClosing(true);
         try {
-            await salesService.closeLead(Number(id), boqFile || undefined, drawingFile || undefined);
+            await salesService.closeLead(Number(id), boqFile || undefined, drawingFile || undefined, undefined, extraAttachments.length > 0 ? extraAttachments : undefined);
             toast.success("Lead successfully closed with documents.");
             setIsCloseModalOpen(false);
+            setExtraAttachments([]);
             fetchData();
         } catch (error: any) {
             toast.error(extractApiError(error, "Failed to close lead and upload files."));
@@ -513,42 +515,82 @@ export const SiteVisitPage = () => {
                 </div>
             </div>
 
-            {/* Close Modal */}
             {isCloseModalOpen && (
                 <div className="fixed inset-0 z-50 flex justify-center items-center">
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsCloseModalOpen(false)} />
-                    <div className="bg-card w-full max-w-md p-6 rounded-2xl border border-border relative z-10 shadow-2xl animate-in zoom-in-95">
-                        <div className="flex justify-between items-center mb-6">
+                    <div className="bg-card w-full max-w-lg p-6 rounded-2xl border border-border relative z-10 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold">Submit Final Files</h2>
                             <button onClick={() => setIsCloseModalOpen(false)}><X className="h-5 w-5 text-muted-foreground" /></button>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-6">
-                            To close this lead and pass it to the quotation desk, you must upload the BOQ file and/or the design drawings.
+                        <p className="text-sm text-muted-foreground mb-5">
+                            To close this lead and pass it to the estimation department, upload the BOQ file, design drawings, and any additional supporting documents.
                         </p>
                         
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold mb-1">Requirement (BOQ)</label>
                                 <input 
-                                    type="file" 
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
                                     className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                                     onChange={(e) => setBoqFile(e.target.files?.[0] || null)}
                                 />
+                                {boqFile && <p className="text-xs text-green-500 mt-1">✓ {boqFile.name}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold mb-1">Architectural Drawings (Optional)</label>
                                 <input 
-                                    type="file" 
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.dwg,.png,.jpg,.jpeg"
                                     className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"
                                     onChange={(e) => setDrawingFile(e.target.files?.[0] || null)}
                                 />
+                                {drawingFile && <p className="text-xs text-green-500 mt-1">✓ {drawingFile.name}</p>}
+                            </div>
+
+                            {/* Additional Attachments */}
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-semibold">Additional Documents (Optional)</label>
+                                    <label className="cursor-pointer text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors font-medium">
+                                        + Add File
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="*/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                if (e.target.files) {
+                                                    setExtraAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
+                                                    e.target.value = "";
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-2">PDF, Word, Excel, Images — any document type accepted</p>
+                                {extraAttachments.length > 0 && (
+                                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                                        {extraAttachments.map((f, idx) => (
+                                            <div key={idx} className="flex items-center justify-between bg-secondary/40 rounded-lg px-3 py-2">
+                                                <span className="text-xs text-foreground truncate max-w-[80%]">📎 {f.name}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setExtraAttachments(prev => prev.filter((_, i) => i !== idx))}
+                                                    className="text-destructive hover:text-destructive/80 text-xs ml-2 font-bold"
+                                                >✕</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         <button 
                             onClick={handleCloseLead}
                             disabled={closing}
-                            className="w-full mt-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
+                            className="w-full mt-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
                         >
                             {closing ? "Uploading Data..." : "Finalize & Seal Lead"}
                         </button>

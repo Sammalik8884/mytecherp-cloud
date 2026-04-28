@@ -136,6 +136,144 @@ namespace MyTechERP.Infrastructure.Services
             _context.Invoices.Add(invoice);
             await _context.SaveChangesAsync();
 
+            // Check if quotation is fully invoiced and update status
+            if (dto.QuotationId.HasValue && dto.QuotationId.Value > 0)
+            {
+                var quote = await _context.Quotations
+                    .Include(q => q.Items)
+                    .FirstOrDefaultAsync(q => q.Id == dto.QuotationId.Value);
+                    
+                if (quote != null)
+                {
+                    var invoicedQuantities = await _context.Invoices
+                        .Where(i => i.QuotationId == quote.Id && i.Status != InvoiceStatus.Cancelled)
+                        .SelectMany(i => i.Items)
+                        .Where(i => i.QuotationItemId != null)
+                        .GroupBy(i => i.QuotationItemId.Value)
+                        .Select(g => new { QuotationItemId = g.Key, InvoicedQty = g.Sum(x => x.Quantity) })
+                        .ToDictionaryAsync(x => x.QuotationItemId, x => x.InvoicedQty);
+
+                    bool isFullyInvoiced = true;
+                    if (quote.Items.Any())
+                    {
+                        foreach (var item in quote.Items)
+                        {
+                            decimal iQty = invoicedQuantities.ContainsKey(item.Id) ? invoicedQuantities[item.Id] : 0;
+                            if (iQty < item.Quantity)
+                            {
+                                isFullyInvoiced = false;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        isFullyInvoiced = false;
+                    }
+
+                    if (isFullyInvoiced && quote.Status != QuotationStatus.Converted)
+                    {
+                        quote.Status = QuotationStatus.Converted;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+
+            return await GetByIdAsync(invoice.Id, tenantId);
+        }
+
+        public async Task<InvoiceDto> UpdateCustomInvoiceAsync(int id, CreateInvoiceDto dto, string tenantId)
+        {
+            int tid = int.Parse(tenantId);
+            var invoice = await _context.Invoices
+                .Include(i => i.Items)
+                .FirstOrDefaultAsync(i => i.Id == id && i.TenantId == tid);
+
+            if (invoice == null)
+                throw new Exception("Invoice not found.");
+
+            if (invoice.Status != InvoiceStatus.Draft)
+                throw new Exception("Only Draft invoices can be edited.");
+
+            invoice.IssueDate = dto.IssueDate;
+            invoice.DueDate = dto.DueDate;
+            invoice.SubTotal = dto.SubTotal;
+            invoice.TaxAmount = dto.TaxAmount;
+            invoice.TotalAmount = dto.TotalAmount;
+            
+            invoice.BankName = dto.BankName;
+            invoice.BankAccountNumber = dto.BankAccountNumber;
+            invoice.BankAccountTitle = dto.BankAccountTitle;
+            invoice.IssuedByName = dto.IssuedByName;
+            invoice.IssuedByPhone = dto.IssuedByPhone;
+
+            // Simple update for items: remove existing and add new
+            _context.InvoiceItems.RemoveRange(invoice.Items);
+            
+            foreach (var item in dto.Items)
+            {
+                invoice.Items.Add(new InvoiceItem
+                {
+                    Description = item.Description,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    QuotationItemId = item.QuotationItemId,
+                    TotalPrice = item.Quantity * item.UnitPrice,
+                    TenantId = tid
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Check if quotation is fully invoiced and update status
+            if (dto.QuotationId.HasValue && dto.QuotationId.Value > 0)
+            {
+                var quote = await _context.Quotations
+                    .Include(q => q.Items)
+                    .FirstOrDefaultAsync(q => q.Id == dto.QuotationId.Value);
+                    
+                if (quote != null)
+                {
+                    var invoicedQuantities = await _context.Invoices
+                        .Where(i => i.QuotationId == quote.Id && i.Status != InvoiceStatus.Cancelled)
+                        .SelectMany(i => i.Items)
+                        .Where(i => i.QuotationItemId != null)
+                        .GroupBy(i => i.QuotationItemId.Value)
+                        .Select(g => new { QuotationItemId = g.Key, InvoicedQty = g.Sum(x => x.Quantity) })
+                        .ToDictionaryAsync(x => x.QuotationItemId, x => x.InvoicedQty);
+
+                    bool isFullyInvoiced = true;
+                    if (quote.Items.Any())
+                    {
+                        foreach (var item in quote.Items)
+                        {
+                            decimal iQty = invoicedQuantities.ContainsKey(item.Id) ? invoicedQuantities[item.Id] : 0;
+                            if (iQty < item.Quantity)
+                            {
+                                isFullyInvoiced = false;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        isFullyInvoiced = false;
+                    }
+
+                    if (isFullyInvoiced && quote.Status != QuotationStatus.Converted)
+                    {
+                        quote.Status = QuotationStatus.Converted;
+                        await _context.SaveChangesAsync();
+                    }
+                    else if (!isFullyInvoiced && quote.Status == QuotationStatus.Converted)
+                    {
+                        // Revert if no longer fully invoiced due to edit
+                        quote.Status = QuotationStatus.Approved;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+
             return await GetByIdAsync(invoice.Id, tenantId);
         }
 

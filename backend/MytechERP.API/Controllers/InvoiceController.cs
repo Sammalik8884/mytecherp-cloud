@@ -74,6 +74,27 @@ namespace MytechERP.API.Controllers
         }
 
         [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
+        [HttpPut("custom/{id}")]
+        public async Task<IActionResult> UpdateCustom(int id, [FromBody] MytechERP.Application.DTOs.Finance.CreateInvoiceDto dto)
+        {
+            try
+            {
+                var tenantId = User.FindFirst("TenantId")?.Value ?? "1";
+                var invoice = await _service.UpdateCustomInvoiceAsync(id, dto, tenantId);
+                return Ok(new
+                {
+                    Message = "Invoice Updated Successfully",
+                    InvoiceId = invoice.Id,
+                    InvoiceNumber = invoice.InvoiceNumber
+                });
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

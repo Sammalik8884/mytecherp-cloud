@@ -42,6 +42,11 @@ export const invoiceService = {
         return response.data;
     },
 
+    updateCustom: async (id: number, dto: any): Promise<{ message: string, invoiceId: number, invoiceNumber: string }> => {
+        const response = await apiClient.put(`/Invoice/custom/${id}`, dto);
+        return response.data;
+    },
+
     downloadPdf: async (id: number): Promise<Blob> => {
         const response = await apiClient.get(`/Invoice/${id}/pdf`, {
             responseType: 'blob'

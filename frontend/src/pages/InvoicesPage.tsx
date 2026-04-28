@@ -11,6 +11,8 @@ import { ManageBankAccountsModal } from "../components/common/ManageBankAccounts
 import { QuotationDto } from "../services/quotationService";
 import { toast } from "react-hot-toast";
 
+import { EditInvoiceModal } from "../components/EditInvoiceModal";
+
 export const InvoicesPage = () => {
     const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -20,6 +22,7 @@ export const InvoicesPage = () => {
     const [isQuoteSelectorOpen, setIsQuoteSelectorOpen] = useState(false);
     const [isBankModalOpen, setIsBankModalOpen] = useState(false);
     const [quoteInvoiceModalQuote, setQuoteInvoiceModalQuote] = useState<QuotationDto | null>(null);
+    const [editingInvoiceId, setEditingInvoiceId] = useState<number | null>(null);
 
     const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'info'|'warning'|'danger'; confirmText: string; onConfirm: () => void }>({ isOpen: false, title: "", message: "", type: "info", confirmText: "Confirm", onConfirm: () => {} });
 
@@ -278,6 +281,18 @@ export const InvoicesPage = () => {
                                                     {processingId === inv.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
                                                 </button>
 
+                                                {/* If Draft, allow Editing */}
+                                                {inv.status === 0 && (
+                                                    <button
+                                                        onClick={() => setEditingInvoiceId(inv.id)}
+                                                        disabled={processingId === inv.id}
+                                                        className="p-2 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 rounded-lg transition-colors flex items-center space-x-1 font-medium bg-amber-500/10 disabled:opacity-50"
+                                                        title="Edit Invoice"
+                                                    >
+                                                        <FileText className="h-4 w-4" />
+                                                    </button>
+                                                )}
+
                                                 {/* If Draft, allow Issuing */}
                                                 {inv.status === 0 && (
                                                     <button
@@ -328,6 +343,18 @@ export const InvoicesPage = () => {
                 onClose={() => setIsCreateModalOpen(false)}
                 onSuccess={fetchInvoices}
             />
+
+            {editingInvoiceId && (
+                <EditInvoiceModal
+                    isOpen={!!editingInvoiceId}
+                    onClose={() => setEditingInvoiceId(null)}
+                    onSuccess={() => {
+                        setEditingInvoiceId(null);
+                        fetchInvoices();
+                    }}
+                    invoiceId={editingInvoiceId}
+                />
+            )}
 
             <ConfirmModal
                 isOpen={confirmModal.isOpen}

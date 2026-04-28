@@ -32,11 +32,14 @@ export const salesService = {
         return response.data;
     },
 
-    closeLead: async (id: number, boqFile?: File, drawingsFile?: File, notes?: string): Promise<{ message: string }> => {
+    closeLead: async (id: number, boqFile?: File, drawingsFile?: File, notes?: string, extraFiles?: File[]): Promise<{ message: string }> => {
         const formData = new FormData();
         if (boqFile) formData.append("BOQFile", boqFile);
         if (drawingsFile) formData.append("DrawingsFile", drawingsFile);
         if (notes) formData.append("Notes", notes);
+        if (extraFiles && extraFiles.length > 0) {
+            extraFiles.forEach(f => formData.append("ExtraFiles", f));
+        }
 
         const response = await apiClient.post<{ message: string }>(`/Sales/leads/${id}/close`, formData, {
             headers: {

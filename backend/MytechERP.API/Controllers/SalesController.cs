@@ -504,6 +504,17 @@ namespace MytechERP.API.Controllers
                 lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFile, $"drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.DrawingsFile.FileName)}");
             }
 
+            if (dto.ExtraFiles != null && dto.ExtraFiles.Count > 0)
+            {
+                var extraUrls = new System.Collections.Generic.List<string>();
+                foreach (var extraFile in dto.ExtraFiles)
+                {
+                    var url = await _blobService.UploadAsync(extraFile, $"extra-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(extraFile.FileName)}");
+                    extraUrls.Add(url);
+                }
+                lead.ExtraFileUrlsJson = System.Text.Json.JsonSerializer.Serialize(extraUrls);
+            }
+
             if (!string.IsNullOrEmpty(dto.Notes))
             {
                 lead.Notes += "\nClose Notes: " + dto.Notes;
