@@ -238,6 +238,12 @@ export const SiteVisitPage = () => {
             return;
         }
 
+        // Require at least one evidence photo
+        if (photos.length === 0) {
+            toast.error("Please capture at least one Evidence Photo before ending the visit.");
+            return;
+        }
+
         try {
             toast.loading("Acquiring checkout GPS Signal...", { id: "gpsEnd" });
             const coords = await getGPSCoordinates();
@@ -476,7 +482,11 @@ export const SiteVisitPage = () => {
                                 <div className="flex flex-col sm:flex-row gap-3">
                                     <button 
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="w-full py-4 border-2 border-dashed border-primary/50 text-primary font-bold rounded-xl hover:bg-primary/5 transition-colors flex items-center justify-center space-x-2"
+                                        className={`w-full py-4 border-2 border-dashed font-bold rounded-xl transition-colors flex items-center justify-center space-x-2 ${
+                                            photos.length === 0
+                                                ? 'border-red-500/70 text-red-500 hover:bg-red-500/5 animate-pulse'
+                                                : 'border-primary/50 text-primary hover:bg-primary/5'
+                                        }`}
                                     >
                                         <Camera className="h-5 w-5" />
                                         <span>Capture Evidence Photo</span>
