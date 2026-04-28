@@ -5,7 +5,7 @@ namespace MytechERP.Application.DTOs.Sales
     public class CreateInitialClientVisitDto
     {
         // Customer Details
-        public string Name { get; set; } = string.Empty;
+        public string? Name { get; set; }
         public string? Email { get; set; }
         public string? Phone { get; set; }
         public string? TaxNumber { get; set; }
@@ -19,9 +19,9 @@ namespace MytechERP.Application.DTOs.Sales
         public string? AdditionalContactsJson { get; set; }
 
         // Site Attributes
-        public string SiteName { get; set; } = string.Empty;
-        public string SiteCity { get; set; } = string.Empty;
-        public string SiteAddress { get; set; } = string.Empty;
+        public string? SiteName { get; set; }
+        public string? SiteCity { get; set; }
+        public string? SiteAddress { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public string? ProjectStatus { get; set; }

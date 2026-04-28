@@ -211,7 +211,7 @@ namespace MytechERP.API.Controllers
                 // 1. Create Customer
                 var customer = new Customer
                 {
-                    Name = dto.Name,
+                    Name = string.IsNullOrWhiteSpace(dto.Name) ? "Lead By Call" : dto.Name,
                     Email = dto.Email ?? "",
                     Phone = dto.Phone ?? "",
                     TaxNumber = dto.TaxNumber ?? "",
@@ -229,9 +229,9 @@ namespace MytechERP.API.Controllers
                 // 2. Create Site
                 var site = new Site
                 {
-                    Name = dto.SiteName,
-                    City = dto.SiteCity,
-                    Address = dto.SiteAddress,
+                    Name = string.IsNullOrWhiteSpace(dto.SiteName) ? "Unknown Site" : dto.SiteName,
+                    City = string.IsNullOrWhiteSpace(dto.SiteCity) ? "Unknown" : dto.SiteCity,
+                    Address = string.IsNullOrWhiteSpace(dto.SiteAddress) ? "Unknown" : dto.SiteAddress,
                     Latitude = dto.Latitude,
                     Longitude = dto.Longitude,
                     ProjectStatus = dto.ProjectStatus,
@@ -377,7 +377,7 @@ namespace MytechERP.API.Controllers
                 // Update Customer
                 if (lead.Customer != null)
                 {
-                    lead.Customer.Name = dto.Name;
+                    lead.Customer.Name = string.IsNullOrWhiteSpace(dto.Name) ? "Lead By Call" : dto.Name;
                     lead.Customer.Email = dto.Email ?? "";
                     lead.Customer.Phone = dto.Phone ?? "";
                     lead.Customer.TaxNumber = dto.TaxNumber ?? "";
@@ -392,9 +392,9 @@ namespace MytechERP.API.Controllers
                 // Update Site
                 if (lead.Site != null)
                 {
-                    lead.Site.Name = dto.SiteName;
-                    lead.Site.City = dto.SiteCity;
-                    lead.Site.Address = dto.SiteAddress;
+                    lead.Site.Name = string.IsNullOrWhiteSpace(dto.SiteName) ? "Unknown Site" : dto.SiteName;
+                    lead.Site.City = string.IsNullOrWhiteSpace(dto.SiteCity) ? "Unknown" : dto.SiteCity;
+                    lead.Site.Address = string.IsNullOrWhiteSpace(dto.SiteAddress) ? "Unknown" : dto.SiteAddress;
                     lead.Site.ProjectStatus = dto.ProjectStatus;
                     if (dto.Latitude.HasValue && dto.Longitude.HasValue)
                     {

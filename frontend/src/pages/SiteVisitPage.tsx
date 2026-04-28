@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { salesService } from "../services/salesService";
 import { quotationService } from "../services/quotationService";
 import { SalesLeadDto, SiteVisitDto, LeadQuoteDto } from "../types/sales";
+import { useAuth } from "../auth/AuthContext";
 
 export const extractApiError = (error: any, defaultMsg: string) => {
     if (error.response?.status === 403) return "Permission denied (403). Contact your administrator.";
@@ -25,6 +26,7 @@ export const extractApiError = (error: any, defaultMsg: string) => {
 export const SiteVisitPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [lead, setLead] = useState<SalesLeadDto | null>(null);
     const [, setVisits] = useState<SiteVisitDto[]>([]);
     
@@ -234,16 +236,19 @@ export const SiteVisitPage = () => {
 
     const handleEndVisit = async () => {
         if (!activeVisitId) return;
-        
-        if (!meetingNotes || meetingNotes.trim() === "") {
-            toast.error("Please provide Meeting Information & Notes before ending the visit.");
-            return;
-        }
+        const isSalesman = user?.roles?.includes("Salesman");
 
-        // Require at least one evidence photo
-        if (photos.length === 0) {
-            toast.error("Please capture at least one Evidence Photo before ending the visit.");
-            return;
+        if (isSalesman) {
+            if (!meetingNotes || meetingNotes.trim() === "") {
+                toast.error("Please provide Meeting Information & Notes before ending the visit.");
+                return;
+            }
+
+            // Require at least one evidence photo
+            if (photos.length === 0) {
+                toast.error("Please capture at least one Evidence Photo before ending the visit.");
+                return;
+            }
         }
 
         try {
