@@ -13,6 +13,7 @@ export interface AmountRequestFormDto {
   id: number;
   createdAt: string;
   employeeName: string;
+  employeeEmail: string;
   advanceRequested: number;
   accountDetail: string;
   dateOfFundRequired?: string;
