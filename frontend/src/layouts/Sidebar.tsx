@@ -25,6 +25,7 @@ type SidebarItem = {
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Dashboard", href: "/dashboard", icon: Home },
+    { label: "Amount Request Form", href: "/amount-request", icon: DollarSign },
 
     { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
     { label: "Sales Management", href: "/sales/leads", icon: Target, allowedRoles: ["Admin", "Manager", "Salesman", "Engineer", "Worker", "Technician"] },

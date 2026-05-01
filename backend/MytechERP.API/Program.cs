@@ -101,6 +101,7 @@ builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IAssetImportService, AssetImportService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IAmountRequestFormService, AmountRequestFormService>();
 // Hangfire (Skip if placeholder)
 var hangfireConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 if (!string.IsNullOrEmpty(hangfireConnection) && hangfireConnection != "CONFIGURE_IN_AZURE_APP_SERVICE")

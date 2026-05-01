@@ -40,6 +40,7 @@ import { CustomerInvoicesPage } from "./pages/CustomerInvoicesPage";
 import { SubscriptionPlansPage } from "./pages/SubscriptionPlansPage";
 import { SubscriptionSuccessPage } from "./pages/SubscriptionSuccessPage";
 import { SubscriptionCancelPage } from "./pages/SubscriptionCancelPage";
+import AmountRequestFormPage from "./pages/AmountRequestFormPage";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./auth/AuthContext";
 import { SyncProvider } from "./contexts/SyncContext";
@@ -136,6 +137,7 @@ function App() {
                                 <Route path="/job/:id" element={<JobExecutionPage />} />
                             </Route>
 
+                            <Route path="/amount-request" element={<AmountRequestFormPage />} />
                             {/* Future Iterations will add more routes here */}
                         </Route>
 

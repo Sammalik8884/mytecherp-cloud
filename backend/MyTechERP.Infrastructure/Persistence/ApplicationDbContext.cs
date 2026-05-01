@@ -91,6 +91,9 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<SiteVisit> SiteVisits { get; set; }
         public DbSet<VisitPhoto> VisitPhotos { get; set; }
 
+        public DbSet<AmountRequestForm> AmountRequestForms { get; set; }
+        public DbSet<AmountRequestPayment> AmountRequestPayments { get; set; }
+
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<TenantSubscription> TenantSubscriptions { get; set; }
@@ -198,6 +201,7 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<SalesLead>().HasQueryFilter(sl => sl.TenantId == _currentUserService.TenantId && !sl.IsDeleted);
             builder.Entity<SiteVisit>().HasQueryFilter(sv => sv.TenantId == _currentUserService.TenantId && !sv.IsDeleted);
             builder.Entity<VisitPhoto>().HasQueryFilter(vp => vp.TenantId == _currentUserService.TenantId && !vp.IsDeleted);
+            builder.Entity<AmountRequestForm>().HasQueryFilter(arf => arf.TenantId == _currentUserService.TenantId && !arf.IsDeleted);
 
             // ─── Subscription Plan & Tenant Subscription ─────────────────────────────
             // No tenant query filter on SubscriptionPlan (it's global/shared data).

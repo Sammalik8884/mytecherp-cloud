@@ -729,15 +729,21 @@ namespace MytechERP.API.Controllers
             var visit = await _context.SiteVisits.Include(v => v.SalesLead).FirstOrDefaultAsync(v => v.Id == visitId);
             if (visit == null) return NotFound();
 
-            if (string.IsNullOrWhiteSpace(dto.MeetingNotes))
-            {
-                return BadRequest(new { Error = "Meeting notes are required to end a visit." });
-            }
-
             var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
             var userId = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            if (userRole == Roles.Salesman && visit.SalesLead!.SalesmanUserId != userId) return Forbid();
+            if (userRole == Roles.Salesman)
+            {
+                if (string.IsNullOrWhiteSpace(dto.MeetingNotes))
+                {
+                    return BadRequest(new { Error = "Meeting notes are required to end a visit." });
+                }
+                
+                if (visit.SalesLead!.SalesmanUserId != userId) 
+                {
+                    return Forbid();
+                }
+            }
 
             visit.EndLatitude = dto.EndLatitude;
             visit.EndLongitude = dto.EndLongitude;
