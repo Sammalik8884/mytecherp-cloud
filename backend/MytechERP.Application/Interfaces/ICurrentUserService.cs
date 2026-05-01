@@ -9,7 +9,8 @@ namespace MytechERP.Application.Interfaces
 {
     public interface ICurrentUserService
     {
-         string?  UserId { get; }
+        string?  UserId { get; }
+        string? Email { get; }
         int? TenantId { get; }
         string? Role { get; }
         Task<Tenant?> GetCurrentTenantAsync();

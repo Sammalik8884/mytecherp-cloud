@@ -77,9 +77,20 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<List<AmountRequestFormDto>> GetAllAsync()
         {
-            var entities = await _context.AmountRequestForms
+            var role = _currentUserService.Role;
+            var email = _currentUserService.Email?.ToLower();
+
+            var query = _context.AmountRequestForms
                 .Include(a => a.Site)
                 .Include(a => a.Payments)
+                .AsQueryable();
+
+            if (role != "Admin" && role != "Accounts Head" && email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com")
+            {
+                query = query.Where(a => a.EmployeeEmail.ToLower() == email);
+            }
+
+            var entities = await query
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
 

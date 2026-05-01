@@ -30,7 +30,7 @@ const AmountRequestFormPage = () => {
 
     const isDirector = user?.email?.toLowerCase() === "shahbaz.ali@mytecheng.com" || hasRole(["Admin"]);
     const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["Admin"]);
-    const isAccounts = hasRole(["Admin", "Manager"]); // Assuming Manager or Admin acts as Accounts
+    const isAccounts = hasRole(["Admin", "Accounts Head"]); // Changed from Manager
 
     useEffect(() => {
         fetchData();

@@ -22,6 +22,10 @@ namespace MyTechERP.Infrastructure.Seeds
             await roleManager.CreateAsync(new IdentityRole(Roles.Technician));
             await roleManager.CreateAsync(new IdentityRole(Roles.Customers));
             await roleManager.CreateAsync(new IdentityRole(Roles.Salesman));
+            if (!await roleManager.RoleExistsAsync(Roles.AccountsHead))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.AccountsHead));
+            }
             var adminRole = await roleManager.FindByNameAsync(Roles.Admin);
             await SeedClaimsForSuperAdmin(roleManager, adminRole);
         }
