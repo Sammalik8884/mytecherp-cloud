@@ -13,6 +13,7 @@ namespace MyTechERP.Infrastructure.Persistence
     public class DummyCurrentUserService : ICurrentUserService
     {
         public string UserId => "Migration-User";
+        public string? Email => null;
         public int TenantId => 1;
         public string? Role => null;
         int? ICurrentUserService.TenantId => TenantId;
