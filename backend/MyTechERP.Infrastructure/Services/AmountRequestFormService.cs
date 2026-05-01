@@ -208,6 +208,17 @@ namespace MyTechERP.Infrastructure.Services
             entity.AccountsRemarks = dto.Remarks;
             entity.Status = "Released";
 
+            var payment = new AmountRequestPayment
+            {
+                AmountRequestFormId = id,
+                ReleasedDate = dto.DateOfFundReleased,
+                ReleasedAmount = dto.ReleasedAmount,
+                ReceivedBy = entity.EmployeeName,
+                ModeOfPayment = "Transfer",
+                Remarks = "Auto-generated from Release Details: " + dto.Remarks
+            };
+            _context.AmountRequestPayments.Add(payment);
+
             try
             {
                 if (!string.IsNullOrEmpty(entity.EmployeeEmail))

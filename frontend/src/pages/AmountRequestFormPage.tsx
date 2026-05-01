@@ -137,7 +137,8 @@ const AmountRequestFormPage = () => {
             });
             toast.success("Amount released successfully");
             fetchData();
-            setSelectedForm(null);
+            const res = await amountRequestApi.getById(selectedForm.id);
+            setSelectedForm(res.data);
         } catch (error: any) {
             toast.error(error.response?.data || "Failed to release amount");
         }
