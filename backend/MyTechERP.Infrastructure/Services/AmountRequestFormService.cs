@@ -31,6 +31,7 @@ namespace MyTechERP.Infrastructure.Services
                 Id = entity.Id,
                 CreatedAt = entity.CreatedAt,
                 EmployeeName = entity.EmployeeName,
+                EmployeeEmail = entity.EmployeeEmail,
                 AdvanceRequested = entity.AdvanceRequested,
                 AccountDetail = entity.AccountDetail,
                 DateOfFundRequired = entity.DateOfFundRequired,
@@ -90,6 +91,7 @@ namespace MyTechERP.Infrastructure.Services
             var entity = new AmountRequestForm
             {
                 EmployeeName = dto.EmployeeName,
+                EmployeeEmail = dto.EmployeeEmail,
                 AdvanceRequested = dto.AdvanceRequested,
                 AccountDetail = dto.AccountDetail,
                 DateOfFundRequired = dto.DateOfFundRequired,
@@ -143,6 +145,13 @@ namespace MyTechERP.Infrastructure.Services
                     else
                     {
                         entity.Status = "Approved - Ready for Accounts";
+                        try
+                        {
+                            string subject = $"Amount Request Ready for Release - {entity.EmployeeName}";
+                            string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been fully approved and is ready for release.</p>";
+                            await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+                        }
+                        catch (Exception) { }
                     }
                 }
                 else
@@ -159,6 +168,13 @@ namespace MyTechERP.Infrastructure.Services
                 if (dto.IsApproved)
                 {
                     entity.Status = "Approved - Ready for Accounts";
+                    try
+                    {
+                        string subject = $"Amount Request Ready for Release - {entity.EmployeeName}";
+                        string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been fully approved and is ready for release.</p>";
+                        await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+                    }
+                    catch (Exception) { }
                 }
                 else
                 {
@@ -180,6 +196,17 @@ namespace MyTechERP.Infrastructure.Services
             entity.AccountsReleasedAmount = dto.ReleasedAmount;
             entity.AccountsRemarks = dto.Remarks;
             entity.Status = "Released";
+
+            try
+            {
+                if (!string.IsNullOrEmpty(entity.EmployeeEmail))
+                {
+                    string subject = $"Amount Request Released - {entity.EmployeeName}";
+                    string body = $"<p>Dear {entity.EmployeeName},</p><p>Your amount advance request of {entity.AdvanceRequested} has been released.</p><p>Remarks: {dto.Remarks}</p>";
+                    await _emailService.SendEmailAsync(entity.EmployeeEmail, subject, body);
+                }
+            }
+            catch (Exception) { }
 
             await _context.SaveChangesAsync();
             return await GetByIdAsync(entity.Id);

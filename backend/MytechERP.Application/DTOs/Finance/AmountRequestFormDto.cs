@@ -8,6 +8,7 @@ namespace MytechERP.Application.DTOs.Finance
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
         public string EmployeeName { get; set; } = string.Empty;
+        public string EmployeeEmail { get; set; } = string.Empty;
         public decimal AdvanceRequested { get; set; }
         public string AccountDetail { get; set; } = string.Empty;
         public DateTime? DateOfFundRequired { get; set; }
@@ -39,6 +40,7 @@ namespace MytechERP.Application.DTOs.Finance
     public class CreateAmountRequestFormDto
     {
         public string EmployeeName { get; set; } = string.Empty;
+        public string EmployeeEmail { get; set; } = string.Empty;
         public decimal AdvanceRequested { get; set; }
         public string AccountDetail { get; set; } = string.Empty;
         public DateTime? DateOfFundRequired { get; set; }

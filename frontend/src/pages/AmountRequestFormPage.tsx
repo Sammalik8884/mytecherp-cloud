@@ -18,6 +18,7 @@ const AmountRequestFormPage = () => {
 
     // Form State
     const [employeeName, setEmployeeName] = useState(user?.fullName || "");
+    const [employeeEmail, setEmployeeEmail] = useState(user?.email || "");
     const [advanceRequested, setAdvanceRequested] = useState<number | "">("");
     const [accountDetail, setAccountDetail] = useState("");
     const [dateOfFundRequired, setDateOfFundRequired] = useState("");
@@ -56,6 +57,7 @@ const AmountRequestFormPage = () => {
         try {
             await amountRequestApi.create({
                 employeeName,
+                employeeEmail,
                 advanceRequested: Number(advanceRequested),
                 accountDetail,
                 dateOfFundRequired: dateOfFundRequired || undefined,
@@ -75,6 +77,7 @@ const AmountRequestFormPage = () => {
 
     const resetForm = () => {
         setEmployeeName(user?.fullName || "");
+        setEmployeeEmail(user?.email || "");
         setAdvanceRequested("");
         setAccountDetail("");
         setDateOfFundRequired("");
@@ -255,6 +258,10 @@ const AmountRequestFormPage = () => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-foreground">Employee Name</label>
                                     <input required value={employeeName} onChange={e => setEmployeeName(e.target.value)} type="text" className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-foreground">Employee Email</label>
+                                    <input required value={employeeEmail} onChange={e => setEmployeeEmail(e.target.value)} type="email" className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-foreground">Advance Requested</label>
@@ -439,7 +446,7 @@ const AmountRequestFormPage = () => {
                                                     <label className="block text-muted-foreground mb-1">Remarks</label>
                                                     <textarea name="remarks" rows={2} className="w-full p-2 rounded border border-input bg-background resize-none"></textarea>
                                                 </div>
-                                                <button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors">Release Funds</button>
+                                                <button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors">Done</button>
                                             </form>
                                         ) : (
                                             <div className="p-6 text-center text-muted-foreground text-sm italic">Accounts team will release funds here.</div>

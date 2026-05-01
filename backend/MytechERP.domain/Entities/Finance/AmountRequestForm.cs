@@ -14,6 +14,7 @@ namespace MytechERP.domain.Entities.Finance
 
         // Employee Section
         public string EmployeeName { get; set; } = string.Empty;
+        public string EmployeeEmail { get; set; } = string.Empty;
         public decimal AdvanceRequested { get; set; }
         public string AccountDetail { get; set; } = string.Empty;
         public DateTime? DateOfFundRequired { get; set; }
