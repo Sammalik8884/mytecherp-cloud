@@ -14,6 +14,7 @@ const AmountRequestFormPage = () => {
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
+    const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
 
     // Form State
     const [employeeName, setEmployeeName] = useState(user?.fullName || "");
@@ -84,20 +85,31 @@ const AmountRequestFormPage = () => {
         setSelectedForm(null);
     };
 
-    const handleApprove = async (id: number, role: string, isApproved: boolean) => {
-        const comment = window.prompt(`Enter comment for ${isApproved ? 'Approval' : 'Rejection'}:`);
-        if (comment === null) return;
+    const handleApprove = (id: number, role: string, isApproved: boolean) => {
+        setPromptModal({
+            isOpen: true,
+            id,
+            role,
+            isApproved,
+            title: `Enter comment for ${isApproved ? 'Approval' : 'Rejection'}:`,
+            comment: ""
+        });
+    };
+
+    const submitApprove = async () => {
+        if (!promptModal) return;
 
         try {
-            await amountRequestApi.approve(id, {
-                approverRole: role,
+            await amountRequestApi.approve(promptModal.id, {
+                approverRole: promptModal.role,
                 approverName: user?.fullName || "",
-                comment,
-                isApproved
+                comment: promptModal.comment,
+                isApproved: promptModal.isApproved
             });
-            toast.success(`Form ${isApproved ? 'approved' : 'rejected'} successfully`);
+            toast.success(`Form ${promptModal.isApproved ? 'approved' : 'rejected'} successfully`);
             fetchData();
-            if (selectedForm?.id === id) setSelectedForm(null);
+            if (selectedForm?.id === promptModal.id) setSelectedForm(null);
+            setPromptModal(null);
         } catch (error: any) {
             toast.error(error.response?.data || "Action failed");
         }
@@ -497,6 +509,36 @@ const AmountRequestFormPage = () => {
                             </div>
                         ) : null}
 
+                    </div>
+                </div>
+            )}
+            {/* Custom Prompt Modal */}
+            {promptModal && promptModal.isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+                    <div className="bg-card border border-border/50 rounded-2xl shadow-2xl p-6 w-full max-w-md animate-in zoom-in-95 duration-200">
+                        <h3 className="text-xl font-bold text-foreground mb-4">{promptModal.title}</h3>
+                        <textarea
+                            autoFocus
+                            value={promptModal.comment}
+                            onChange={(e) => setPromptModal({ ...promptModal, comment: e.target.value })}
+                            className="w-full p-3 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none mb-6"
+                            rows={3}
+                            placeholder="Type your comment here..."
+                        />
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setPromptModal(null)}
+                                className="px-5 py-2 rounded-xl border border-border hover:bg-muted/50 transition-colors font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={submitApprove}
+                                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium shadow-sm shadow-primary/20"
+                            >
+                                Confirm
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
