@@ -19,7 +19,7 @@ namespace MytechERP.API.Controllers
         { 
            _context = context;
         }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         [HttpGet]
         public async Task<ActionResult<List<SiteDto>>> GetAll()
         {
@@ -67,7 +67,7 @@ namespace MytechERP.API.Controllers
 
             return Ok(new { Message = "Site Created Successfully", Id = site.Id });
         }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Estimation + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.AllInternal)]
         [HttpGet("{id}")]
         public async Task<ActionResult<SiteDto>> GetById(int id)
         {
