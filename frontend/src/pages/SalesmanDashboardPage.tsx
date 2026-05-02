@@ -276,6 +276,13 @@ export const SalesmanDashboardPage = () => {
                 dataToSubmit.salespersonSignatureName = user?.id || "";
             }
 
+            // For new first visits (not lead-by-call, not editing), require at least 1 proof attachment
+            if (!editingLeadId && !isLeadByCall && clientAttachments.length === 0) {
+                toast.error("Please upload at least one proof photo/document for the initial visit.");
+                setClientFormLoading(false);
+                return;
+            }
+
             if (clientContacts.length > 0) {
                 dataToSubmit.additionalContactsJson = JSON.stringify(clientContacts);
             }
@@ -603,8 +610,9 @@ export const SalesmanDashboardPage = () => {
                                     <h3 className="text-sm font-bold text-indigo-500 uppercase tracking-wider border-b border-border/50 pb-2 mt-4">Initial Visit Execution</h3>
                                     <div className="grid grid-cols-1 gap-4">
                                         <div>
-                                            <label className="block text-xs font-semibold text-muted-foreground mb-1 flex items-center">Remarks / Notes</label>
+                                            <label className="block text-xs font-semibold text-muted-foreground mb-1 flex items-center">Remarks / Notes {!isLeadByCall && !editingLeadId && <span className="text-destructive ml-1">*</span>}</label>
                                             <textarea 
+                                                required={!isLeadByCall && !editingLeadId}
                                                 value={clientForm.remarks} 
                                                 onChange={e => setClientForm({...clientForm, remarks: e.target.value})} 
                                                 className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background min-h-[100px] resize-y" 
@@ -612,7 +620,7 @@ export const SalesmanDashboardPage = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Attachments (Documents, PDFs, Images)</label>
+                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Proof / Evidence (Photos, Documents) {!isLeadByCall && !editingLeadId && <span className="text-destructive">*</span>}</label>
                                                 <div className="flex flex-col space-y-3">
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <input 
