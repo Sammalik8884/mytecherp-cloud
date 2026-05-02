@@ -117,7 +117,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
 
     if (fetchingQuote) {
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-sm animate-in fade-in duration-200">
                 <div className="bg-card w-full max-w-md p-12 rounded-2xl shadow-2xl border border-border flex flex-col items-center">
                     <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
                     <p className="text-muted-foreground text-sm">Loading quote tracking data...</p>
@@ -139,7 +139,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
 
     if (showEmptyPrompt) {
         return (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-sm animate-in fade-in duration-200">
                 <div className="bg-card w-full max-w-md p-6 rounded-2xl shadow-2xl border border-border flex flex-col items-center text-center">
                     <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
                     <h3 className="text-lg font-bold text-foreground mb-2">No Products Left</h3>
@@ -223,7 +223,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 sm:p-6 bg-foreground/40 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
             <div className="bg-card w-full max-w-4xl max-h-[90vh] flex flex-col border border-border rounded-2xl shadow-2xl relative my-auto">
                 <div className="flex justify-between items-center p-6 border-b border-border shrink-0 bg-card z-10 rounded-t-2xl">
                     <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -246,7 +246,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                     required
                                     value={issueDate}
                                     onChange={(e) => setIssueDate(e.target.value)}
-                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
+                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
                                 />
                             </div>
                             <div>
@@ -256,7 +256,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                     required
                                     value={dueDate}
                                     onChange={(e) => setDueDate(e.target.value)}
-                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
+                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
                                 />
                             </div>
                         </div>
@@ -287,7 +287,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                                     setBankAccountTitle('');
                                                 }
                                             }}
-                                            className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                         >
                                             <option value="">-- No Bank Details --</option>
                                             {bankAccounts.map(b => (
@@ -303,21 +303,21 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                                 placeholder="Bank Name"
                                                 value={bankName}
                                                 onChange={e => setBankName(e.target.value)}
-                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                             />
                                             <input
                                                 type="text"
                                                 placeholder="Account Number"
                                                 value={bankAccountNumber}
                                                 onChange={e => setBankAccountNumber(e.target.value)}
-                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                             />
                                             <input
                                                 type="text"
                                                 placeholder="Account Title"
                                                 value={bankAccountTitle}
                                                 onChange={e => setBankAccountTitle(e.target.value)}
-                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                             />
                                         </div>
                                     )}
@@ -335,7 +335,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                             placeholder="e.g. John Doe"
                                             value={issuedByName}
                                             onChange={e => setIssuedByName(e.target.value)}
-                                            className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                         />
                                     </div>
                                     <div>
@@ -345,7 +345,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                             placeholder="e.g. +1 234 567 8900"
                                             value={issuedByPhone}
                                             onChange={e => setIssuedByPhone(e.target.value)}
-                                            className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                         />
                                     </div>
                                 </div>
@@ -354,7 +354,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
 
                         {/* Line Items */}
                         <div className="border border-border rounded-xl overflow-hidden mt-6 bg-card">
-                            <div className="bg-white/5 p-4 border-b border-border flex justify-between items-center">
+                            <div className="bg-secondary/30 p-4 border-b border-border flex justify-between items-center">
                                 <h3 className="font-medium text-foreground">Select Products to Invoice</h3>
                             </div>
                             <div className="p-4 space-y-4">
@@ -385,7 +385,7 @@ export const GenerateInvoiceFromQuoteModal = ({ isOpen, onClose, onSuccess, quot
                                                     value={item.quantity}
                                                     onChange={(e) => updateQuantity(index, parseFloat(e.target.value))}
                                                     disabled={!item.included}
-                                                    className="w-full bg-white/5 border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary/50 disabled:opacity-50"
+                                                    className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary/50 disabled:opacity-50"
                                                 />
                                             </div>
                                             <div className="w-32">

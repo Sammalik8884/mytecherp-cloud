@@ -551,7 +551,7 @@ export const ProcurementPage = () => {
             {/* Create Vendor Modal */}
             {showVendorModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isSubmittingVendor && setShowVendorModal(false)} />
+                    <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" onClick={() => !isSubmittingVendor && setShowVendorModal(false)} />
                     <div className="bg-secondary/95 border border-primary/20 p-8 rounded-2xl w-full max-w-md relative z-10 shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -613,7 +613,7 @@ export const ProcurementPage = () => {
             {/* Create PO Modal */}
             {showPOModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isSubmittingPO && setShowPOModal(false)} />
+                    <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" onClick={() => !isSubmittingPO && setShowPOModal(false)} />
                     <div className="bg-secondary/95 border border-primary/20 p-8 rounded-2xl w-full max-w-2xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-bold flex items-center gap-2">

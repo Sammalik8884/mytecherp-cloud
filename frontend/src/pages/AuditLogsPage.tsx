@@ -103,7 +103,7 @@ export const AuditLogsPage = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="font-semibold text-foreground">{log.entityName}</span>
-                                            {log.entityId && <span className="ml-2 text-xs font-mono text-muted-foreground bg-white/5 px-2 py-0.5 rounded border border-border">#{log.entityId}</span>}
+                                            {log.entityId && <span className="ml-2 text-xs font-mono text-muted-foreground bg-secondary/30 px-2 py-0.5 rounded border border-border">#{log.entityId}</span>}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${log.action.toLowerCase().includes('delete') || log.action.toLowerCase().includes('remove') ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : log.action.toLowerCase().includes('update') ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : log.action.toLowerCase().includes('create') || log.action.toLowerCase().includes('add') ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-primary/10 text-primary border-primary/20'}`}>

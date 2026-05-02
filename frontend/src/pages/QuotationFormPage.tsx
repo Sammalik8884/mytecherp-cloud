@@ -1293,7 +1293,7 @@ export const QuotationFormPage = () => {
 
             {/* ── BREAKDOWN MODAL ── */}
             {modalBreakdown && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in" onClick={() => setModalBreakdown(null)}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-4 animate-in fade-in" onClick={() => setModalBreakdown(null)}>
                     <div className="bg-card border border-border rounded-3xl p-6 shadow-2xl max-w-md w-full animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center gap-2">

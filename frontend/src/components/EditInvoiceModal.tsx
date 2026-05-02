@@ -193,7 +193,7 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 sm:p-6 bg-foreground/40 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
             <div className="bg-card w-full max-w-4xl max-h-[90vh] flex flex-col border border-border rounded-2xl shadow-2xl relative my-auto">
                 <div className="flex justify-between items-center p-6 border-b border-border shrink-0 bg-card z-10 rounded-t-2xl">
                     <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -214,7 +214,7 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
                                     required
                                     value={customerId}
                                     onChange={(e) => setCustomerId(Number(e.target.value) || "")}
-                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50 disabled:opacity-50"
+                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50 disabled:opacity-50"
                                     disabled={true} // Usually can't change customer on existing invoice
                                 >
                                     <option value="" className="bg-card text-foreground">Select a Customer...</option>
@@ -230,7 +230,7 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
                                     required
                                     value={issueDate}
                                     onChange={(e) => setIssueDate(e.target.value)}
-                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
+                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
                                 />
                             </div>
                             <div>
@@ -240,7 +240,7 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
                                     required
                                     value={dueDate}
                                     onChange={(e) => setDueDate(e.target.value)}
-                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
+                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
                                 />
                             </div>
                         </div>
@@ -265,7 +265,7 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
                                                 setBankName(''); setBankAccountNumber(''); setBankAccountTitle('');
                                             }
                                         }}
-                                        className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none"
+                                        className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none"
                                     >
                                         <option value="">-- No Bank Details --</option>
                                         {bankAccounts.map(b => (
@@ -275,9 +275,9 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
                                     </select>
                                     {selectedBankId === 'custom' && (
                                         <div className="space-y-3">
-                                            <input type="text" placeholder="Bank Name" value={bankName} onChange={e => setBankName(e.target.value)} className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50" />
-                                            <input type="text" placeholder="Account Number" value={bankAccountNumber} onChange={e => setBankAccountNumber(e.target.value)} className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50" />
-                                            <input type="text" placeholder="Account Title" value={bankAccountTitle} onChange={e => setBankAccountTitle(e.target.value)} className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50" />
+                                            <input type="text" placeholder="Bank Name" value={bankName} onChange={e => setBankName(e.target.value)} className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50" />
+                                            <input type="text" placeholder="Account Number" value={bankAccountNumber} onChange={e => setBankAccountNumber(e.target.value)} className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50" />
+                                            <input type="text" placeholder="Account Title" value={bankAccountTitle} onChange={e => setBankAccountTitle(e.target.value)} className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50" />
                                         </div>
                                     )}
                                 </div>
@@ -286,14 +286,14 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
                             <div className="bg-card border border-border p-4 rounded-xl shadow-sm">
                                 <h3 className="text-sm font-semibold text-foreground mb-4">Issued By (Optional)</h3>
                                 <div className="space-y-4">
-                                    <input type="text" placeholder="Name" value={issuedByName} onChange={e => setIssuedByName(e.target.value)} className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none" />
-                                    <input type="text" placeholder="Phone" value={issuedByPhone} onChange={e => setIssuedByPhone(e.target.value)} className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none" />
+                                    <input type="text" placeholder="Name" value={issuedByName} onChange={e => setIssuedByName(e.target.value)} className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none" />
+                                    <input type="text" placeholder="Phone" value={issuedByPhone} onChange={e => setIssuedByPhone(e.target.value)} className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none" />
                                 </div>
                             </div>
                         </div>
 
                         <div className="border border-border rounded-xl overflow-hidden mt-6 bg-card">
-                            <div className="bg-white/5 p-4 border-b border-border flex justify-between items-center">
+                            <div className="bg-secondary/30 p-4 border-b border-border flex justify-between items-center">
                                 <h3 className="font-medium text-foreground">Line Items</h3>
                                 <div className="flex items-center space-x-2">
                                     <button type="button" onClick={() => handleAddItem("product")} className="flex items-center space-x-1 text-xs px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-400">
@@ -311,20 +311,20 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
                                             <label className="block text-xs text-muted-foreground mb-1">Description</label>
                                             {item.type === "product" ? (
                                                 <div className="flex space-x-2">
-                                                    <input readOnly value={item.description || "Select product..."} className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground" />
+                                                    <input readOnly value={item.description || "Select product..."} className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground" />
                                                     <button type="button" onClick={() => { setCurrentItemIndex(index); setIsProductModalOpen(true); }} className="px-3 py-2 bg-primary/10 text-primary rounded-lg">Search</button>
                                                 </div>
                                             ) : (
-                                                <input required value={item.description} onChange={(e) => handleItemChange(index, "description", e.target.value)} className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground" />
+                                                <input required value={item.description} onChange={(e) => handleItemChange(index, "description", e.target.value)} className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground" />
                                             )}
                                         </div>
                                         <div className="w-24">
                                             <label className="block text-xs text-muted-foreground mb-1">Qty</label>
-                                            <input type="number" required min="0.01" step="0.01" value={item.quantity} onChange={(e) => handleItemChange(index, "quantity", parseFloat(e.target.value))} className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground" />
+                                            <input type="number" required min="0.01" step="0.01" value={item.quantity} onChange={(e) => handleItemChange(index, "quantity", parseFloat(e.target.value))} className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground" />
                                         </div>
                                         <div className="w-32">
                                             <label className="block text-xs text-muted-foreground mb-1">Price</label>
-                                            <input type="number" required min="0" step="0.01" value={item.unitPrice} onChange={(e) => handleItemChange(index, "unitPrice", parseFloat(e.target.value))} className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground" />
+                                            <input type="number" required min="0" step="0.01" value={item.unitPrice} onChange={(e) => handleItemChange(index, "unitPrice", parseFloat(e.target.value))} className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground" />
                                         </div>
                                         <div className="w-10 flex justify-center pb-2">
                                             <button type="button" onClick={() => handleRemoveItem(index)} disabled={items.length === 1} className="text-gray-500 hover:text-red-500 disabled:opacity-30">
@@ -344,7 +344,7 @@ export const EditInvoiceModal = ({ isOpen, onClose, onSuccess, invoiceId }: Edit
                                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                                     <span className="flex items-center space-x-2">
                                         <span>Tax (%):</span>
-                                        <input type="number" min="0" max="100" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)} className="w-16 bg-white/5 border border-border rounded text-right px-2 py-1" />
+                                        <input type="number" min="0" max="100" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)} className="w-16 bg-secondary/30 border border-border rounded text-right px-2 py-1" />
                                     </span>
                                     <span>${taxAmount.toFixed(2)}</span>
                                 </div>

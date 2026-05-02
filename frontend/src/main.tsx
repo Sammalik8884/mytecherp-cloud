@@ -6,7 +6,7 @@ import { ThemeProvider } from './providers/ThemeProvider.tsx'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        <ThemeProvider defaultTheme="dark" storageKey="mytecherp-theme">
+        <ThemeProvider defaultTheme="light" storageKey="mytecherp-theme">
             <App />
         </ThemeProvider>
     </StrictMode>,

@@ -22,7 +22,8 @@ interface PremiumChartProps {
     height?: number;
 }
 
-const PIE_COLORS = ['#6366f1', '#22d3ee', '#f59e0b', '#10b981', '#f43f5e', '#a855f7', '#fb923c'];
+/* Google Material Design-inspired chart palette */
+const PIE_COLORS = ['#1a73e8', '#34a853', '#fbbc04', '#ea4335', '#9334e6', '#00897b', '#f4511e'];
 
 const CustomTooltip = ({ active, payload, label, valuePrefix = '', valueSuffix = '' }: any) => {
     if (!active || !payload?.length) return null;
@@ -76,7 +77,7 @@ export const PremiumChart: React.FC<PremiumChartProps> = ({
         };
         const xAxis = <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />;
         const yAxis = <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} width={80} tickFormatter={(v) => `${valuePrefix}${Number(v).toLocaleString()}`} />;
-        const grid = <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />;
+        const grid = <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />;
         const tooltip = <Tooltip content={<CustomTooltip valuePrefix={valuePrefix} valueSuffix={valueSuffix} />} />;
 
         if (chartType === 'pie') {
@@ -127,7 +128,7 @@ export const PremiumChart: React.FC<PremiumChartProps> = ({
     };
 
     return (
-        <div className="bg-card/50 backdrop-blur border border-border/60 rounded-2xl p-5 hover:border-border transition-colors">
+        <div className="bg-card border border-border rounded-xl p-5 hover:border-border transition-colors elevation-2">
             <div className="flex items-start justify-between mb-4">
                 <div>
                     <h3 className="font-bold text-foreground text-sm">{title}</h3>

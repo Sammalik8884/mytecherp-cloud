@@ -1,14 +1,19 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Firetech ERP</title>
+    <title>MyTechERP — Modern Business Management</title>
+    <meta name="description" content="MyTechERP — The modern, cloud-native ERP for field service companies. Manage customers, work orders, invoices, and your entire workforce in one platform." />
     <script>
-      // Force dark mode — always dark, no exceptions
-      localStorage.setItem('mytecherp-theme', 'dark');
-      document.documentElement.classList.remove('light');
-      document.documentElement.classList.add('dark');
+      // Default to light mode for a clean, Google-style experience
+      const saved = localStorage.getItem('mytecherp-theme');
+      if (!saved || saved === 'system') {
+        localStorage.setItem('mytecherp-theme', 'light');
+      }
+      const theme = localStorage.getItem('mytecherp-theme');
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(theme || 'light');
     </script>
   </head>
   <body>

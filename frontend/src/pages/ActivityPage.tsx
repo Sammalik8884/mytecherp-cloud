@@ -164,7 +164,7 @@ export const ActivityPage: React.FC = () => {
             </div>
 
             {loading ? (
-                <div className="h-80 rounded-2xl bg-white/5 animate-pulse border border-border" />
+                <div className="h-80 rounded-2xl bg-secondary/30 animate-pulse border border-border" />
             ) : salesActivity ? (
                 <div className="w-full">
                     <SalesmanActivityChart salesmenSummary={salesActivity.salesmenSummary} />

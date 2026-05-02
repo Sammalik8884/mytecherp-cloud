@@ -98,7 +98,7 @@ export const ContractModal: React.FC<ContractModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="flex justify-between items-center p-6 border-b border-border/50">
                     <h2 className="text-xl font-semibold">Create New AMC</h2>

@@ -76,7 +76,7 @@ export const CustomerInvoicesPage = () => {
                         <Receipt className="h-7 w-7 text-primary" />
                         My Invoices
                     </h1>
-                    <p className="text-muted-foreground text-sm mt-0.5">View and pay your invoices from FiretechERP.</p>
+                    <p className="text-muted-foreground text-sm mt-0.5">View and pay your invoices from MyTechERP.</p>
                 </div>
             </div>
 
@@ -88,12 +88,12 @@ export const CustomerInvoicesPage = () => {
                     placeholder="Search invoice #..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="w-full bg-white/5 border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                    className="w-full bg-secondary/30 border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                 />
             </div>
 
             {/* Invoice Table */}
-            <div className="bg-white/5 border border-border rounded-2xl overflow-hidden shadow-xl">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden elevation-2">
                 <table className="w-full text-sm">
                     <thead className="bg-secondary/80 border-b border-border text-muted-foreground text-xs uppercase">
                         <tr>
@@ -105,7 +105,7 @@ export const CustomerInvoicesPage = () => {
                             <th className="px-6 py-4 text-right font-medium">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-border">
                         {loading ? (
                             <tr>
                                 <td colSpan={6} className="py-12 text-center">

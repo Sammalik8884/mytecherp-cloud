@@ -64,7 +64,7 @@ export const ManageBankAccountsModal = ({ isOpen, onClose }: ManageBankAccountsM
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 sm:p-6 bg-foreground/40 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-card w-full max-w-2xl flex flex-col border border-border rounded-2xl shadow-2xl relative">
                 <div className="flex justify-between items-center p-6 border-b border-border shrink-0">
                     <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -83,17 +83,17 @@ export const ManageBankAccountsModal = ({ isOpen, onClose }: ManageBankAccountsM
                             <input
                                 type="text" placeholder="Bank Name" required
                                 value={bankName} onChange={e => setBankName(e.target.value)}
-                                className="bg-white/5 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 text-foreground"
+                                className="bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 text-foreground"
                             />
                             <input
                                 type="text" placeholder="Account Number" required
                                 value={accountNumber} onChange={e => setAccountNumber(e.target.value)}
-                                className="bg-white/5 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 text-foreground"
+                                className="bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 text-foreground"
                             />
                             <input
                                 type="text" placeholder="Account Title" required
                                 value={accountTitle} onChange={e => setAccountTitle(e.target.value)}
-                                className="bg-white/5 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 text-foreground"
+                                className="bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50 text-foreground"
                             />
                             <label className="flex items-center space-x-2 text-sm text-foreground">
                                 <input

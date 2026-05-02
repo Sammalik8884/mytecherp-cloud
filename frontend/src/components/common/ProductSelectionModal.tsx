@@ -43,7 +43,7 @@ export const ProductSelectionModal: React.FC<ProductSelectionModalProps> = ({ is
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-4">
             <div className="bg-card w-full max-w-4xl rounded-2xl shadow-2xl border border-border mt-10 overflow-hidden flex flex-col h-[85vh]">
                 <div className="flex justify-between items-center p-4 border-b border-border/40 bg-secondary/20">
                     <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">

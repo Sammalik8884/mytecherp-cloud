@@ -196,7 +196,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 sm:p-6 bg-foreground/40 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
             <div className="bg-card w-full max-w-4xl max-h-[90vh] flex flex-col border border-border rounded-2xl shadow-2xl relative my-auto">
                 <div className="flex justify-between items-center p-6 border-b border-border shrink-0 bg-card z-10 rounded-t-2xl">
                     <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -219,7 +219,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                     required
                                     value={customerId}
                                     onChange={(e) => setCustomerId(Number(e.target.value) || "")}
-                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50 disabled:opacity-50"
+                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50 disabled:opacity-50"
                                     disabled={dataLoading}
                                 >
                                     <option value="" className="bg-card text-foreground">Select a Customer...</option>
@@ -235,7 +235,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                     required
                                     value={issueDate}
                                     onChange={(e) => setIssueDate(e.target.value)}
-                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
+                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
                                 />
                             </div>
                             <div>
@@ -245,7 +245,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                     required
                                     value={dueDate}
                                     onChange={(e) => setDueDate(e.target.value)}
-                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
+                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:border-primary/50"
                                 />
                             </div>
                         </div>
@@ -276,7 +276,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                                     setBankAccountTitle('');
                                                 }
                                             }}
-                                            className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                         >
                                             <option value="">-- No Bank Details --</option>
                                             {bankAccounts.map(b => (
@@ -292,21 +292,21 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                                 placeholder="Bank Name"
                                                 value={bankName}
                                                 onChange={e => setBankName(e.target.value)}
-                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                             />
                                             <input
                                                 type="text"
                                                 placeholder="Account Number"
                                                 value={bankAccountNumber}
                                                 onChange={e => setBankAccountNumber(e.target.value)}
-                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                             />
                                             <input
                                                 type="text"
                                                 placeholder="Account Title"
                                                 value={bankAccountTitle}
                                                 onChange={e => setBankAccountTitle(e.target.value)}
-                                                className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                             />
                                         </div>
                                     )}
@@ -324,7 +324,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                             placeholder="e.g. John Doe"
                                             value={issuedByName}
                                             onChange={e => setIssuedByName(e.target.value)}
-                                            className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                         />
                                     </div>
                                     <div>
@@ -334,7 +334,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                             placeholder="e.g. +1 234 567 8900"
                                             value={issuedByPhone}
                                             onChange={e => setIssuedByPhone(e.target.value)}
-                                            className="w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                            className="w-full bg-secondary/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                         />
                                     </div>
                                 </div>
@@ -343,7 +343,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
 
                         {/* Line Items */}
                         <div className="border border-border rounded-xl overflow-hidden mt-6 bg-card">
-                            <div className="bg-white/5 p-4 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center">
+                            <div className="bg-secondary/30 p-4 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center">
                                 <h3 className="font-medium text-foreground">Line Items</h3>
                                 <div className="flex items-center space-x-2">
                                     <button
@@ -385,7 +385,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                                         type="text"
                                                         readOnly
                                                         value={item.description || "Select a product..."}
-                                                        className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none cursor-not-allowed opacity-80"
+                                                        className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none cursor-not-allowed opacity-80"
                                                     />
                                                     <button
                                                         type="button"
@@ -403,7 +403,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                                     required
                                                     value={item.itemId || ""}
                                                     onChange={(e) => handleSelectOption(index, Number(e.target.value), "asset")}
-                                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                                 >
                                                     <option value="" className="bg-card text-foreground">Select Asset...</option>
                                                     {assets.map(a => <option key={a.id} value={a.id} className="bg-card text-foreground">{a.name} ({a.serialNumber})</option>)}
@@ -415,7 +415,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                                     value={item.description}
                                                     onChange={(e) => handleItemChange(index, "description", e.target.value)}
                                                     placeholder="Description..."
-                                                    className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                    className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                                 />
                                             )}
                                         </div>
@@ -427,7 +427,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                                 min="0.01" step="0.01"
                                                 value={item.quantity}
                                                 onChange={(e) => handleItemChange(index, "quantity", parseFloat(e.target.value))}
-                                                className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                                 disabled={item.type === "asset"} // Assets usually have quantity 1
                                             />
                                         </div>
@@ -439,12 +439,12 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                                 min="0" step="0.01"
                                                 value={item.unitPrice}
                                                 onChange={(e) => handleItemChange(index, "unitPrice", parseFloat(e.target.value))}
-                                                className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
+                                                className="w-full bg-secondary/30 border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
                                             />
                                         </div>
                                         <div className="w-32">
                                             <label className="block text-xs text-muted-foreground mb-1">Total</label>
-                                            <div className="w-full bg-white/5 border border-transparent rounded-lg px-4 py-2 text-sm text-muted-foreground">
+                                            <div className="w-full bg-secondary/30 border border-transparent rounded-lg px-4 py-2 text-sm text-muted-foreground">
                                                 ${(item.quantity * item.unitPrice).toFixed(2)}
                                             </div>
                                         </div>
@@ -478,7 +478,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose, onSuccess }: CreateInvoice
                                             min="0" max="100" step="1"
                                             value={taxRate}
                                             onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                                            className="w-16 bg-white/5 border border-border rounded text-right px-2 py-1 focus:outline-none"
+                                            className="w-16 bg-secondary/30 border border-border rounded text-right px-2 py-1 focus:outline-none"
                                         />
                                     </span>
                                     <span>${taxAmount.toFixed(2)}</span>

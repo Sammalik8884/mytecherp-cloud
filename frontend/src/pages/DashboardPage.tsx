@@ -91,7 +91,7 @@ export const DashboardPage: React.FC = () => {
             <div className="min-h-screen p-8 animate-in fade-in duration-500">
                 <h1 className="text-4xl font-black tracking-tight text-foreground leading-tight">
                     {greeting},&nbsp;
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-cyan-400 to-blue-400">
+                    <span className="text-primary font-black">
                         {user?.fullName?.split(' ')[0] ?? 'User'}
                     </span>
                 </h1>
@@ -111,7 +111,7 @@ export const DashboardPage: React.FC = () => {
                 <div>
                     <h1 className="text-4xl font-black tracking-tight text-foreground leading-tight">
                         {greeting},&nbsp;
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-cyan-400 to-blue-400">
+                        <span className="text-primary font-black">
                             {user?.fullName?.split(' ')[0] ?? 'Admin'}
                         </span>
                     </h1>
@@ -177,10 +177,10 @@ export const DashboardPage: React.FC = () => {
             {loading ? (
                 /* ── Skeleton ──────────────────────────────────── */
                 <div className="grid gap-6">
-                    <div className="h-80 rounded-2xl bg-white/5 animate-pulse border border-border" />
+                    <div className="h-80 rounded-2xl bg-muted animate-pulse border border-border" />
                     <div className="grid gap-6 lg:grid-cols-2">
-                        <div className="h-72 rounded-2xl bg-white/5 animate-pulse border border-border" />
-                        <div className="h-72 rounded-2xl bg-white/5 animate-pulse border border-border" />
+                        <div className="h-72 rounded-2xl bg-muted animate-pulse border border-border" />
+                        <div className="h-72 rounded-2xl bg-muted animate-pulse border border-border" />
                     </div>
                 </div>
             ) : metrics ? (
@@ -192,7 +192,7 @@ export const DashboardPage: React.FC = () => {
                             subtitle={`Historical analysis of paid invoices for selected period`}
                             data={metrics.revenueOverTime}
                             defaultType="area"
-                            color="#10b981"
+                            color="#1a73e8"
                             allowedTypes={['area', 'bar', 'line']}
                             valuePrefix="$"
                             height={320}
@@ -206,7 +206,7 @@ export const DashboardPage: React.FC = () => {
                             subtitle="Top 5 highest paying customers (cumulative revenue)"
                             data={metrics.topCustomersByRevenue}
                             defaultType="bar"
-                            color="#6366f1"
+                            color="#1a73e8"
                             allowedTypes={['bar', 'line', 'pie']}
                             valuePrefix="$"
                             height={300}
@@ -217,19 +217,19 @@ export const DashboardPage: React.FC = () => {
                                 subtitle="Distribution of quotes by stage"
                                 data={metrics.quotationsByStatus}
                                 defaultType="bar"
-                                color="#a855f7"
+                                color="#34a853"
                                 allowedTypes={['bar', 'pie', 'line']}
                                 height={200}
                             />
                             {/* Embedded Pipeline Summary within charts area */}
-                            <div className="bg-gradient-to-br from-violet-950/40 via-indigo-950/30 to-blue-950/20 border border-violet-500/20 rounded-2xl p-4 flex items-center justify-between">
+                            <div className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between elevation-2">
                                 <div>
-                                    <p className="text-xs uppercase tracking-widest text-violet-400 font-bold mb-1">Total Pipeline Value</p>
-                                    <p className="text-4xl font-black text-white">{fmt(metrics.totalQuotationValue)}</p>
+                                    <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">Total Pipeline Value</p>
+                                    <p className="text-4xl font-black text-foreground">{fmt(metrics.totalQuotationValue)}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-1">Pending Quotes</p>
-                                    <p className="text-3xl font-bold text-amber-400">{metrics.pendingQuotations}</p>
+                                    <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">Pending Quotes</p>
+                                    <p className="text-3xl font-bold text-amber-500">{metrics.pendingQuotations}</p>
                                 </div>
                             </div>
                         </div>
@@ -242,7 +242,7 @@ export const DashboardPage: React.FC = () => {
                             subtitle="Jobs completed over the selected period"
                             data={metrics.jobsCompletedOverTime}
                             defaultType="area"
-                            color="#22d3ee"
+                            color="#1a73e8"
                             allowedTypes={['area', 'bar', 'line']}
                             height={260}
                         />
@@ -251,7 +251,7 @@ export const DashboardPage: React.FC = () => {
                             subtitle="Current job distribution by status"
                             data={metrics.workOrdersByStatus}
                             defaultType="pie"
-                            color="#f59e0b"
+                            color="#fbbc04"
                             allowedTypes={['pie', 'bar']}
                             height={260}
                         />
@@ -260,15 +260,15 @@ export const DashboardPage: React.FC = () => {
                             subtitle="Paid vs Issued vs Overdue invoices"
                             data={metrics.invoiceStatusBreakdown}
                             defaultType="pie"
-                            color="#f43f5e"
+                            color="#ea4335"
                             allowedTypes={['pie', 'bar']}
                             height={260}
                         />
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center bg-card border border-border rounded-xl p-12 text-center h-96 relative overflow-hidden">
-                    <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500" />
+                <div className="flex flex-col items-center justify-center bg-card border border-border rounded-xl p-12 text-center h-96 relative overflow-hidden elevation-2">
+                    <div className="absolute inset-x-0 bottom-0 h-1 bg-primary" />
                     <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mb-6 shadow-inner pointer-events-none">
                         <AlertTriangle size={32} className="text-primary" />
                     </div>

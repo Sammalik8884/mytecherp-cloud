@@ -86,12 +86,12 @@ export const CustomerPortalDashboardPage = () => {
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                     Welcome back, {user?.fullName?.split(" ")[0] || "Customer"} 👋
                 </h1>
-                <p className="text-muted-foreground mt-1 text-sm">Here's an overview of your account with FiretechERP.</p>
+                <p className="text-muted-foreground mt-1 text-sm">Here's an overview of your account with MyTechERP.</p>
             </div>
 
             {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white/5 border border-border rounded-2xl p-5 space-y-3">
+                <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Outstanding Balance</span>
                         <div className="p-2 rounded-lg bg-red-500/10"><AlertCircle className="h-4 w-4 text-red-400" /></div>
@@ -99,7 +99,7 @@ export const CustomerPortalDashboardPage = () => {
                     <div className="text-2xl font-bold text-red-400">${outstandingBalance.toFixed(2)}</div>
                     <div className="text-xs text-gray-500">{outstanding.length} invoice(s) pending</div>
                 </div>
-                <div className="bg-white/5 border border-border rounded-2xl p-5 space-y-3">
+                <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Total Paid</span>
                         <div className="p-2 rounded-lg bg-green-500/10"><CheckCircle className="h-4 w-4 text-green-400" /></div>
@@ -109,7 +109,7 @@ export const CustomerPortalDashboardPage = () => {
                     </div>
                     <div className="text-xs text-gray-500">{paid.length} invoice(s) settled</div>
                 </div>
-                <div className="bg-white/5 border border-border rounded-2xl p-5 space-y-3">
+                <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Total Invoices</span>
                         <div className="p-2 rounded-lg bg-primary/10"><Receipt className="h-4 w-4 text-primary" /></div>
@@ -117,7 +117,7 @@ export const CustomerPortalDashboardPage = () => {
                     <div className="text-2xl font-bold text-foreground">{invoices.length}</div>
                     <div className="text-xs text-gray-500">All time issued</div>
                 </div>
-                <div className="bg-white/5 border border-border rounded-2xl p-5 space-y-3">
+                <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Overdue</span>
                         <div className="p-2 rounded-lg bg-orange-500/10"><Clock className="h-4 w-4 text-orange-400" /></div>
@@ -159,7 +159,7 @@ export const CustomerPortalDashboardPage = () => {
                         <ArrowRight className="h-3 w-3" />
                     </Link>
                 </div>
-                <div className="bg-white/5 border border-border rounded-2xl overflow-hidden">
+                <div className="bg-card border border-border rounded-2xl overflow-hidden elevation-1">
                     {recentInvoices.length === 0 ? (
                         <div className="p-8 text-center text-gray-500">No invoices found for your account.</div>
                     ) : (
@@ -173,7 +173,7 @@ export const CustomerPortalDashboardPage = () => {
                                     <th className="px-5 py-3 text-right font-medium">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-border">
                                 {recentInvoices.map(inv => (
                                     <tr key={inv.id} className="hover:bg-secondary/50 transition-colors">
                                         <td className="px-5 py-4 font-medium text-foreground">{inv.invoiceNumber}</td>

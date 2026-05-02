@@ -33,7 +33,7 @@ export const TrialExpiredWall: React.FC = () => {
                 </div>
                 <h2 className="text-2xl font-extrabold tracking-tight mb-2">Your Free Trial Has Ended</h2>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                    Your 14-day free trial is over. Choose a plan to keep using FiretechERP and retain all your data.
+                    Your 14-day free trial is over. Choose a plan to keep using MyTechERP and retain all your data.
                 </p>
                 <div className="space-y-3">
                     <button

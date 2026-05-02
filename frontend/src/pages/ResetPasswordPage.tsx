@@ -67,8 +67,8 @@ export const ResetPasswordPage = () => {
     return (
         <div className="min-h-[100dvh] bg-background text-foreground flex items-center justify-center relative overflow-x-hidden overflow-y-auto px-4 py-8">
             {/* Background Orbs */}
-            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
             <div className="w-full max-w-md p-8 relative z-10">
                 <div className="bg-secondary/40 border border-border/50 backdrop-blur-xl rounded-2xl p-8 shadow-2xl relative overflow-hidden">
@@ -78,7 +78,7 @@ export const ResetPasswordPage = () => {
                         <div className="h-16 w-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/30 shadow-[0_0_30px_rgba(var(--primary),0.3)]">
                             <Key className="h-8 w-8 text-primary" />
                         </div>
-                        <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60">
+                        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
                             Create New Password
                         </h1>
                         <p className="text-muted-foreground mt-2 text-sm">

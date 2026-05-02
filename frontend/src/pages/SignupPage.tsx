@@ -46,10 +46,10 @@ export const SignupPage = () => {
     };
 
     return (
-        <div className="dark min-h-[100dvh] bg-background text-foreground flex items-center justify-center relative overflow-x-hidden overflow-y-auto px-4 py-8 sm:py-12">
+        <div className="min-h-[100dvh] bg-background text-foreground flex items-center justify-center relative overflow-x-hidden overflow-y-auto px-4 py-8 sm:py-12">
             {/* Background Orbs */}
-            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
             <div className="w-full max-w-md p-8 relative z-10">
                 <div className="bg-secondary/40 border border-border/50 backdrop-blur-xl rounded-2xl p-8 shadow-2xl relative overflow-hidden">
@@ -64,7 +64,7 @@ export const SignupPage = () => {
                             Create an Account
                         </h1>
                         <p className="text-muted-foreground mt-2 text-sm">
-                            Sign up to get started with Firetech ERP.
+                            Sign up to get started with MyTechERP.
                         </p>
                     </div>
 

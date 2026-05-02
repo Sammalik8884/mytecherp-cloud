@@ -58,7 +58,7 @@ export const SalesmanActivityChart: React.FC<Props> = ({ salesmenSummary }) => {
                         data={chartData}
                         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.6} />
                         <XAxis 
                             dataKey="name" 
                             axisLine={false}
@@ -73,7 +73,7 @@ export const SalesmanActivityChart: React.FC<Props> = ({ salesmenSummary }) => {
                             tick={{ fill: '#888', fontSize: 12 }}
                         />
                         <Tooltip
-                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                            cursor={{ fill: 'hsl(var(--muted))' }}
                             content={({ active, payload }) => {
                                 if (active && payload && payload.length) {
                                     const data = payload[0].payload;

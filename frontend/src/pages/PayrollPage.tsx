@@ -285,13 +285,13 @@ export const PayrollPage = () => {
                 <div className="inline-flex bg-secondary p-1.5 rounded-full border border-border/50 backdrop-blur-md">
                     <button
                         onClick={() => setActiveTab("payslips")}
-                        className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${activeTab === "payslips" ? "bg-primary text-white shadow-lg shadow-primary/25" : "text-muted-foreground hover:text-white hover:bg-secondary/50"}`}
+                        className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${activeTab === "payslips" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}
                     >
                         <FileText className="h-4 w-4" /> Payslips Record
                     </button>
                     <button
                         onClick={() => setActiveTab("profiles")}
-                        className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${activeTab === "profiles" ? "bg-accent text-white shadow-lg shadow-accent/25" : "text-muted-foreground hover:text-white hover:bg-secondary/50"}`}
+                        className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${activeTab === "profiles" ? "bg-accent text-accent-foreground shadow-lg shadow-accent/25" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}
                     >
                         <UserCircle className="h-4 w-4" /> Salary Profiles
                     </button>
@@ -340,12 +340,12 @@ export const PayrollPage = () => {
                                     <th className="px-6 py-5 font-semibold text-right">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-border">
                                 {!loading && filteredPayslips.length === 0 ? (
                                     <tr>
                                         <td colSpan={8} className="px-6 py-20 text-center">
                                             <div className="flex flex-col items-center justify-center opacity-60">
-                                                <div className="p-4 bg-white/5 rounded-full mb-4">
+                                                <div className="p-4 bg-secondary/30 rounded-full mb-4">
                                                     <Calculator className="h-8 w-8 text-muted-foreground" />
                                                 </div>
                                                 <p className="text-lg font-medium text-foreground mb-1">No Payslips Found</p>
@@ -439,12 +439,12 @@ export const PayrollPage = () => {
                                     <th className="px-6 py-5 font-semibold">Bank Destination</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-border">
                                 {!loading && filteredProfiles.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="px-6 py-20 text-center">
                                             <div className="flex flex-col items-center justify-center opacity-60">
-                                                <div className="p-4 bg-white/5 rounded-full mb-4">
+                                                <div className="p-4 bg-secondary/30 rounded-full mb-4">
                                                     <UserCircle className="h-8 w-8 text-muted-foreground" />
                                                 </div>
                                                 <p className="text-lg font-medium text-foreground mb-1">No Salary Profiles Setup</p>
@@ -496,7 +496,7 @@ export const PayrollPage = () => {
 
             {/* Glassmorphic Generate Payslip Modal */}
             {showGenerateModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-xl animate-in fade-in duration-200">
                     <div className="bg-card border border-border rounded-3xl w-[90%] max-w-lg overflow-hidden shadow-2xl relative">
                         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary to-accent" />
 
@@ -508,7 +508,7 @@ export const PayrollPage = () => {
                                     </h2>
                                     <p className="text-muted-foreground text-sm mt-1">Generate a comprehensive draft payslip.</p>
                                 </div>
-                                <button onClick={() => setShowGenerateModal(false)} className="bg-white/5 hover:bg-secondary/50 p-2 rounded-full transition-colors text-muted-foreground">
+                                <button onClick={() => setShowGenerateModal(false)} className="bg-secondary/30 hover:bg-secondary/50 p-2 rounded-full transition-colors text-muted-foreground">
                                     <X className="h-5 w-5" />
                                 </button>
                             </div>
@@ -531,7 +531,7 @@ export const PayrollPage = () => {
                                     </select>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-border/50 p-4 rounded-2xl bg-white/5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-border/50 p-4 rounded-2xl bg-secondary/30">
                                     <div>
                                         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Period Start</label>
                                         <input
@@ -578,7 +578,7 @@ export const PayrollPage = () => {
 
             {/* Glassmorphic Create Profile Modal */}
             {showProfileModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-xl animate-in fade-in duration-200">
                     <div className="bg-card border border-border rounded-3xl w-[90%] max-w-lg overflow-hidden shadow-2xl relative">
                         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-accent to-purple-500" />
 
@@ -590,7 +590,7 @@ export const PayrollPage = () => {
                                     </h2>
                                     <p className="text-muted-foreground text-sm mt-1">Enroll a system user into the payroll engine.</p>
                                 </div>
-                                <button onClick={() => setShowProfileModal(false)} className="bg-white/5 hover:bg-secondary/50 p-2 rounded-full transition-colors text-muted-foreground">
+                                <button onClick={() => setShowProfileModal(false)} className="bg-secondary/30 hover:bg-secondary/50 p-2 rounded-full transition-colors text-muted-foreground">
                                     <X className="h-5 w-5" />
                                 </button>
                             </div>
@@ -639,7 +639,7 @@ export const PayrollPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-border/50 p-4 rounded-2xl bg-white/5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-border/50 p-4 rounded-2xl bg-secondary/30">
                                     <div>
                                         <label className="block text-sm font-semibold text-muted-foreground mb-2">Bank Name</label>
                                         <input
@@ -682,7 +682,7 @@ export const PayrollPage = () => {
 
             {/* Glassmorphic Add Entry Modal */}
             {showEntryModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-xl animate-in fade-in duration-200">
                     <div className="bg-card border border-border rounded-3xl w-[90%] max-w-lg overflow-hidden shadow-2xl relative">
                         <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${entryForm.type === 1 ? 'from-emerald-400 to-green-600' : 'from-rose-400 to-red-600'}`} />
 
@@ -694,7 +694,7 @@ export const PayrollPage = () => {
                                     </h2>
                                     <p className="text-muted-foreground text-sm mt-1">Add a bonus or penalty to the next payroll run.</p>
                                 </div>
-                                <button onClick={() => setShowEntryModal(false)} className="bg-white/5 hover:bg-secondary/50 p-2 rounded-full transition-colors text-muted-foreground">
+                                <button onClick={() => setShowEntryModal(false)} className="bg-secondary/30 hover:bg-secondary/50 p-2 rounded-full transition-colors text-muted-foreground">
                                     <X className="h-5 w-5" />
                                 </button>
                             </div>

@@ -6,15 +6,15 @@ export const CustomerPortalLayout = () => {
     const { user, logout } = useAuth();
 
     return (
-        <div className="min-h-screen bg-[#0a0a0f] text-foreground flex flex-col">
+        <div className="min-h-screen bg-background text-foreground flex flex-col">
             {/* Top Navigation Bar */}
-            <header className="sticky top-0 z-40 border-b border-border bg-black/60 backdrop-blur-xl px-6 py-4 flex items-center justify-between shadow-lg">
+            <header className="sticky top-0 z-40 border-b border-border bg-card px-6 py-4 flex items-center justify-between elevation-1">
                 <div className="flex items-center space-x-3">
                     <div className="bg-primary/20 p-2 rounded-xl border border-primary/30">
                         <Building2 className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <div className="text-sm font-bold text-foreground tracking-wide">FiretechERP</div>
+                        <div className="text-sm font-bold text-foreground tracking-wide">MyTechERP</div>
                         <div className="text-[10px] text-primary/70 uppercase tracking-widest font-medium">Customer Portal</div>
                     </div>
                 </div>
@@ -24,7 +24,7 @@ export const CustomerPortalLayout = () => {
                         to="/portal"
                         end
                         className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive ? "bg-primary/20 text-primary" : "text-gray-400 hover:text-white hover:bg-secondary/50"
+                            `flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                             }`
                         }
                     >
@@ -34,7 +34,7 @@ export const CustomerPortalLayout = () => {
                     <NavLink
                         to="/portal/invoices"
                         className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive ? "bg-primary/20 text-primary" : "text-gray-400 hover:text-white hover:bg-secondary/50"
+                            `flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                             }`
                         }
                     >
@@ -53,7 +53,7 @@ export const CustomerPortalLayout = () => {
                     </div>
                     <button
                         onClick={logout}
-                        className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:text-white hover:bg-red-500/20 transition-all border border-transparent hover:border-red-500/30"
+                        className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:text-destructive hover:bg-destructive/10 transition-all border border-transparent hover:border-destructive/30"
                         title="Sign out"
                     >
                         <LogOut className="h-4 w-4" />
@@ -69,7 +69,7 @@ export const CustomerPortalLayout = () => {
 
             {/* Footer */}
             <footer className="border-t border-border/50 py-4 text-center text-xs text-gray-600">
-                &copy; {new Date().getFullYear()} FiretechERP — Secure Customer Portal
+                &copy; {new Date().getFullYear()} MyTechERP — Secure Customer Portal
             </footer>
         </div>
     );

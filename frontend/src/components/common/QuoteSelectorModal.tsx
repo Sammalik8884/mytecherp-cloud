@@ -42,7 +42,7 @@ export const QuoteSelectorModal = ({ isOpen, onClose, onSelect }: QuoteSelectorM
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-card w-full max-w-2xl max-h-[85vh] flex flex-col border border-border rounded-2xl shadow-xl">
                 <div className="flex justify-between items-center p-6 border-b border-border shrink-0">
                     <h2 className="text-xl font-semibold text-foreground">Select Finalized Quote</h2>
