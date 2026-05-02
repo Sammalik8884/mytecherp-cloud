@@ -79,9 +79,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         )}>
             <div className="p-5 flex justify-between items-center border-b border-border">
                 <div className="flex items-center space-x-3">
-                    <div className="bg-primary p-2 rounded-lg">
-                        <Briefcase className="h-5 w-5 text-primary-foreground" />
-                    </div>
+                    <img src="/logo.png" alt="MyTechERP Logo" className="h-8 w-8 object-contain" onError={(e) => (e.currentTarget.style.display = 'none')} />
                     <span className="text-lg font-bold tracking-tight text-foreground">
                         MyTechERP
                     </span>
