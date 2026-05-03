@@ -243,7 +243,15 @@ export const ProjectDetailsPage = () => {
                                 {expenses.map(exp => (
                                     <tr key={exp.id} className="hover:bg-muted/50">
                                         <td className="px-4 py-3">EXP-{exp.id.toString().padStart(4, '0')}</td>
-                                        <td className="px-4 py-3">{exp.arfNumber}</td>
+                                        <td className="px-4 py-3">
+                                            {exp.isAllocatedExcess ? (
+                                                <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                                    Excess from {exp.sourceArfNumber}
+                                                </span>
+                                            ) : (
+                                                exp.arfNumber || "N/A"
+                                            )}
+                                        </td>
                                         <td className="px-4 py-3">Rs {exp.totalExpenseAmount?.toLocaleString()}</td>
                                         <td className="px-4 py-3">{dayjs(exp.createdAt).format("DD MMM YYYY")}</td>
                                     </tr>
