@@ -110,7 +110,6 @@ export const AddExpensePage = () => {
     
     // Check match
     const isAmountEqual = selectedArf ? totalAmount === releasedAmount : false;
-    const isAmountBelow = selectedArf ? totalAmount < releasedAmount : false;
     const isAmountAbove = selectedArf ? totalAmount > releasedAmount : false;
 
     const handleSubmit = async () => {
