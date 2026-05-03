@@ -241,31 +241,30 @@ export const ProjectDetailsPage = () => {
                             </thead>
                             <tbody className="divide-y divide-border">
                                 {expenses.map(exp => {
-                                    let amountElement = <span className="font-medium text-emerald-600 dark:text-emerald-400">Rs {exp.totalExpenseAmount?.toLocaleString()}</span>;
-                                    
-                                    if (!exp.isAllocatedExcess && exp.arfReleasedAmount > 0) {
+                                    let arfElement: React.ReactNode;
+                                    if (exp.isAllocatedExcess) {
+                                        arfElement = (
+                                            <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                                Excess from {exp.sourceArfNumber}
+                                            </span>
+                                        );
+                                    } else if (exp.arfReleasedAmount > 0) {
                                         if (exp.totalExpenseAmount < exp.arfReleasedAmount) {
-                                            amountElement = <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">Rs {exp.totalExpenseAmount?.toLocaleString()}</span>;
+                                            arfElement = <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">{exp.arfNumber || "N/A"}</span>;
                                         } else if (exp.totalExpenseAmount === exp.arfReleasedAmount) {
-                                            amountElement = <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Rs {exp.totalExpenseAmount?.toLocaleString()}</span>;
+                                            arfElement = <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">{exp.arfNumber || "N/A"}</span>;
                                         } else {
-                                            amountElement = <span className="font-medium">Rs {exp.totalExpenseAmount?.toLocaleString()}</span>;
+                                            arfElement = <span className="font-medium">{exp.arfNumber || "N/A"}</span>;
                                         }
+                                    } else {
+                                        arfElement = <span>{exp.arfNumber || "N/A"}</span>;
                                     }
 
                                     return (
                                     <tr key={exp.id} className="hover:bg-muted/50">
                                         <td className="px-4 py-3">EXP-{exp.id.toString().padStart(4, '0')}</td>
-                                        <td className="px-4 py-3">
-                                            {exp.isAllocatedExcess ? (
-                                                <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                                                    Excess from {exp.sourceArfNumber}
-                                                </span>
-                                            ) : (
-                                                exp.arfNumber || "N/A"
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3">{amountElement}</td>
+                                        <td className="px-4 py-3">{arfElement}</td>
+                                        <td className="px-4 py-3 font-medium text-emerald-600">Rs {exp.totalExpenseAmount?.toLocaleString()}</td>
                                         <td className="px-4 py-3">{dayjs(exp.createdAt).format("DD MMM YYYY")}</td>
                                     </tr>
                                     );

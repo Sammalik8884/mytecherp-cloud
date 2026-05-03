@@ -58,16 +58,32 @@ export const ExpensesPage = () => {
                         </thead>
                         <tbody className="divide-y divide-border">
                             {expenses.map((expense) => {
-                                let amountElement = <span className="font-medium text-emerald-600 dark:text-emerald-400">Rs {expense.totalExpenseAmount?.toLocaleString()}</span>;
-                                
-                                if (!expense.isAllocatedExcess && expense.arfReleasedAmount > 0) {
+                                // Determine ARF number badge style based on amount vs released
+                                let arfElement: React.ReactNode;
+                                if (expense.isAllocatedExcess) {
+                                    arfElement = (
+                                        <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                            Excess from {expense.sourceArfNumber}
+                                        </span>
+                                    );
+                                } else if (expense.arfReleasedAmount > 0) {
                                     if (expense.totalExpenseAmount < expense.arfReleasedAmount) {
-                                        amountElement = <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">Rs {expense.totalExpenseAmount?.toLocaleString()}</span>;
+                                        arfElement = (
+                                            <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                                                {expense.arfNumber || "N/A"}
+                                            </span>
+                                        );
                                     } else if (expense.totalExpenseAmount === expense.arfReleasedAmount) {
-                                        amountElement = <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Rs {expense.totalExpenseAmount?.toLocaleString()}</span>;
+                                        arfElement = (
+                                            <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                                                {expense.arfNumber || "N/A"}
+                                            </span>
+                                        );
                                     } else {
-                                        amountElement = <span className="font-medium">Rs {expense.totalExpenseAmount?.toLocaleString()}</span>;
+                                        arfElement = <span className="font-medium">{expense.arfNumber || "N/A"}</span>;
                                     }
+                                } else {
+                                    arfElement = <span>{expense.arfNumber || "N/A"}</span>;
                                 }
 
                                 return (
@@ -78,17 +94,9 @@ export const ExpensesPage = () => {
                                 >
                                     <td className="px-4 py-3 font-medium">EXP-{expense.id.toString().padStart(4, '0')}</td>
                                     <td className="px-4 py-3">{expense.siteName}</td>
-                                    <td className="px-4 py-3">
-                                        {expense.isAllocatedExcess ? (
-                                            <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                                                Excess from {expense.sourceArfNumber}
-                                            </span>
-                                        ) : (
-                                            expense.arfNumber || "N/A"
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        {amountElement}
+                                    <td className="px-4 py-3">{arfElement}</td>
+                                    <td className="px-4 py-3 font-medium text-emerald-600">
+                                        Rs {expense.totalExpenseAmount?.toLocaleString()}
                                     </td>
                                     <td className="px-4 py-3">{dayjs(expense.createdAt).format("DD MMM YYYY")}</td>
                                     <td className="px-4 py-3">{expense.items?.length || 0}</td>
