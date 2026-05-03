@@ -57,7 +57,20 @@ export const ExpensesPage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {expenses.map((expense) => (
+                            {expenses.map((expense) => {
+                                let amountElement = <span className="font-medium text-emerald-600 dark:text-emerald-400">Rs {expense.totalExpenseAmount?.toLocaleString()}</span>;
+                                
+                                if (!expense.isAllocatedExcess && expense.arfReleasedAmount > 0) {
+                                    if (expense.totalExpenseAmount < expense.arfReleasedAmount) {
+                                        amountElement = <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">Rs {expense.totalExpenseAmount?.toLocaleString()}</span>;
+                                    } else if (expense.totalExpenseAmount === expense.arfReleasedAmount) {
+                                        amountElement = <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Rs {expense.totalExpenseAmount?.toLocaleString()}</span>;
+                                    } else {
+                                        amountElement = <span className="font-medium">Rs {expense.totalExpenseAmount?.toLocaleString()}</span>;
+                                    }
+                                }
+
+                                return (
                                 <tr 
                                     key={expense.id} 
                                     onClick={() => navigate(`/expenses/edit/${expense.id}`)}
@@ -74,13 +87,14 @@ export const ExpensesPage = () => {
                                             expense.arfNumber || "N/A"
                                         )}
                                     </td>
-                                    <td className="px-4 py-3 font-medium text-emerald-600 dark:text-emerald-400">
-                                        Rs {expense.totalExpenseAmount?.toLocaleString()}
+                                    <td className="px-4 py-3">
+                                        {amountElement}
                                     </td>
                                     <td className="px-4 py-3">{dayjs(expense.createdAt).format("DD MMM YYYY")}</td>
                                     <td className="px-4 py-3">{expense.items?.length || 0}</td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                             {expenses.length === 0 && (
                                 <tr>
                                     <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">

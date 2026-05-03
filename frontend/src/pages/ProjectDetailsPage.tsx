@@ -240,7 +240,20 @@ export const ProjectDetailsPage = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {expenses.map(exp => (
+                                {expenses.map(exp => {
+                                    let amountElement = <span className="font-medium text-emerald-600 dark:text-emerald-400">Rs {exp.totalExpenseAmount?.toLocaleString()}</span>;
+                                    
+                                    if (!exp.isAllocatedExcess && exp.arfReleasedAmount > 0) {
+                                        if (exp.totalExpenseAmount < exp.arfReleasedAmount) {
+                                            amountElement = <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">Rs {exp.totalExpenseAmount?.toLocaleString()}</span>;
+                                        } else if (exp.totalExpenseAmount === exp.arfReleasedAmount) {
+                                            amountElement = <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Rs {exp.totalExpenseAmount?.toLocaleString()}</span>;
+                                        } else {
+                                            amountElement = <span className="font-medium">Rs {exp.totalExpenseAmount?.toLocaleString()}</span>;
+                                        }
+                                    }
+
+                                    return (
                                     <tr key={exp.id} className="hover:bg-muted/50">
                                         <td className="px-4 py-3">EXP-{exp.id.toString().padStart(4, '0')}</td>
                                         <td className="px-4 py-3">
@@ -252,10 +265,11 @@ export const ProjectDetailsPage = () => {
                                                 exp.arfNumber || "N/A"
                                             )}
                                         </td>
-                                        <td className="px-4 py-3">Rs {exp.totalExpenseAmount?.toLocaleString()}</td>
+                                        <td className="px-4 py-3">{amountElement}</td>
                                         <td className="px-4 py-3">{dayjs(exp.createdAt).format("DD MMM YYYY")}</td>
                                     </tr>
-                                ))}
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
