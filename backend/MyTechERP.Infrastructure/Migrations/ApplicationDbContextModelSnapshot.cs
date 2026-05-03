@@ -767,6 +767,10 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.Property<decimal>("AdvanceRequested")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("ArfNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CeoApprovalDate")
                         .HasColumnType("datetime2");
 
@@ -911,6 +915,96 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("BankAccounts");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.Finance.Expense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AmountRequestFormId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedByEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SiteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AmountRequestFormId");
+
+                    b.HasIndex("SiteId");
+
+                    b.ToTable("Expenses");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.Finance.ExpenseItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("DescriptionItems")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmployeeDesignation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpenseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExpenseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExpenseType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpenseId");
+
+                    b.ToTable("ExpenseItems");
                 });
 
             modelBuilder.Entity("MytechERP.domain.Entities.Finance.Invoice", b =>
@@ -2779,6 +2873,36 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.Navigation("AmountRequestForm");
                 });
 
+            modelBuilder.Entity("MytechERP.domain.Entities.Finance.Expense", b =>
+                {
+                    b.HasOne("MytechERP.domain.Entities.Finance.AmountRequestForm", "AmountRequestForm")
+                        .WithMany()
+                        .HasForeignKey("AmountRequestFormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MytechERP.domain.Entities.CRM.Site", "Site")
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AmountRequestForm");
+
+                    b.Navigation("Site");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.Finance.ExpenseItem", b =>
+                {
+                    b.HasOne("MytechERP.domain.Entities.Finance.Expense", "Expense")
+                        .WithMany("Items")
+                        .HasForeignKey("ExpenseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Expense");
+                });
+
             modelBuilder.Entity("MytechERP.domain.Entities.Finance.Invoice", b =>
                 {
                     b.HasOne("MytechERP.domain.Entities.CRM.Customer", "Customer")
@@ -3148,6 +3272,11 @@ namespace MyTechERP.Infrastructure.Migrations
             modelBuilder.Entity("MytechERP.domain.Entities.Finance.AmountRequestForm", b =>
                 {
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.Finance.Expense", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("MytechERP.domain.Entities.Finance.Invoice", b =>

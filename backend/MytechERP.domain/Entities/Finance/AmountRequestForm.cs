@@ -11,6 +11,7 @@ namespace MytechERP.domain.Entities.Finance
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public bool IsDeleted { get; set; } = false;
+        public string ArfNumber { get; set; } = string.Empty;
 
         // Employee Section
         public string EmployeeName { get; set; } = string.Empty;

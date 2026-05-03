@@ -41,6 +41,10 @@ import { SubscriptionPlansPage } from "./pages/SubscriptionPlansPage";
 import { SubscriptionSuccessPage } from "./pages/SubscriptionSuccessPage";
 import { SubscriptionCancelPage } from "./pages/SubscriptionCancelPage";
 import AmountRequestFormPage from "./pages/AmountRequestFormPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
+import { ProjectDetailsPage } from "./pages/ProjectDetailsPage";
+import { ExpensesPage } from "./pages/ExpensesPage";
+import { AddExpensePage } from "./pages/AddExpensePage";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./auth/AuthContext";
 import { SyncProvider } from "./contexts/SyncContext";
@@ -138,6 +142,13 @@ function App() {
                             </Route>
 
                             <Route path="/amount-request" element={<AmountRequestFormPage />} />
+                            
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Salesman", "Estimation", "Accounts Head", "Technician", "Worker"]} />}>
+                                <Route path="/projects" element={<ProjectsPage />} />
+                                <Route path="/projects/:id" element={<ProjectDetailsPage />} />
+                                <Route path="/expenses" element={<ExpensesPage />} />
+                                <Route path="/expenses/new" element={<AddExpensePage />} />
+                            </Route>
                             {/* Future Iterations will add more routes here */}
                         </Route>
 

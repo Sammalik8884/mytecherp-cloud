@@ -30,6 +30,7 @@ namespace MyTechERP.Infrastructure.Services
             {
                 Id = entity.Id,
                 CreatedAt = entity.CreatedAt,
+                ArfNumber = entity.ArfNumber,
                 EmployeeName = entity.EmployeeName,
                 EmployeeEmail = entity.EmployeeEmail,
                 AdvanceRequested = entity.AdvanceRequested,
@@ -99,8 +100,12 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<AmountRequestFormDto> CreateAsync(CreateAmountRequestFormDto dto)
         {
+            int maxId = await _context.AmountRequestForms.MaxAsync(a => (int?)a.Id) ?? 0;
+            string arfNumber = $"ARF{(maxId + 1):D5}";
+
             var entity = new AmountRequestForm
             {
+                ArfNumber = arfNumber,
                 EmployeeName = dto.EmployeeName,
                 EmployeeEmail = dto.EmployeeEmail,
                 AdvanceRequested = dto.AdvanceRequested,

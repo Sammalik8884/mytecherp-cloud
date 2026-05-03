@@ -7,6 +7,7 @@ namespace MytechERP.Application.DTOs.Finance
     {
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string ArfNumber { get; set; } = string.Empty;
         public string EmployeeName { get; set; } = string.Empty;
         public string EmployeeEmail { get; set; } = string.Empty;
         public decimal AdvanceRequested { get; set; }

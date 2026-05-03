@@ -1,0 +1,40 @@
+using MytechERP.domain.Common;
+using MytechERP.domain.Entities.CRM;
+using MytechERP.domain.Interfaces;
+using System;
+using System.Collections.Generic;
+
+namespace MytechERP.domain.Entities.Finance
+{
+    public class Expense : BaseEntity, ISyncableEntity
+    {
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsDeleted { get; set; } = false;
+
+        public int SiteId { get; set; }
+        public Site Site { get; set; } = null!;
+
+        public int AmountRequestFormId { get; set; }
+        public AmountRequestForm AmountRequestForm { get; set; } = null!;
+
+        public string CreatedByEmail { get; set; } = string.Empty;
+
+        public ICollection<ExpenseItem> Items { get; set; } = new List<ExpenseItem>();
+    }
+
+    public class ExpenseItem : BaseEntity
+    {
+        public int ExpenseId { get; set; }
+        public Expense Expense { get; set; } = null!;
+
+        public DateTime ExpenseDate { get; set; }
+        public string EmployeeName { get; set; } = string.Empty;
+        public string EmployeeDesignation { get; set; } = string.Empty;
+        public string ExpenseType { get; set; } = string.Empty;
+        public string DescriptionItems { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Remarks { get; set; } = string.Empty;
+        public string FileUrl { get; set; } = string.Empty;
+    }
+}
