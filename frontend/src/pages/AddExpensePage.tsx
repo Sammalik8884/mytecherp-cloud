@@ -4,6 +4,7 @@ import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi"
 import { expenseApi, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
 import { SiteDto } from "../types/site";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import toast from "react-hot-toast";
 import { Check, X, Plus, Trash2, ExternalLink } from "lucide-react";
 import dayjs from "dayjs";
@@ -13,6 +14,12 @@ export const AddExpensePage = () => {
     const isEditMode = !!id;
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const { user } = useAuth();
+    
+    const excessAmountParam = searchParams.get("excessAmount");
+    const managedFromArfParam = searchParams.get("managedFromArf");
+    const isAllocatedExcessMode = !!(excessAmountParam && managedFromArfParam);
+
     const [sites, setSites] = useState<SiteDto[]>([]);
     const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
     const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
@@ -54,7 +61,7 @@ export const AddExpensePage = () => {
             if (isEditMode && id) {
                 const expense = await expenseApi.getById(Number(id));
                 setSelectedSiteId(expense.siteId);
-                setSelectedArfId(expense.amountRequestFormId);
+                setSelectedArfId(expense.amountRequestFormId ?? "");
                 
                 if (expense.items && expense.items.length > 0) {
                     const mappedRows = expense.items.map(item => ({
@@ -81,6 +88,8 @@ export const AddExpensePage = () => {
                             const newRows = [...prevRows];
                             newRows[0] = {
                                 ...newRows[0],
+                                employeeName: user?.fullName || "",
+                                employeeDesignation: user?.designation || "",
                                 expenseDate: dayjs().format('YYYY-MM-DD'),
                                 expenseType: "Managed Amount",
                                 descriptionItems: `Managed Excess Amount from ARF ${managedFromArfParam}`,
@@ -137,7 +146,7 @@ export const AddExpensePage = () => {
 
     const handleSubmit = async () => {
         if (!selectedSiteId) return toast.error("Please select a site first.");
-        if (!selectedArfId) return toast.error("Please select an ARF.");
+        if (!isAllocatedExcessMode && !selectedArfId) return toast.error("Please select an ARF.");
         
         // Filter out completely empty rows
         const validRows = rows.filter((r: any) => r.expenseDate || r.descriptionItems || r.amount > 0);
@@ -152,7 +161,9 @@ export const AddExpensePage = () => {
             setSubmitting(true);
             const payload: CreateExpenseDto = {
                 siteId: Number(selectedSiteId),
-                amountRequestFormId: Number(selectedArfId),
+                amountRequestFormId: isAllocatedExcessMode ? null : Number(selectedArfId),
+                isAllocatedExcess: isAllocatedExcessMode,
+                sourceArfNumber: isAllocatedExcessMode ? managedFromArfParam : null,
                 items: validRows
             };
 
@@ -180,9 +191,9 @@ export const AddExpensePage = () => {
 
     return (
         <div className="p-6 max-w-[1400px] mx-auto space-y-6">
-            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-                <h1 className="text-2xl font-bold tracking-tight mb-6 text-center text-muted-foreground/80 bg-muted/30 py-3 rounded-lg">
-                    {isEditMode ? "Edit Expense Details" : "Expense Details"}
+            <div className={`bg-card border ${isAllocatedExcessMode ? 'border-amber-200' : 'border-border'} rounded-xl p-6 shadow-sm`}>
+                <h1 className={`text-2xl font-bold tracking-tight mb-6 text-center py-3 rounded-lg ${isAllocatedExcessMode ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-muted/30 text-muted-foreground/80'}`}>
+                    {isAllocatedExcessMode ? "Allocate Excess Expense" : isEditMode ? "Edit Expense Details" : "Expense Details"}
                 </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -201,45 +212,57 @@ export const AddExpensePage = () => {
                         </select>
                     </div>
 
-                    {/* ARF Selection */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Select Approved ARF *</label>
-                        <div className={`relative rounded-md transition-colors ${arfBoxClass}`}>
-                            <select 
-                                className="w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm focus:outline-none appearance-none"
-                                value={selectedArfId}
-                                onChange={(e) => setSelectedArfId(e.target.value ? Number(e.target.value) : "")}
-                                disabled={isAmountEqual && selectedArfId !== ""}
-                            >
-                                <option value="">-- Select an ARF --</option>
-                                {arfs.map((a: any) => (
-                                    <option key={a.id} value={a.id}>
-                                        {a.arfNumber || `ARF-${a.id}`} - Rs {a.accountsReleasedAmount?.toLocaleString()}
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="absolute right-3 top-2.5 pointer-events-none">
-                                {selectedArfId ? (
-                                    isAmountEqual ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-red-600" />
-                                ) : null}
-                            </div>
-                        </div>
-                        {selectedArf && (
-                            <div className="text-xs flex justify-between mt-1">
-                                <span className="text-muted-foreground">Released Amount: Rs {releasedAmount.toLocaleString()}</span>
-                                <div className="text-right">
-                                    <span className={isAmountEqual ? "text-emerald-600 font-medium" : "text-red-600"}>
-                                        Total Entered: Rs {totalAmount.toLocaleString()}
-                                    </span>
-                                    {isAmountAbove && (
-                                        <span className="text-red-600 font-bold block mt-0.5">
-                                            Exceeds by: Rs {excessAmount.toLocaleString()}
-                                        </span>
-                                    )}
+                    {/* ARF Selection or Allocated Excess Notice */}
+                    {isAllocatedExcessMode ? (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-amber-800">Allocated Excess Source</label>
+                            <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center shadow-sm">
+                                <span className="mr-2">✨</span>
+                                <div>
+                                    This expense manages the excess amount from <strong className="font-semibold">{managedFromArfParam}</strong>. No ARF selection is required.
                                 </div>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Select Approved ARF *</label>
+                            <div className={`relative rounded-md transition-colors ${arfBoxClass}`}>
+                                <select 
+                                    className="w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm focus:outline-none appearance-none"
+                                    value={selectedArfId}
+                                    onChange={(e) => setSelectedArfId(e.target.value ? Number(e.target.value) : "")}
+                                    disabled={isAmountEqual && selectedArfId !== ""}
+                                >
+                                    <option value="">-- Select an ARF --</option>
+                                    {arfs.map((a: any) => (
+                                        <option key={a.id} value={a.id}>
+                                            {a.arfNumber || `ARF-${a.id}`} - Rs {a.accountsReleasedAmount?.toLocaleString()}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-3 top-2.5 pointer-events-none">
+                                    {selectedArfId ? (
+                                        isAmountEqual ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-red-600" />
+                                    ) : null}
+                                </div>
+                            </div>
+                            {selectedArf && (
+                                <div className="text-xs flex justify-between mt-1">
+                                    <span className="text-muted-foreground">Released Amount: Rs {releasedAmount.toLocaleString()}</span>
+                                    <div className="text-right">
+                                        <span className={isAmountEqual ? "text-emerald-600 font-medium" : "text-red-600"}>
+                                            Total Entered: Rs {totalAmount.toLocaleString()}
+                                        </span>
+                                        {isAmountAbove && (
+                                            <span className="text-red-600 font-bold block mt-0.5">
+                                                Exceeds by: Rs {excessAmount.toLocaleString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Spreadsheet-like Table */}
@@ -359,13 +382,13 @@ export const AddExpensePage = () => {
                         Cancel
                     </button>
                     <button
-                        className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium disabled:opacity-50"
+                        className={`px-6 py-2 ${isAllocatedExcessMode ? 'bg-amber-600 hover:bg-amber-700' : 'bg-primary hover:bg-primary/90'} text-white rounded-lg font-medium disabled:opacity-50`}
                         onClick={handleSubmit}
-                        disabled={submitting || !selectedSiteId || !selectedArfId || isAmountAbove}
+                        disabled={submitting || !selectedSiteId || (!isAllocatedExcessMode && !selectedArfId) || isAmountAbove}
                     >
                         {submitting ? "Submitting..." : (isEditMode ? "Update Expense" : "Submit Expense")}
                     </button>
-                    {isAmountAbove && (
+                    {!isAllocatedExcessMode && isAmountAbove && (
                         <button
                             className="px-6 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 font-medium flex items-center"
                             onClick={() => {

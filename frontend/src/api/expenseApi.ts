@@ -16,10 +16,12 @@ export interface ExpenseDto {
     id: number;
     siteId: number;
     siteName: string;
-    amountRequestFormId: number;
+    amountRequestFormId?: number | null;
     arfNumber: string;
     totalExpenseAmount: number;
     arfReleasedAmount: number;
+    isAllocatedExcess: boolean;
+    sourceArfNumber: string | null;
     createdByEmail: string;
     createdAt: string;
     items: ExpenseItemDto[];
@@ -27,7 +29,9 @@ export interface ExpenseDto {
 
 export interface CreateExpenseDto {
     siteId: number;
-    amountRequestFormId: number;
+    amountRequestFormId?: number | null;
+    isAllocatedExcess?: boolean;
+    sourceArfNumber?: string | null;
     items: ExpenseItemDto[];
 }
 

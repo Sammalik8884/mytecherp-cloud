@@ -65,7 +65,15 @@ export const ExpensesPage = () => {
                                 >
                                     <td className="px-4 py-3 font-medium">EXP-{expense.id.toString().padStart(4, '0')}</td>
                                     <td className="px-4 py-3">{expense.siteName}</td>
-                                    <td className="px-4 py-3">{expense.arfNumber || "N/A"}</td>
+                                    <td className="px-4 py-3">
+                                        {expense.isAllocatedExcess ? (
+                                            <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                                Excess from {expense.sourceArfNumber}
+                                            </span>
+                                        ) : (
+                                            expense.arfNumber || "N/A"
+                                        )}
+                                    </td>
                                     <td className="px-4 py-3 font-medium text-emerald-600 dark:text-emerald-400">
                                         Rs {expense.totalExpenseAmount?.toLocaleString()}
                                     </td>
