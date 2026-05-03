@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { siteService } from "../services/siteService";
-import { amountRequestApi } from "../api/amountRequestApi";
+import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi } from "../api/expenseApi";
 import { quotationService } from "../services/quotationService";
 import { invoiceService } from "../services/invoiceService";
@@ -9,8 +9,7 @@ import { salesService } from "../services/salesService";
 
 import { SiteDto } from "../types/site";
 import { ExpenseDto } from "../api/expenseApi";
-import { AmountRequestFormDto } from "../types/finance";
-import { QuotationDto } from "../types/quotation";
+import { QuotationDto } from "../services/quotationService";
 import { InvoiceDto } from "../types/finance";
 import { SalesLeadDto } from "../types/sales";
 
@@ -41,7 +40,7 @@ export const ProjectDetailsPage = () => {
             const [
                 siteData,
                 expenseData,
-                arfData,
+                arfDataResp,
                 quoteData,
                 invoiceData,
                 leadData
@@ -53,6 +52,8 @@ export const ProjectDetailsPage = () => {
                 invoiceService.getAll(),
                 salesService.getLeads()
             ]);
+
+            const arfData = arfDataResp.data;
 
             setSite(siteData);
             setExpenses(expenseData);
@@ -106,7 +107,7 @@ export const ProjectDetailsPage = () => {
                              <div className="space-y-3">
                                  <div className="flex justify-between text-sm">
                                      <span className="text-muted-foreground">Total Quotes Value</span>
-                                     <span className="font-medium">Rs {quotations.reduce((sum, q) => sum + (q.totalAmount || 0), 0).toLocaleString()}</span>
+                                     <span className="font-medium">Rs {quotations.reduce((sum: number, q: any) => sum + (q.grandTotal || 0), 0).toLocaleString()}</span>
                                  </div>
                                  <div className="flex justify-between text-sm">
                                      <span className="text-muted-foreground">Total Invoiced</span>
@@ -165,9 +166,9 @@ export const ProjectDetailsPage = () => {
                                 {quotations.map(quote => (
                                     <tr key={quote.id} className="hover:bg-muted/50">
                                         <td className="px-4 py-3 font-medium">QT-{quote.id.toString().padStart(4, '0')}</td>
-                                        <td className="px-4 py-3">{quote.subject || "N/A"}</td>
-                                        <td className="px-4 py-3">Rs {quote.totalAmount?.toLocaleString()}</td>
-                                        <td className="px-4 py-3">{dayjs(quote.issueDate).format("DD MMM YYYY")}</td>
+                                        <td className="px-4 py-3">{quote.quoteHeadline || "N/A"}</td>
+                                        <td className="px-4 py-3">Rs {quote.grandTotal?.toLocaleString()}</td>
+                                        <td className="px-4 py-3">{dayjs(quote.createdAt).format("DD MMM YYYY")}</td>
                                     </tr>
                                 ))}
                             </tbody>

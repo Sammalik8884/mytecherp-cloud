@@ -11,6 +11,7 @@ export interface AmountRequestPayment {
 
 export interface AmountRequestFormDto {
   id: number;
+  arfNumber?: string;
   createdAt: string;
   employeeName: string;
   employeeEmail: string;

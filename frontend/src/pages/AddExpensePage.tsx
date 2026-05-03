@@ -1,16 +1,14 @@
+import { useState, useEffect } from "react";
 import { siteService } from "../services/siteService";
-import { amountRequestApi } from "../api/amountRequestApi";
+import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
 import { SiteDto } from "../types/site";
-import { AmountRequestFormDto } from "../types/finance";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Check, X, Plus, Trash2 } from "lucide-react";
-import { useAuth } from "../auth/AuthContext";
 
 export const AddExpensePage = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
     const [sites, setSites] = useState<SiteDto[]>([]);
     const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
     const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
@@ -30,8 +28,6 @@ export const AddExpensePage = () => {
         }))
     );
 
-    const [loadingSites, setLoadingSites] = useState(true);
-    const [loadingArfs, setLoadingArfs] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
@@ -40,14 +36,13 @@ export const AddExpensePage = () => {
 
     const loadInitialData = async () => {
         try {
-            const [siteData, arfData] = await Promise.all([
-                siteService.getAll(),
-                amountRequestApi.getAll()
-            ]);
+            const siteData = await siteService.getAll();
+            const arfDataResp = await amountRequestApi.getAll();
+            const arfData = arfDataResp.data;
             setSites(siteData);
             
             // Only approved/released ARFs for the current user
-            const availableArfs = arfData.filter(a => 
+            const availableArfs = arfData.filter((a: any) => 
                 (a.status === "Released" || a.status === "Approved - Ready for Accounts") 
                 // && a.employeeEmail === user?.email // Assuming the API already filters if not admin
             );
@@ -55,9 +50,6 @@ export const AddExpensePage = () => {
         } catch (error) {
             console.error("Failed to load initial data", error);
             toast.error("Failed to load necessary data");
-        } finally {
-            setLoadingSites(false);
-            setLoadingArfs(false);
         }
     };
 
@@ -82,15 +74,15 @@ export const AddExpensePage = () => {
 
     const removeRow = (index: number) => {
         if (rows.length > 1) {
-            setRows(rows.filter((_, i) => i !== index));
+            setRows(rows.filter((_: any, i: number) => i !== index));
         }
     };
 
-    const selectedArf = arfs.find(a => a.id === Number(selectedArfId));
+    const selectedArf = arfs.find((a: any) => a.id === Number(selectedArfId));
     const releasedAmount = selectedArf?.accountsReleasedAmount || 0;
     
     // Calculate total
-    const totalAmount = rows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
+    const totalAmount = rows.reduce((sum: number, row: any) => sum + (Number(row.amount) || 0), 0);
     
     // Check match
     const isAmountMatched = selectedArf ? totalAmount === releasedAmount : false;
@@ -100,7 +92,7 @@ export const AddExpensePage = () => {
         if (!selectedArfId) return toast.error("Please select an ARF.");
         
         // Filter out completely empty rows
-        const validRows = rows.filter(r => r.expenseDate || r.descriptionItems || r.amount > 0);
+        const validRows = rows.filter((r: any) => r.expenseDate || r.descriptionItems || r.amount > 0);
         
         if (validRows.length === 0) return toast.error("Please enter at least one expense item.");
         
@@ -148,7 +140,7 @@ export const AddExpensePage = () => {
                             onChange={(e) => setSelectedSiteId(e.target.value ? Number(e.target.value) : "")}
                         >
                             <option value="">-- Select a Site --</option>
-                            {sites.map(s => (
+                            {sites.map((s: any) => (
                                 <option key={s.id} value={s.id}>{s.name} ({s.customerName || "No Client"})</option>
                             ))}
                         </select>
@@ -165,7 +157,7 @@ export const AddExpensePage = () => {
                                 disabled={isAmountMatched && selectedArfId !== ""}
                             >
                                 <option value="">-- Select an ARF --</option>
-                                {arfs.map(a => (
+                                {arfs.map((a: any) => (
                                     <option key={a.id} value={a.id}>
                                         {a.arfNumber || `ARF-${a.id}`} - Rs {a.accountsReleasedAmount?.toLocaleString()}
                                     </option>
@@ -205,7 +197,7 @@ export const AddExpensePage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {rows.map((row, index) => (
+                            {rows.map((row: any, index: number) => (
                                 <tr key={index} className="hover:bg-muted/30">
                                     <td className="px-2 py-1 text-center text-muted-foreground">{index + 1}:</td>
                                     <td className="px-1 py-1">

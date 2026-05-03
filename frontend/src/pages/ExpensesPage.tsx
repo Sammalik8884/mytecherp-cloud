@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
-import { Plus, Receipt, Search } from "lucide-react";
+import { Plus, Receipt } from "lucide-react";
 import dayjs from "dayjs";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
