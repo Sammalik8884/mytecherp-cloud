@@ -46,6 +46,13 @@ namespace MytechERP.API.Controllers
             return Ok(expense);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] CreateExpenseDto dto)
+        {
+            var expense = await _expenseService.UpdateAsync(id, dto);
+            return Ok(expense);
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

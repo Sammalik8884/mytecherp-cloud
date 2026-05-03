@@ -10,6 +10,7 @@ namespace MytechERP.Application.Interfaces
         Task<List<ExpenseDto>> GetAllAsync();
         Task<List<ExpenseDto>> GetBySiteIdAsync(int siteId);
         Task<ExpenseDto> CreateAsync(CreateExpenseDto dto);
+        Task<ExpenseDto> UpdateAsync(int id, CreateExpenseDto dto);
         Task DeleteAsync(int id);
     }
 }

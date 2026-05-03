@@ -129,6 +129,39 @@ namespace MyTechERP.Infrastructure.Services
             return await GetByIdAsync(entity.Id);
         }
 
+        public async Task<ExpenseDto> UpdateAsync(int id, CreateExpenseDto dto)
+        {
+            var entity = await _context.Expenses
+                .Include(e => e.Items)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (entity == null) throw new Exception("Expense not found");
+
+            var arf = await _context.AmountRequestForms.FindAsync(dto.AmountRequestFormId);
+            if (arf == null) throw new Exception("ARF not found");
+
+            entity.SiteId = dto.SiteId;
+            entity.AmountRequestFormId = dto.AmountRequestFormId;
+
+            _context.ExpenseItems.RemoveRange(entity.Items);
+
+            entity.Items = dto.Items.Select(i => new ExpenseItem
+            {
+                ExpenseDate = i.ExpenseDate,
+                EmployeeName = i.EmployeeName,
+                EmployeeDesignation = i.EmployeeDesignation,
+                ExpenseType = i.ExpenseType,
+                DescriptionItems = i.DescriptionItems,
+                Amount = i.Amount,
+                Remarks = i.Remarks,
+                FileUrl = i.FileUrl
+            }).ToList();
+
+            await _context.SaveChangesAsync();
+
+            return await GetByIdAsync(entity.Id);
+        }
+
         public async Task DeleteAsync(int id)
         {
             var entity = await _context.Expenses.FindAsync(id);

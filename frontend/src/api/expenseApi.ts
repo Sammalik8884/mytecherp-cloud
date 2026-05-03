@@ -48,6 +48,10 @@ export const expenseApi = {
         const response = await apiClient.post<ExpenseDto>("/Expenses", data);
         return response.data;
     },
+    update: async (id: number, data: CreateExpenseDto) => {
+        const response = await apiClient.put<ExpenseDto>(`/Expenses/${id}`, data);
+        return response.data;
+    },
     delete: async (id: number) => {
         const response = await apiClient.delete(`/Expenses/${id}`);
         return response.data;

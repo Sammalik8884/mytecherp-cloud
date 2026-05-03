@@ -148,6 +148,7 @@ function App() {
                                 <Route path="/projects/:id" element={<ProjectDetailsPage />} />
                                 <Route path="/expenses" element={<ExpensesPage />} />
                                 <Route path="/expenses/new" element={<AddExpensePage />} />
+                                <Route path="/expenses/edit/:id" element={<AddExpensePage />} />
                             </Route>
                             {/* Future Iterations will add more routes here */}
                         </Route>

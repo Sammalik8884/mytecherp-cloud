@@ -58,7 +58,11 @@ export const ExpensesPage = () => {
                         </thead>
                         <tbody className="divide-y divide-border">
                             {expenses.map((expense) => (
-                                <tr key={expense.id} className="hover:bg-muted/50 transition-colors">
+                                <tr 
+                                    key={expense.id} 
+                                    onClick={() => navigate(`/expenses/edit/${expense.id}`)}
+                                    className="hover:bg-muted/50 transition-colors cursor-pointer"
+                                >
                                     <td className="px-4 py-3 font-medium">EXP-{expense.id.toString().padStart(4, '0')}</td>
                                     <td className="px-4 py-3">{expense.siteName}</td>
                                     <td className="px-4 py-3">{expense.arfNumber || "N/A"}</td>

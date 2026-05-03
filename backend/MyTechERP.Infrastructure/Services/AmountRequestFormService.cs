@@ -229,7 +229,7 @@ namespace MyTechERP.Infrastructure.Services
                 if (!string.IsNullOrEmpty(entity.EmployeeEmail))
                 {
                     string subject = $"Amount Request Released - {entity.EmployeeName}";
-                    string body = $"<p>Dear {entity.EmployeeName},</p><p>Your amount advance request of {entity.AdvanceRequested} has been released.</p><p>Remarks: {dto.Remarks}</p>";
+                    string body = $"<p>Dear {entity.EmployeeName},</p><p>Your ARF is approved. ARF Number is <strong>{entity.ArfNumber}</strong>.</p><p>Your amount advance request of {entity.AdvanceRequested} has been released. Please add your expenses against this ARF Number.</p><p>Remarks: {dto.Remarks}</p>";
                     await _emailService.SendEmailAsync(entity.EmployeeEmail, subject, body);
                 }
             }

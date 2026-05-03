@@ -3,11 +3,14 @@ import { siteService } from "../services/siteService";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
 import { SiteDto } from "../types/site";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Check, X, Plus, Trash2 } from "lucide-react";
+import { Check, X, Plus, Trash2, ExternalLink } from "lucide-react";
+import dayjs from "dayjs";
 
 export const AddExpensePage = () => {
+    const { id } = useParams<{ id: string }>();
+    const isEditMode = !!id;
     const navigate = useNavigate();
     const [sites, setSites] = useState<SiteDto[]>([]);
     const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
@@ -41,12 +44,33 @@ export const AddExpensePage = () => {
             const arfData = arfDataResp.data;
             setSites(siteData);
             
-            // Only approved/released ARFs for the current user
+            // Only approved/released ARFs for the current user (in real app filtered by API)
             const availableArfs = arfData.filter((a: any) => 
                 (a.status === "Released" || a.status === "Approved - Ready for Accounts") 
-                // && a.employeeEmail === user?.email // Assuming the API already filters if not admin
             );
             setArfs(availableArfs);
+
+            if (isEditMode && id) {
+                const expense = await expenseApi.getById(Number(id));
+                setSelectedSiteId(expense.siteId);
+                setSelectedArfId(expense.amountRequestFormId);
+                
+                if (expense.items && expense.items.length > 0) {
+                    const mappedRows = expense.items.map(item => ({
+                        ...item,
+                        expenseDate: item.expenseDate ? dayjs(item.expenseDate).format('YYYY-MM-DD') : ""
+                    }));
+                    // pad to at least 5 rows if needed, or just use mapped
+                    if (mappedRows.length < 5) {
+                        const emptyRows = Array.from({ length: 5 - mappedRows.length }, () => ({
+                            expenseDate: "", employeeName: "", employeeDesignation: "", expenseType: "", descriptionItems: "", amount: 0, remarks: "", fileUrl: ""
+                        }));
+                        setRows([...mappedRows, ...emptyRows]);
+                    } else {
+                        setRows(mappedRows);
+                    }
+                }
+            }
         } catch (error) {
             console.error("Failed to load initial data", error);
             toast.error("Failed to load necessary data");
@@ -85,7 +109,9 @@ export const AddExpensePage = () => {
     const totalAmount = rows.reduce((sum: number, row: any) => sum + (Number(row.amount) || 0), 0);
     
     // Check match
-    const isAmountMatched = selectedArf ? totalAmount === releasedAmount : false;
+    const isAmountEqual = selectedArf ? totalAmount === releasedAmount : false;
+    const isAmountBelow = selectedArf ? totalAmount < releasedAmount : false;
+    const isAmountAbove = selectedArf ? totalAmount > releasedAmount : false;
 
     const handleSubmit = async () => {
         if (!selectedSiteId) return toast.error("Please select a site first.");
@@ -96,8 +122,8 @@ export const AddExpensePage = () => {
         
         if (validRows.length === 0) return toast.error("Please enter at least one expense item.");
         
-        if (!isAmountMatched) {
-            return toast.error("Total expense amount must equal the ARF released amount.");
+        if (isAmountAbove) {
+            return toast.error("Total expense amount exceeds the ARF released amount. Please allocate excess to another site or adjust amounts.");
         }
 
         try {
@@ -108,8 +134,13 @@ export const AddExpensePage = () => {
                 items: validRows
             };
 
-            await expenseApi.create(payload);
-            toast.success("Expense uploaded successfully");
+            if (isEditMode && id) {
+                await expenseApi.update(Number(id), payload);
+                toast.success("Expense updated successfully");
+            } else {
+                await expenseApi.create(payload);
+                toast.success("Expense uploaded successfully");
+            }
             navigate("/expenses");
         } catch (error) {
             console.error("Failed to submit expense", error);
@@ -121,14 +152,16 @@ export const AddExpensePage = () => {
 
     const arfBoxClass = !selectedArfId 
         ? "border-border" 
-        : isAmountMatched 
+        : isAmountEqual 
             ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 ring-1 ring-emerald-500" 
             : "border-red-500 bg-red-50 dark:bg-red-900/10 ring-1 ring-red-500";
 
     return (
         <div className="p-6 max-w-[1400px] mx-auto space-y-6">
             <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-                <h1 className="text-2xl font-bold tracking-tight mb-6 text-center text-muted-foreground/80 bg-muted/30 py-3 rounded-lg">Expense Details</h1>
+                <h1 className="text-2xl font-bold tracking-tight mb-6 text-center text-muted-foreground/80 bg-muted/30 py-3 rounded-lg">
+                    {isEditMode ? "Edit Expense Details" : "Expense Details"}
+                </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     {/* Site Selection */}
@@ -154,7 +187,7 @@ export const AddExpensePage = () => {
                                 className="w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm focus:outline-none appearance-none"
                                 value={selectedArfId}
                                 onChange={(e) => setSelectedArfId(e.target.value ? Number(e.target.value) : "")}
-                                disabled={isAmountMatched && selectedArfId !== ""}
+                                disabled={isAmountEqual && selectedArfId !== ""}
                             >
                                 <option value="">-- Select an ARF --</option>
                                 {arfs.map((a: any) => (
@@ -165,14 +198,14 @@ export const AddExpensePage = () => {
                             </select>
                             <div className="absolute right-3 top-2.5 pointer-events-none">
                                 {selectedArfId ? (
-                                    isAmountMatched ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-red-600" />
+                                    isAmountEqual ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-red-600" />
                                 ) : null}
                             </div>
                         </div>
                         {selectedArf && (
                             <div className="text-xs flex justify-between mt-1">
                                 <span className="text-muted-foreground">Released Amount: Rs {releasedAmount.toLocaleString()}</span>
-                                <span className={isAmountMatched ? "text-emerald-600 font-medium" : "text-red-600"}>
+                                <span className={isAmountEqual ? "text-emerald-600 font-medium" : "text-red-600"}>
                                     Total Entered: Rs {totalAmount.toLocaleString()}
                                 </span>
                             </div>
@@ -282,7 +315,7 @@ export const AddExpensePage = () => {
                     
                     <div className="flex items-center space-x-6 text-sm">
                         <span className="font-semibold text-muted-foreground">Total Amount :</span>
-                        <span className={`text-base font-bold ${isAmountMatched && totalAmount > 0 ? 'text-emerald-600' : 'text-foreground'}`}>
+                        <span className={`text-base font-bold ${isAmountEqual && totalAmount > 0 ? 'text-emerald-600' : 'text-foreground'} ${isAmountAbove ? 'text-red-600' : ''}`}>
                             Rs {totalAmount.toLocaleString()}
                         </span>
                     </div>
@@ -299,10 +332,19 @@ export const AddExpensePage = () => {
                     <button
                         className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium disabled:opacity-50"
                         onClick={handleSubmit}
-                        disabled={submitting || !selectedSiteId || !selectedArfId || !isAmountMatched}
+                        disabled={submitting || !selectedSiteId || !selectedArfId || isAmountAbove}
                     >
-                        {submitting ? "Submitting..." : "Submit Expense"}
+                        {submitting ? "Submitting..." : (isEditMode ? "Update Expense" : "Submit Expense")}
                     </button>
+                    {isAmountAbove && (
+                        <button
+                            className="px-6 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 font-medium flex items-center"
+                            onClick={() => window.open('/expenses/new', '_blank')}
+                        >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Allocate Excess to Another Site
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
