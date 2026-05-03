@@ -29,8 +29,8 @@ export const AddExpensePage = () => {
     const [rows, setRows] = useState<ExpenseItemDto[]>(
         Array.from({ length: 5 }, () => ({
             expenseDate: "",
-            employeeName: "",
-            employeeDesignation: "",
+            employeeName: user?.fullName || "",
+            employeeDesignation: user?.designation || "",
             expenseType: "",
             descriptionItems: "",
             amount: 0,
@@ -117,8 +117,8 @@ export const AddExpensePage = () => {
     const addRow = () => {
         setRows([...rows, {
             expenseDate: "",
-            employeeName: "",
-            employeeDesignation: "",
+            employeeName: user?.fullName || "",
+            employeeDesignation: user?.designation || "",
             expenseType: "",
             descriptionItems: "",
             amount: 0,
