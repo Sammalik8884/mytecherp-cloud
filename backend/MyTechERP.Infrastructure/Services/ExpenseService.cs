@@ -37,6 +37,8 @@ namespace MyTechERP.Infrastructure.Services
                 CreatedAt = entity.CreatedAt,
                 TotalExpenseAmount = totalExpense,
                 ArfReleasedAmount = arfReleased,
+                IsAllocatedExcess = entity.IsAllocatedExcess,
+                SourceArfNumber = entity.SourceArfNumber,
                 Items = entity.Items?.Select(i => new ExpenseItemDto
                 {
                     Id = i.Id,
@@ -100,8 +102,11 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<ExpenseDto> CreateAsync(CreateExpenseDto dto)
         {
-            var arf = await _context.AmountRequestForms.FindAsync(dto.AmountRequestFormId);
-            if (arf == null) throw new Exception("ARF not found");
+            if (!dto.IsAllocatedExcess)
+            {
+                var arf = await _context.AmountRequestForms.FindAsync(dto.AmountRequestFormId);
+                if (arf == null) throw new Exception("ARF not found");
+            }
 
             var email = _currentUserService.Email ?? string.Empty;
 
@@ -109,6 +114,8 @@ namespace MyTechERP.Infrastructure.Services
             {
                 SiteId = dto.SiteId,
                 AmountRequestFormId = dto.AmountRequestFormId,
+                IsAllocatedExcess = dto.IsAllocatedExcess,
+                SourceArfNumber = dto.SourceArfNumber,
                 CreatedByEmail = email,
                 Items = dto.Items.Select(i => new ExpenseItem
                 {
@@ -137,11 +144,16 @@ namespace MyTechERP.Infrastructure.Services
 
             if (entity == null) throw new Exception("Expense not found");
 
-            var arf = await _context.AmountRequestForms.FindAsync(dto.AmountRequestFormId);
-            if (arf == null) throw new Exception("ARF not found");
+            if (!dto.IsAllocatedExcess)
+            {
+                var arf = await _context.AmountRequestForms.FindAsync(dto.AmountRequestFormId);
+                if (arf == null) throw new Exception("ARF not found");
+            }
 
             entity.SiteId = dto.SiteId;
             entity.AmountRequestFormId = dto.AmountRequestFormId;
+            entity.IsAllocatedExcess = dto.IsAllocatedExcess;
+            entity.SourceArfNumber = dto.SourceArfNumber;
 
             _context.ExpenseItems.RemoveRange(entity.Items);
 

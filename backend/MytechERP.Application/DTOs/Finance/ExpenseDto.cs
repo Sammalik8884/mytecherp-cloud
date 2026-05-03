@@ -8,10 +8,12 @@ namespace MytechERP.Application.DTOs.Finance
         public int Id { get; set; }
         public int SiteId { get; set; }
         public string SiteName { get; set; } = string.Empty;
-        public int AmountRequestFormId { get; set; }
+        public int? AmountRequestFormId { get; set; }
         public string ArfNumber { get; set; } = string.Empty;
         public decimal TotalExpenseAmount { get; set; }
         public decimal ArfReleasedAmount { get; set; }
+        public bool IsAllocatedExcess { get; set; }
+        public string? SourceArfNumber { get; set; }
         public string CreatedByEmail { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public List<ExpenseItemDto> Items { get; set; } = new List<ExpenseItemDto>();
@@ -33,7 +35,9 @@ namespace MytechERP.Application.DTOs.Finance
     public class CreateExpenseDto
     {
         public int SiteId { get; set; }
-        public int AmountRequestFormId { get; set; }
+        public int? AmountRequestFormId { get; set; }
+        public bool IsAllocatedExcess { get; set; }
+        public string? SourceArfNumber { get; set; }
         public List<CreateExpenseItemDto> Items { get; set; } = new List<CreateExpenseItemDto>();
     }
 

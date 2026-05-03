@@ -925,7 +925,7 @@ namespace MyTechERP.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AmountRequestFormId")
+                    b.Property<int?>("AmountRequestFormId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -935,11 +935,17 @@ namespace MyTechERP.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsAllocatedExcess")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<int>("SiteId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SourceArfNumber")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
@@ -2877,9 +2883,7 @@ namespace MyTechERP.Infrastructure.Migrations
                 {
                     b.HasOne("MytechERP.domain.Entities.Finance.AmountRequestForm", "AmountRequestForm")
                         .WithMany()
-                        .HasForeignKey("AmountRequestFormId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AmountRequestFormId");
 
                     b.HasOne("MytechERP.domain.Entities.CRM.Site", "Site")
                         .WithMany()

@@ -15,8 +15,11 @@ namespace MytechERP.domain.Entities.Finance
         public int SiteId { get; set; }
         public Site Site { get; set; } = null!;
 
-        public int AmountRequestFormId { get; set; }
-        public AmountRequestForm AmountRequestForm { get; set; } = null!;
+        public int? AmountRequestFormId { get; set; }
+        public AmountRequestForm? AmountRequestForm { get; set; }
+
+        public bool IsAllocatedExcess { get; set; } = false;
+        public string? SourceArfNumber { get; set; }
 
         public string CreatedByEmail { get; set; } = string.Empty;
 
