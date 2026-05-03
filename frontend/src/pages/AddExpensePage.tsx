@@ -3,7 +3,7 @@ import { siteService } from "../services/siteService";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
 import { SiteDto } from "../types/site";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Check, X, Plus, Trash2, ExternalLink } from "lucide-react";
 import dayjs from "dayjs";
@@ -12,6 +12,7 @@ export const AddExpensePage = () => {
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [sites, setSites] = useState<SiteDto[]>([]);
     const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
     const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
@@ -60,7 +61,6 @@ export const AddExpensePage = () => {
                         ...item,
                         expenseDate: item.expenseDate ? dayjs(item.expenseDate).format('YYYY-MM-DD') : ""
                     }));
-                    // pad to at least 5 rows if needed, or just use mapped
                     if (mappedRows.length < 5) {
                         const emptyRows = Array.from({ length: 5 - mappedRows.length }, () => ({
                             expenseDate: "", employeeName: "", employeeDesignation: "", expenseType: "", descriptionItems: "", amount: 0, remarks: "", fileUrl: ""
@@ -68,6 +68,28 @@ export const AddExpensePage = () => {
                         setRows([...mappedRows, ...emptyRows]);
                     } else {
                         setRows(mappedRows);
+                    }
+                }
+            } else {
+                // Check if we have excess amount to pre-fill
+                const excessAmountParam = searchParams.get("excessAmount");
+                const managedFromArfParam = searchParams.get("managedFromArf");
+                if (excessAmountParam && managedFromArfParam) {
+                    const amount = Number(excessAmountParam);
+                    if (!isNaN(amount) && amount > 0) {
+                        setRows(prevRows => {
+                            const newRows = [...prevRows];
+                            newRows[0] = {
+                                ...newRows[0],
+                                expenseDate: dayjs().format('YYYY-MM-DD'),
+                                expenseType: "Managed Amount",
+                                descriptionItems: `Managed Excess Amount from ARF ${managedFromArfParam}`,
+                                amount: amount,
+                                remarks: "Auto-allocated excess"
+                            };
+                            return newRows;
+                        });
+                        toast.success("Pre-filled managed excess amount");
                     }
                 }
             }
@@ -111,6 +133,7 @@ export const AddExpensePage = () => {
     // Check match
     const isAmountEqual = selectedArf ? totalAmount === releasedAmount : false;
     const isAmountAbove = selectedArf ? totalAmount > releasedAmount : false;
+    const excessAmount = isAmountAbove ? totalAmount - releasedAmount : 0;
 
     const handleSubmit = async () => {
         if (!selectedSiteId) return toast.error("Please select a site first.");
@@ -122,7 +145,7 @@ export const AddExpensePage = () => {
         if (validRows.length === 0) return toast.error("Please enter at least one expense item.");
         
         if (isAmountAbove) {
-            return toast.error("Total expense amount exceeds the ARF released amount. Please allocate excess to another site or adjust amounts.");
+            return toast.error(`Total expense amount exceeds the ARF released amount by Rs ${excessAmount.toLocaleString()}. Please allocate excess to another site or adjust amounts.`);
         }
 
         try {
@@ -204,9 +227,16 @@ export const AddExpensePage = () => {
                         {selectedArf && (
                             <div className="text-xs flex justify-between mt-1">
                                 <span className="text-muted-foreground">Released Amount: Rs {releasedAmount.toLocaleString()}</span>
-                                <span className={isAmountEqual ? "text-emerald-600 font-medium" : "text-red-600"}>
-                                    Total Entered: Rs {totalAmount.toLocaleString()}
-                                </span>
+                                <div className="text-right">
+                                    <span className={isAmountEqual ? "text-emerald-600 font-medium" : "text-red-600"}>
+                                        Total Entered: Rs {totalAmount.toLocaleString()}
+                                    </span>
+                                    {isAmountAbove && (
+                                        <span className="text-red-600 font-bold block mt-0.5">
+                                            Exceeds by: Rs {excessAmount.toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -338,10 +368,13 @@ export const AddExpensePage = () => {
                     {isAmountAbove && (
                         <button
                             className="px-6 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 font-medium flex items-center"
-                            onClick={() => window.open('/expenses/new', '_blank')}
+                            onClick={() => {
+                                const arfLabel = selectedArf?.arfNumber || selectedArfId;
+                                window.open(`/expenses/new?excessAmount=${excessAmount}&managedFromArf=${arfLabel}`, '_blank');
+                            }}
                         >
                             <ExternalLink className="h-4 w-4 mr-2" />
-                            Allocate Excess to Another Site
+                            Allocate Excess (Rs {excessAmount.toLocaleString()})
                         </button>
                     )}
                 </div>
