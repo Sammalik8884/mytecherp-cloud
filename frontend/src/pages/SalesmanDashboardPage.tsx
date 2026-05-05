@@ -710,7 +710,6 @@ export const SalesmanDashboardPage = () => {
                                                          <p className="text-xs text-muted-foreground/60 italic">No files added yet. Uploading proof is optional.</p>
                                                      )}
                                                  </div>
-                                                 </div>
                                          </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-muted-foreground mb-1">Salesperson Signature (Auto-Stampted)</label>
