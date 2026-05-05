@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { 
     Plus, Target, Building, Calendar, ArrowRight, Activity, X,
     MapPin, Clock, ChevronDown, ChevronUp, Camera, FileText, Edit
@@ -135,7 +135,6 @@ const VisitHistoryPanel = ({ leadId, isOpen }: { leadId: number; isOpen: boolean
 export const SalesmanDashboardPage = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const fileInputRef = useRef<HTMLInputElement>(null);
     
     const [leads, setLeads] = useState<SalesLeadDto[]>([]);
     const [loading, setLoading] = useState(true);
