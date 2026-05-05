@@ -615,87 +615,84 @@ export const SalesmanDashboardPage = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-muted-foreground mb-1">Proof / Evidence (Photos, Documents) <span className="text-muted-foreground/60 font-normal">(Optional)</span></label>
-                                                <div className="flex flex-col space-y-3">
-                                                    {/* Hidden: gallery/file picker */}
-                                                    <input
-                                                        type="file"
-                                                        multiple
-                                                        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
-                                                        className="hidden"
-                                                        ref={fileInputRef}
-                                                        onChange={e => {
-                                                            if (e.target.files && e.target.files.length > 0) {
-                                                                setClientAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
-                                                            }
-                                                            if (e.target) e.target.value = '';
-                                                        }}
-                                                    />
-                                                    {/* Hidden: camera capture */}
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        capture="environment"
-                                                        className="hidden"
-                                                        id="cameraCapture"
-                                                        onChange={e => {
-                                                            if (e.target.files && e.target.files.length > 0) {
-                                                                setClientAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
-                                                            }
-                                                            if (e.target) (e.target as HTMLInputElement).value = '';
-                                                        }}
-                                                    />
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => fileInputRef.current?.click()}
-                                                            className="text-xs font-bold border-2 border-dashed border-primary/50 text-primary px-4 py-3 rounded-xl hover:bg-primary/5 transition-colors flex items-center"
-                                                        >
-                                                            <Plus className="h-4 w-4 mr-2" />
-                                                            Add Files / Photos
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => document.getElementById('cameraCapture')?.click()}
-                                                            className="text-xs font-bold border-2 border-dashed border-emerald-500/50 text-emerald-600 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors flex items-center"
-                                                        >
-                                                            <Camera className="h-4 w-4 mr-2" />
-                                                            Take Photo
-                                                        </button>
-                                                    </div>
-                                                    {clientAttachments.length > 0 ? (
-                                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
-                                                            {clientAttachments.map((file, idx) => (
-                                                                <div key={idx} className="relative border border-border rounded-xl overflow-hidden bg-secondary/20 group">
-                                                                    {file.type.startsWith('image/') ? (
-                                                                        <img
-                                                                            src={URL.createObjectURL(file)}
-                                                                            alt={file.name}
-                                                                            className="w-full h-20 object-cover"
-                                                                        />
-                                                                    ) : (
-                                                                        <div className="w-full h-20 flex items-center justify-center bg-secondary/40">
-                                                                            <FileText className="h-8 w-8 text-muted-foreground/50" />
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="px-1.5 py-1 flex items-center justify-between gap-1">
-                                                                        <span className="text-[10px] text-muted-foreground font-mono truncate flex-1" title={file.name}>{file.name}</span>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => setClientAttachments(prev => prev.filter((_, i) => i !== idx))}
-                                                                            className="text-destructive hover:bg-destructive/10 p-1 rounded transition-colors flex-none"
-                                                                        >
-                                                                            <X className="h-3 w-3" />
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-xs text-muted-foreground/60 italic">No files added yet. Uploading proof is optional.</p>
-                                                    )}
-                                                </div>
-                                            </div>
+                                             <label className="block text-xs font-semibold text-muted-foreground mb-1">Proof / Evidence (Photos, Documents) <span className="text-muted-foreground/60 font-normal">(Optional)</span></label>
+                                                 <div className="flex flex-col space-y-3">
+                                                     <div className="flex flex-wrap items-center gap-2">
+                                                         {/* label+htmlFor is the ONLY reliable cross-browser file trigger */}
+                                                         <label
+                                                             htmlFor="proofFileInput"
+                                                             className="text-xs font-bold border-2 border-dashed border-primary/50 text-primary px-4 py-3 rounded-xl hover:bg-primary/5 transition-colors flex items-center cursor-pointer select-none"
+                                                         >
+                                                             <Plus className="h-4 w-4 mr-2" />
+                                                             Add Files / Photos
+                                                         </label>
+                                                         <input
+                                                             id="proofFileInput"
+                                                             type="file"
+                                                             multiple
+                                                             accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+                                                             className="hidden"
+                                                             onChange={e => {
+                                                                 if (e.target.files && e.target.files.length > 0) {
+                                                                     setClientAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
+                                                                 }
+                                                                 if (e.target) e.target.value = '';
+                                                             }}
+                                                         />
+                                                         <label
+                                                             htmlFor="cameraCaptureInput"
+                                                             className="text-xs font-bold border-2 border-dashed border-emerald-500/50 text-emerald-600 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors flex items-center cursor-pointer select-none"
+                                                         >
+                                                             <Camera className="h-4 w-4 mr-2" />
+                                                             Take Photo
+                                                         </label>
+                                                         <input
+                                                             id="cameraCaptureInput"
+                                                             type="file"
+                                                             accept="image/*"
+                                                             capture="environment"
+                                                             className="hidden"
+                                                             onChange={e => {
+                                                                 if (e.target.files && e.target.files.length > 0) {
+                                                                     setClientAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
+                                                                 }
+                                                                 if (e.target) (e.target as HTMLInputElement).value = '';
+                                                             }}
+                                                         />
+                                                     </div>
+                                                     {clientAttachments.length > 0 ? (
+                                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
+                                                             {clientAttachments.map((file, idx) => (
+                                                                 <div key={idx} className="relative border border-border rounded-xl overflow-hidden bg-secondary/20 group">
+                                                                     {file.type.startsWith('image/') ? (
+                                                                         <img
+                                                                             src={URL.createObjectURL(file)}
+                                                                             alt={file.name}
+                                                                             className="w-full h-20 object-cover"
+                                                                         />
+                                                                     ) : (
+                                                                         <div className="w-full h-20 flex items-center justify-center bg-secondary/40">
+                                                                             <FileText className="h-8 w-8 text-muted-foreground/50" />
+                                                                         </div>
+                                                                     )}
+                                                                     <div className="px-1.5 py-1 flex items-center justify-between gap-1">
+                                                                         <span className="text-[10px] text-muted-foreground font-mono truncate flex-1" title={file.name}>{file.name}</span>
+                                                                         <button
+                                                                             type="button"
+                                                                             onClick={() => setClientAttachments(prev => prev.filter((_, i) => i !== idx))}
+                                                                             className="text-destructive hover:bg-destructive/10 p-1 rounded transition-colors flex-none"
+                                                                         >
+                                                                             <X className="h-3 w-3" />
+                                                                         </button>
+                                                                     </div>
+                                                                 </div>
+                                                             ))}
+                                                         </div>
+                                                     ) : (
+                                                         <p className="text-xs text-muted-foreground/60 italic">No files added yet. Uploading proof is optional.</p>
+                                                     )}
+                                                 </div>
+                                        </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-muted-foreground mb-1">Salesperson Signature (Auto-Stampted)</label>
                                             <input disabled value={clientForm.salespersonSignatureName || user?.id || ""} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-muted/50 cursor-not-allowed font-medium" />
