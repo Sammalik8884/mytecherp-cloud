@@ -155,7 +155,32 @@ export const SalesmanDashboardPage = () => {
     });
     const [clientContacts, setClientContacts] = useState<{ contactNumber: string, designation: string }[]>([]);
     const [clientAttachments, setClientAttachments] = useState<File[]>([]);
+    const [attachmentPreviews, setAttachmentPreviews] = useState<string[]>([]);
     const [visitingCardPhoto, setVisitingCardPhoto] = useState<File | null>(null);
+
+    // Eagerly create preview URLs so thumbnails always show
+    const addAttachments = (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+        const newFiles = Array.from(files);
+        const newPreviews = newFiles.map(f =>
+            f.type.startsWith('image/') ? URL.createObjectURL(f) : ''
+        );
+        setClientAttachments(prev => [...prev, ...newFiles]);
+        setAttachmentPreviews(prev => [...prev, ...newPreviews]);
+    };
+
+    const removeAttachment = (idx: number) => {
+        const url = attachmentPreviews[idx];
+        if (url) URL.revokeObjectURL(url);
+        setClientAttachments(prev => prev.filter((_, i) => i !== idx));
+        setAttachmentPreviews(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    const clearAttachments = () => {
+        attachmentPreviews.forEach(u => { if (u) URL.revokeObjectURL(u); });
+        setClientAttachments([]);
+        setAttachmentPreviews([]);
+    };
 
     const openCreateModal = () => {
         setEditingLeadId(null);
@@ -166,7 +191,7 @@ export const SalesmanDashboardPage = () => {
             salespersonSignatureName: user?.id || ""
         });
         setClientContacts([]);
-        setClientAttachments([]);
+        clearAttachments();
         setVisitingCardPhoto(null);
         setIsLeadByCall(false);
         setIsClientModalOpen(true);
@@ -181,7 +206,7 @@ export const SalesmanDashboardPage = () => {
             salespersonSignatureName: user?.id || ""
         });
         setClientContacts([]);
-        setClientAttachments([]);
+        clearAttachments();
         setVisitingCardPhoto(null);
         setIsLeadByCall(true);
         setIsClientModalOpen(true);
@@ -215,7 +240,7 @@ export const SalesmanDashboardPage = () => {
                 setClientContacts(Array.isArray(parsedContacts) ? parsedContacts : []);
             } catch { setClientContacts([]); }
             
-            setClientAttachments([]);
+            clearAttachments();
             setEditingLeadId(leadId);
             setIsLeadByCall(false);
             setIsClientModalOpen(true);
@@ -299,7 +324,7 @@ export const SalesmanDashboardPage = () => {
             }
             
             setIsClientModalOpen(false);
-            setClientAttachments([]);
+            clearAttachments();
             setVisitingCardPhoto(null);
             fetchLeads();
         } catch (error: any) {
@@ -617,7 +642,7 @@ export const SalesmanDashboardPage = () => {
                                              <label className="block text-xs font-semibold text-muted-foreground mb-1">Proof / Evidence (Photos, Documents) <span className="text-muted-foreground/60 font-normal">(Optional)</span></label>
                                                  <div className="flex flex-col space-y-3">
                                                      <div className="flex flex-wrap items-center gap-2">
-                                                         {/* label+htmlFor is the ONLY reliable cross-browser file trigger */}
+                                                         {/* "Add Files" — multiple images/docs from gallery */}
                                                          <label
                                                              htmlFor="proofFileInput"
                                                              className="text-xs font-bold border-2 border-dashed border-primary/50 text-primary px-4 py-3 rounded-xl hover:bg-primary/5 transition-colors flex items-center cursor-pointer select-none"
@@ -631,13 +656,9 @@ export const SalesmanDashboardPage = () => {
                                                              multiple
                                                              accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
                                                              className="hidden"
-                                                             onChange={e => {
-                                                                 if (e.target.files && e.target.files.length > 0) {
-                                                                     setClientAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
-                                                                 }
-                                                                 if (e.target) e.target.value = '';
-                                                             }}
+                                                             onChange={e => { addAttachments(e.target.files); if (e.target) e.target.value = ''; }}
                                                          />
+                                                         {/* "Take Photo" — opens camera directly on mobile */}
                                                          <label
                                                              htmlFor="cameraCaptureInput"
                                                              className="text-xs font-bold border-2 border-dashed border-emerald-500/50 text-emerald-600 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors flex items-center cursor-pointer select-none"
@@ -651,34 +672,32 @@ export const SalesmanDashboardPage = () => {
                                                              accept="image/*"
                                                              capture="environment"
                                                              className="hidden"
-                                                             onChange={e => {
-                                                                 if (e.target.files && e.target.files.length > 0) {
-                                                                     setClientAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
-                                                                 }
-                                                                 if (e.target) (e.target as HTMLInputElement).value = '';
-                                                             }}
+                                                             onChange={e => { addAttachments(e.target.files); if (e.target) (e.target as HTMLInputElement).value = ''; }}
                                                          />
                                                      </div>
-                                                     {clientAttachments.length > 0 ? (
+
+                                                     {/* Thumbnail grid — uses eagerly stored preview URLs */}
+                                                     {attachmentPreviews.length > 0 ? (
                                                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
                                                              {clientAttachments.map((file, idx) => (
-                                                                 <div key={idx} className="relative border border-border rounded-xl overflow-hidden bg-secondary/20 group">
-                                                                     {file.type.startsWith('image/') ? (
+                                                                 <div key={idx} className="border border-border rounded-xl overflow-hidden bg-secondary/20">
+                                                                     {attachmentPreviews[idx] ? (
                                                                          <img
-                                                                             src={URL.createObjectURL(file)}
+                                                                             src={attachmentPreviews[idx]}
                                                                              alt={file.name}
-                                                                             className="w-full h-20 object-cover"
+                                                                             className="w-full h-24 object-cover"
                                                                          />
                                                                      ) : (
-                                                                         <div className="w-full h-20 flex items-center justify-center bg-secondary/40">
-                                                                             <FileText className="h-8 w-8 text-muted-foreground/50" />
+                                                                         <div className="w-full h-24 flex flex-col items-center justify-center bg-secondary/40 gap-1">
+                                                                             <FileText className="h-7 w-7 text-muted-foreground/40" />
+                                                                             <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wide">{file.name.split('.').pop()}</span>
                                                                          </div>
                                                                      )}
-                                                                     <div className="px-1.5 py-1 flex items-center justify-between gap-1">
+                                                                     <div className="px-2 py-1 flex items-center justify-between gap-1 bg-background/60">
                                                                          <span className="text-[10px] text-muted-foreground font-mono truncate flex-1" title={file.name}>{file.name}</span>
                                                                          <button
                                                                              type="button"
-                                                                             onClick={() => setClientAttachments(prev => prev.filter((_, i) => i !== idx))}
+                                                                             onClick={() => removeAttachment(idx)}
                                                                              className="text-destructive hover:bg-destructive/10 p-1 rounded transition-colors flex-none"
                                                                          >
                                                                              <X className="h-3 w-3" />
@@ -691,7 +710,8 @@ export const SalesmanDashboardPage = () => {
                                                          <p className="text-xs text-muted-foreground/60 italic">No files added yet. Uploading proof is optional.</p>
                                                      )}
                                                  </div>
-                                        </div>
+                                                 </div>
+                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-muted-foreground mb-1">Salesperson Signature (Auto-Stampted)</label>
                                             <input disabled value={clientForm.salespersonSignatureName || user?.id || ""} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-muted/50 cursor-not-allowed font-medium" />
