@@ -156,15 +156,6 @@ const AmountRequestFormPage = () => {
             fetchData();
             const res = await amountRequestApi.getById(selectedForm.id);
             setSelectedForm(res.data);
-            
-            // If this ARF was auto-generated for an excess expense, ask the user if they want to adjust it
-            if (res.data.purposeOfAdvance?.includes("Expense for this ARF has already been done")) {
-                setAdjustmentModal({
-                    isOpen: true,
-                    releasedAmount,
-                    newArfId: res.data.id
-                });
-            }
         } catch (error: any) {
             toast.error(error.response?.data || "Failed to release amount");
         }
@@ -379,6 +370,27 @@ const AmountRequestFormPage = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {selectedForm.status === "Released" && selectedForm.purposeOfAdvance?.includes("Expense for this ARF has already been done") && (
+                            <div className="mb-8 p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div>
+                                    <h3 className="text-blue-800 font-bold text-lg">Action Required</h3>
+                                    <p className="text-blue-700 text-sm mt-1">
+                                        The funds for this auto-generated ARF have been released. Please adjust this released amount against the original over-consumed ARF.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setAdjustmentModal({
+                                        isOpen: true,
+                                        releasedAmount: selectedForm.accountsReleasedAmount || 0,
+                                        newArfId: selectedForm.id
+                                    })}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors whitespace-nowrap"
+                                >
+                                    Adjust Expenses
+                                </button>
+                            </div>
+                        )}
 
                         {/* Approvals Section */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
