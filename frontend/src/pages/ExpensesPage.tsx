@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
+import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { Plus, Receipt } from "lucide-react";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import { ArfAdjustmentModal } from "../components/finance/ArfAdjustmentModal";
 
 export const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
+    const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [arfTotals, setArfTotals] = useState<Record<number, number>>({});
     const [expenseExcessFlags, setExpenseExcessFlags] = useState<Record<number, number>>({});
+    const [adjustmentModal, setAdjustmentModal] = useState<{ isOpen: boolean; releasedAmount: number; newArfId: number } | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,8 +22,12 @@ export const ExpensesPage = () => {
     const loadExpenses = async () => {
         try {
             setLoading(true);
-            const data = await expenseApi.getAll();
+            const [data, arfData] = await Promise.all([
+                expenseApi.getAll(),
+                amountRequestApi.getAll().then(r => r.data)
+            ]);
             setExpenses(data);
+            setArfs(arfData);
             
             // Calculate totals per ARF
             const totals: Record<number, number> = {};
@@ -55,6 +63,7 @@ export const ExpensesPage = () => {
     if (loading) return <div className="p-6">Loading expenses...</div>;
 
     return (
+        <>
         <div className="p-6 max-w-7xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -136,14 +145,46 @@ export const ExpensesPage = () => {
                                     <td className="px-4 py-3">{dayjs(expense.createdAt).format("DD MMM YYYY")}</td>
                                     <td className="px-4 py-3">{expense.items?.length || 0}</td>
                                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                        {excessForThisSpecificExpense > 0 && !expense.isAllocatedExcess && (
-                                            <button
-                                                onClick={() => navigate(`/amount-request?action=generateExcess&amount=${excessForThisSpecificExpense}&siteId=${expense.siteId}&expenseId=${expense.id}`)}
-                                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
-                                            >
-                                                Generate ARF
-                                            </button>
-                                        )}
+                                        {excessForThisSpecificExpense > 0 && !expense.isAllocatedExcess && (() => {
+                                            // Find an ARF that was generated from this excess (match by siteId and excess marker in purpose)
+                                            const linkedArf = arfs.find(
+                                                a => a.siteId === expense.siteId &&
+                                                     a.purposeOfAdvance?.includes("Expense for this ARF has already been done")
+                                            );
+
+                                            if (!linkedArf) {
+                                                // No ARF generated yet
+                                                return (
+                                                    <button
+                                                        onClick={() => navigate(`/amount-request?action=generateExcess&amount=${excessForThisSpecificExpense}&siteId=${expense.siteId}&expenseId=${expense.id}`)}
+                                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                                                    >
+                                                        Generate ARF
+                                                    </button>
+                                                );
+                                            } else if (linkedArf.status !== "Released") {
+                                                // ARF generated but not yet released
+                                                return (
+                                                    <span className="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
+                                                        ARF Pending Release ({linkedArf.arfNumber})
+                                                    </span>
+                                                );
+                                            } else {
+                                                // ARF generated AND released – show adjust button
+                                                return (
+                                                    <button
+                                                        onClick={() => setAdjustmentModal({
+                                                            isOpen: true,
+                                                            releasedAmount: linkedArf.accountsReleasedAmount || 0,
+                                                            newArfId: linkedArf.id
+                                                        })}
+                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                                                    >
+                                                        Adjust Expenses
+                                                    </button>
+                                                );
+                                            }
+                                        })()}
                                     </td>
                                 </tr>
                                 );
@@ -163,5 +204,19 @@ export const ExpensesPage = () => {
                 </div>
             </div>
         </div>
+
+        {adjustmentModal && (
+            <ArfAdjustmentModal
+                isOpen={adjustmentModal.isOpen}
+                onClose={() => setAdjustmentModal(null)}
+                releasedAmount={adjustmentModal.releasedAmount}
+                newArfId={adjustmentModal.newArfId}
+                onSuccess={() => {
+                    loadExpenses();
+                    setAdjustmentModal(null);
+                }}
+            />
+        )}
+        </>
     );
 };
