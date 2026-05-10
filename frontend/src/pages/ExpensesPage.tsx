@@ -146,10 +146,9 @@ export const ExpensesPage = () => {
                                     <td className="px-4 py-3">{expense.items?.length || 0}</td>
                                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                                         {excessForThisSpecificExpense > 0 && !expense.isAllocatedExcess && (() => {
-                                            // Find an ARF that was generated from this excess (match by siteId and excess marker in purpose)
+                                            // Find an ARF generated specifically from THIS expense by matching the embedded ExpenseId tag
                                             const linkedArf = arfs.find(
-                                                a => a.siteId === expense.siteId &&
-                                                     a.purposeOfAdvance?.includes("Expense for this ARF has already been done")
+                                                a => a.purposeOfAdvance?.includes(`[ExpenseId:${expense.id}]`)
                                             );
 
                                             if (!linkedArf) {

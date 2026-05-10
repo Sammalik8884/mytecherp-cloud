@@ -48,8 +48,9 @@ const AmountRequestFormPage = () => {
             if (pSiteId) {
                 setSiteId(Number(pSiteId));
             }
-            
-            setPurposeOfAdvance("Expense for this ARF has already been done");
+
+            const expenseId = searchParams.get('expenseId');
+            setPurposeOfAdvance(`Expense for this ARF has already been done [ExpenseId:${expenseId}]`);
         }
     }, [searchParams]);
 
