@@ -17,7 +17,7 @@ const AmountRequestFormPage = () => {
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
-    const [adjustmentModal, setAdjustmentModal] = useState<{ isOpen: boolean; releasedAmount: number; newArfId: number; newArfNumber: string } | null>(null);
+    const [adjustmentModal, setAdjustmentModal] = useState<{ isOpen: boolean; releasedAmount: number; newArfId: number } | null>(null);
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
 
     // Form State
@@ -162,8 +162,7 @@ const AmountRequestFormPage = () => {
                 setAdjustmentModal({
                     isOpen: true,
                     releasedAmount,
-                    newArfId: res.data.id,
-                    newArfNumber: res.data.arfNumber || `ARF-${res.data.id}`
+                    newArfId: res.data.id
                 });
             }
         } catch (error: any) {
@@ -584,7 +583,6 @@ const AmountRequestFormPage = () => {
                     onClose={() => setAdjustmentModal(null)}
                     releasedAmount={adjustmentModal.releasedAmount}
                     newArfId={adjustmentModal.newArfId}
-                    newArfNumber={adjustmentModal.newArfNumber}
                     onSuccess={() => {
                         fetchData();
                         setAdjustmentModal(null);

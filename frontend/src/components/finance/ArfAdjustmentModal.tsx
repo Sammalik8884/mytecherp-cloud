@@ -2,14 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { expenseApi, ExpenseDto } from '../../api/expenseApi';
 import { toast } from 'react-hot-toast';
 import { X, CheckCircle, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../auth/AuthContext';
 
 interface ArfAdjustmentModalProps {
     isOpen: boolean;
     onClose: () => void;
     releasedAmount: number;
     newArfId: number;
-    newArfNumber: string;
     onSuccess: () => void;
 }
 
@@ -25,7 +24,6 @@ export const ArfAdjustmentModal: React.FC<ArfAdjustmentModalProps> = ({
     onClose,
     releasedAmount,
     newArfId,
-    newArfNumber,
     onSuccess
 }) => {
     const { user } = useAuth();

@@ -87,7 +87,6 @@ export const ExpensesPage = () => {
                         <tbody className="divide-y divide-border">
                             {expenses.map((expense) => {
                                 const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
-                                const isArfOverconsumed = expense.amountRequestFormId && totalForThisArf > expense.arfReleasedAmount;
                                 const excessForThisSpecificExpense = expenseExcessFlags[expense.id] || 0;
 
                                 // Determine ARF number badge style based on total consumed amount vs released
