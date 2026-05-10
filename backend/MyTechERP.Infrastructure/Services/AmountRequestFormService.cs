@@ -16,12 +16,18 @@ namespace MyTechERP.Infrastructure.Services
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
         private readonly IEmailService _emailService;
+        private readonly INotificationService _notificationService;
 
-        public AmountRequestFormService(ApplicationDbContext context, ICurrentUserService currentUserService, IEmailService emailService)
+        public AmountRequestFormService(
+            ApplicationDbContext context, 
+            ICurrentUserService currentUserService, 
+            IEmailService emailService,
+            INotificationService notificationService)
         {
             _context = context;
             _currentUserService = currentUserService;
             _emailService = emailService;
+            _notificationService = notificationService;
         }
 
         private AmountRequestFormDto MapToDto(AmountRequestForm entity)
@@ -103,6 +109,9 @@ namespace MyTechERP.Infrastructure.Services
             int maxId = await _context.AmountRequestForms.MaxAsync(a => (int?)a.Id) ?? 0;
             string arfNumber = $"ARF{(maxId + 1):D5}";
 
+            var role = _currentUserService.Role;
+            var isManager = role == "Manager";
+
             var entity = new AmountRequestForm
             {
                 ArfNumber = arfNumber,
@@ -115,20 +124,34 @@ namespace MyTechERP.Infrastructure.Services
                 CustomSiteName = dto.CustomSiteName,
                 ClientName = dto.ClientName,
                 PurposeOfAdvance = dto.PurposeOfAdvance,
-                Status = "Waiting for Director Approval"
+                Status = isManager ? "Approved - Ready for Accounts" : "Waiting for Director Approval"
             };
 
             _context.AmountRequestForms.Add(entity);
             await _context.SaveChangesAsync();
 
-            // Send Email to Director
-            try
+            if (!isManager)
             {
-                string subject = $"New Amount Advance Request from {entity.EmployeeName}";
-                string body = $"<p>A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}.</p><p>Please log in to approve or reject.</p>";
-                await _emailService.SendEmailAsync("shahbaz.ali@mytecheng.com", subject, body);
+                // Send Email to Director
+                try
+                {
+                    string subject = $"New Amount Advance Request from {entity.EmployeeName}";
+                    string body = $"<p>A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}.</p><p>Please log in to approve or reject.</p>";
+                    await _emailService.SendEmailAsync("shahbaz.ali@mytecheng.com", subject, body);
+                }
+                catch (Exception) { /* Log or ignore email failure */ }
             }
-            catch (Exception) { /* Log or ignore email failure */ }
+            else
+            {
+                // Send Email to Accounts Head
+                try
+                {
+                    string subject = $"Amount Request Ready for Release - {entity.EmployeeName}";
+                    string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} (Manager) has been created and is automatically approved, ready for release.</p>";
+                    await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+                }
+                catch (Exception) { }
+            }
 
             return await GetByIdAsync(entity.Id);
         }
@@ -204,7 +227,7 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<AmountRequestFormDto> ReleaseAmountAsync(int id, AccountsReleaseAmountDto dto)
         {
-            var entity = await _context.AmountRequestForms.FirstOrDefaultAsync(a => a.Id == id);
+            var entity = await _context.AmountRequestForms.Include(a => a.Site).FirstOrDefaultAsync(a => a.Id == id);
             if (entity == null) throw new Exception("Form not found");
 
             entity.AccountsDateOfEntry = dto.DateOfEntry;
@@ -231,6 +254,19 @@ namespace MyTechERP.Infrastructure.Services
                     string subject = $"Amount Request Released - {entity.EmployeeName}";
                     string body = $"<p>Dear {entity.EmployeeName},</p><p>Your ARF is approved. ARF Number is <strong>{entity.ArfNumber}</strong>.</p><p>Your amount advance request of {entity.AdvanceRequested} has been released. Please add your expenses against this ARF Number.</p><p>Remarks: {dto.Remarks}</p>";
                     await _emailService.SendEmailAsync(entity.EmployeeEmail, subject, body);
+                    
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail);
+                    if (user != null)
+                    {
+                        string siteNameStr = entity.Site?.Name ?? entity.CustomSiteName ?? "N/A";
+                        await _notificationService.CreateNotificationAsync(
+                            user.Id,
+                            "Amount Released",
+                            $"Your payment has been released. ARF Number: {entity.ArfNumber}, Amount: Rs {dto.ReleasedAmount}, Site: {siteNameStr}",
+                            "ArfReleased",
+                            entity.Id
+                        );
+                    }
                 }
             }
             catch (Exception) { }

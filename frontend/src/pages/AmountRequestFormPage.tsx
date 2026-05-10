@@ -371,12 +371,12 @@ const AmountRequestFormPage = () => {
                             </div>
                         </div>
 
-                        {selectedForm.status === "Released" && selectedForm.purposeOfAdvance?.includes("Expense for this ARF has already been done") && (
+                        {selectedForm.status === "Released" && (
                             <div className="mb-8 p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
                                 <div>
-                                    <h3 className="text-blue-800 font-bold text-lg">Action Required</h3>
+                                    <h3 className="text-blue-800 font-bold text-lg">Adjust Excess Expenses</h3>
                                     <p className="text-blue-700 text-sm mt-1">
-                                        The funds for this auto-generated ARF have been released. Please adjust this released amount against the original over-consumed ARF.
+                                        You can use this released amount to adjust and close out any previously over-consumed ARFs.
                                     </p>
                                 </div>
                                 <button
