@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 export const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
     const [loading, setLoading] = useState(true);
+    const [arfTotals, setArfTotals] = useState<Record<number, number>>({});
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,6 +19,15 @@ export const ExpensesPage = () => {
             setLoading(true);
             const data = await expenseApi.getAll();
             setExpenses(data);
+            
+            // Calculate totals per ARF
+            const totals: Record<number, number> = {};
+            data.forEach((e: ExpenseDto) => {
+                if (e.amountRequestFormId && !e.isAllocatedExcess) {
+                    totals[e.amountRequestFormId] = (totals[e.amountRequestFormId] || 0) + e.totalExpenseAmount;
+                }
+            });
+            setArfTotals(totals);
         } catch (error) {
             console.error("Failed to load expenses", error);
         } finally {
@@ -54,6 +64,7 @@ export const ExpensesPage = () => {
                                 <th className="px-4 py-3 font-medium">Total Amount</th>
                                 <th className="px-4 py-3 font-medium">Created Date</th>
                                 <th className="px-4 py-3 font-medium">Items</th>
+                                <th className="px-4 py-3 font-medium">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -86,6 +97,10 @@ export const ExpensesPage = () => {
                                     arfElement = <span>{expense.arfNumber || "N/A"}</span>;
                                 }
 
+                                const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
+                                const isArfOverconsumed = expense.amountRequestFormId && totalForThisArf > expense.arfReleasedAmount;
+                                const arfExcess = totalForThisArf - expense.arfReleasedAmount;
+
                                 return (
                                 <tr 
                                     key={expense.id} 
@@ -100,12 +115,25 @@ export const ExpensesPage = () => {
                                     </td>
                                     <td className="px-4 py-3">{dayjs(expense.createdAt).format("DD MMM YYYY")}</td>
                                     <td className="px-4 py-3">{expense.items?.length || 0}</td>
+                                    <td className="px-4 py-3">
+                                        {isArfOverconsumed && !expense.isAllocatedExcess && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/amount-request?action=generateExcess&amount=${arfExcess}&siteId=${expense.siteId}&expenseId=${expense.id}`);
+                                                }}
+                                                className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap shadow-sm"
+                                            >
+                                                Generate ARF
+                                            </button>
+                                        )}
+                                    </td>
                                 </tr>
                                 );
                             })}
                             {expenses.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                                         <div className="flex flex-col items-center">
                                             <Receipt className="h-12 w-12 opacity-20 mb-3" />
                                             <p>No expenses found. Click 'Add Expense' to create one.</p>

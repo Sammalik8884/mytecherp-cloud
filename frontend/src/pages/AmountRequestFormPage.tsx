@@ -5,12 +5,14 @@ import { SiteDto } from "../types/site";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
 import { Plus, CheckCircle, XCircle, FileText, User, Wallet } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useSearchParams } from "react-router-dom";
 
 const AmountRequestFormPage = () => {
     const { user, hasRole } = useAuth();
     const [forms, setForms] = useState<AmountRequestFormDto[]>([]);
     const [sites, setSites] = useState<SiteDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchParams] = useSearchParams();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
@@ -34,7 +36,20 @@ const AmountRequestFormPage = () => {
 
     useEffect(() => {
         fetchData();
-    }, []);
+        
+        const action = searchParams.get('action');
+        if (action === 'generateExcess') {
+            setIsFormOpen(true);
+            setAdvanceRequested(Number(searchParams.get('amount') || 0));
+            
+            const pSiteId = searchParams.get('siteId');
+            if (pSiteId) {
+                setSiteId(Number(pSiteId));
+            }
+            
+            setPurposeOfAdvance("Expense for this ARF has already been done");
+        }
+    }, [searchParams]);
 
     const fetchData = async () => {
         try {

@@ -152,10 +152,6 @@ export const AddExpensePage = () => {
         const validRows = rows.filter((r: any) => r.expenseDate || r.descriptionItems || r.amount > 0);
         
         if (validRows.length === 0) return toast.error("Please enter at least one expense item.");
-        
-        if (isAmountAbove) {
-            return toast.error(`Total expense amount exceeds the ARF released amount by Rs ${excessAmount.toLocaleString()}. Please allocate excess to another site or adjust amounts.`);
-        }
 
         try {
             setSubmitting(true);
@@ -384,7 +380,7 @@ export const AddExpensePage = () => {
                     <button
                         className={`px-6 py-2 ${isAllocatedExcessMode ? 'bg-amber-600 hover:bg-amber-700' : 'bg-primary hover:bg-primary/90'} text-white rounded-lg font-medium disabled:opacity-50`}
                         onClick={handleSubmit}
-                        disabled={submitting || !selectedSiteId || (!isAllocatedExcessMode && !selectedArfId) || isAmountAbove}
+                        disabled={submitting || !selectedSiteId || (!isAllocatedExcessMode && !selectedArfId)}
                     >
                         {submitting ? "Submitting..." : (isEditMode ? "Update Expense" : "Submit Expense")}
                     </button>
