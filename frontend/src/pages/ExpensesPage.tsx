@@ -8,6 +8,7 @@ export const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [arfTotals, setArfTotals] = useState<Record<number, number>>({});
+    const [expenseExcessFlags, setExpenseExcessFlags] = useState<Record<number, number>>({});
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,12 +23,28 @@ export const ExpensesPage = () => {
             
             // Calculate totals per ARF
             const totals: Record<number, number> = {};
-            data.forEach((e: ExpenseDto) => {
+            const runningSums: Record<number, number> = {};
+            const flags: Record<number, number> = {};
+
+            // Calculate running sum from oldest to newest to pinpoint which expense caused the excess
+            [...data].reverse().forEach((e: ExpenseDto) => {
                 if (e.amountRequestFormId && !e.isAllocatedExcess) {
-                    totals[e.amountRequestFormId] = (totals[e.amountRequestFormId] || 0) + e.totalExpenseAmount;
+                    const arfId = e.amountRequestFormId;
+                    const previousSum = runningSums[arfId] || 0;
+                    const newSum = previousSum + e.totalExpenseAmount;
+                    runningSums[arfId] = newSum;
+                    
+                    if (newSum > e.arfReleasedAmount) {
+                        flags[e.id] = previousSum >= e.arfReleasedAmount 
+                                      ? e.totalExpenseAmount 
+                                      : newSum - e.arfReleasedAmount;
+                    }
+
+                    totals[arfId] = (totals[arfId] || 0) + e.totalExpenseAmount;
                 }
             });
             setArfTotals(totals);
+            setExpenseExcessFlags(flags);
         } catch (error) {
             console.error("Failed to load expenses", error);
         } finally {
@@ -71,7 +88,7 @@ export const ExpensesPage = () => {
                             {expenses.map((expense) => {
                                 const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
                                 const isArfOverconsumed = expense.amountRequestFormId && totalForThisArf > expense.arfReleasedAmount;
-                                const arfExcess = totalForThisArf - expense.arfReleasedAmount;
+                                const excessForThisSpecificExpense = expenseExcessFlags[expense.id] || 0;
 
                                 // Determine ARF number badge style based on total consumed amount vs released
                                 let arfElement: React.ReactNode;
@@ -119,14 +136,11 @@ export const ExpensesPage = () => {
                                     </td>
                                     <td className="px-4 py-3">{dayjs(expense.createdAt).format("DD MMM YYYY")}</td>
                                     <td className="px-4 py-3">{expense.items?.length || 0}</td>
-                                    <td className="px-4 py-3">
-                                        {isArfOverconsumed && !expense.isAllocatedExcess && (
+                                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                        {excessForThisSpecificExpense > 0 && !expense.isAllocatedExcess && (
                                             <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    navigate(`/amount-request?action=generateExcess&amount=${arfExcess}&siteId=${expense.siteId}&expenseId=${expense.id}`);
-                                                }}
-                                                className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap shadow-sm"
+                                                onClick={() => navigate(`/amount-request?action=generateExcess&amount=${excessForThisSpecificExpense}&siteId=${expense.siteId}&expenseId=${expense.id}`)}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
                                             >
                                                 Generate ARF
                                             </button>

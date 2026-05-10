@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext";
 import { siteService } from "../services/siteService";
 import { SiteDto } from "../types/site";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
+import { ArfAdjustmentModal } from '../components/finance/ArfAdjustmentModal';
 import { Plus, CheckCircle, XCircle, FileText, User, Wallet } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
@@ -16,6 +17,7 @@ const AmountRequestFormPage = () => {
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
+    const [adjustmentModal, setAdjustmentModal] = useState<{ isOpen: boolean; releasedAmount: number; newArfId: number; newArfNumber: string } | null>(null);
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
 
     // Form State
@@ -154,6 +156,16 @@ const AmountRequestFormPage = () => {
             fetchData();
             const res = await amountRequestApi.getById(selectedForm.id);
             setSelectedForm(res.data);
+            
+            // If this ARF was auto-generated for an excess expense, ask the user if they want to adjust it
+            if (res.data.purposeOfAdvance?.includes("Expense for this ARF has already been done")) {
+                setAdjustmentModal({
+                    isOpen: true,
+                    releasedAmount,
+                    newArfId: res.data.id,
+                    newArfNumber: res.data.arfNumber || `ARF-${res.data.id}`
+                });
+            }
         } catch (error: any) {
             toast.error(error.response?.data || "Failed to release amount");
         }
@@ -564,6 +576,20 @@ const AmountRequestFormPage = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {adjustmentModal && (
+                <ArfAdjustmentModal
+                    isOpen={adjustmentModal.isOpen}
+                    onClose={() => setAdjustmentModal(null)}
+                    releasedAmount={adjustmentModal.releasedAmount}
+                    newArfId={adjustmentModal.newArfId}
+                    newArfNumber={adjustmentModal.newArfNumber}
+                    onSuccess={() => {
+                        fetchData();
+                        setAdjustmentModal(null);
+                    }}
+                />
             )}
         </div>
     );
