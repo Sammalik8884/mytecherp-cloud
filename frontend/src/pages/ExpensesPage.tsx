@@ -69,7 +69,11 @@ export const ExpensesPage = () => {
                         </thead>
                         <tbody className="divide-y divide-border">
                             {expenses.map((expense) => {
-                                // Determine ARF number badge style based on amount vs released
+                                const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
+                                const isArfOverconsumed = expense.amountRequestFormId && totalForThisArf > expense.arfReleasedAmount;
+                                const arfExcess = totalForThisArf - expense.arfReleasedAmount;
+
+                                // Determine ARF number badge style based on total consumed amount vs released
                                 let arfElement: React.ReactNode;
                                 if (expense.isAllocatedExcess) {
                                     arfElement = (
@@ -78,28 +82,28 @@ export const ExpensesPage = () => {
                                         </span>
                                     );
                                 } else if (expense.arfReleasedAmount > 0) {
-                                    if (expense.totalExpenseAmount < expense.arfReleasedAmount) {
+                                    if (totalForThisArf < expense.arfReleasedAmount) {
                                         arfElement = (
                                             <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
                                                 {expense.arfNumber || "N/A"}
                                             </span>
                                         );
-                                    } else if (expense.totalExpenseAmount === expense.arfReleasedAmount) {
+                                    } else if (totalForThisArf === expense.arfReleasedAmount) {
                                         arfElement = (
                                             <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
                                                 {expense.arfNumber || "N/A"}
                                             </span>
                                         );
                                     } else {
-                                        arfElement = <span className="font-medium">{expense.arfNumber || "N/A"}</span>;
+                                        arfElement = (
+                                            <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                                {expense.arfNumber || "N/A"} (Excess)
+                                            </span>
+                                        );
                                     }
                                 } else {
                                     arfElement = <span>{expense.arfNumber || "N/A"}</span>;
                                 }
-
-                                const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
-                                const isArfOverconsumed = expense.amountRequestFormId && totalForThisArf > expense.arfReleasedAmount;
-                                const arfExcess = totalForThisArf - expense.arfReleasedAmount;
 
                                 return (
                                 <tr 
