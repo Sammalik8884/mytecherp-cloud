@@ -13,6 +13,7 @@ namespace MytechERP.Application.Interfaces
         string? Email { get; }
         int? TenantId { get; }
         string? Role { get; }
+        IEnumerable<string> Roles { get; }
         Task<Tenant?> GetCurrentTenantAsync();
     }
 }

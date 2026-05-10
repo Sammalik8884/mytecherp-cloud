@@ -16,6 +16,7 @@ namespace MyTechERP.Infrastructure.Persistence
         public string? Email => null;
         public int TenantId => 1;
         public string? Role => null;
+        public IEnumerable<string> Roles => Enumerable.Empty<string>();
         int? ICurrentUserService.TenantId => TenantId;
         public Task<MytechERP.domain.Entities.Tenant?> GetCurrentTenantAsync()
             => Task.FromResult<MytechERP.domain.Entities.Tenant?>(null);
