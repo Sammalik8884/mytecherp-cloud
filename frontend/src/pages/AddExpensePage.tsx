@@ -116,12 +116,22 @@ export const AddExpensePage = () => {
 
     const handleUploadFile = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
-        const file = e.target.files[0];
+        const files = Array.from(e.target.files);
+        
         try {
-            toast.loading("Uploading attachment...", { id: `upload-${index}` });
-            const url = await expenseApi.uploadAttachment(file);
-            handleRowChange(index, "fileUrl", url);
-            toast.success("Attachment uploaded successfully", { id: `upload-${index}` });
+            toast.loading(`Uploading ${files.length} attachment(s)...`, { id: `upload-${index}` });
+            
+            const currentRow = rows[index];
+            const currentAttachments = currentRow.attachments || [];
+            const newUrls: string[] = [];
+
+            for (const file of files) {
+                const url = await expenseApi.uploadAttachment(file);
+                newUrls.push(url);
+            }
+            
+            handleRowChange(index, "attachments", [...currentAttachments, ...newUrls]);
+            toast.success("Attachments uploaded successfully", { id: `upload-${index}` });
         } catch (error: any) {
             toast.error(error.response?.data || "Failed to upload attachment", { id: `upload-${index}` });
         } finally {
@@ -355,17 +365,21 @@ export const AddExpensePage = () => {
                                         />
                                     </td>
                                     <td className="px-1 py-1 text-center">
-                                        <div className="flex items-center justify-center gap-1">
-                                            {row.fileUrl ? (
+                                        <div className="flex flex-wrap items-center justify-center gap-1 max-w-[100px]">
+                                            {row.fileUrl && (
                                                 <a href={row.fileUrl} target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80" title="View Attachment">
                                                     <ExternalLink className="h-4 w-4" />
                                                 </a>
-                                            ) : (
-                                                <label className="cursor-pointer text-muted-foreground hover:text-primary transition-colors" title="Upload Attachment">
-                                                    <Paperclip className="h-4 w-4" />
-                                                    <input type="file" className="hidden" onChange={(e) => handleUploadFile(index, e)} />
-                                                </label>
                                             )}
+                                            {row.attachments?.map((url: string, i: number) => (
+                                                <a key={i} href={url} target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80" title={`View Attachment ${i + 1}`}>
+                                                    <ExternalLink className="h-4 w-4" />
+                                                </a>
+                                            ))}
+                                            <label className="cursor-pointer text-muted-foreground hover:text-primary transition-colors ml-1" title="Upload Attachments">
+                                                <Paperclip className="h-4 w-4" />
+                                                <input type="file" multiple className="hidden" onChange={(e) => handleUploadFile(index, e)} />
+                                            </label>
                                         </div>
                                     </td>
                                     <td className="px-1 py-1 text-center">

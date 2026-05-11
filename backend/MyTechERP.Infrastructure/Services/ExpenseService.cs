@@ -14,11 +14,13 @@ namespace MyTechERP.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IBlobService _blobService;
 
-        public ExpenseService(ApplicationDbContext context, ICurrentUserService currentUserService)
+        public ExpenseService(ApplicationDbContext context, ICurrentUserService currentUserService, IBlobService blobService)
         {
             _context = context;
             _currentUserService = currentUserService;
+            _blobService = blobService;
         }
 
         private ExpenseDto MapToDto(Expense entity)
@@ -49,7 +51,8 @@ namespace MyTechERP.Infrastructure.Services
                     DescriptionItems = i.DescriptionItems,
                     Amount = i.Amount,
                     Remarks = i.Remarks,
-                    FileUrl = i.FileUrl
+                    FileUrl = string.IsNullOrEmpty(i.FileUrl) ? string.Empty : _blobService.GenerateSasUrl(i.FileUrl, 1440), // 24 hours
+                    Attachments = i.Attachments.Select(url => _blobService.GenerateSasUrl(url, 1440)).ToList()
                 }).ToList() ?? new List<ExpenseItemDto>()
             };
         }
@@ -126,7 +129,8 @@ namespace MyTechERP.Infrastructure.Services
                     DescriptionItems = i.DescriptionItems,
                     Amount = i.Amount,
                     Remarks = i.Remarks,
-                    FileUrl = i.FileUrl
+                    FileUrl = i.FileUrl,
+                    Attachments = i.Attachments
                 }).ToList()
             };
 
@@ -166,7 +170,8 @@ namespace MyTechERP.Infrastructure.Services
                 DescriptionItems = i.DescriptionItems,
                 Amount = i.Amount,
                 Remarks = i.Remarks,
-                FileUrl = i.FileUrl
+                FileUrl = i.FileUrl,
+                Attachments = i.Attachments
             }).ToList();
 
             await _context.SaveChangesAsync();

@@ -10,6 +10,7 @@ export interface ExpenseItemDto {
     amount: number;
     remarks: string;
     fileUrl?: string;
+    attachments?: string[];
 }
 
 export interface ExpenseDto {

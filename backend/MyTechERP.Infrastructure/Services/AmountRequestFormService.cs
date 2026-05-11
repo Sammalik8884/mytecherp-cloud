@@ -61,7 +61,7 @@ namespace MyTechERP.Infrastructure.Services
                 AccountsDateOfFundReleased = entity.AccountsDateOfFundReleased,
                 AccountsReleasedAmount = entity.AccountsReleasedAmount,
                 AccountsRemarks = entity.AccountsRemarks,
-                Attachments = entity.Attachments,
+                Attachments = entity.Attachments.Select(url => _blobService.GenerateSasUrl(url, 1440)).ToList(),
                 Payments = entity.Payments?.Select(p => new AmountRequestPaymentDto
                 {
                     Id = p.Id,

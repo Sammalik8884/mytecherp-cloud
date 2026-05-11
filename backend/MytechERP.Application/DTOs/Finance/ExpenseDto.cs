@@ -30,6 +30,7 @@ namespace MytechERP.Application.DTOs.Finance
         public decimal Amount { get; set; }
         public string Remarks { get; set; } = string.Empty;
         public string FileUrl { get; set; } = string.Empty;
+        public List<string> Attachments { get; set; } = new List<string>();
     }
 
     public class CreateExpenseDto
@@ -51,5 +52,6 @@ namespace MytechERP.Application.DTOs.Finance
         public decimal Amount { get; set; }
         public string Remarks { get; set; } = string.Empty;
         public string FileUrl { get; set; } = string.Empty;
+        public List<string> Attachments { get; set; } = new List<string>();
     }
 }

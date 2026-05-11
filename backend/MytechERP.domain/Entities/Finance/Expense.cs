@@ -39,5 +39,13 @@ namespace MytechERP.domain.Entities.Finance
         public decimal Amount { get; set; }
         public string Remarks { get; set; } = string.Empty;
         public string FileUrl { get; set; } = string.Empty;
+        public string AttachmentsJson { get; set; } = string.Empty;
+
+        [global::System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public List<string> Attachments
+        {
+            get => string.IsNullOrEmpty(AttachmentsJson) ? new List<string>() : global::System.Text.Json.JsonSerializer.Deserialize<List<string>>(AttachmentsJson) ?? new List<string>();
+            set => AttachmentsJson = global::System.Text.Json.JsonSerializer.Serialize(value);
+        }
     }
 }

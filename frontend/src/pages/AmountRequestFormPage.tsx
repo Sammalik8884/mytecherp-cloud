@@ -198,17 +198,19 @@ const AmountRequestFormPage = () => {
     const handleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!selectedForm || !e.target.files || e.target.files.length === 0) return;
         
-        const file = e.target.files[0];
+        const files = Array.from(e.target.files);
         try {
-            toast.loading("Uploading attachment...", { id: "upload" });
-            await amountRequestApi.uploadAttachment(selectedForm.id, file);
-            toast.success("Attachment uploaded successfully", { id: "upload" });
+            toast.loading(`Uploading ${files.length} attachment(s)...`, { id: "upload" });
+            for (const file of files) {
+                await amountRequestApi.uploadAttachment(selectedForm.id, file);
+            }
+            toast.success("Attachments uploaded successfully", { id: "upload" });
             fetchData();
             // Refresh selected form data
             const res = await amountRequestApi.getById(selectedForm.id);
             setSelectedForm(res.data);
         } catch (error: any) {
-            toast.error(error.response?.data || "Failed to upload attachment", { id: "upload" });
+            toast.error(error.response?.data || "Failed to upload attachments", { id: "upload" });
         } finally {
             e.target.value = ''; // Reset input
         }
@@ -591,7 +593,7 @@ const AmountRequestFormPage = () => {
                                 <div>
                                     <label className="cursor-pointer bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-xl transition-colors font-medium text-sm border border-primary/20 flex items-center gap-2">
                                         <Plus className="h-4 w-4" /> Add File
-                                        <input type="file" className="hidden" onChange={handleUploadAttachment} />
+                                        <input type="file" multiple className="hidden" onChange={handleUploadAttachment} />
                                     </label>
                                 </div>
                             </div>

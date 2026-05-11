@@ -977,6 +977,10 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("AttachmentsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DescriptionItems")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
