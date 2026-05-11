@@ -109,8 +109,16 @@ namespace MyTechERP.Infrastructure.Services
             int maxId = await _context.AmountRequestForms.MaxAsync(a => (int?)a.Id) ?? 0;
             string arfNumber = $"ARF{(maxId + 1):D5}";
 
-            var role = _currentUserService.Role;
-            var isManager = role == "Manager";
+            var userId = _currentUserService.UserId;
+            var currentUser = await _context.Users.FindAsync(userId);
+            var designation = currentUser?.Designation?.ToLower() ?? "";
+
+            var isManager = _currentUserService.Roles.Contains("Manager") || 
+                            _currentUserService.Roles.Contains("Admin") ||
+                            _currentUserService.Roles.Contains("Project Director") ||
+                            designation == "manager" || 
+                            designation == "project director" ||
+                            designation == "director";
 
             var entity = new AmountRequestForm
             {
@@ -255,7 +263,11 @@ namespace MyTechERP.Infrastructure.Services
                     string body = $"<p>Dear {entity.EmployeeName},</p><p>Your ARF is approved. ARF Number is <strong>{entity.ArfNumber}</strong>.</p><p>Your amount advance request of {entity.AdvanceRequested} has been released. Please add your expenses against this ARF Number.</p><p>Remarks: {dto.Remarks}</p>";
                     await _emailService.SendEmailAsync(entity.EmployeeEmail, subject, body);
                     
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail);
+                    // Find user by email AND tenantId to handle multi-tenant scenario
+                    var tenantId = _currentUserService.TenantId;
+                    var user = tenantId.HasValue
+                        ? await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail && u.TenantId == tenantId.Value)
+                        : await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail);
                     if (user != null)
                     {
                         string siteNameStr = entity.Site?.Name ?? entity.CustomSiteName ?? "N/A";

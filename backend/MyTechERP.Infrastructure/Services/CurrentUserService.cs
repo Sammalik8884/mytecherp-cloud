@@ -25,6 +25,12 @@ namespace MyTechERP.Infrastructure.Services
 
         public string? Role => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Role);
 
+        public IEnumerable<string> Roles => 
+            _httpContextAccessor.HttpContext?.User?.Claims
+                .Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value)
+            ?? Enumerable.Empty<string>();
+
         public int? TenantId
         {
             get
