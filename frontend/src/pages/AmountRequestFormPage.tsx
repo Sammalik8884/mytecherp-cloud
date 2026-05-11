@@ -227,7 +227,7 @@ const AmountRequestFormPage = () => {
                                         <tr key={form.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                                             <td className="p-4">
                                                 <div className="font-medium text-foreground">{form.employeeName}</div>
-                                                <div className="text-xs text-muted-foreground">{form.purposeOfAdvance.substring(0, 30)}...</div>
+                                                <div className="text-xs text-muted-foreground">{form.purposeOfAdvance.replace(/\s*\[ExpenseId:\d+\]$/, '').substring(0, 30)}...</div>
                                             </td>
                                             <td className="p-4 font-semibold text-primary">{form.advanceRequested.toLocaleString()}</td>
                                             <td className="p-4 text-sm">{form.dateOfFundRequired ? new Date(form.dateOfFundRequired).toLocaleDateString() : '-'}</td>
@@ -367,7 +367,7 @@ const AmountRequestFormPage = () => {
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div className="col-span-2"><span className="text-muted-foreground block">Site Name</span><span className="font-medium">{selectedForm.siteName || selectedForm.customSiteName || '-'}</span></div>
                                     <div className="col-span-2"><span className="text-muted-foreground block">Client Name</span><span className="font-medium">{selectedForm.clientName || '-'}</span></div>
-                                    <div className="col-span-2"><span className="text-muted-foreground block">Purpose</span><span className="font-medium">{selectedForm.purposeOfAdvance}</span></div>
+                                    <div className="col-span-2"><span className="text-muted-foreground block">Purpose</span><span className="font-medium">{selectedForm.purposeOfAdvance?.replace(/\s*\[ExpenseId:\d+\]$/, '')}</span></div>
                                 </div>
                             </div>
                         </div>
