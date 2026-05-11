@@ -771,6 +771,10 @@ namespace MyTechERP.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("AttachmentsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CeoApprovalDate")
                         .HasColumnType("datetime2");
 

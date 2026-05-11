@@ -35,6 +35,7 @@ export interface AmountRequestFormDto {
   accountsReleasedAmount?: number;
   accountsRemarks?: string;
   payments: AmountRequestPayment[];
+  attachments?: string[];
 }
 
 export const amountRequestApi = {
@@ -47,4 +48,11 @@ export const amountRequestApi = {
     api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/release`, data),
   addPayment: (id: number, data: AmountRequestPayment) =>
     api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/payments`, data),
+  uploadAttachment: (id: number, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/attachments`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
 };

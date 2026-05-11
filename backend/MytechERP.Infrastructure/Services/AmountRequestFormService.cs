@@ -17,17 +17,20 @@ namespace MyTechERP.Infrastructure.Services
         private readonly ICurrentUserService _currentUserService;
         private readonly IEmailService _emailService;
         private readonly INotificationService _notificationService;
+        private readonly IBlobService _blobService;
 
         public AmountRequestFormService(
             ApplicationDbContext context, 
             ICurrentUserService currentUserService, 
             IEmailService emailService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IBlobService blobService)
         {
             _context = context;
             _currentUserService = currentUserService;
             _emailService = emailService;
             _notificationService = notificationService;
+            _blobService = blobService;
         }
 
         private AmountRequestFormDto MapToDto(AmountRequestForm entity)
@@ -58,6 +61,7 @@ namespace MyTechERP.Infrastructure.Services
                 AccountsDateOfFundReleased = entity.AccountsDateOfFundReleased,
                 AccountsReleasedAmount = entity.AccountsReleasedAmount,
                 AccountsRemarks = entity.AccountsRemarks,
+                Attachments = entity.Attachments,
                 Payments = entity.Payments?.Select(p => new AmountRequestPaymentDto
                 {
                     Id = p.Id,
@@ -306,6 +310,23 @@ namespace MyTechERP.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             return await GetByIdAsync(id);
+        }
+
+        public async Task<AmountRequestFormDto> UploadAttachmentAsync(int id, Microsoft.AspNetCore.Http.IFormFile file)
+        {
+            var entity = await _context.AmountRequestForms.FindAsync(id);
+            if (entity == null)
+                throw new Exception("Form not found");
+
+            var fileName = $"arf_{id}_{Guid.NewGuid()}_{file.FileName}";
+            var fileUrl = await _blobService.UploadAsync(file, fileName);
+
+            var attachments = entity.Attachments;
+            attachments.Add(fileUrl);
+            entity.Attachments = attachments;
+
+            await _context.SaveChangesAsync();
+            return MapToDto(entity);
         }
 
         public async Task DeleteAsync(int id)

@@ -4,7 +4,7 @@ import { siteService } from "../services/siteService";
 import { SiteDto } from "../types/site";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
 import { ArfAdjustmentModal } from '../components/finance/ArfAdjustmentModal';
-import { Plus, CheckCircle, XCircle, FileText, User, Wallet } from "lucide-react";
+import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 
@@ -31,6 +31,7 @@ const AmountRequestFormPage = () => {
     const [customSiteName, setCustomSiteName] = useState("");
     const [clientName, setClientName] = useState("");
     const [purposeOfAdvance, setPurposeOfAdvance] = useState("");
+    const [hiddenExpenseId, setHiddenExpenseId] = useState<string | null>(null);
 
     const isDirector = user?.email?.toLowerCase() === "shahbaz.ali@mytecheng.com" || hasRole(["Admin"]);
     const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["Admin"]);
@@ -50,7 +51,10 @@ const AmountRequestFormPage = () => {
             }
 
             const expenseId = searchParams.get('expenseId');
-            setPurposeOfAdvance(`Expense for this ARF has already been done [ExpenseId:${expenseId}]`);
+            if (expenseId) {
+                setHiddenExpenseId(expenseId);
+                setPurposeOfAdvance(`Expense for this ARF has already been done`);
+            }
         }
     }, [searchParams]);
 
@@ -73,6 +77,8 @@ const AmountRequestFormPage = () => {
     const handleCreateSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            const finalPurpose = hiddenExpenseId ? `${purposeOfAdvance} [ExpenseId:${hiddenExpenseId}]` : purposeOfAdvance;
+            
             await amountRequestApi.create({
                 employeeName,
                 employeeEmail,
@@ -82,7 +88,7 @@ const AmountRequestFormPage = () => {
                 siteId: siteId === "custom" || siteId === "" ? undefined : Number(siteId),
                 customSiteName: siteId === "custom" ? customSiteName : "",
                 clientName,
-                purposeOfAdvance
+                purposeOfAdvance: finalPurpose
             });
             toast.success("Request submitted successfully");
             setIsFormOpen(false);
@@ -103,6 +109,7 @@ const AmountRequestFormPage = () => {
         setCustomSiteName("");
         setClientName("");
         setPurposeOfAdvance("");
+        setHiddenExpenseId(null);
         setSelectedForm(null);
     };
 
@@ -185,6 +192,25 @@ const AmountRequestFormPage = () => {
             target.reset();
         } catch (error: any) {
             toast.error(error.response?.data || "Failed to add payment");
+        }
+    };
+
+    const handleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!selectedForm || !e.target.files || e.target.files.length === 0) return;
+        
+        const file = e.target.files[0];
+        try {
+            toast.loading("Uploading attachment...", { id: "upload" });
+            await amountRequestApi.uploadAttachment(selectedForm.id, file);
+            toast.success("Attachment uploaded successfully", { id: "upload" });
+            fetchData();
+            // Refresh selected form data
+            const res = await amountRequestApi.getById(selectedForm.id);
+            setSelectedForm(res.data);
+        } catch (error: any) {
+            toast.error(error.response?.data || "Failed to upload attachment", { id: "upload" });
+        } finally {
+            e.target.value = ''; // Reset input
         }
     };
 
@@ -553,8 +579,42 @@ const AmountRequestFormPage = () => {
                                         )}
                                     </div>
                                 </div>
-                            </div>
                         ) : null}
+
+                        {/* Attachments Section */}
+                        <div className="mt-8 pt-8 border-t border-border/50">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold flex items-center gap-2">
+                                    <Paperclip className="h-6 w-6 text-primary" /> Attachments
+                                </h3>
+                                <div>
+                                    <label className="cursor-pointer bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-xl transition-colors font-medium text-sm border border-primary/20 flex items-center gap-2">
+                                        <Plus className="h-4 w-4" /> Add File
+                                        <input type="file" className="hidden" onChange={handleUploadAttachment} />
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            {(!selectedForm.attachments || selectedForm.attachments.length === 0) ? (
+                                <div className="p-8 text-center bg-muted/5 rounded-xl border border-dashed border-border/60 text-muted-foreground">
+                                    No attachments found for this request.
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    {selectedForm.attachments.map((url, i) => (
+                                        <a key={i} href={url} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-xl border border-border/50 bg-card hover:bg-muted/10 hover:border-primary/30 transition-all group">
+                                            <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                                                <FileText className="h-5 w-5" />
+                                            </div>
+                                            <div className="overflow-hidden">
+                                                <div className="text-sm font-medium text-foreground truncate">Attachment {i + 1}</div>
+                                                <div className="text-xs text-muted-foreground truncate group-hover:text-primary transition-colors">Click to view</div>
+                                            </div>
+                                        </a>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
                     </div>
                 </div>

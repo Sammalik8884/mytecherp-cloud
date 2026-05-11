@@ -36,6 +36,7 @@ namespace MytechERP.Application.DTOs.Finance
         public string? AccountsRemarks { get; set; }
 
         public List<AmountRequestPaymentDto> Payments { get; set; } = new List<AmountRequestPaymentDto>();
+        public List<string> Attachments { get; set; } = new List<string>();
     }
 
     public class CreateAmountRequestFormDto

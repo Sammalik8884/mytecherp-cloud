@@ -49,6 +49,16 @@ namespace MytechERP.domain.Entities.Finance
 
         // Released Payments Detail (One-to-Many mapping)
         public ICollection<AmountRequestPayment> Payments { get; set; } = new List<AmountRequestPayment>();
+
+        // File Attachments (stored as JSON array of URLs)
+        public string AttachmentsJson { get; set; } = "[]";
+
+        [NotMapped]
+        public List<string> Attachments
+        {
+            get => string.IsNullOrEmpty(AttachmentsJson) ? new List<string>() : global::System.Text.Json.JsonSerializer.Deserialize<List<string>>(AttachmentsJson) ?? new List<string>();
+            set => AttachmentsJson = global::System.Text.Json.JsonSerializer.Serialize(value);
+        }
     }
 
     public class AmountRequestPayment : BaseEntity

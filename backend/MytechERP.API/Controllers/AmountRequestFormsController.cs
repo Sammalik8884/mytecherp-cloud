@@ -89,6 +89,23 @@ namespace MytechERP.API.Controllers
             }
         }
 
+        [HttpPost("{id}/attachments")]
+        public async Task<ActionResult<AmountRequestFormDto>> UploadAttachment(int id, Microsoft.AspNetCore.Http.IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file provided");
+
+            try
+            {
+                var result = await _service.UploadAttachmentAsync(id, file);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

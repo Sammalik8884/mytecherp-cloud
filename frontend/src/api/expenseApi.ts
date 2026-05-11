@@ -59,5 +59,13 @@ export const expenseApi = {
     delete: async (id: number) => {
         const response = await apiClient.delete(`/Expenses/${id}`);
         return response.data;
+    },
+    uploadAttachment: async (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await apiClient.post<{ url: string }>("/Expenses/upload-attachment", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+        return response.data.url;
     }
 };

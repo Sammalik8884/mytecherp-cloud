@@ -165,7 +165,7 @@ export const ExpensesPage = () => {
                                                 // ARF generated but not yet released
                                                 return (
                                                     <span className="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
-                                                        ARF Pending Release ({linkedArf.arfNumber})
+                                                        ARF {linkedArf.arfNumber} ({linkedArf.status})
                                                     </span>
                                                 );
                                             } else {

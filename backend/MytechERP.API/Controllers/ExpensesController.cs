@@ -59,5 +59,16 @@ namespace MytechERP.API.Controllers
             await _expenseService.DeleteAsync(id);
             return Ok(new { message = "Expense deleted successfully" });
         }
+
+        [HttpPost("upload-attachment")]
+        public async Task<IActionResult> UploadAttachment(Microsoft.AspNetCore.Http.IFormFile file, [FromServices] MytechERP.Application.Interfaces.IBlobService blobService)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file provided");
+            
+            var fileName = $"expense_{System.Guid.NewGuid()}_{file.FileName}";
+            var url = await blobService.UploadAsync(file, fileName);
+            return Ok(new { url });
+        }
     }
 }

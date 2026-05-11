@@ -6,7 +6,7 @@ import { SiteDto } from "../types/site";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import toast from "react-hot-toast";
-import { Check, X, Plus, Trash2, ExternalLink } from "lucide-react";
+import { Check, X, Plus, Trash2, ExternalLink, Paperclip } from "lucide-react";
 import dayjs from "dayjs";
 
 export const AddExpensePage = () => {
@@ -112,6 +112,21 @@ export const AddExpensePage = () => {
         const newRows = [...rows];
         newRows[index] = { ...newRows[index], [field]: value };
         setRows(newRows);
+    };
+
+    const handleUploadFile = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const file = e.target.files[0];
+        try {
+            toast.loading("Uploading attachment...", { id: `upload-${index}` });
+            const url = await expenseApi.uploadAttachment(file);
+            handleRowChange(index, "fileUrl", url);
+            toast.success("Attachment uploaded successfully", { id: `upload-${index}` });
+        } catch (error: any) {
+            toast.error(error.response?.data || "Failed to upload attachment", { id: `upload-${index}` });
+        } finally {
+            e.target.value = ''; // Reset input
+        }
     };
 
     const addRow = () => {
@@ -274,6 +289,7 @@ export const AddExpensePage = () => {
                                 <th className="px-2 py-2 border-b border-border min-w-[180px]">Description Items</th>
                                 <th className="px-2 py-2 border-b border-border min-w-[100px]">Amount</th>
                                 <th className="px-2 py-2 border-b border-border min-w-[140px]">Remarks</th>
+                                <th className="px-2 py-2 border-b border-border min-w-[80px]">Attachment</th>
                                 <th className="px-2 py-2 border-b border-border w-10"></th>
                             </tr>
                         </thead>
@@ -337,6 +353,20 @@ export const AddExpensePage = () => {
                                             onChange={(e) => handleRowChange(index, "remarks", e.target.value)}
                                             className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
                                         />
+                                    </td>
+                                    <td className="px-1 py-1 text-center">
+                                        <div className="flex items-center justify-center gap-1">
+                                            {row.fileUrl ? (
+                                                <a href={row.fileUrl} target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80" title="View Attachment">
+                                                    <ExternalLink className="h-4 w-4" />
+                                                </a>
+                                            ) : (
+                                                <label className="cursor-pointer text-muted-foreground hover:text-primary transition-colors" title="Upload Attachment">
+                                                    <Paperclip className="h-4 w-4" />
+                                                    <input type="file" className="hidden" onChange={(e) => handleUploadFile(index, e)} />
+                                                </label>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-1 py-1 text-center">
                                         <button 
