@@ -579,6 +579,7 @@ const AmountRequestFormPage = () => {
                                         )}
                                     </div>
                                 </div>
+                            </div>
                         ) : null}
 
                         {/* Attachments Section */}
