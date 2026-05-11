@@ -109,9 +109,16 @@ namespace MyTechERP.Infrastructure.Services
             int maxId = await _context.AmountRequestForms.MaxAsync(a => (int?)a.Id) ?? 0;
             string arfNumber = $"ARF{(maxId + 1):D5}";
 
+            var userId = _currentUserService.UserId;
+            var currentUser = await _context.Users.FindAsync(userId);
+            var designation = currentUser?.Designation?.ToLower() ?? "";
+
             var isManager = _currentUserService.Roles.Contains("Manager") || 
                             _currentUserService.Roles.Contains("Admin") ||
-                            _currentUserService.Roles.Contains("Project Director");
+                            _currentUserService.Roles.Contains("Project Director") ||
+                            designation == "manager" || 
+                            designation == "project director" ||
+                            designation == "director";
 
             var entity = new AmountRequestForm
             {
