@@ -76,8 +76,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
     return (
         <div className={cn(
-            "fixed md:static inset-y-0 left-0 z-50 flex flex-col bg-card border-r border-border text-foreground w-64 transition-transform duration-300 ease-in-out md:translate-x-0 h-full elevation-2",
-            isOpen ? "translate-x-0" : "-translate-x-full"
+            "fixed md:relative inset-y-0 left-0 z-50 flex flex-col bg-card border-r border-border text-foreground w-64 transition-all duration-300 ease-in-out h-full elevation-2 shrink-0",
+            isOpen ? "translate-x-0 md:ml-0" : "-translate-x-full md:-ml-64"
         )}>
             <div className="p-5 flex justify-between items-center border-b border-border">
                 <div className="flex items-center space-x-3">

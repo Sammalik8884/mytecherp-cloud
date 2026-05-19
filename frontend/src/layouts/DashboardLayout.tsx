@@ -5,7 +5,7 @@ import { Header } from "./Header";
 import { TrialBanner, TrialExpiredWall, useTrialEnforcement } from "../components/TrialBanner";
 
 export const DashboardLayout = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
     const isTrialExpired = useTrialEnforcement();
 
     return (
@@ -24,7 +24,7 @@ export const DashboardLayout = () => {
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             <div className="flex-1 flex flex-col relative w-full h-full overflow-hidden">
-                <Header onMenuClick={() => setIsSidebarOpen(true)} />
+                <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
                 <TrialBanner />
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10 custom-scrollbar bg-background">
                     <div className="animate-fade-in max-w-[1600px] mx-auto">
@@ -35,3 +35,4 @@ export const DashboardLayout = () => {
         </div>
     );
 };
+

@@ -123,7 +123,8 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             <div className="flex flex-1 items-center space-x-2 md:space-x-4">
                 <button
                     onClick={onMenuClick}
-                    className="md:hidden p-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors"
+                    className="p-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors"
+                    title="Toggle Sidebar"
                 >
                     <Menu className="h-5 w-5" />
                 </button>

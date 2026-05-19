@@ -522,9 +522,9 @@ export const QuotationFormPage = () => {
         
         if (isEditing) {
             return (
-                <input 
-                    type="text"
-                    className={inputCls}
+                <textarea 
+                    rows={2}
+                    className={inputCls + " resize-y"}
                     value={item.serviceName !== undefined ? item.serviceName : (item.product ? item.product.name : "")}
                     autoFocus
                     placeholder="Enter custom service name..."
@@ -545,7 +545,7 @@ export const QuotationFormPage = () => {
                     e.stopPropagation();
                     setEditingServiceName({ list, index: idx });
                 }}>
-                <span className="truncate text-foreground font-medium">{displayName || "Tap to enter service name..."}</span>
+                <span className="text-foreground font-medium whitespace-pre-wrap">{displayName || "Tap to enter service name..."}</span>
                 <button type="button" className="p-1 shrink-0 text-muted-foreground hover:text-primary transition-colors" title="Edit Service Name">
                     <Pencil className="h-4 w-4" />
                 </button>
@@ -556,9 +556,9 @@ export const QuotationFormPage = () => {
     const renderImportedCard = (item: UiItem, idx: number) => (
         <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
             <div className="flex items-center w-full gap-1.5">
-                <input 
-                    type="text" 
-                    className={inputCls + " flex-1 min-w-0"} 
+                <textarea 
+                    rows={2}
+                    className={inputCls + " flex-1 min-w-0 resize-y"} 
                     placeholder="Custom product name..."
                     value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name}` : "")}
                     onChange={e => {
@@ -658,9 +658,9 @@ export const QuotationFormPage = () => {
     const renderLocalCard = (item: UiItem, idx: number) => (
         <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
             <div className="flex items-center w-full gap-1.5">
-                <input 
-                    type="text" 
-                    className={inputCls + " flex-1 min-w-0"} 
+                <textarea 
+                    rows={2}
+                    className={inputCls + " flex-1 min-w-0 resize-y"} 
                     placeholder="Custom product name..."
                     value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name}` : "")}
                     onChange={e => {
@@ -839,16 +839,16 @@ export const QuotationFormPage = () => {
 
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
-                         <table className="w-full text-sm table-fixed">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 w-[30%]">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (USD)</th><th className="w-36 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                         <table className="w-full text-sm min-w-[800px]">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (USD)</th><th className="w-36 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {importedItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
                                               <div className="flex items-center w-full gap-1.5">
-                                                  <input 
-                                                      type="text" 
-                                                      className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm"} 
+                                                  <textarea 
+                                                      rows={2}
+                                                      className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm resize-y"} 
                                                       placeholder="Custom product name..."
                                                       value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
                                                       onChange={e => {
@@ -972,16 +972,16 @@ export const QuotationFormPage = () => {
                          </div>
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
-                         <table className="w-full text-sm table-fixed">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 w-[30%]">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Price (PKR)</th><th className="w-20 text-center">Disc%</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                         <table className="w-full text-sm min-w-[800px]">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Price (PKR)</th><th className="w-20 text-center">Disc%</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
                                               <div className="flex items-center w-full gap-1.5">
-                                                  <input 
-                                                      type="text" 
-                                                      className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm"} 
+                                                  <textarea 
+                                                      rows={2}
+                                                      className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm resize-y"} 
                                                       placeholder="Custom product name..."
                                                       value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
                                                       onChange={e => {
@@ -1086,8 +1086,8 @@ export const QuotationFormPage = () => {
                          </div>
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
-                         <table className="w-full text-sm table-fixed">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                         <table className="w-full text-sm min-w-[800px]">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {importedServiceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -1161,8 +1161,8 @@ export const QuotationFormPage = () => {
                          </div>
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
-                         <table className="w-full text-sm table-fixed">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                         <table className="w-full text-sm min-w-[800px]">
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {localServiceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
