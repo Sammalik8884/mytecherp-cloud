@@ -593,12 +593,14 @@ namespace MyTechERP.Infrastructure.Services
             }
 
             var currentTenantId = _currentUserService.TenantId ?? 0;
-            var admins = await _userManager.GetUsersInRoleAsync("Admin");
-            var managers = await _userManager.GetUsersInRoleAsync("Manager");
-            var recipients = admins.Concat(managers)
-                                   .Where(u => u.TenantId == currentTenantId)
-                                   .DistinctBy(u => u.Id)
-                                   .ToList();
+            
+            // Route all quotation approvals strictly to M.Huzefa
+            var huzefaUser = await _userManager.FindByEmailAsync("m.huzefa@mytecheng.com");
+            var recipients = new List<AppUser>();
+            if (huzefaUser != null && huzefaUser.TenantId == currentTenantId)
+            {
+                recipients.Add(huzefaUser);
+            }
             
             var notificationTitle = "Quotation Submitted";
             var notificationMsg = $"{submitterName} submitted Quotation #{q.QuoteNumber} for approval.";

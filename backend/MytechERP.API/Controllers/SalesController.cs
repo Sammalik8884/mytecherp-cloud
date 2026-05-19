@@ -24,16 +24,18 @@ namespace MytechERP.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IBlobService _blobService;
+        private readonly INotificationService _notificationService;
 
         // Pakistan Standard Time is UTC+5
         private static DateTime PakistanNow() =>
             TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
                 TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time"));
 
-        public SalesController(ApplicationDbContext context, IBlobService blobService)
+        public SalesController(ApplicationDbContext context, IBlobService blobService, INotificationService notificationService)
         {
             _context = context;
             _blobService = blobService;
+            _notificationService = notificationService;
         }
 
         // ======================= LEADS =======================
@@ -807,6 +809,44 @@ namespace MytechERP.API.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { Message = "Photo uploaded successfully", PhotoUrl = blobUrl });
+        }
+
+        [HttpPut("leads/{id}/assign-estimator")]
+        [Authorize(Roles = Roles.AllInternal)]
+        public async Task<ActionResult> AssignEstimator(int id, [FromBody] AssignEstimatorDto dto)
+        {
+            var lead = await _context.SalesLeads
+                .Include(l => l.Customer)
+                .FirstOrDefaultAsync(l => l.Id == id);
+                
+            if (lead == null) return NotFound();
+
+            var userEmail = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
+            var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+
+            if (userEmail?.ToLower() != "m.huzefa@mytecheng.com" && userRole != Roles.Admin)
+            {
+                return Forbid();
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.EstimatorUserId))
+            {
+                return BadRequest(new { Error = "Estimator user ID is required." });
+            }
+
+            lead.AssignedEstimatorId = dto.EstimatorUserId;
+            await _context.SaveChangesAsync();
+
+            // Send Notification to the assigned estimator
+            await _notificationService.CreateNotificationAsync(
+                userId: dto.EstimatorUserId,
+                title: "New Quotation Assignment",
+                message: $"You have been assigned to make a quotation for Lead #{lead.LeadNumber} ({lead.Customer?.Name}).",
+                type: "Assignment",
+                targetId: lead.Id
+            );
+
+            return Ok(new { Message = "Estimator assigned successfully and notification sent." });
         }
     }
 }

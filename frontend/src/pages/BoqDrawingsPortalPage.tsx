@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import {
     Loader2, FileText, ChevronRight, Eye, X, MapPin,
-    Clock, Camera, Target, Building, User, Folder, CheckCircle
+    Clock, Camera, Target, Building, User, Folder, CheckCircle, Search
 } from "lucide-react";
 import { salesService } from "../services/salesService";
 import { SalesLeadDto, SiteVisitDto } from "../types/sales";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { authService } from "../services/authService";
+import { UserDto } from "../types/auth";
 
 
 export const BoqDrawingsPortalPage = () => {
@@ -17,16 +20,43 @@ export const BoqDrawingsPortalPage = () => {
     const [visits, setVisits] = useState<SiteVisitDto[]>([]);
     const [visitsLoading, setVisitsLoading] = useState(false);
     const navigate = useNavigate();
-    // auth context available via useAuth() if needed
+    const { user, hasRole } = useAuth();
+    
+    // Check if user is the assigner (M. Huzefa or Admin)
+    const isAssigner = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' || hasRole(['Admin']);
+
+    // Assignment Modal State
+    const [assignModalOpen, setAssignModalOpen] = useState(false);
+    const [estimators, setEstimators] = useState<UserDto[]>([]);
+    const [searchEstimator, setSearchEstimator] = useState("");
+    const [assigningLead, setAssigningLead] = useState<SalesLeadDto | null>(null);
+    const [estimatorsLoading, setEstimatorsLoading] = useState(false);
+
 
     const fetchQueue = async () => {
         try {
             setLoading(true);
-            const data = await salesService.getLeads();
-            // Show leads that have BOQ or Drawings uploaded (Closed or ConvertedToQuotation)
-            const queue = data.filter(l =>
-                l.status === "Closed" || l.status === "ConvertedToQuotation"
-            );
+            const [data, allUsers] = await Promise.all([
+                salesService.getLeads(),
+                authService.getUsers().catch(() => []) // Fallback to empty if fails
+            ]);
+            
+            const myUser = allUsers.find(u => u.email === user?.email);
+            const myUserId = myUser?.id;
+
+            // Filter leads based on role
+            const queue = data.filter(l => {
+                const isValidStatus = l.status === "Closed" || l.status === "ConvertedToQuotation";
+                if (!isValidStatus) return false;
+                
+                if (isAssigner) return true;
+                
+                // If not assigner, only see it if they are the assigned estimator
+                if (myUserId && l.assignedEstimatorId === myUserId) return true;
+                
+                return false;
+            });
+            
             setLeads(queue);
         } catch (error) {
             toast.error("Failed to load BOQ queue.");
@@ -54,6 +84,36 @@ export const BoqDrawingsPortalPage = () => {
 
     const handleAcceptAndDraft = (leadId: number) => {
         navigate(`/quotations/new?leadId=${leadId}`);
+    };
+
+    const handleOpenAssignModal = async (lead: SalesLeadDto) => {
+        setAssigningLead(lead);
+        setAssignModalOpen(true);
+        setEstimatorsLoading(true);
+        try {
+            const users = await authService.getUsers();
+            // Filter to only Estimation or Managers
+            const eligibleUsers = users.filter((u: any) => 
+                u.roles?.includes('Estimation') || u.roles?.includes('Manager')
+            );
+            setEstimators(eligibleUsers);
+        } catch (error) {
+            toast.error("Failed to load estimators.");
+        } finally {
+            setEstimatorsLoading(false);
+        }
+    };
+
+    const handleAssignEstimator = async (estimatorId: string) => {
+        if (!assigningLead) return;
+        try {
+            await salesService.assignEstimator(assigningLead.id, estimatorId);
+            toast.success("Estimator assigned successfully.");
+            setAssignModalOpen(false);
+            fetchQueue();
+        } catch (error) {
+            toast.error("Failed to assign estimator.");
+        }
     };
 
     const getStatusBadge = (lead: SalesLeadDto) => {
@@ -181,13 +241,23 @@ export const BoqDrawingsPortalPage = () => {
                                                     <Eye className="h-4 w-4" />
                                                 </button>
                                                 {!lead.quotationId ? (
-                                                    <button
-                                                        onClick={() => handleAcceptAndDraft(lead.id)}
-                                                        className="bg-primary text-primary-foreground px-3 py-1.5 flex items-center space-x-1.5 text-xs font-medium rounded-lg shadow hover:-translate-y-0.5 transition-all"
-                                                    >
-                                                        <span>Draft Quote</span>
-                                                        <ChevronRight className="h-3.5 w-3.5" />
-                                                    </button>
+                                                    isAssigner && !lead.assignedEstimatorId ? (
+                                                        <button
+                                                            onClick={() => handleOpenAssignModal(lead)}
+                                                            className="bg-primary text-primary-foreground px-3 py-1.5 flex items-center space-x-1.5 text-xs font-medium rounded-lg shadow hover:-translate-y-0.5 transition-all"
+                                                        >
+                                                            <span>Assign Estimator</span>
+                                                            <ChevronRight className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleAcceptAndDraft(lead.id)}
+                                                            className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 flex items-center space-x-1.5 text-xs font-medium rounded-lg hover:bg-emerald-500/30 transition-all"
+                                                        >
+                                                            <span>Draft Quote</span>
+                                                            <ChevronRight className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    )
                                                 ) : (
                                                     <button
                                                         onClick={() => navigate(`/quotations/edit/${lead.quotationId}`)}
@@ -421,6 +491,62 @@ export const BoqDrawingsPortalPage = () => {
                                             </div>
                                         ))}
                                     </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>, document.body
+            )}
+
+            {/* Assign Estimator Modal */}
+            {assignModalOpen && assigningLead && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" onClick={() => setAssignModalOpen(false)} />
+                    <div className="relative w-full max-w-md bg-card rounded-2xl border border-border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30">
+                            <div>
+                                <h2 className="text-lg font-bold">Assign Estimator</h2>
+                                <p className="text-xs text-muted-foreground mt-0.5">Select a member to assign this BOQ.</p>
+                            </div>
+                            <button onClick={() => setAssignModalOpen(false)} className="p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <div className="p-5">
+                            <div className="relative mb-4">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <input
+                                    type="text"
+                                    placeholder="Search members..."
+                                    value={searchEstimator}
+                                    onChange={(e) => setSearchEstimator(e.target.value)}
+                                    className="w-full pl-9 pr-4 py-2 bg-secondary/50 border border-border rounded-xl text-sm focus:outline-none focus:border-primary/50"
+                                />
+                            </div>
+                            
+                            <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                {estimatorsLoading ? (
+                                    <div className="flex justify-center py-6">
+                                        <Loader2 className="h-6 w-6 animate-spin text-primary opacity-50" />
+                                    </div>
+                                ) : (
+                                    estimators
+                                        .filter(e => (e.fullName || '').toLowerCase().includes(searchEstimator.toLowerCase()))
+                                        .map(estimator => (
+                                            <button
+                                                key={estimator.id}
+                                                onClick={() => handleAssignEstimator(estimator.id!)}
+                                                className="w-full flex items-center space-x-3 p-3 rounded-xl border border-border/50 bg-secondary/20 hover:bg-primary/10 hover:border-primary/30 transition-all text-left"
+                                            >
+                                                <div className="h-10 w-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                                                    {(estimator.fullName || estimator.email).charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-semibold text-sm truncate">{estimator.fullName || estimator.email}</div>
+                                                    <div className="text-xs text-muted-foreground truncate">{estimator.designation || estimator.roles?.join(', ')}</div>
+                                                </div>
+                                            </button>
+                                        ))
                                 )}
                             </div>
                         </div>

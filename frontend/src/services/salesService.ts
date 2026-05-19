@@ -149,5 +149,10 @@ export const salesService = {
 
         const response = await apiClient.post<{ message: string, photoUrl: string }>(`/Sales/visits/${visitId}/photos`, formData);
         return response.data;
+    },
+
+    assignEstimator: async (id: number, estimatorUserId: string): Promise<{ message: string }> => {
+        const response = await apiClient.put<{ message: string }>(`/Sales/leads/${id}/assign-estimator`, { estimatorUserId });
+        return response.data;
     }
 };

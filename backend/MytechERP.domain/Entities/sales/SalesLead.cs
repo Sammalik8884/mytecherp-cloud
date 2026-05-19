@@ -39,6 +39,9 @@ namespace MytechERP.domain.Entities.sales
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public string? AssignedEstimatorId { get; set; }
+        public AppUser? AssignedEstimator { get; set; }
+
         public ICollection<SiteVisit> SiteVisits { get; set; } = new List<SiteVisit>();
     }
 }
