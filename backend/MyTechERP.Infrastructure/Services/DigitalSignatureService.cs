@@ -26,8 +26,11 @@ namespace MyTechERP.Infrastructure.Services
             _config = config;
 
             var keyId = config["AzureKeyVault:KeyId"];
-            var credential = new DefaultAzureCredential();
-            _cryptoClient = new CryptographyClient(new Uri(keyId), credential);
+            if (!string.IsNullOrEmpty(keyId))
+            {
+                var credential = new DefaultAzureCredential();
+                _cryptoClient = new CryptographyClient(new Uri(keyId), credential);
+            }
         }
 
         public async Task<string> SignDocumentAsync(string entityName, int entityId, string contentToSign, string userId)
