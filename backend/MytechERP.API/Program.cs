@@ -250,8 +250,8 @@ using (var scope = app.Services.CreateScope())
 
             // Seed Subscription Plans
             var configuration = services.GetRequiredService<IConfiguration>();
-            string basicPriceId = configuration["Stripe:BasicPlanPriceId"] ?? "price_1QxT12Gqj2XF2N98w7If4lSj";
-            string proPriceId = configuration["Stripe:ProPlanPriceId"] ?? "price_1QxT1FGqj2XF2N98hG5CnvC1";
+            string basicPriceId = configuration["Stripe:BasicPlanPriceId"] ?? "price_1TCVwUGv46lRNfrQ3dYcAmXR";
+            string proPriceId = configuration["Stripe:ProPlanPriceId"] ?? "price_1TCVwwGv46lRNfrQV7KVxwoZ";
 
             if (!await context.SubscriptionPlans.AnyAsync(p => p.Name == "Basic"))
             {

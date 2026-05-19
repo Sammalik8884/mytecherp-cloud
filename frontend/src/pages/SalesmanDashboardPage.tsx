@@ -26,6 +26,7 @@ const VisitHistoryPanel = ({ leadId, isOpen }: { leadId: number; isOpen: boolean
     const [visits, setVisits] = useState<SiteVisitDto[]>([]);
     const [loading, setLoading] = useState(false);
     const [loaded, setLoaded] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen && !loaded) {
@@ -119,15 +120,39 @@ const VisitHistoryPanel = ({ leadId, isOpen }: { leadId: number; isOpen: boolean
                             </div>
                             <div className="flex overflow-x-auto space-x-2 pb-1 custom-scrollbar">
                                 {visit.photos.map(p => (
-                                    <a key={p.id} href={p.photoUrl} target="_blank" rel="noreferrer" className="relative flex-none w-16 h-16 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors">
+                                    <button 
+                                        key={p.id} 
+                                        onClick={() => setSelectedImage(p.photoUrl)} 
+                                        type="button"
+                                        className="relative flex-none w-16 h-16 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors focus:outline-none"
+                                    >
                                         <img src={p.photoUrl} alt="Evidence" className="w-full h-full object-cover" />
-                                    </a>
+                                    </button>
                                 ))}
                             </div>
                         </div>
                     )}
                 </div>
             ))}
+
+            {selectedImage && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setSelectedImage(null)}>
+                    <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center">
+                        <button 
+                            className="absolute -top-10 right-0 text-white hover:text-gray-300 p-2"
+                            onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+                        >
+                            <X className="h-8 w-8" />
+                        </button>
+                        <img 
+                            src={selectedImage} 
+                            alt="Preview" 
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" 
+                            onClick={(e) => e.stopPropagation()} 
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

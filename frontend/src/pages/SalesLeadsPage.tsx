@@ -20,6 +20,7 @@ export const SalesLeadsPage = () => {
     const [selectedLead, setSelectedLead] = useState<SalesLeadDto | null>(null);
     const [visits, setVisits] = useState<SiteVisitDto[]>([]);
     const [visitsLoading, setVisitsLoading] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     // Convert
     // 'converting' removed as navigate doesn't require async wait
@@ -318,20 +319,24 @@ export const SalesLeadsPage = () => {
                                                     {/* Photos Evidence */}
                                                     {visit.photos && visit.photos.length > 0 && (
                                                         <div className="mt-3">
-                                                            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center">
+                                            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center">
                                                                 <Camera className="h-3 w-3 mr-1" /> Evidence Photos ({visit.photos.length})
                                                             </div>
                                                             <div className="flex overflow-x-auto space-x-2 pb-1 custom-scrollbar">
                                                                 {visit.photos.map(p => (
-                                                                    <div key={p.id} className="relative flex-none w-20 h-20 rounded-lg overflow-hidden border border-border group/photo cursor-pointer">
-                                                                        <img src={p.photoUrl} alt="Evidence" className="w-full h-full object-cover transition-transform duration-300 group-hover/photo:scale-110" />
-                                                                        {p.caption && (
-                                                                            <div className="absolute bottom-0 inset-x-0 bg-background/80 backdrop-blur text-[8px] p-0.5 truncate text-center">
-                                                                                {p.caption}
-                                                                            </div>
-                                                                        )}
-                                                                        <a href={p.photoUrl} target="_blank" rel="noreferrer" className="absolute inset-0 z-10"></a>
-                                                                    </div>
+                                                                        <button 
+                                                                            key={p.id} 
+                                                                            type="button"
+                                                                            onClick={() => setSelectedImage(p.photoUrl)}
+                                                                            className="relative flex-none w-20 h-20 rounded-lg overflow-hidden border border-border group/photo cursor-pointer focus:outline-none text-left"
+                                                                        >
+                                                                            <img src={p.photoUrl} alt="Evidence" className="w-full h-full object-cover transition-transform duration-300 group-hover/photo:scale-110" />
+                                                                            {p.caption && (
+                                                                                <div className="absolute bottom-0 inset-x-0 bg-background/80 backdrop-blur text-[8px] p-0.5 truncate text-center">
+                                                                                    {p.caption}
+                                                                                </div>
+                                                                            )}
+                                                                        </button>
                                                                 ))}
                                                             </div>
                                                         </div>
@@ -346,6 +351,25 @@ export const SalesLeadsPage = () => {
 
                     </div>
                 </div>, document.body
+            )}
+
+            {selectedImage && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setSelectedImage(null)}>
+                    <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center">
+                        <button 
+                            className="absolute -top-10 right-0 text-white hover:text-gray-300 p-2"
+                            onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+                        >
+                            <X className="h-8 w-8" />
+                        </button>
+                        <img 
+                            src={selectedImage} 
+                            alt="Preview" 
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" 
+                            onClick={(e) => e.stopPropagation()} 
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );
