@@ -115,7 +115,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("users")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.AllInternal)]
         public async Task<IActionResult> GetUsers()
         {
             var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "TenantId");
