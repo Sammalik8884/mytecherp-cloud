@@ -118,18 +118,33 @@ const VisitHistoryPanel = ({ leadId, isOpen }: { leadId: number; isOpen: boolean
                             <div className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center">
                                 <Camera className="h-3 w-3 mr-1" /> Evidence ({visit.photos.length})
                             </div>
-                            <div className="flex overflow-x-auto space-x-2 pb-1 custom-scrollbar">
-                                {visit.photos.map(p => (
-                                    <button 
-                                        key={p.id} 
-                                        onClick={() => setSelectedImage(p.photoUrl)} 
-                                        type="button"
-                                        className="relative flex-none w-16 h-16 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors focus:outline-none"
-                                    >
-                                        <img src={p.photoUrl} alt="Evidence" className="w-full h-full object-cover" />
-                                    </button>
-                                ))}
-                            </div>
+                            {/* First photo — medium, prominent */}
+                            <button
+                                type="button"
+                                onClick={() => setSelectedImage(visit.photos[0].photoUrl)}
+                                className="w-full rounded-xl overflow-hidden border border-border mb-2 focus:outline-none hover:border-primary transition-colors"
+                            >
+                                <img
+                                    src={visit.photos[0].photoUrl}
+                                    alt="Evidence"
+                                    className="w-full h-48 object-cover"
+                                />
+                            </button>
+                            {/* Remaining as small thumbnails */}
+                            {visit.photos.length > 1 && (
+                                <div className="flex overflow-x-auto space-x-2 pb-1 custom-scrollbar">
+                                    {visit.photos.slice(1).map(p => (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => setSelectedImage(p.photoUrl)}
+                                            type="button"
+                                            className="relative flex-none w-16 h-16 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors focus:outline-none"
+                                        >
+                                            <img src={p.photoUrl} alt="Evidence" className="w-full h-full object-cover" />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

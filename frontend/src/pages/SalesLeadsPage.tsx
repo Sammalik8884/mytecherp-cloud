@@ -319,16 +319,30 @@ export const SalesLeadsPage = () => {
                                                     {/* Photos Evidence */}
                                                     {visit.photos && visit.photos.length > 0 && (
                                                         <div className="mt-3">
-                                            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center">
+                                                            <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center">
                                                                 <Camera className="h-3 w-3 mr-1" /> Evidence Photos ({visit.photos.length})
                                                             </div>
-                                                            <div className="flex overflow-x-auto space-x-2 pb-1 custom-scrollbar">
-                                                                {visit.photos.map(p => (
-                                                                        <button 
-                                                                            key={p.id} 
+                                                            {/* First photo — medium, prominent */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedImage(visit.photos[0].photoUrl)}
+                                                                className="w-full rounded-xl overflow-hidden border border-border mb-2 focus:outline-none hover:border-primary transition-colors"
+                                                            >
+                                                                <img
+                                                                    src={visit.photos[0].photoUrl}
+                                                                    alt="Evidence"
+                                                                    className="w-full h-48 object-cover"
+                                                                />
+                                                            </button>
+                                                            {/* Remaining photos as small thumbnails */}
+                                                            {visit.photos.length > 1 && (
+                                                                <div className="flex overflow-x-auto space-x-2 pb-1 custom-scrollbar">
+                                                                    {visit.photos.slice(1).map(p => (
+                                                                        <button
+                                                                            key={p.id}
                                                                             type="button"
                                                                             onClick={() => setSelectedImage(p.photoUrl)}
-                                                                            className="relative flex-none w-20 h-20 rounded-lg overflow-hidden border border-border group/photo cursor-pointer focus:outline-none text-left"
+                                                                            className="relative flex-none w-16 h-16 rounded-lg overflow-hidden border border-border group/photo cursor-pointer focus:outline-none"
                                                                         >
                                                                             <img src={p.photoUrl} alt="Evidence" className="w-full h-full object-cover transition-transform duration-300 group-hover/photo:scale-110" />
                                                                             {p.caption && (
@@ -337,8 +351,9 @@ export const SalesLeadsPage = () => {
                                                                                 </div>
                                                                             )}
                                                                         </button>
-                                                                ))}
-                                                            </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
