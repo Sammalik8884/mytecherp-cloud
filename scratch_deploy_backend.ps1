@@ -7,5 +7,5 @@ Set-Location ./publish_output
 Compress-Archive -Path * -DestinationPath ../deploy.zip -Force
 Set-Location ..
 Write-Host "Deploying to Azure App Service..."
-az webapp deploy --subscription 37ebfb2d-4087-49fb-a9f5-afd7871d73d5 --resource-group TestSQL-GWC --name mytecherp-cloud-api --src-path deploy.zip
+az webapp deploy --subscription a9befb23-4ddd-42a4-9006-8369810be852 --resource-group TestSQL-GWC --name mytecherp-cloud-api --src-path deploy.zip
 Write-Host "Deployment Completed!"
