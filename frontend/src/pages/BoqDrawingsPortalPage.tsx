@@ -32,6 +32,9 @@ export const BoqDrawingsPortalPage = () => {
     const [assigningLead, setAssigningLead] = useState<SalesLeadDto | null>(null);
     const [estimatorsLoading, setEstimatorsLoading] = useState(false);
 
+    // Photo lightbox
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
 
     const fetchQueue = async () => {
         try {
@@ -496,15 +499,35 @@ export const BoqDrawingsPortalPage = () => {
                                                     {visit.photos && visit.photos.length > 0 && (
                                                         <div className="mt-3">
                                                             <div className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center">
-                                                                <Camera className="h-3 w-3 mr-1" /> Photos ({visit.photos.length})
+                                                                <Camera className="h-3 w-3 mr-1" /> Evidence Photos ({visit.photos.length})
                                                             </div>
-                                                            <div className="flex overflow-x-auto space-x-2 pb-1 custom-scrollbar">
-                                                                {visit.photos.map(p => (
-                                                                    <a key={p.id} href={p.photoUrl} target="_blank" rel="noreferrer" className="relative flex-none w-16 h-16 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors">
-                                                                        <img src={p.photoUrl} alt="Evidence" className="w-full h-full object-cover" />
-                                                                    </a>
-                                                                ))}
-                                                            </div>
+                                                            {/* First photo — prominent */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedImage(visit.photos[0].photoUrl)}
+                                                                className="w-full rounded-xl overflow-hidden border border-border mb-2 focus:outline-none hover:border-primary transition-colors"
+                                                            >
+                                                                <img
+                                                                    src={visit.photos[0].photoUrl}
+                                                                    alt="Evidence"
+                                                                    className="w-full h-48 object-cover"
+                                                                />
+                                                            </button>
+                                                            {/* Remaining photos as thumbnails */}
+                                                            {visit.photos.length > 1 && (
+                                                                <div className="flex overflow-x-auto space-x-2 pb-1 custom-scrollbar">
+                                                                    {visit.photos.slice(1).map(p => (
+                                                                        <button
+                                                                            key={p.id}
+                                                                            type="button"
+                                                                            onClick={() => setSelectedImage(p.photoUrl)}
+                                                                            className="relative flex-none w-16 h-16 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors focus:outline-none"
+                                                                        >
+                                                                            <img src={p.photoUrl} alt="Evidence" className="w-full h-full object-cover" />
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
@@ -572,6 +595,35 @@ export const BoqDrawingsPortalPage = () => {
                         </div>
                     </div>
                 </div>, document.body
+            )}
+
+            {selectedImage && createPortal(
+                <div
+                    className="fixed inset-0 flex items-center justify-center bg-black/85 backdrop-blur-sm animate-in fade-in duration-200"
+                    style={{ zIndex: 99999 }}
+                    onClick={() => setSelectedImage(null)}
+                >
+                    {/* Close button — top-right inside viewport */}
+                    <button
+                        className="absolute top-4 right-4 text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
+                    {/* Image — fully contained within viewport */}
+                    <div
+                        className="relative flex items-center justify-center w-full h-full p-16"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <img
+                            src={selectedImage}
+                            alt="Full view"
+                            className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+                            style={{ maxHeight: 'calc(100vh - 8rem)', maxWidth: 'calc(100vw - 8rem)' }}
+                        />
+                    </div>
+                </div>,
+                document.body
             )}
         </div>
     );

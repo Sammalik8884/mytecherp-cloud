@@ -368,23 +368,34 @@ export const SalesLeadsPage = () => {
                 </div>, document.body
             )}
 
-            {selectedImage && (
-                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setSelectedImage(null)}>
-                    <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center">
-                        <button 
-                            className="absolute -top-10 right-0 text-white hover:text-gray-300 p-2"
-                            onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
-                        >
-                            <X className="h-8 w-8" />
-                        </button>
-                        <img 
-                            src={selectedImage} 
-                            alt="Preview" 
-                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" 
-                            onClick={(e) => e.stopPropagation()} 
+            {selectedImage && createPortal(
+                <div
+                    className="fixed inset-0 flex items-center justify-center bg-black/85 backdrop-blur-sm"
+                    style={{ zIndex: 99999 }}
+                    onClick={() => setSelectedImage(null)}
+                >
+                    {/* Close button — top-right inside viewport */}
+                    <button
+                        className="absolute top-4 right-4 text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
+
+                    {/* Image — fully contained within viewport */}
+                    <div
+                        className="relative flex items-center justify-center w-full h-full p-16"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <img
+                            src={selectedImage}
+                            alt="Preview"
+                            className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+                            style={{ maxHeight: 'calc(100vh - 8rem)', maxWidth: 'calc(100vw - 8rem)' }}
                         />
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
