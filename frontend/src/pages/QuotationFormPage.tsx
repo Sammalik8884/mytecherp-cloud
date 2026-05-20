@@ -126,35 +126,43 @@ export const QuotationFormPage = () => {
         customUnit: "",
     });
 
-    const handleCustomProductNameBlur = (name: string | undefined, quantity: number, listType: 'imported' | 'local') => {
-        if (!name || name.trim() === "") return;
-        
-        if (listType === 'imported') {
-            setShowImportedServices(true);
-            setImportedServiceItems(prev => {
-                if (prev.some(s => s.serviceName === name)) return prev;
-                const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
-                if (blankIdx !== -1) {
-                    const updated = [...prev];
-                    updated[blankIdx] = { ...updated[blankIdx], serviceName: name, quantity: quantity };
-                    return updated;
+    // Sync service rows 1-to-1 with their parent product rows
+    // This replaces the onBlur approach which caused duplicates
+    useEffect(() => {
+        if (!showImportedServices) return;
+        setImportedServiceItems(prev => {
+            const next = importedItems.map((item, i) => {
+                const name = item.serviceName !== undefined
+                    ? item.serviceName
+                    : item.product ? `${item.product.name}${item.product.itemCode ? ` (${item.product.itemCode})` : ''}` : '';
+                // Reuse existing service row at same index if it exists
+                const existing = prev[i];
+                if (existing) {
+                    // Only overwrite serviceName if the service row is still blank
+                    return existing.serviceName ? existing : { ...existing, serviceName: name, quantity: item.quantity };
                 }
-                return [...prev, { ...makeEmptyRow("ImportedService"), serviceName: name, quantity: quantity }];
+                return { ...makeEmptyRow('ImportedService'), serviceName: name, quantity: item.quantity };
             });
-        } else {
-            setShowLocalServices(true);
-            setLocalServiceItems(prev => {
-                if (prev.some(s => s.serviceName === name)) return prev;
-                const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
-                if (blankIdx !== -1) {
-                    const updated = [...prev];
-                    updated[blankIdx] = { ...updated[blankIdx], serviceName: name, quantity: quantity };
-                    return updated;
+            return next;
+        });
+    }, [importedItems, showImportedServices]);
+
+    useEffect(() => {
+        if (!showLocalServices) return;
+        setLocalServiceItems(prev => {
+            const next = localItems.map((item, i) => {
+                const name = item.serviceName !== undefined
+                    ? item.serviceName
+                    : item.product ? `${item.product.name}${item.product.itemCode ? ` (${item.product.itemCode})` : ''}` : '';
+                const existing = prev[i];
+                if (existing) {
+                    return existing.serviceName ? existing : { ...existing, serviceName: name, quantity: item.quantity };
                 }
-                return [...prev, { ...makeEmptyRow("LocalService"), serviceName: name, quantity: quantity }];
+                return { ...makeEmptyRow('LocalService'), serviceName: name, quantity: item.quantity };
             });
-        }
-    };
+            return next;
+        });
+    }, [localItems, showLocalServices]);
 
     // Auto-add first row when section is toggled on
     useEffect(() => {
@@ -606,7 +614,7 @@ export const QuotationFormPage = () => {
                         newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                         setImportedItems(newArr);
                     }}
-                    onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity, "imported")}
+                    onBlur={e => {}}
                 />
                 <button
                     type="button"
@@ -708,7 +716,7 @@ export const QuotationFormPage = () => {
                         newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                         setLocalItems(newArr);
                     }}
-                    onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity, "imported")}
+                    onBlur={e => {}}
                 />
                 <button
                     type="button"
@@ -897,7 +905,7 @@ export const QuotationFormPage = () => {
                                                           newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                                                           setImportedItems(newArr);
                                                       }}
-                                                      onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity, "imported")}
+                                                      onBlur={e => {}}
                                                       onKeyDown={e => handleProductRowKeyDown(e, "imported", idx, handleAddImported)}
                                                   />
                                                   <button
@@ -1023,6 +1031,7 @@ export const QuotationFormPage = () => {
                                               <div className="flex items-center w-full gap-1.5">
                                                   <textarea 
                                                       rows={2}
+                                                       data-row-index={idx}
                                                       className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm resize-y"} 
                                                       placeholder="Custom product name..."
                                                       value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
@@ -1031,7 +1040,7 @@ export const QuotationFormPage = () => {
                                                           newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                                                           setLocalItems(newArr);
                                                       }}
-                                                      onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity, "local")}
+                                                       onKeyDown={e => handleProductRowKeyDown(e, "local", idx, handleAddLocal)}
                                                   />
                                                   <button
                                                       type="button"
