@@ -432,7 +432,7 @@ namespace MyTechERP.Infrastructure.Services
                                 bc.Item().PaddingTop(2).Row(r =>
                                 {
                                     r.AutoItem().Text("• ").FontSize(8.5f).FontColor(Brand);
-                                    r.RelativeItem().PaddingLeft(4).Text(p).FontSize(8.5f).FontColor(TextDark);
+                                    r.RelativeItem().PaddingLeft(2).Text(p).FontSize(8.5f).FontColor(TextDark);
                                 });
                             }
                         });
@@ -440,11 +440,15 @@ namespace MyTechERP.Infrastructure.Services
 
                     void DynamicTermBlock(string title, string content)
                     {
-                        tcTerms.Cell().Element(tc => tc.Padding(4)).Column(bc =>
+                        var lines = content.Split('\n', System.StringSplitOptions.RemoveEmptyEntries)
+                                           .Select(l => l.Trim())
+                                           .Where(l => l.Length > 0)
+                                           .ToArray();
+                        
+                        if (lines.Length > 0)
                         {
-                            bc.Item().PaddingBottom(2).Text(title).Bold().FontSize(9f).FontColor(Brand);
-                            bc.Item().Text(content).FontSize(8.5f).FontColor(TextDark);
-                        });
+                            TermBlock(title, lines);
+                        }
                     }
 
                     // Try to parse dynamic T&C
