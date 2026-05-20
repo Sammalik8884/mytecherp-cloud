@@ -6,6 +6,40 @@ interface Props {
     onChangeJson: (json: string) => void;
 }
 
+// Auto-resizing textarea wrapper
+const AutoResizeTextarea = ({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const adjustHeight = () => {
+        const textarea = textareaRef.current;
+        if (textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+    };
+
+    useEffect(() => {
+        adjustHeight();
+    }, [value]);
+
+    return (
+        <div className="flex flex-col space-y-1 mb-4">
+            <label className="text-sm font-medium text-foreground">{label}</label>
+            <textarea
+                ref={textareaRef}
+                value={value}
+                onChange={(e) => {
+                    onChange(e.target.value);
+                    adjustHeight();
+                }}
+                className="w-full p-2 border border-border rounded-md bg-background text-foreground text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none overflow-hidden resize-none min-h-[60px]"
+                placeholder={`Enter ${label} details...`}
+                rows={1}
+            />
+        </div>
+    );
+};
+
 export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChangeJson }) => {
     const [templates, setTemplates] = useState<TermsAndConditionsTemplate[]>([]);
     const [selectedTemplateId, setSelectedTemplateId] = useState<number | ''>('');
@@ -189,39 +223,7 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
         }
     };
 
-    // Auto-resizing textarea wrapper
-    const AutoResizeTextarea = ({ label, field }: { label: string, field: keyof typeof tAndC }) => {
-        const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-        const adjustHeight = () => {
-            const textarea = textareaRef.current;
-            if (textarea) {
-                textarea.style.height = 'auto';
-                textarea.style.height = textarea.scrollHeight + 'px';
-            }
-        };
-
-        useEffect(() => {
-            adjustHeight();
-        }, [tAndC[field]]);
-
-        return (
-            <div className="flex flex-col space-y-1 mb-4">
-                <label className="text-sm font-medium text-foreground">{label}</label>
-                <textarea
-                    ref={textareaRef}
-                    value={tAndC[field]}
-                    onChange={(e) => {
-                        handleTextChange(field, e.target.value);
-                        adjustHeight();
-                    }}
-                    className="w-full p-2 border border-border rounded-md bg-background text-foreground text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none overflow-hidden resize-none min-h-[60px]"
-                    placeholder={`Enter ${label} details...`}
-                    rows={1}
-                />
-            </div>
-        );
-    };
+    // Removed nested AutoResizeTextarea
 
     return (
         <div className="border border-border rounded-lg bg-card p-4 sm:p-6 mb-8 mt-8 shadow-sm">
@@ -282,14 +284,14 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                 <div>
-                    <AutoResizeTextarea label="Payment & Tax" field="paymentAndTax" />
-                    <AutoResizeTextarea label="Warranty" field="warranty" />
-                    <AutoResizeTextarea label="Purchase Order" field="purchaseOrder" />
+                    <AutoResizeTextarea label="Payment & Tax" value={tAndC.paymentAndTax} onChange={(val) => handleTextChange('paymentAndTax', val)} />
+                    <AutoResizeTextarea label="Warranty" value={tAndC.warranty} onChange={(val) => handleTextChange('warranty', val)} />
+                    <AutoResizeTextarea label="Purchase Order" value={tAndC.purchaseOrder} onChange={(val) => handleTextChange('purchaseOrder', val)} />
                 </div>
                 <div>
-                    <AutoResizeTextarea label="Delivery" field="delivery" />
-                    <AutoResizeTextarea label="Validity & Transportation" field="validityAndTransportation" />
-                    <AutoResizeTextarea label="General" field="general" />
+                    <AutoResizeTextarea label="Delivery" value={tAndC.delivery} onChange={(val) => handleTextChange('delivery', val)} />
+                    <AutoResizeTextarea label="Validity & Transportation" value={tAndC.validityAndTransportation} onChange={(val) => handleTextChange('validityAndTransportation', val)} />
+                    <AutoResizeTextarea label="General" value={tAndC.general} onChange={(val) => handleTextChange('general', val)} />
                 </div>
             </div>
 
