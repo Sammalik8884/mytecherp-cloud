@@ -53,6 +53,7 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
         onConfirm: (val: string) => void;
     } | null>(null);
     const [modalInputValue, setModalInputValue] = useState("");
+    const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
     // Current form state
     const [tAndC, setTAndC] = useState({
@@ -162,10 +163,10 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
                     });
                     await fetchTemplates();
                     setSelectedTemplateId(created.id);
-                    alert("Template saved successfully.");
+                    setAlertMessage("Template saved successfully.");
                 } catch (error) {
                     console.error(error);
-                    alert("Failed to save template.");
+                    setAlertMessage("Failed to save template.");
                 } finally {
                     setLoading(false);
                 }
@@ -175,7 +176,7 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
 
     const handleUpdateExisting = () => {
         if (!selectedTemplateId) {
-            alert("No template selected to update.");
+            setAlertMessage("No template selected to update.");
             return;
         }
         const template = templates.find(t => t.id === selectedTemplateId);
@@ -194,10 +195,10 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
                         ...tAndC
                     });
                     await fetchTemplates();
-                    alert("Template updated successfully.");
+                    setAlertMessage("Template updated successfully.");
                 } catch (error) {
                     console.error(error);
-                    alert("Failed to update template.");
+                    setAlertMessage("Failed to update template.");
                 } finally {
                     setLoading(false);
                 }
@@ -207,17 +208,17 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
 
     const handleMakeDefault = async () => {
         if (!selectedTemplateId) {
-            alert("Please select or save a template first before making it default.");
+            setAlertMessage("Please select or save a template first before making it default.");
             return;
         }
         try {
             setLoading(true);
             await termsAndConditionsService.setDefault(selectedTemplateId as number);
             await fetchTemplates();
-            alert("Template set as default successfully.");
+            setAlertMessage("Template set as default successfully.");
         } catch (error) {
             console.error(error);
-            alert("Failed to set default template.");
+            setAlertMessage("Failed to set default template.");
         } finally {
             setLoading(false);
         }
@@ -329,6 +330,24 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
                                     setModalConfig(null);
                                 }}
                                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow hover:bg-primary/90 transition-colors font-medium"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Alert Modal */}
+            {alertMessage && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-4 animate-in fade-in" onClick={() => setAlertMessage(null)}>
+                    <div className="bg-card border border-border rounded-xl p-6 shadow-2xl max-w-sm w-full animate-in zoom-in-95 text-center" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-lg font-bold text-foreground mb-4">{alertMessage}</h3>
+                        <div className="flex justify-center mt-6">
+                            <button
+                                type="button"
+                                onClick={() => setAlertMessage(null)}
+                                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg shadow hover:bg-primary/90 transition-colors font-medium"
                             >
                                 OK
                             </button>

@@ -14,18 +14,18 @@ export interface TermsAndConditionsTemplate {
 
 export const termsAndConditionsService = {
     getAll: async () => {
-        const response = await apiClient.get<TermsAndConditionsTemplate[]>('/api/termsandconditions');
+        const response = await apiClient.get<TermsAndConditionsTemplate[]>('/TermsAndConditions');
         return response.data;
     },
 
     getById: async (id: number) => {
-        const response = await apiClient.get<TermsAndConditionsTemplate>(`/api/termsandconditions/${id}`);
+        const response = await apiClient.get<TermsAndConditionsTemplate>(`/TermsAndConditions/${id}`);
         return response.data;
     },
 
     getDefault: async () => {
         try {
-            const response = await apiClient.get<TermsAndConditionsTemplate>('/api/termsandconditions/default');
+            const response = await apiClient.get<TermsAndConditionsTemplate>('/TermsAndConditions/default');
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.status === 404) {
@@ -36,20 +36,20 @@ export const termsAndConditionsService = {
     },
 
     create: async (data: Partial<TermsAndConditionsTemplate>) => {
-        const response = await apiClient.post<TermsAndConditionsTemplate>('/api/termsandconditions', data);
+        const response = await apiClient.post<TermsAndConditionsTemplate>('/TermsAndConditions', data);
         return response.data;
     },
 
     update: async (id: number, data: Partial<TermsAndConditionsTemplate>) => {
-        const response = await apiClient.put<TermsAndConditionsTemplate>(`/api/termsandconditions/${id}`, data);
+        const response = await apiClient.put<TermsAndConditionsTemplate>(`/TermsAndConditions/${id}`, data);
         return response.data;
     },
 
     delete: async (id: number) => {
-        await apiClient.delete(`/api/termsandconditions/${id}`);
+        await apiClient.delete(`/TermsAndConditions/${id}`);
     },
 
     setDefault: async (id: number) => {
-        await apiClient.post(`/api/termsandconditions/${id}/default`);
+        await apiClient.post(`/TermsAndConditions/${id}/default`);
     }
 };
