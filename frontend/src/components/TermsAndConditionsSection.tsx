@@ -10,6 +10,15 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
     const [templates, setTemplates] = useState<TermsAndConditionsTemplate[]>([]);
     const [selectedTemplateId, setSelectedTemplateId] = useState<number | ''>('');
     const [loading, setLoading] = useState(false);
+    
+    // Modal state
+    const [modalConfig, setModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        defaultValue: string;
+        onConfirm: (val: string) => void;
+    } | null>(null);
+    const [modalInputValue, setModalInputValue] = useState("");
 
     // Current form state
     const [tAndC, setTAndC] = useState({
@@ -103,50 +112,63 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
         onChangeJson(JSON.stringify(newTC));
     };
 
-    const handleSaveNew = async () => {
-        const name = prompt("Enter a name for this new Terms & Conditions template:");
-        if (!name) return;
-
-        try {
-            setLoading(true);
-            const created = await termsAndConditionsService.create({
-                name,
-                ...tAndC
-            });
-            await fetchTemplates();
-            setSelectedTemplateId(created.id);
-            alert("Template saved successfully.");
-        } catch (error) {
-            console.error(error);
-            alert("Failed to save template.");
-        } finally {
-            setLoading(false);
-        }
+    const handleSaveNew = () => {
+        setModalInputValue("");
+        setModalConfig({
+            isOpen: true,
+            title: "Enter a name for this new Terms & Conditions template:",
+            defaultValue: "",
+            onConfirm: async (name: string) => {
+                if (!name) return;
+                try {
+                    setLoading(true);
+                    const created = await termsAndConditionsService.create({
+                        name,
+                        ...tAndC
+                    });
+                    await fetchTemplates();
+                    setSelectedTemplateId(created.id);
+                    alert("Template saved successfully.");
+                } catch (error) {
+                    console.error(error);
+                    alert("Failed to save template.");
+                } finally {
+                    setLoading(false);
+                }
+            }
+        });
     };
 
-    const handleUpdateExisting = async () => {
+    const handleUpdateExisting = () => {
         if (!selectedTemplateId) {
             alert("No template selected to update.");
             return;
         }
         const template = templates.find(t => t.id === selectedTemplateId);
-        const name = prompt("Enter name to update this template:", template?.name);
-        if (!name) return;
-
-        try {
-            setLoading(true);
-            await termsAndConditionsService.update(selectedTemplateId as number, {
-                name,
-                ...tAndC
-            });
-            await fetchTemplates();
-            alert("Template updated successfully.");
-        } catch (error) {
-            console.error(error);
-            alert("Failed to update template.");
-        } finally {
-            setLoading(false);
-        }
+        
+        setModalInputValue(template?.name || "");
+        setModalConfig({
+            isOpen: true,
+            title: "Enter name to update this template:",
+            defaultValue: template?.name || "",
+            onConfirm: async (name: string) => {
+                if (!name) return;
+                try {
+                    setLoading(true);
+                    await termsAndConditionsService.update(selectedTemplateId as number, {
+                        name,
+                        ...tAndC
+                    });
+                    await fetchTemplates();
+                    alert("Template updated successfully.");
+                } catch (error) {
+                    console.error(error);
+                    alert("Failed to update template.");
+                } finally {
+                    setLoading(false);
+                }
+            }
+        });
     };
 
     const handleMakeDefault = async () => {
@@ -270,6 +292,48 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
                     <AutoResizeTextarea label="General" field="general" />
                 </div>
             </div>
+
+            {/* Custom Modal for Prompts */}
+            {modalConfig?.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-4 animate-in fade-in" onClick={() => setModalConfig(null)}>
+                    <div className="bg-card border border-border rounded-xl p-6 shadow-2xl max-w-sm w-full animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-lg font-bold text-foreground mb-4">{modalConfig.title}</h3>
+                        <input
+                            type="text"
+                            value={modalInputValue}
+                            onChange={(e) => setModalInputValue(e.target.value)}
+                            className="w-full p-3 border border-border rounded-lg bg-background text-foreground text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none mb-6"
+                            placeholder="Enter template name..."
+                            autoFocus
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    modalConfig.onConfirm(modalInputValue);
+                                    setModalConfig(null);
+                                }
+                            }}
+                        />
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setModalConfig(null)}
+                                className="px-4 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    modalConfig.onConfirm(modalInputValue);
+                                    setModalConfig(null);
+                                }}
+                                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow hover:bg-primary/90 transition-colors font-medium"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
