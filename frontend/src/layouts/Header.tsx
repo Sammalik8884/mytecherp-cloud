@@ -66,11 +66,25 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
         // Navigate to relevant section without marking as read
         setShowNotifDropdown(false);
         if (notif.type === "Quotation") {
-            navigate("/quotations");
+            if (notif.targetId) {
+                navigate(`/quotations/edit/${notif.targetId}`);
+            } else {
+                navigate("/quotations");
+            }
         } else if (notif.type === "WorkOrder") {
-            navigate("/work-orders");
-        } else if (notif.type === "BOQ" || notif.type === "Assignment") {
-            navigate("/boq-portal");
+            if (notif.targetId) {
+                navigate(`/job/${notif.targetId}`);
+            } else {
+                navigate("/work-orders");
+            }
+        } else if (notif.type === "Assignment") {
+            if (notif.targetId) {
+                navigate(`/quotations/new?leadId=${notif.targetId}`);
+            } else {
+                navigate("/sales/boq-portal");
+            }
+        } else if (notif.type === "BOQ") {
+            navigate("/sales/boq-portal");
         }
     };
 
