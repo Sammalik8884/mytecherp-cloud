@@ -637,7 +637,15 @@ namespace MyTechERP.Infrastructure.Services
                 if (submitter != null) submitterName = submitter.FullName;
             }
 
-            // Manager bypass removed, all approvals go to Huzefa
+            // Manager bypass: auto-approve without going through Huzefa
+            if (userRoles.Contains("Manager"))
+            {
+                q.Status = QuotationStatus.Approved;
+                q.ApprovedByUserId = submitterUserId;
+                q.ApprovedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return "Quotation auto-approved by manager.";
+            }
 
             q.Status = QuotationStatus.PendingApproval;
             await _context.SaveChangesAsync();
