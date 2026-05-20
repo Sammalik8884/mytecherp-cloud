@@ -147,7 +147,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("{id}/approve")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)] 
+        [Authorize] 
         public async Task<IActionResult> Approve(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -155,7 +155,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("{id}/reject")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)] 
+        [Authorize] 
         public async Task<IActionResult> Reject(int id, [FromBody] string comment)
         {
             return Ok(await _service.RejectAsync(id, comment));
