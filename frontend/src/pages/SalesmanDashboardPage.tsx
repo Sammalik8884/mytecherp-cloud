@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { 
     Plus, Target, Building, Calendar, ArrowRight, Activity, X,
     MapPin, Clock, ChevronDown, ChevronUp, Camera, FileText, Edit
@@ -509,8 +510,8 @@ export const SalesmanDashboardPage = () => {
             )}
 
             {/* Create Client Modal (Now acts as Client + Site + Lead + First Visit combo) */}
-            {isClientModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
+            {isClientModalOpen && createPortal(
+                <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center sm:p-4">
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsClientModalOpen(false)} />
                     <div className="bg-card w-full sm:max-w-3xl rounded-t-2xl sm:rounded-2xl shadow-xl border border-border relative z-10 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[93dvh] sm:max-h-[90vh]">
                         <div className="p-4 sm:p-6 border-b border-border flex justify-between items-start gap-3 bg-muted/30 shrink-0">
@@ -774,7 +775,8 @@ export const SalesmanDashboardPage = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
