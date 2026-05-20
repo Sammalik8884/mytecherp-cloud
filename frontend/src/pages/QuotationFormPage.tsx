@@ -1329,19 +1329,34 @@ export const QuotationFormPage = () => {
                              {(formData.provincialTaxPercentage || 0) > 0 && <div className="flex justify-between text-muted-foreground"><span>{formData.provincialTaxType || "Provincial Tax"} ({(formData.provincialTaxPercentage || 0)}%)</span><span className="text-foreground">+ {totals.provincial.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
                              {formData.adjustment > 0 && <div className="flex justify-between text-destructive"><span>Global Discount</span><span>- {formData.adjustment.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>}
                              
-                             <div className="border-t border-border pt-3 flex justify-between items-end">
-                                 <span className="text-base md:text-lg font-bold text-foreground">Grand Total</span>
-                                 <span className="text-xl md:text-2xl font-black text-primary">{totals.grand.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-muted-foreground">PKR</span></span>
+                             <div className={`border-t border-border pt-3 flex justify-between items-end ${whtPercentage > 0 ? '' : ''}`}>
+                                 <span className="text-base md:text-lg font-bold text-foreground">
+                                     {whtPercentage > 0 ? 'Grand Total (before WHT)' : 'Grand Total'}
+                                 </span>
+                                 <span className="text-xl md:text-2xl font-black text-primary">
+                                     {totals.grand.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-muted-foreground">PKR</span>
+                                 </span>
                              </div>
 
                              {whtPercentage > 0 && (
-                                 <div className="border-t border-amber-500/20 pt-3 flex justify-between items-center bg-amber-500/5 rounded-lg px-3 py-2">
-                                     <div>
-                                         <span className="text-sm font-semibold text-amber-500">WHT ({whtPercentage}%)</span>
-                                         <p className="text-[10px] text-muted-foreground">Withholding Tax · UI only · not included in PDF</p>
+                                 <>
+                                     {/* WHT line */}
+                                     <div className="flex justify-between items-center text-amber-500 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
+                                         <div>
+                                             <span className="text-sm font-semibold">WHT ({whtPercentage}%)</span>
+                                             <p className="text-[10px] text-muted-foreground">Withholding Tax · UI only · not in PDF</p>
+                                         </div>
+                                         <span className="text-base font-bold">+ {totals.wht.toLocaleString(undefined, { maximumFractionDigits: 2 })} PKR</span>
                                      </div>
-                                     <span className="text-base font-bold text-amber-500">− {totals.wht.toLocaleString(undefined, { maximumFractionDigits: 2 })} PKR</span>
-                                 </div>
+
+                                     {/* Final Payable */}
+                                     <div className="border-t-2 border-primary/40 pt-3 flex justify-between items-end bg-primary/5 rounded-lg px-3 py-2">
+                                         <span className="text-base md:text-lg font-extrabold text-foreground">Final Payable</span>
+                                         <span className="text-xl md:text-2xl font-black text-primary">
+                                             {(totals.grand + totals.wht).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-muted-foreground">PKR</span>
+                                         </span>
+                                     </div>
+                                 </>
                              )}
                          </div>
 
