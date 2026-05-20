@@ -32,12 +32,12 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export const QuotationsPage = () => {
     const navigate = useNavigate();
-    const { hasRole } = useAuth();
-    const isAdminOrManager = hasRole(["Admin"]) || hasRole(["Manager"]);
+    const { hasRole, user } = useAuth();
     const [quotations, setQuotations] = useState<QuotationDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<TabKey>('all');
+    const isHuzefa = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com';
 
     const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'info'|'warning'|'danger'; onConfirm: () => void }>({ isOpen: false, title: "", message: "", type: "info", onConfirm: () => {} });
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: (val: string) => void }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
@@ -274,7 +274,7 @@ export const QuotationsPage = () => {
                                                 {normalizeStatus(quote.status) === 'draft' && (
                                                     <button onClick={() => handleSubmitForApproval(quote.id)} title="Submit for Approval" className="p-2 text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
                                                 )}
-                                                {normalizeStatus(quote.status) === 'pendingapproval' && isAdminOrManager && (
+                                                {normalizeStatus(quote.status) === 'pendingapproval' && isHuzefa && (
                                                     <>
                                                         <button onClick={() => handleApprove(quote.id)} title="Approve" className="p-2 text-muted-foreground hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"><CheckCircle className="h-4 w-4" /></button>
                                                         <button onClick={() => handleReject(quote.id)} title="Reject" className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><XCircle className="h-4 w-4" /></button>

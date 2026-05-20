@@ -637,15 +637,7 @@ namespace MyTechERP.Infrastructure.Services
                 if (submitter != null) submitterName = submitter.FullName;
             }
 
-            // Manager bypass: auto-approve without going through Huzefa
-            if (userRoles.Contains("Manager"))
-            {
-                q.Status = QuotationStatus.Approved;
-                q.ApprovedByUserId = submitterUserId;
-                q.ApprovedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-                return "Quotation auto-approved by manager.";
-            }
+            // Manager bypass removed, all approvals go to Huzefa
 
             q.Status = QuotationStatus.PendingApproval;
             await _context.SaveChangesAsync();
@@ -734,6 +726,17 @@ namespace MyTechERP.Infrastructure.Services
 
             await _context.SaveChangesAsync();
 
+            if (!string.IsNullOrEmpty(q.CreatedByUserId))
+            {
+                await _notificationService.CreateNotificationAsync(
+                    q.CreatedByUserId,
+                    "Quotation Approved",
+                    $"Your quote #{q.QuoteNumber} has been approved.",
+                    "success",
+                    q.Id
+                );
+            }
+
             if (q.Customer != null && !string.IsNullOrEmpty(q.Customer.Email))
             {
                 var customerEmail = q.Customer.Email;
@@ -774,6 +777,18 @@ namespace MyTechERP.Infrastructure.Services
             q.ReviewerComments = comment;
 
             await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(q.CreatedByUserId))
+            {
+                await _notificationService.CreateNotificationAsync(
+                    q.CreatedByUserId,
+                    "Quotation Rejected",
+                    $"Your quote #{q.QuoteNumber} has been rejected.",
+                    "error",
+                    q.Id
+                );
+            }
+
             return "Quotation Rejected. Sent back to Draft.";
         }
         public async Task UpdateQuotationAsync(int id, UpdateQuotationRequest request)
