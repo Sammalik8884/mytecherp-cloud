@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, Search } from 'lucide-react';
 import { TermsAndConditionsTemplate, termsAndConditionsService } from '../services/termsAndConditionsService';
 
 interface Props {
@@ -54,6 +55,21 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
     } | null>(null);
     const [modalInputValue, setModalInputValue] = useState("");
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+    // Searchable dropdown state
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Current form state
     const [tAndC, setTAndC] = useState({
@@ -235,19 +251,65 @@ export const TermsAndConditionsSection: React.FC<Props> = ({ valueJson, onChange
                 </div>
                 
                 <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-2 items-center">
-                    <select
-                        value={selectedTemplateId}
-                        onChange={handleSelectTemplate}
-                        className="p-2 border border-border rounded-md bg-background text-foreground text-sm min-w-[200px]"
-                        disabled={loading}
-                    >
-                        <option value="">-- Load Saved Template --</option>
-                        {templates.map(t => (
-                            <option key={t.id} value={t.id}>
-                                {t.name} {t.isDefault ? '(Default)' : ''}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="relative min-w-[200px] z-20" ref={dropdownRef}>
+                        <div 
+                            className={`p-2 border border-border rounded-md bg-background text-foreground text-sm flex justify-between items-center cursor-pointer min-w-[200px] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={() => !loading && setIsDropdownOpen(!isDropdownOpen)}
+                        >
+                            <span className="truncate max-w-[160px] select-none">
+                                {selectedTemplateId 
+                                    ? templates.find(t => t.id === selectedTemplateId)?.name + (templates.find(t => t.id === selectedTemplateId)?.isDefault ? ' (Default)' : '')
+                                    : "-- Load Saved Template --"}
+                            </span>
+                            <ChevronDown className="w-4 h-4 ml-2 text-muted-foreground flex-shrink-0" />
+                        </div>
+                        
+                        {isDropdownOpen && (
+                            <div className="absolute z-30 w-full mt-1 bg-card border border-border rounded-md shadow-lg overflow-hidden animate-in fade-in zoom-in-95">
+                                <div className="p-2 border-b border-border flex items-center bg-background">
+                                    <Search className="w-4 h-4 text-muted-foreground mr-2" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search templates..."
+                                        className="w-full bg-transparent text-sm outline-none text-foreground"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="max-h-60 overflow-y-auto">
+                                    <div 
+                                        className="p-2 hover:bg-muted cursor-pointer text-sm text-foreground/80"
+                                        onClick={() => {
+                                            handleSelectTemplate({ target: { value: '' } } as any);
+                                            setIsDropdownOpen(false);
+                                            setSearchQuery("");
+                                        }}
+                                    >
+                                        -- Clear Selection --
+                                    </div>
+                                    {templates.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+                                        <div className="p-3 text-center text-sm text-muted-foreground">No templates found</div>
+                                    ) : (
+                                        templates.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase())).map(t => (
+                                            <div 
+                                                key={t.id}
+                                                className={`p-2 hover:bg-muted cursor-pointer text-sm ${selectedTemplateId === t.id ? 'bg-primary/10 text-primary font-medium' : 'text-foreground'}`}
+                                                onClick={() => {
+                                                    handleSelectTemplate({ target: { value: String(t.id) } } as any);
+                                                    setIsDropdownOpen(false);
+                                                    setSearchQuery("");
+                                                }}
+                                            >
+                                                {t.name} {t.isDefault ? <span className="text-muted-foreground text-xs ml-1">(Default)</span> : ''}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     <div className="flex gap-2">
                         <button
