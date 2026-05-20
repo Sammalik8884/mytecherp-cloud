@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Search, Plus, FileText, DownloadCloud, Send, Edit, Trash2, FilePlus2, Briefcase, CheckCircle, XCircle, FileSignature, Activity, AlertTriangle, Copy } from "lucide-react";
+import { Loader2, Search, Plus, FileText, DownloadCloud, Send, Edit, Trash2, FilePlus2, Briefcase, CheckCircle, XCircle, FileSignature, Activity, AlertTriangle, Copy, Pin } from "lucide-react";
 import { StatCard } from "../components/dashboard/StatCard";
 import { quotationService, QuotationDto } from "../services/quotationService";
 import { toast } from "react-hot-toast";
@@ -20,16 +20,6 @@ const extractApiError = (error: any, fallback: string) => {
 
 type TabKey = 'all' | 'pending' | 'draft' | 'pendingapproval' | 'approved' | 'senttocustomer' | 'rejected';
 
-const TABS: { key: TabKey; label: string }[] = [
-    { key: 'all',             label: 'All' },
-    { key: 'pending',         label: 'Pending' },
-    { key: 'draft',           label: 'Draft' },
-    { key: 'pendingapproval', label: 'Pending Approval' },
-    { key: 'approved',        label: 'Approved' },
-    { key: 'senttocustomer',  label: 'Sent' },
-    { key: 'rejected',        label: 'Rejected' },
-];
-
 export const QuotationsPage = () => {
     const navigate = useNavigate();
     const { hasRole, user } = useAuth();
@@ -38,6 +28,36 @@ export const QuotationsPage = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<TabKey>('all');
     const isHuzefa = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com';
+
+    const TABS: { key: TabKey; label: string }[] = isHuzefa 
+        ? [
+            { key: 'all',             label: 'All' },
+            { key: 'draft',           label: 'Draft' },
+            { key: 'pendingapproval', label: 'Pending Approval' },
+            { key: 'approved',        label: 'Approved' },
+            { key: 'senttocustomer',  label: 'Sent' },
+            { key: 'rejected',        label: 'Rejected' },
+        ]
+        : [
+            { key: 'all',             label: 'All' },
+            { key: 'pending',         label: 'Pending' },
+            { key: 'approved',        label: 'Approved' },
+            { key: 'senttocustomer',  label: 'Sent' },
+            { key: 'rejected',        label: 'Rejected' },
+        ];
+
+    const [pinnedQuotes, setPinnedQuotes] = useState<number[]>(() => {
+        const saved = localStorage.getItem('pinnedQuotes');
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    const togglePin = (id: number) => {
+        setPinnedQuotes(prev => {
+            const newPins = prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id];
+            localStorage.setItem('pinnedQuotes', JSON.stringify(newPins));
+            return newPins;
+        });
+    };
 
     const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'info'|'warning'|'danger'; onConfirm: () => void }>({ isOpen: false, title: "", message: "", type: "info", onConfirm: () => {} });
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: (val: string) => void }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
@@ -64,7 +84,10 @@ export const QuotationsPage = () => {
         }
     };
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => { 
+        fetchData(); 
+        window.scrollTo(0, 0);
+    }, []);
 
     const normalizeStatus = (s: string) => s.toLowerCase().replace(/\s/g, '');
 
@@ -79,6 +102,14 @@ export const QuotationsPage = () => {
         q.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         q.status.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const sortedFilteredQuotations = [...filteredQuotations].sort((a, b) => {
+        const aPinned = pinnedQuotes.includes(a.id);
+        const bPinned = pinnedQuotes.includes(b.id);
+        if (aPinned && !bPinned) return -1;
+        if (!aPinned && bPinned) return 1;
+        return b.id - a.id; // Newest first
+    });
 
     const tabCounts = TABS.reduce((acc, tab) => {
         if (tab.key === 'all') acc[tab.key] = quotations.length;
@@ -228,12 +259,12 @@ export const QuotationsPage = () => {
                         <tbody className="divide-y divide-border/30">
                             {loading ? (
                                 <tr><td colSpan={7} className="px-6 py-12 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary opacity-50" /></td></tr>
-                            ) : filteredQuotations.length === 0 ? (
+                            ) : sortedFilteredQuotations.length === 0 ? (
                                 <tr><td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                                     No {activeTab !== 'all' ? `"${TABS.find(t => t.key === activeTab)?.label}" ` : ''}quotations found.
                                 </td></tr>
                             ) : (
-                                filteredQuotations.map((quote) => (
+                                sortedFilteredQuotations.map((quote) => (
                                     <tr key={quote.id} className="hover:bg-secondary/50 transition-colors group">
                                         <td className="px-6 py-4 font-medium text-foreground">
                                             <div className="flex items-center space-x-2">
@@ -265,6 +296,9 @@ export const QuotationsPage = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end items-center space-x-1">
+                                                <button onClick={() => togglePin(quote.id)} title={pinnedQuotes.includes(quote.id) ? "Unpin" : "Pin"} className={`p-2 rounded-lg transition-colors ${pinnedQuotes.includes(quote.id) ? 'text-primary bg-primary/10 hover:bg-primary/20' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'}`}>
+                                                    <Pin className={`h-4 w-4 ${pinnedQuotes.includes(quote.id) ? 'fill-current' : ''}`} />
+                                                </button>
                                                 <button onClick={() => handleDownloadPdf(quote.id, quote.quoteNumber)} title="Download PDF" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><DownloadCloud className="h-4 w-4" /></button>
                                                 {!hasRole(["Estimation"]) && (
                                                     <button onClick={() => handleSendEmail(quote.id)} title="Send Email" className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
