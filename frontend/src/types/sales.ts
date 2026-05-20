@@ -16,6 +16,7 @@ export interface SalesLeadDto {
     createdAt: string;
     visitCount: number;
     assignedEstimatorId?: string;
+    assignedEstimatorName?: string;
 }
 
 export interface CreateSalesLeadDto {

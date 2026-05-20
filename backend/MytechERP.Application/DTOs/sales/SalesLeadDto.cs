@@ -28,5 +28,8 @@ namespace MytechERP.Application.DTOs.Sales
         
         public DateTime CreatedAt { get; set; }
         public int VisitCount { get; set; }
+        
+        public string? AssignedEstimatorId { get; set; }
+        public string? AssignedEstimatorName { get; set; }
     }
 }

@@ -62,18 +62,24 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
         return () => clearInterval(intervalId);
     }, []);
 
-    const handleNotificationClick = async (notif: NotificationDto) => {
-        try {
-            await notificationService.markAsRead(notif.id);
-            setUnreadCount(prev => Math.max(0, prev - 1));
-            setNotifications(prev => prev.filter(n => n.id !== notif.id));
-            setShowNotifDropdown(false);
+    const handleNotificationClick = (notif: NotificationDto) => {
+        // Navigate to relevant section without marking as read
+        setShowNotifDropdown(false);
+        if (notif.type === "Quotation") {
+            navigate("/quotations");
+        } else if (notif.type === "WorkOrder") {
+            navigate("/work-orders");
+        } else if (notif.type === "BOQ" || notif.type === "Assignment") {
+            navigate("/boq-portal");
+        }
+    };
 
-            if (notif.type === "Quotation") {
-                navigate("/quotations");
-            } else if (notif.type === "WorkOrder") {
-                navigate("/work-orders");
-            }
+    const handleMarkOneRead = async (e: React.MouseEvent, notifId: number) => {
+        e.stopPropagation();
+        try {
+            await notificationService.markAsRead(notifId);
+            setUnreadCount(prev => Math.max(0, prev - 1));
+            setNotifications(prev => prev.filter(n => n.id !== notifId));
         } catch (error) {
             toast.error("Failed to mark as read");
         }
@@ -215,19 +221,32 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
                             <div className="overflow-y-auto flex-1 p-2 space-y-1">
                                 {notifications.length > 0 ? (
                                     notifications.map((notif) => (
-                                        <button
+                                        <div
                                             key={notif.id}
-                                            onClick={() => handleNotificationClick(notif)}
-                                            className="w-full text-left p-3 hover:bg-secondary/50 rounded-lg transition-colors flex flex-col gap-1 relative group"
+                                            className="w-full text-left p-3 hover:bg-secondary/50 rounded-lg transition-colors flex items-start gap-2 relative group"
                                         >
-                                            <div className="flex justify-between items-start w-full gap-2">
-                                                <span className="font-medium text-sm text-foreground">{notif.title}</span>
-                                                <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                                                    {new Date(notif.createdAt).toLocaleDateString()}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground line-clamp-2">{notif.message}</p>
-                                        </button>
+                                            <button
+                                                onClick={() => handleNotificationClick(notif)}
+                                                className="flex-1 text-left flex flex-col gap-1"
+                                            >
+                                                <div className="flex justify-between items-start w-full gap-2">
+                                                    <span className="font-medium text-sm text-foreground">{notif.title}</span>
+                                                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                                        {new Date(notif.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground line-clamp-2">{notif.message}</p>
+                                            </button>
+                                            <button
+                                                onClick={(e) => handleMarkOneRead(e, notif.id)}
+                                                className="shrink-0 mt-0.5 p-1 rounded-full text-muted-foreground hover:text-green-500 hover:bg-green-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                                                title="Mark as read"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     ))
                                 ) : (
                                     <div className="py-8 text-center flex flex-col items-center text-muted-foreground">

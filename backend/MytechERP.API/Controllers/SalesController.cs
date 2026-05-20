@@ -13,6 +13,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
+using MytechERP.domain.Entities;
 
 
 namespace MytechERP.API.Controllers
@@ -25,17 +27,21 @@ namespace MytechERP.API.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IBlobService _blobService;
         private readonly INotificationService _notificationService;
+        private readonly UserManager<AppUser> _userManager;
+
+        private const string HuzefaEmail = "m.huzefa@mytecheng.com";
 
         // Pakistan Standard Time is UTC+5
         private static DateTime PakistanNow() =>
             TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
                 TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time"));
 
-        public SalesController(ApplicationDbContext context, IBlobService blobService, INotificationService notificationService)
+        public SalesController(ApplicationDbContext context, IBlobService blobService, INotificationService notificationService, UserManager<AppUser> userManager)
         {
             _context = context;
             _blobService = blobService;
             _notificationService = notificationService;
+            _userManager = userManager;
         }
 
         // ======================= LEADS =======================
@@ -46,17 +52,24 @@ namespace MytechERP.API.Controllers
         {
             var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
             var userId = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userEmail = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
 
             var query = _context.SalesLeads
                 .Include(l => l.Customer)
                 .Include(l => l.Site)
                 .Include(l => l.SalesmanUser)
                 .Include(l => l.SiteVisits)
+                .Include(l => l.AssignedEstimator)
                 .AsQueryable();
 
             if (userRole == Roles.Salesman || myLeadsOnly)
             {
                 query = query.Where(l => l.SalesmanUserId == userId);
+            }
+            else if (userRole == Roles.Estimation && !string.Equals(userEmail, HuzefaEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                // Non-Huzefa estimators only see leads assigned to them
+                query = query.Where(l => l.AssignedEstimatorId == userId);
             }
 
             var leads = await query.OrderByDescending(l => l.CreatedAt).ToListAsync();
@@ -105,7 +118,9 @@ namespace MytechERP.API.Controllers
                     : null,
                 QuotationId = l.QuotationId,
                 CreatedAt = l.CreatedAt,
-                VisitCount = l.SiteVisits.Count(v => !v.IsDeleted)
+                VisitCount = l.SiteVisits.Count(v => !v.IsDeleted),
+                AssignedEstimatorId = l.AssignedEstimatorId,
+                AssignedEstimatorName = l.AssignedEstimator?.FullName
             });
 
             return Ok(dtos);
@@ -123,6 +138,7 @@ namespace MytechERP.API.Controllers
                 .Include(l => l.Site)
                 .Include(l => l.SalesmanUser)
                 .Include(l => l.SiteVisits)
+                .Include(l => l.AssignedEstimator)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
             if (lead == null) return NotFound();
@@ -163,7 +179,9 @@ namespace MytechERP.API.Controllers
                     : null,
                 QuotationId = lead.QuotationId,
                 CreatedAt = lead.CreatedAt,
-                VisitCount = lead.SiteVisits.Count(v => !v.IsDeleted)
+                VisitCount = lead.SiteVisits.Count(v => !v.IsDeleted),
+                AssignedEstimatorId = lead.AssignedEstimatorId,
+                AssignedEstimatorName = lead.AssignedEstimator?.FullName
             });
         }
 
@@ -536,6 +554,23 @@ namespace MytechERP.API.Controllers
 
             lead.Status = domain.Enums.LeadStatus.Closed;
             await _context.SaveChangesAsync();
+
+            // Notify Huzefa about the BOQ/Drawings submitted
+            if (dto.BOQFile != null || dto.DrawingsFile != null)
+            {
+                var huzefa = await _userManager.FindByEmailAsync(HuzefaEmail);
+                if (huzefa != null)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        userId: huzefa.Id,
+                        title: "New BOQ/Drawings Submitted",
+                        message: $"Documents submitted for Lead #{lead.LeadNumber} ({lead.Customer?.Name ?? ""}).",
+                        type: "BOQ",
+                        targetId: lead.Id
+                    );
+                }
+            }
+
             return Ok(new { Message = "Lead closed successfully" });
         }
 
@@ -592,6 +627,23 @@ namespace MytechERP.API.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // Notify Huzefa about revised BOQ
+            if (changed)
+            {
+                var huzefa = await _userManager.FindByEmailAsync(HuzefaEmail);
+                if (huzefa != null)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        userId: huzefa.Id,
+                        title: "BOQ/Drawings Revised",
+                        message: $"Revised documents submitted for Lead #{lead.LeadNumber}.",
+                        type: "BOQ",
+                        targetId: lead.Id
+                    );
+                }
+            }
+
             return Ok(new { Message = "BOQ/Drawings revised successfully" });
         }
 

@@ -87,6 +87,9 @@ export const QuotationFormPage = () => {
         quoteHeadline: ""
     });
 
+    // WHT state — UI-only, not submitted to backend, not on PDF
+    const [whtPercentage, setWhtPercentage] = useState<number>(6);
+
     // Selections for Quote Sections
     const [showImported, setShowImported] = useState(false);
     const [showLocal, setShowLocal] = useState(false);
@@ -402,6 +405,41 @@ export const QuotationFormPage = () => {
         return item.unit || "";
     };
 
+    /* ─── Enter key moves to next product row ─── */
+    const handleProductRowKeyDown = (
+        e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+        sectionAttr: string,
+        rowIdx: number,
+        addRowFn: () => void
+    ) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        // Try to find next row's first input in the same section
+        const allInputs = Array.from(
+            document.querySelectorAll<HTMLElement>(`[data-section="${sectionAttr}"] input, [data-section="${sectionAttr}"] textarea`)
+        );
+        const currentIndex = allInputs.indexOf(e.currentTarget as HTMLElement);
+        // Find first input of next row (skip current row inputs)
+        const nextRowFirstInput = allInputs.find((el, i) => {
+            const elRow = Number((el as HTMLElement).dataset?.rowIndex ?? -1);
+            const curRow = rowIdx;
+            return i > currentIndex && elRow > curRow;
+        });
+        if (nextRowFirstInput) {
+            nextRowFirstInput.focus();
+        } else {
+            // If no next row, add a new row and focus it after a tick
+            addRowFn();
+            setTimeout(() => {
+                const updated = Array.from(
+                    document.querySelectorAll<HTMLElement>(`[data-section="${sectionAttr}"] input, [data-section="${sectionAttr}"] textarea`)
+                );
+                const lastInput = updated[updated.length - 1];
+                if (lastInput) lastInput.focus();
+            }, 50);
+        }
+    };
+
     const renderTotals = () => {
         let subTotal = 0;
         if (showImported) subTotal += importedItems.reduce((acc, i) => acc + i.lineTotal, 0);
@@ -413,8 +451,10 @@ export const QuotationFormPage = () => {
         const income = subTotal * (formData.incomeTaxPercentage / 100);
         const provincial = subTotal * ((formData.provincialTaxPercentage || 0) / 100);
         const grand = subTotal + gst + income + provincial - formData.adjustment;
+        // WHT applies to grand total, shown separately, NOT part of grand total
+        const wht = grand * ((whtPercentage || 0) / 100);
 
-        return { subTotal, gst, income, provincial, grand };
+        return { subTotal, gst, income, provincial, grand, wht };
     };
 
     const totals = renderTotals();
@@ -841,13 +881,14 @@ export const QuotationFormPage = () => {
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
                              <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (USD)</th><th className="w-36 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
-                             <tbody>
+                             <tbody data-section="imported">
                                  {importedItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
                                               <div className="flex items-center w-full gap-1.5">
                                                   <textarea 
                                                       rows={2}
+                                                      data-row-index={idx}
                                                       className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm resize-y"} 
                                                       placeholder="Custom product name..."
                                                       value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
@@ -857,6 +898,7 @@ export const QuotationFormPage = () => {
                                                           setImportedItems(newArr);
                                                       }}
                                                       onBlur={e => handleCustomProductNameBlur(e.target.value, item.quantity, "imported")}
+                                                      onKeyDown={e => handleProductRowKeyDown(e, "imported", idx, handleAddImported)}
                                                   />
                                                   <button
                                                       type="button"
@@ -974,7 +1016,7 @@ export const QuotationFormPage = () => {
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
                              <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Price (PKR)</th><th className="w-20 text-center">Disc%</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
-                             <tbody>
+                             <tbody data-section="local">
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
@@ -1265,6 +1307,18 @@ export const QuotationFormPage = () => {
                                  <label className="text-xs font-semibold text-muted-foreground block mb-1">Global Discount (−)</label>
                                  <input type="number" step="any" className={inputCls + " !text-destructive"} value={formData.adjustment} onChange={e => setFormData({...formData, adjustment: Number(e.target.value)})}/>
                              </div>
+                             <div>
+                                 <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                                     WHT (%)
+                                     <span className="ml-1 text-[10px] font-normal text-amber-500/80 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full">UI only · not in PDF</span>
+                                 </label>
+                                 <input
+                                     type="number" step="any" min="0" max="100"
+                                     className={inputCls + " !text-amber-500"}
+                                     value={whtPercentage}
+                                     onChange={e => setWhtPercentage(Number(e.target.value))}
+                                 />
+                             </div>
                          </div>
                      </div>
                      <div className="bg-gradient-to-br from-secondary/50 to-secondary/30 border border-border/50 rounded-2xl p-4 md:p-6 shadow-xl flex flex-col justify-center">
@@ -1279,6 +1333,16 @@ export const QuotationFormPage = () => {
                                  <span className="text-base md:text-lg font-bold text-foreground">Grand Total</span>
                                  <span className="text-xl md:text-2xl font-black text-primary">{totals.grand.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-muted-foreground">PKR</span></span>
                              </div>
+
+                             {whtPercentage > 0 && (
+                                 <div className="border-t border-amber-500/20 pt-3 flex justify-between items-center bg-amber-500/5 rounded-lg px-3 py-2">
+                                     <div>
+                                         <span className="text-sm font-semibold text-amber-500">WHT ({whtPercentage}%)</span>
+                                         <p className="text-[10px] text-muted-foreground">Withholding Tax · UI only · not included in PDF</p>
+                                     </div>
+                                     <span className="text-base font-bold text-amber-500">− {totals.wht.toLocaleString(undefined, { maximumFractionDigits: 2 })} PKR</span>
+                                 </div>
+                             )}
                          </div>
 
                          <div className="mt-6 md:mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">

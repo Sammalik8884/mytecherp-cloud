@@ -343,8 +343,44 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<IEnumerable<QuotationDto>> GetAllQuotesAsync()
         {
-            var quotes = await _quotationRepository.GetAllAsync();
-            return quotes.Select(q => MapToDto(q)).ToList();
+            var userId = _currentUserService.UserId;
+            var userEmail = _currentUserService.Email;
+            var userRoles = _currentUserService.Roles?.ToList() ?? new List<string>();
+
+            bool isAdminOrHuzefa = userRoles.Contains("Admin")
+                || string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase);
+
+            var allQuotes = await _context.Quotations
+                .Include(q => q.Customer)
+                .Include(q => q.Items)
+                .OrderByDescending(q => q.Id)
+                .ToListAsync();
+
+            IEnumerable<Quotation> filtered;
+
+            if (isAdminOrHuzefa)
+            {
+                filtered = allQuotes;
+            }
+            else if (userRoles.Contains("Salesman"))
+            {
+                // Salesmen see quotations created for their leads
+                var myLeadQuoteIds = await _context.SalesLeads
+                    .Where(l => l.SalesmanUserId == userId && l.QuotationId != null)
+                    .Select(l => l.QuotationId!.Value)
+                    .ToListAsync();
+
+                filtered = allQuotes.Where(q =>
+                    q.CreatedByUserId == userId ||
+                    myLeadQuoteIds.Contains(q.Id));
+            }
+            else
+            {
+                // Engineers, Estimators, others: only quotations they created
+                filtered = allQuotes.Where(q => q.CreatedByUserId == userId);
+            }
+
+            return filtered.Select(q => MapToDto(q)).ToList();
         }
 
         public async Task DeleteQuoteAsync(int id)
@@ -580,10 +616,7 @@ namespace MyTechERP.Infrastructure.Services
             if (q.Status != QuotationStatus.Draft)
                 throw new Exception("Only Drafts can be submitted.");
 
-            q.Status = QuotationStatus.PendingApproval;
-            await _context.SaveChangesAsync();
-            
-            // Notification Logic
+            var userRoles = _currentUserService.Roles?.ToList() ?? new List<string>();
             var submitterUserId = _currentUserService.UserId;
             var submitterName = "An Engineer";
             if (!string.IsNullOrEmpty(submitterUserId))
@@ -591,6 +624,19 @@ namespace MyTechERP.Infrastructure.Services
                 var submitter = await _userManager.FindByIdAsync(submitterUserId);
                 if (submitter != null) submitterName = submitter.FullName;
             }
+
+            // Manager bypass: auto-approve without going through Huzefa
+            if (userRoles.Contains("Manager"))
+            {
+                q.Status = QuotationStatus.Approved;
+                q.ApprovedByUserId = submitterUserId;
+                q.ApprovedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return "Quotation auto-approved by manager.";
+            }
+
+            q.Status = QuotationStatus.PendingApproval;
+            await _context.SaveChangesAsync();
 
             var currentTenantId = _currentUserService.TenantId ?? 0;
             
