@@ -369,58 +369,19 @@ export const SalesLeadsPage = () => {
             )}
 
             {selectedImage && createPortal(
-                <div
-                    onClick={() => setSelectedImage(null)}
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100vw',
-                        height: '100vh',
-                        zIndex: 99999,
-                        backgroundColor: 'rgba(0,0,0,0.88)',
-                        backdropFilter: 'blur(6px)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '60px 40px 40px',
-                        boxSizing: 'border-box',
-                    }}
-                >
-                    {/* Close button */}
+                <div className="fixed inset-0 flex items-center justify-center animate-in fade-in duration-200" style={{ zIndex: 99999 }}>
+                    <div className="absolute inset-0 bg-black/85 backdrop-blur-sm cursor-pointer" onClick={() => setSelectedImage(null)} />
                     <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
-                        style={{
-                            position: 'absolute',
-                            top: '16px',
-                            right: '16px',
-                            background: 'rgba(255,255,255,0.15)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            padding: '8px',
-                            cursor: 'pointer',
-                            color: '#fff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
+                        onClick={() => setSelectedImage(null)}
+                        className="absolute top-4 right-4 text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors z-10"
                     >
-                        <X style={{ width: 22, height: 22 }} />
+                        <X className="h-6 w-6" />
                     </button>
-                    {/* Image — centred, max 90% each axis */}
                     <img
                         src={selectedImage}
                         alt="Preview"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            maxWidth: '90vw',
-                            maxHeight: '90vh',
-                            objectFit: 'contain',
-                            borderRadius: '12px',
-                            boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
-                            display: 'block',
-                            margin: 'auto',
-                        }}
+                        className="relative z-10 max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+                        style={{ maxHeight: '90vh', maxWidth: '90vw' }}
                     />
                 </div>,
                 document.body
