@@ -202,9 +202,8 @@ export const SalesLeadsPage = () => {
                                             </button>
                                         </td>
                                     </tr>
-                                ))}
-                                )
-                            }
+                                ))
+                                )}
                             </tbody>
                         </table>
                     </div>

@@ -614,7 +614,6 @@ export const QuotationFormPage = () => {
                         newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                         setImportedItems(newArr);
                     }}
-                    onBlur={e => {}}
                 />
                 <button
                     type="button"
@@ -716,7 +715,6 @@ export const QuotationFormPage = () => {
                         newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                         setLocalItems(newArr);
                     }}
-                    onBlur={e => {}}
                 />
                 <button
                     type="button"
@@ -905,7 +903,6 @@ export const QuotationFormPage = () => {
                                                           newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
                                                           setImportedItems(newArr);
                                                       }}
-                                                      onBlur={e => {}}
                                                       onKeyDown={e => handleProductRowKeyDown(e, "imported", idx, handleAddImported)}
                                                   />
                                                   <button
