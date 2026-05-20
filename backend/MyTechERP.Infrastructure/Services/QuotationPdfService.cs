@@ -424,11 +424,26 @@ namespace MyTechERP.Infrastructure.Services
 
                     void TermBlock(string title, string[] points)
                     {
-                        tcTerms.Cell().Element(tc => tc.Padding(3)).Column(bc =>
+                        tcTerms.Cell().Element(tc => tc.Padding(4)).Column(bc =>
                         {
-                            bc.Item().Text(title).Bold().FontSize(7.5f).FontColor(Brand);
+                            bc.Item().Text(title).Bold().FontSize(9f).FontColor(Brand);
                             foreach (var p in points)
-                                bc.Item().PaddingLeft(4).Text($"\u2022 {p}").FontSize(7f).FontColor(TextMuted);
+                            {
+                                bc.Item().PaddingTop(2).Row(r =>
+                                {
+                                    r.AutoItem().Text("• ").FontSize(8.5f).FontColor(Brand);
+                                    r.RelativeItem().PaddingLeft(4).Text(p).FontSize(8.5f).FontColor(TextDark);
+                                });
+                            }
+                        });
+                    }
+
+                    void DynamicTermBlock(string title, string content)
+                    {
+                        tcTerms.Cell().Element(tc => tc.Padding(4)).Column(bc =>
+                        {
+                            bc.Item().PaddingBottom(2).Text(title).Bold().FontSize(9f).FontColor(Brand);
+                            bc.Item().Text(content).FontSize(8.5f).FontColor(TextDark);
                         });
                     }
 
@@ -458,12 +473,7 @@ namespace MyTechERP.Infrastructure.Services
                         {
                             if (!string.IsNullOrWhiteSpace(content))
                             {
-                                var lines = content.Split('\n', System.StringSplitOptions.RemoveEmptyEntries)
-                                                   .Select(l => l.Trim())
-                                                   .Where(l => l.Length > 0)
-                                                   .ToArray();
-                                if (lines.Length > 0)
-                                    TermBlock(title, lines);
+                                DynamicTermBlock(title, content.Trim());
                             }
                         }
 
