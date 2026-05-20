@@ -451,6 +451,7 @@ export const QuotationFormPage = () => {
     const renderTotals = () => {
         let subTotal = 0;
         let suppliesTotal = 0;
+        let servicesTotal = 0;
 
         if (showImported) {
             const sum = importedItems.reduce((acc, i) => acc + i.lineTotal, 0);
@@ -463,15 +464,19 @@ export const QuotationFormPage = () => {
             suppliesTotal += sum;
         }
         if (showImportedServices) {
-            subTotal += importedServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
+            const sum = importedServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
+            subTotal += sum;
+            servicesTotal += sum;
         }
         if (showLocalServices) {
-            subTotal += localServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
+            const sum = localServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
+            subTotal += sum;
+            servicesTotal += sum;
         }
 
         const gst = suppliesTotal * (formData.gstPercentage / 100);
         const income = suppliesTotal * (formData.incomeTaxPercentage / 100);
-        const provincial = suppliesTotal * ((formData.provincialTaxPercentage || 0) / 100);
+        const provincial = servicesTotal * ((formData.provincialTaxPercentage || 0) / 100);
         const grand = subTotal + gst + income + provincial - formData.adjustment;
         // WHT applies to grand total, shown separately, NOT part of grand total
         const wht = grand * ((whtPercentage || 0) / 100);
