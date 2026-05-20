@@ -1393,8 +1393,9 @@ export const QuotationFormPage = () => {
                              )}
                          </div>
                         </div>
+                    </div>
 
-                        {/* Terms and Conditions Section */}
+                    {/* Terms and Conditions Section */}
                         <TermsAndConditionsSection
                             valueJson={formData.termsAndConditionsJson}
                             onChangeJson={(json) => setFormData({ ...formData, termsAndConditionsJson: json })}
@@ -1406,7 +1407,6 @@ export const QuotationFormPage = () => {
                                  {saving && <Loader2 className="w-4 h-4 animate-spin"/>} {isEditMode ? "Update" : isReviseMode ? "Revise" : "Save Quotation"}
                              </button>
                          </div>
-                </div>
             </form>
 
             {/* ── BREAKDOWN MODAL ── */}
