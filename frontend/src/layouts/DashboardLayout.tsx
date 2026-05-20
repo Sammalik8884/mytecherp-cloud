@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
@@ -7,6 +7,12 @@ import { TrialBanner, TrialExpiredWall, useTrialEnforcement } from "../component
 export const DashboardLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
     const isTrialExpired = useTrialEnforcement();
+
+    useEffect(() => {
+        const handleCloseSidebar = () => setIsSidebarOpen(false);
+        window.addEventListener('closeSidebar', handleCloseSidebar);
+        return () => window.removeEventListener('closeSidebar', handleCloseSidebar);
+    }, []);
 
     return (
         <div className="flex h-screen bg-background text-foreground overflow-hidden">

@@ -108,6 +108,11 @@ export const QuotationFormPage = () => {
     // Product Selection Modal Target
     const [productModalTarget, setProductModalTarget] = useState<{ list: "imported" | "local", index: number } | null>(null);
 
+    const handleOpenProductModal = (target: { list: "imported" | "local", index: number }) => {
+        setProductModalTarget(target);
+        window.dispatchEvent(new CustomEvent('closeSidebar'));
+    };
+
     // Service name edit state
     const [editingServiceName, setEditingServiceName] = useState<{ list: "imported" | "local" | "service" | "importedService" | "localService", index: number } | null>(null);
 
@@ -636,7 +641,7 @@ export const QuotationFormPage = () => {
                 />
                 <button
                     type="button"
-                    onClick={() => setProductModalTarget({ list: "imported", index: idx })}
+                    onClick={() => handleOpenProductModal({ list: "imported", index: idx })}
                     className="p-2 bg-secondary border border-border rounded-md hover:bg-secondary/80 shrink-0 flex items-center justify-center"
                     title="Browse Catalog"
                 >
@@ -737,7 +742,7 @@ export const QuotationFormPage = () => {
                 />
                 <button
                     type="button"
-                    onClick={() => setProductModalTarget({ list: "local", index: idx })}
+                    onClick={() => handleOpenProductModal({ list: "local", index: idx })}
                     className="p-2 bg-secondary border border-border rounded-md hover:bg-secondary/80 shrink-0 flex items-center justify-center"
                     title="Browse Catalog"
                 >
@@ -926,7 +931,7 @@ export const QuotationFormPage = () => {
                                                   />
                                                   <button
                                                       type="button"
-                                                      onClick={() => setProductModalTarget({ list: "imported", index: idx })}
+                                                      onClick={() => handleOpenProductModal({ list: "imported", index: idx })}
                                                       className="p-1.5 bg-secondary border border-border rounded-md hover:bg-secondary/80 shrink-0 flex items-center justify-center"
                                                       title="Browse Catalog"
                                                   >
@@ -1060,7 +1065,7 @@ export const QuotationFormPage = () => {
                                                   />
                                                   <button
                                                       type="button"
-                                                      onClick={() => setProductModalTarget({ list: "local", index: idx })}
+                                                      onClick={() => handleOpenProductModal({ list: "local", index: idx })}
                                                       className="p-1.5 bg-secondary border border-border rounded-md hover:bg-secondary/80 shrink-0 flex items-center justify-center"
                                                       title="Browse Catalog"
                                                   >
