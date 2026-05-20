@@ -450,14 +450,28 @@ export const QuotationFormPage = () => {
 
     const renderTotals = () => {
         let subTotal = 0;
-        if (showImported) subTotal += importedItems.reduce((acc, i) => acc + i.lineTotal, 0);
-        if (showLocal) subTotal += localItems.reduce((acc, i) => acc + i.lineTotal, 0);
-        if (showImportedServices) subTotal += importedServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
-        if (showLocalServices) subTotal += localServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
+        let suppliesTotal = 0;
 
-        const gst = subTotal * (formData.gstPercentage / 100);
-        const income = subTotal * (formData.incomeTaxPercentage / 100);
-        const provincial = subTotal * ((formData.provincialTaxPercentage || 0) / 100);
+        if (showImported) {
+            const sum = importedItems.reduce((acc, i) => acc + i.lineTotal, 0);
+            subTotal += sum;
+            suppliesTotal += sum;
+        }
+        if (showLocal) {
+            const sum = localItems.reduce((acc, i) => acc + i.lineTotal, 0);
+            subTotal += sum;
+            suppliesTotal += sum;
+        }
+        if (showImportedServices) {
+            subTotal += importedServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
+        }
+        if (showLocalServices) {
+            subTotal += localServiceItems.reduce((acc, i) => acc + i.lineTotal, 0);
+        }
+
+        const gst = suppliesTotal * (formData.gstPercentage / 100);
+        const income = suppliesTotal * (formData.incomeTaxPercentage / 100);
+        const provincial = suppliesTotal * ((formData.provincialTaxPercentage || 0) / 100);
         const grand = subTotal + gst + income + provincial - formData.adjustment;
         // WHT applies to grand total, shown separately, NOT part of grand total
         const wht = grand * ((whtPercentage || 0) / 100);
@@ -1337,7 +1351,7 @@ export const QuotationFormPage = () => {
                              
                              <div className={`border-t border-border pt-3 flex justify-between items-end ${whtPercentage > 0 ? '' : ''}`}>
                                  <span className="text-base md:text-lg font-bold text-foreground">
-                                     {whtPercentage > 0 ? 'Grand Total (before WHT)' : 'Grand Total'}
+                                     {whtPercentage > 0 ? 'Sub Total (before WHT)' : 'Grand Total'}
                                  </span>
                                  <span className="text-xl md:text-2xl font-black text-primary">
                                      {totals.grand.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-muted-foreground">PKR</span>
@@ -1357,7 +1371,7 @@ export const QuotationFormPage = () => {
 
                                      {/* Final Payable */}
                                      <div className="border-t-2 border-primary/40 pt-3 flex justify-between items-end bg-primary/5 rounded-lg px-3 py-2">
-                                         <span className="text-base md:text-lg font-extrabold text-foreground">Final Payable</span>
+                                         <span className="text-base md:text-lg font-extrabold text-foreground">Sub Total (after WHT)</span>
                                          <span className="text-xl md:text-2xl font-black text-primary">
                                              {(totals.grand + totals.wht).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-medium text-muted-foreground">PKR</span>
                                          </span>

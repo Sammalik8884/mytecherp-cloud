@@ -419,9 +419,14 @@ namespace MyTechERP.Infrastructure.Services
         private void RecalculateTotals(Quotation quote)
         {
             quote.SubTotal = quote.Items.Sum(x => x.LineTotal);
-            quote.GSTAmount = quote.SubTotal * (quote.GSTPercentage / 100m);
-            quote.IncomeTaxAmount = quote.SubTotal * (quote.IncomeTaxPercentage / 100m);
-            quote.ProvincialTaxAmount = quote.SubTotal * (quote.ProvincialTaxPercentage / 100m);
+            
+            var suppliesTotal = quote.Items
+                .Where(x => x.ItemType == ItemType.Imported || x.ItemType == ItemType.Local)
+                .Sum(x => x.LineTotal);
+
+            quote.GSTAmount = suppliesTotal * (quote.GSTPercentage / 100m);
+            quote.IncomeTaxAmount = suppliesTotal * (quote.IncomeTaxPercentage / 100m);
+            quote.ProvincialTaxAmount = suppliesTotal * (quote.ProvincialTaxPercentage / 100m);
             quote.GrandTotal = quote.SubTotal + quote.GSTAmount + quote.IncomeTaxAmount + quote.ProvincialTaxAmount + quote.Adjustment;
         }
 
@@ -798,10 +803,14 @@ namespace MyTechERP.Infrastructure.Services
            
 
             decimal subTotal = q.Items.Sum(x => x.Quantity * x.UnitPrice);
+            
+            // Note: Since ItemType is lost in UpdateQuotationRequest DTO, we assume all are supplies here.
+            // This endpoint is rarely used or legacy.
+            decimal suppliesTotal = subTotal;
 
-            decimal gstAmount = (subTotal * q.GSTPercentage) / 100;
-            decimal incomeTaxAmount = (subTotal * q.IncomeTaxPercentage) / 100;
-            decimal provincialTaxAmount = (subTotal * q.ProvincialTaxPercentage) / 100;
+            decimal gstAmount = (suppliesTotal * q.GSTPercentage) / 100;
+            decimal incomeTaxAmount = (suppliesTotal * q.IncomeTaxPercentage) / 100;
+            decimal provincialTaxAmount = (suppliesTotal * q.ProvincialTaxPercentage) / 100;
 
             q.SubTotal = subTotal;
             q.GSTAmount = gstAmount;
