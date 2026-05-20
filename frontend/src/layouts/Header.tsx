@@ -65,26 +65,16 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
     const handleNotificationClick = (notif: NotificationDto) => {
         // Navigate to relevant section without marking as read
         setShowNotifDropdown(false);
-        if (notif.type === "Quotation") {
-            if (notif.targetId) {
-                navigate(`/quotations/edit/${notif.targetId}`);
-            } else {
-                navigate("/quotations");
-            }
-        } else if (notif.type === "WorkOrder") {
+        if (notif.type === "WorkOrder") {
             if (notif.targetId) {
                 navigate(`/job/${notif.targetId}`);
             } else {
                 navigate("/work-orders");
             }
-        } else if (notif.type === "Assignment") {
-            if (notif.targetId) {
-                navigate(`/quotations/new?leadId=${notif.targetId}`);
-            } else {
-                navigate("/sales/boq-portal");
-            }
-        } else if (notif.type === "BOQ") {
+        } else if (notif.type === "Assignment" || notif.type === "BOQ" || notif.type === "success" || notif.type === "error" || notif.type === "Quotation" || notif.title.includes("Quotation")) {
             navigate("/sales/boq-portal");
+        } else {
+            navigate("/dashboard");
         }
     };
 
