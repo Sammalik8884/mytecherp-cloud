@@ -10,7 +10,17 @@ import { SalesLeadDto, SiteVisitDto } from "../types/sales";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+type TabKey = 'all' | 'new' | 'inprogress' | 'closed' | 'converted';
+const TABS: { key: TabKey; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'new', label: 'New' },
+    { key: 'inprogress', label: 'In Progress' },
+    { key: 'closed', label: 'Pending Quotation (Closed)' },
+    { key: 'converted', label: 'Converted' },
+];
+
 export const SalesLeadsPage = () => {
+    const [activeTab, setActiveTab] = useState<TabKey>('all');
     const { hasRole } = useAuth();
     const navigate = useNavigate();
     const [leads, setLeads] = useState<SalesLeadDto[]>([]);
@@ -68,6 +78,22 @@ export const SalesLeadsPage = () => {
         }
     };
 
+    const tabCounts = {
+        all: leads.length,
+        new: leads.filter(l => l.status === "New").length,
+        inprogress: leads.filter(l => l.status === "InProgress").length,
+        closed: leads.filter(l => l.status === "Closed").length,
+        converted: leads.filter(l => l.status === "ConvertedToQuotation").length
+    };
+
+    const filteredLeads = leads.filter(lead => {
+        if (activeTab === 'new') return lead.status === 'New';
+        if (activeTab === 'inprogress') return lead.status === 'InProgress';
+        if (activeTab === 'closed') return lead.status === 'Closed';
+        if (activeTab === 'converted') return lead.status === 'ConvertedToQuotation';
+        return true;
+    });
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-card p-6 rounded-2xl shadow-sm border border-border">
@@ -91,6 +117,26 @@ export const SalesLeadsPage = () => {
                 </div>
             ) : (
                 <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+                    {/* Status Tabs */}
+                    <div className="border-b border-border/40 px-4 pt-4 flex gap-1 overflow-x-auto">
+                        {TABS.map(tab => (
+                            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all flex items-center gap-2 whitespace-nowrap ${
+                                    activeTab === tab.key
+                                        ? 'bg-background border border-border/60 border-b-background -mb-px text-foreground'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                                }`}
+                            >
+                                {tab.label}
+                                {tabCounts[tab.key] > 0 && (
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab.key ? 'bg-primary/20 text-primary' : 'bg-secondary/80 text-muted-foreground'}`}>
+                                        {tabCounts[tab.key]}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-muted/50 border-b border-border">
@@ -104,7 +150,14 @@ export const SalesLeadsPage = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {leads.map((lead) => (
+                                {filteredLeads.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                                            No {activeTab !== 'all' ? `"${TABS.find(t => t.key === activeTab)?.label}" ` : ''}leads found.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                filteredLeads.map((lead) => (
                                     <tr key={lead.id} className="hover:bg-muted/30 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center space-x-2">
@@ -150,14 +203,8 @@ export const SalesLeadsPage = () => {
                                         </td>
                                     </tr>
                                 ))}
-                                {leads.length === 0 && (
-                                    <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
-                                            <Folder className="h-10 w-10 mx-auto text-muted-foreground/30 mb-2" />
-                                            No sales leads found.
-                                        </td>
-                                    </tr>
-                                )}
+                                )
+                            }
                             </tbody>
                         </table>
                     </div>

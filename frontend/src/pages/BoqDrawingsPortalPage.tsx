@@ -13,7 +13,15 @@ import { authService } from "../services/authService";
 import { UserDto } from "../types/auth";
 
 
+type TabKey = 'all' | 'pending' | 'generated';
+const TABS: { key: TabKey; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'pending', label: 'Pending Quotation' },
+    { key: 'generated', label: 'Quote Generated' },
+];
+
 export const BoqDrawingsPortalPage = () => {
+    const [activeTab, setActiveTab] = useState<TabKey>('all');
     const [leads, setLeads] = useState<SalesLeadDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedLead, setSelectedLead] = useState<SalesLeadDto | null>(null);
@@ -137,6 +145,18 @@ export const BoqDrawingsPortalPage = () => {
     const pendingCount = leads.filter(l => !l.quotationId).length;
     const convertedCount = leads.filter(l => !!l.quotationId).length;
 
+    const tabCounts = {
+        all: leads.length,
+        pending: pendingCount,
+        generated: convertedCount
+    };
+
+    const filteredLeads = leads.filter(lead => {
+        if (activeTab === 'pending') return !lead.quotationId;
+        if (activeTab === 'generated') return !!lead.quotationId;
+        return true;
+    });
+
     return (
         <div className="p-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-center mb-8">
@@ -163,6 +183,26 @@ export const BoqDrawingsPortalPage = () => {
             </div>
 
             <div className="bg-secondary/30 border border-border/50 rounded-2xl overflow-hidden backdrop-blur-sm shadow-xl">
+                {/* Status Tabs */}
+                <div className="border-b border-border/40 px-4 pt-4 flex gap-1 overflow-x-auto">
+                    {TABS.map(tab => (
+                        <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all flex items-center gap-2 whitespace-nowrap ${
+                                activeTab === tab.key
+                                    ? 'bg-background border border-border/60 border-b-background -mb-px text-foreground'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                            }`}
+                        >
+                            {tab.label}
+                            {tabCounts[tab.key] > 0 && (
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab.key ? 'bg-primary/20 text-primary' : 'bg-secondary/80 text-muted-foreground'}`}>
+                                    {tabCounts[tab.key]}
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                         <thead className="text-xs text-muted-foreground uppercase bg-secondary/50 border-b border-border/40">
@@ -185,11 +225,11 @@ export const BoqDrawingsPortalPage = () => {
                             ) : leads.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                                        No leads with BOQ/Drawings found.
+                                        No {activeTab !== 'all' ? `"${TABS.find(t => t.key === activeTab)?.label}" ` : ''}leads found.
                                     </td>
                                 </tr>
                             ) : (
-                                leads.map((lead) => (
+                                filteredLeads.map((lead) => (
                                     <tr key={lead.id} className="hover:bg-secondary/50 transition-colors">
                                         <td className="px-6 py-4 font-medium text-foreground">
                                             <div className="font-mono text-sm">{lead.leadNumber}</div>

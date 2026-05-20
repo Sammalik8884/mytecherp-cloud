@@ -18,10 +18,11 @@ const extractApiError = (error: any, fallback: string) => {
     return d.error || d.Error || d.message || d.Message || d.detail || d.title || fallback;
 };
 
-type TabKey = 'all' | 'draft' | 'pendingapproval' | 'approved' | 'senttocustomer' | 'rejected';
+type TabKey = 'all' | 'pending' | 'draft' | 'pendingapproval' | 'approved' | 'senttocustomer' | 'rejected';
 
 const TABS: { key: TabKey; label: string }[] = [
     { key: 'all',             label: 'All' },
+    { key: 'pending',         label: 'Pending' },
     { key: 'draft',           label: 'Draft' },
     { key: 'pendingapproval', label: 'Pending Approval' },
     { key: 'approved',        label: 'Approved' },
@@ -69,6 +70,8 @@ export const QuotationsPage = () => {
 
     const tabFilteredQuotations = activeTab === 'all'
         ? quotations
+        : activeTab === 'pending'
+        ? quotations.filter(q => ['draft', 'pendingapproval'].includes(normalizeStatus(q.status)))
         : quotations.filter(q => normalizeStatus(q.status) === activeTab);
 
     const filteredQuotations = tabFilteredQuotations.filter(q =>
@@ -78,7 +81,9 @@ export const QuotationsPage = () => {
     );
 
     const tabCounts = TABS.reduce((acc, tab) => {
-        acc[tab.key] = tab.key === 'all' ? quotations.length : quotations.filter(q => normalizeStatus(q.status) === tab.key).length;
+        if (tab.key === 'all') acc[tab.key] = quotations.length;
+        else if (tab.key === 'pending') acc[tab.key] = quotations.filter(q => ['draft', 'pendingapproval'].includes(normalizeStatus(q.status))).length;
+        else acc[tab.key] = quotations.filter(q => normalizeStatus(q.status) === tab.key).length;
         return acc;
     }, {} as Record<TabKey, number>);
 
