@@ -21,5 +21,6 @@ namespace MytechERP.Application.DTOs.Quotations
         public decimal Adjustment { get; set; } 
 
         public List<QuotationItemDto> Items { get; set; } = new();
+        public string? TermsAndConditionsJson { get; set; }
     }
 }

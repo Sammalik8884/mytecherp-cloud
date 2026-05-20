@@ -40,5 +40,7 @@ namespace MytechERP.Application.DTOs.Quotations
 
         [Required]
         public List<CreateQuotationItemDto> Items { get; set; } = new List<CreateQuotationItemDto>();
+
+        public string? TermsAndConditionsJson { get; set; }
     }
 }

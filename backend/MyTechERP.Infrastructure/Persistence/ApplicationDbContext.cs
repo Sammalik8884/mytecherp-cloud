@@ -65,6 +65,7 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<Quotation> Quotations { get; set; }
         public DbSet<QuotationItem> QuotationsItem { get; set; }
         public DbSet<QuotationSettings> QuotationSettings { get; set; }
+        public DbSet<TermsAndConditionsTemplate> TermsAndConditionsTemplates { get; set; }
         public DbSet<DocumentSignature> DocumentSignatures { get; set; }
         public DbSet<SystemFailure> SystemFailures { get; set; }
         public DbSet<Warehouse> Warehouses { get; set; }
@@ -182,6 +183,7 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<Quotation>().HasQueryFilter(q => q.TenantId == _currentUserService.TenantId && !q.IsDeleted);
             builder.Entity<QuotationItem>().HasQueryFilter(qi => qi.TenantId == _currentUserService.TenantId && !qi.IsDeleted);
             builder.Entity<QuotationSettings>().HasQueryFilter(qs => qs.TenantId == _currentUserService.TenantId && !qs.IsDeleted);
+            builder.Entity<TermsAndConditionsTemplate>().HasQueryFilter(t => t.TenantId == _currentUserService.TenantId && !t.IsDeleted);
             builder.Entity<Invoice>().HasQueryFilter(i => i.TenantId == _currentUserService.TenantId && !i.IsDeleted);
             builder.Entity<Payslip>().HasQueryFilter(p => p.TenantId == _currentUserService.TenantId && !p.IsDeleted);
             builder.Entity<PayrollEntry>().HasQueryFilter(p => p.TenantId == _currentUserService.TenantId && !p.IsDeleted);

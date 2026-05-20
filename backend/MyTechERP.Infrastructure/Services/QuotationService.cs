@@ -167,7 +167,8 @@ namespace MyTechERP.Infrastructure.Services
                 SupplyColumnMode = dto.SupplyColumnMode,
                 RevisionNumber = revisionNumber,
                 ProjectCode = projectCode,
-                QuoteHeadline = headline
+                QuoteHeadline = headline,
+                TermsAndConditionsJson = dto.TermsAndConditionsJson
             };
 
             await CalculateAndAddItemsAsync(quotation, dto);
@@ -252,6 +253,7 @@ namespace MyTechERP.Infrastructure.Services
             existingQuote.QuoteMode = dto.QuoteMode;
             existingQuote.SupplyColumnMode = dto.SupplyColumnMode;
             existingQuote.QuoteHeadline = dto.QuoteHeadline;
+            existingQuote.TermsAndConditionsJson = dto.TermsAndConditionsJson;
 
             var newItems = await CalculateItemsAsync(existingQuote, dto);
 
@@ -583,6 +585,7 @@ namespace MyTechERP.Infrastructure.Services
                 CreatedAt = q.CreatedAt,
                 QuoteMode = q.QuoteMode,
                 SupplyColumnMode = q.SupplyColumnMode,
+                TermsAndConditionsJson = q.TermsAndConditionsJson,
 
                 Currency = q.Currency,
                 SubTotal = q.SubTotal,
@@ -794,6 +797,7 @@ namespace MyTechERP.Infrastructure.Services
             q.ProvincialTaxType = request.ProvincialTaxType;
             q.ProvincialTaxPercentage = request.ProvincialTaxPercentage;
             q.Adjustment = request.Adjustment;
+            q.TermsAndConditionsJson = request.TermsAndConditionsJson;
 
             _context.QuotationsItem.RemoveRange(q.Items);
             q.Items = request.Items.Select(i => new QuotationItem

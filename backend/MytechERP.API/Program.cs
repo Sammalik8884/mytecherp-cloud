@@ -73,6 +73,7 @@ builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IWorkflowService, WorkFlowService>();
 builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
+builder.Services.AddScoped<ITermsAndConditionsService, TermsAndConditionsService>();
 builder.Services.AddScoped<IProductImportService, ProductImportService>();
 builder.Services.AddScoped<IFikeProductImportService, FikeProductImportService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();

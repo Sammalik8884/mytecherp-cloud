@@ -432,50 +432,96 @@ namespace MyTechERP.Infrastructure.Services
                         });
                     }
 
-                    TermBlock("Payment & Tax", new[]
+                    // Try to parse dynamic T&C
+                    MytechERP.domain.Entities.System.TermsAndConditionsTemplate dynamicTc = null;
+                    if (!string.IsNullOrWhiteSpace(quote.TermsAndConditionsJson))
                     {
-                        "Prices are on actual basis.",
-                        "GST shown separately on supply rates.",
-                        "Service tax shown separately on installation.",
-                        $"Currency: {quote.Currency}.",
-                        "30% Advance | 60% on Order Confirmation | 10% on Completion.",
-                        "100% Advance after Order & advance Payment confirmation."
-                    });
+                        try
+                        {
+                            dynamicTc = JsonSerializer.Deserialize<MytechERP.domain.Entities.System.TermsAndConditionsTemplate>(
+                                quote.TermsAndConditionsJson,
+                                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                            );
+                        }
+                        catch { }
+                    }
 
-                    TermBlock("Delivery", new[]
+                    if (dynamicTc != null && (
+                        !string.IsNullOrWhiteSpace(dynamicTc.PaymentAndTax) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.Delivery) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.Warranty) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.PurchaseOrder) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.ValidityAndTransportation) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.General)))
                     {
-                        "Stock Available EX-Pakistan.",
-                        "Delivery: 8-12 working weeks after order confirmation."
-                    });
+                        void RenderCustomBlock(string title, string content)
+                        {
+                            if (!string.IsNullOrWhiteSpace(content))
+                            {
+                                var lines = content.Split('\n', System.StringSplitOptions.RemoveEmptyEntries)
+                                                   .Select(l => l.Trim())
+                                                   .Where(l => l.Length > 0)
+                                                   .ToArray();
+                                if (lines.Length > 0)
+                                    TermBlock(title, lines);
+                            }
+                        }
 
-                    TermBlock("Warranty", new[]
+                        RenderCustomBlock("Payment & Tax", dynamicTc.PaymentAndTax);
+                        RenderCustomBlock("Delivery", dynamicTc.Delivery);
+                        RenderCustomBlock("Warranty", dynamicTc.Warranty);
+                        RenderCustomBlock("Validity & Transportation", dynamicTc.ValidityAndTransportation);
+                        RenderCustomBlock("Purchase Order", dynamicTc.PurchaseOrder);
+                        RenderCustomBlock("General", dynamicTc.General);
+                    }
+                    else
                     {
-                        "12-month warranty from date of purchase against defective parts.",
-                        "Does not cover consumables, wear & tear.",
-                        "Does not cover misuse, incorrect installation, or natural disasters.",
-                        "Does not cover chemical cleaning damage."
-                    });
+                        // Fallback to legacy hardcoded T&C
+                        TermBlock("Payment & Tax", new[]
+                        {
+                            "Prices are on actual basis.",
+                            "GST shown separately on supply rates.",
+                            "Service tax shown separately on installation.",
+                            $"Currency: {quote.Currency}.",
+                            "30% Advance | 60% on Order Confirmation | 10% on Completion.",
+                            "100% Advance after Order & advance Payment confirmation."
+                        });
 
-                    TermBlock("Validity & Transportation", new[]
-                    {
-                        "Quotation validity: 20 days.",
-                        "Prices may be adjusted if exchange rate varies > +1%.",
-                        "Equipment prices are EX-Karachi; further transport is client scope.",
-                        "Site power, travel & accommodation are client scope."
-                    });
+                        TermBlock("Delivery", new[]
+                        {
+                            "Stock Available EX-Pakistan.",
+                            "Delivery: 8-12 working weeks after order confirmation."
+                        });
 
-                    TermBlock("Purchase Order", new[]
-                    {
-                        "Cancellation after PO: 30% of item value charged.",
-                        "Partial purchases are not accepted.",
-                        "PO must reference our Quotation Number."
-                    });
+                        TermBlock("Warranty", new[]
+                        {
+                            "12-month warranty from date of purchase against defective parts.",
+                            "Does not cover consumables, wear & tear.",
+                            "Does not cover misuse, incorrect installation, or natural disasters.",
+                            "Does not cover chemical cleaning damage."
+                        });
 
-                    TermBlock("General", new[]
-                    {
-                        "LOI must be shared before PO if quotation is awarded.",
-                        "Agreement governed by laws of Islamic Republic of Pakistan."
-                    });
+                        TermBlock("Validity & Transportation", new[]
+                        {
+                            "Quotation validity: 20 days.",
+                            "Prices may be adjusted if exchange rate varies > +1%.",
+                            "Equipment prices are EX-Karachi; further transport is client scope.",
+                            "Site power, travel & accommodation are client scope."
+                        });
+
+                        TermBlock("Purchase Order", new[]
+                        {
+                            "Cancellation after PO: 30% of item value charged.",
+                            "Partial purchases are not accepted.",
+                            "PO must reference our Quotation Number."
+                        });
+
+                        TermBlock("General", new[]
+                        {
+                            "LOI must be shared before PO if quotation is awarded.",
+                            "Agreement governed by laws of Islamic Republic of Pakistan."
+                        });
+                    }
                 });
 
                 // Signature row

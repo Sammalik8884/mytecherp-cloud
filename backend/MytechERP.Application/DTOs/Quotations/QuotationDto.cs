@@ -39,6 +39,7 @@ namespace MytechERP.Application.DTOs.Quotations
         public string ProjectCode { get; set; } = "FPS";
         public string? QuoteHeadline { get; set; }
         public string? ContactPersonName { get; set; }
+        public string? TermsAndConditionsJson { get; set; }
 
         public List<QuotationItemDto> Items { get; set; } = new List<QuotationItemDto>();
     }

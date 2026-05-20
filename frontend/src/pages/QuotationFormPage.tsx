@@ -13,6 +13,7 @@ import { CustomerDto } from "../types/customer";
 import { SiteDto } from "../types/site";
 import { ProductDto } from "../types/product";
 import { ProductSelectionModal } from "../components/common/ProductSelectionModal";
+import { TermsAndConditionsSection } from "../components/TermsAndConditionsSection";
 
 /* ─── Unit options ─── */
 const UNIT_OPTIONS = [
@@ -84,7 +85,8 @@ export const QuotationFormPage = () => {
         transportationPct: 2,
         profitPct: 15,
         projectCode: "FPS",
-        quoteHeadline: ""
+        quoteHeadline: "",
+        termsAndConditionsJson: ""
     });
 
     // WHT state — UI-only, not submitted to backend, not on PDF
@@ -236,6 +238,7 @@ export const QuotationFormPage = () => {
                         supplyColumnMode: quote.supplyColumnMode || "Both",
                         projectCode: quote.projectCode || "FPS",
                         quoteHeadline: quote.quoteHeadline || "",
+                        termsAndConditionsJson: quote.termsAndConditionsJson || "",
                         costFactorPct: savedCostFactor,
                         importationPct: savedImportPct,
                         transportationPct: savedTransPct,
@@ -1389,14 +1392,20 @@ export const QuotationFormPage = () => {
                                  </>
                              )}
                          </div>
+                        </div>
 
-                         <div className="mt-6 md:mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">
+                        {/* Terms and Conditions Section */}
+                        <TermsAndConditionsSection
+                            valueJson={formData.termsAndConditionsJson}
+                            onChangeJson={(json) => setFormData({ ...formData, termsAndConditionsJson: json })}
+                        />
+
+                        <div className="mt-6 md:mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">
                              <button type="button" onClick={() => navigate('/quotations')} className="px-6 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary/50 transition-colors">Cancel</button>
                              <button type="submit" disabled={saving} className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl shadow-lg hover:-translate-y-0.5 transition-all font-bold flex items-center justify-center gap-2 hover:shadow-primary/25">
                                  {saving && <Loader2 className="w-4 h-4 animate-spin"/>} {isEditMode ? "Update" : isReviseMode ? "Revise" : "Save Quotation"}
                              </button>
                          </div>
-                     </div>
                 </div>
             </form>
 

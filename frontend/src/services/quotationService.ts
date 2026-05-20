@@ -43,6 +43,7 @@ export interface QuotationDto {
     revisionNumber: number;
     projectCode: string;
     quoteHeadline?: string;
+    termsAndConditionsJson?: string;
     items: QuotationItemDto[];
 }
 
@@ -81,6 +82,7 @@ export interface CreateQuotationDto {
     profitPct?: number;
     projectCode?: string;
     quoteHeadline?: string;
+    termsAndConditionsJson?: string;
     items: CreateQuotationItemDto[];
 }
 
