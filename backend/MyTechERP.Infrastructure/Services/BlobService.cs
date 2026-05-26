@@ -46,7 +46,8 @@ namespace MyTechERP.Infrastructure.Services
 
             using (var stream = file.OpenReadStream())
             {
-                await blobClient.UploadAsync(stream, true);
+                var blobHttpHeaders = new BlobHttpHeaders { ContentType = file.ContentType };
+                await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders });
             }
 
             return blobClient.Uri.ToString();
@@ -96,7 +97,29 @@ namespace MyTechERP.Infrastructure.Services
 
                 if (blobClient.CanGenerateSasUri)
                 {
-                    var sasUri = blobClient.GenerateSasUri(Azure.Storage.Sas.BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddMinutes(expiryMinutes));
+                    var sasBuilder = new Azure.Storage.Sas.BlobSasBuilder
+                    {
+                        BlobContainerName = blobClient.BlobContainerName,
+                        BlobName = blobClient.Name,
+                        Resource = "b",
+                        StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+                        ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(expiryMinutes)
+                    };
+                    sasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.Read);
+                    
+                    sasBuilder.ContentDisposition = "inline";
+                    
+                    string ext = System.IO.Path.GetExtension(blobName).ToLower();
+                    sasBuilder.ContentType = ext switch
+                    {
+                        ".pdf" => "application/pdf",
+                        ".png" => "image/png",
+                        ".jpg" or ".jpeg" => "image/jpeg",
+                        ".gif" => "image/gif",
+                        _ => "application/octet-stream"
+                    };
+
+                    var sasUri = blobClient.GenerateSasUri(sasBuilder);
                     return sasUri.ToString();
                 }
             }
