@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Upload, Loader2, File } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { siteDocumentService } from "../../services/siteDocumentService";
@@ -93,7 +94,7 @@ export const ProjectScopeModal = () => {
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
             <div className="bg-card w-full max-w-2xl rounded-xl shadow-2xl border border-border flex flex-col max-h-[90vh]">
                 <div className="flex items-center justify-between p-6 border-b border-border">
@@ -205,6 +206,7 @@ export const ProjectScopeModal = () => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
