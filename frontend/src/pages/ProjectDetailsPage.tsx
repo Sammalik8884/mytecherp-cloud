@@ -6,6 +6,7 @@ import { expenseApi } from "../api/expenseApi";
 import { quotationService } from "../services/quotationService";
 import { invoiceService } from "../services/invoiceService";
 import { salesService } from "../services/salesService";
+import { siteDocumentService, SiteDocumentDto } from "../services/siteDocumentService";
 
 import { SiteDto } from "../types/site";
 import { ExpenseDto } from "../api/expenseApi";
@@ -26,12 +27,23 @@ export const ProjectDetailsPage = () => {
     const [quotations, setQuotations] = useState<QuotationDto[]>([]);
     const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
     const [leads, setLeads] = useState<SalesLeadDto[]>([]);
+    const [documents, setDocuments] = useState<SiteDocumentDto[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
 
     useEffect(() => {
         loadData();
+    }, [siteId]);
+
+    useEffect(() => {
+        const handleRefresh = (e: any) => {
+            if (e.detail?.siteId === siteId) {
+                siteDocumentService.getDocumentsBySiteId(siteId).then(setDocuments);
+            }
+        };
+        window.addEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefresh);
+        return () => window.removeEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefresh);
     }, [siteId]);
 
     const loadData = async () => {
@@ -43,14 +55,16 @@ export const ProjectDetailsPage = () => {
                 arfDataResp,
                 quoteData,
                 invoiceData,
-                leadData
+                leadData,
+                documentData
             ] = await Promise.all([
                 siteService.getById(siteId),
                 expenseApi.getBySiteId(siteId),
                 amountRequestApi.getAll(),
                 quotationService.getAllQuotations(),
                 invoiceService.getAll(),
-                salesService.getLeads()
+                salesService.getLeads(),
+                siteDocumentService.getDocumentsBySiteId(siteId)
             ]);
 
             const arfData = arfDataResp.data;
@@ -64,6 +78,7 @@ export const ProjectDetailsPage = () => {
             const quoteIds = quoteData.filter((q: any) => q.siteId === siteId).map((q: any) => q.id);
             setInvoices(invoiceData.filter((i: any) => i.quotationId && quoteIds.includes(i.quotationId)));
             setLeads(leadData.filter((l: any) => l.siteId === siteId));
+            setDocuments(documentData);
             
         } catch (error) {
             console.error("Failed to load project details", error);
@@ -94,6 +109,7 @@ export const ProjectDetailsPage = () => {
                     <button onClick={() => setActiveTab('overview')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'overview' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}>Overview</button>
                     <button onClick={() => setActiveTab('leads')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'leads' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Target className="h-4 w-4" /> <span>Leads ({leads.length})</span></button>
                     <button onClick={() => setActiveTab('quotes')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'quotes' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileText className="h-4 w-4" /> <span>Quotes ({quotations.length})</span></button>
+                    <button onClick={() => setActiveTab('documents')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'documents' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileText className="h-4 w-4" /> <span>Documents ({documents.length})</span></button>
                     <button onClick={() => setActiveTab('invoices')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'invoices' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Receipt className="h-4 w-4" /> <span>Invoices ({invoices.length})</span></button>
                     <button onClick={() => setActiveTab('arfs')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'arfs' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><DollarSign className="h-4 w-4" /> <span>ARFs ({arfs.length})</span></button>
                     <button onClick={() => setActiveTab('expenses')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'expenses' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Receipt className="h-4 w-4" /> <span>Expenses ({expenses.length})</span></button>
@@ -171,6 +187,45 @@ export const ProjectDetailsPage = () => {
                                         <td className="px-4 py-3">{dayjs(quote.createdAt).format("DD MMM YYYY")}</td>
                                     </tr>
                                 ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {activeTab === 'documents' && (
+                     <div className="bg-card border border-border rounded-xl overflow-hidden">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-muted text-muted-foreground">
+                                <tr>
+                                    <th className="px-4 py-3">Document Name</th>
+                                    <th className="px-4 py-3">Type</th>
+                                    <th className="px-4 py-3">Customer</th>
+                                    <th className="px-4 py-3">Date</th>
+                                    <th className="px-4 py-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {documents.length === 0 ? (
+                                    <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No documents found.</td></tr>
+                                ) : (
+                                    documents.map(doc => (
+                                        <tr key={doc.id} className="hover:bg-muted/50">
+                                            <td className="px-4 py-3 font-medium flex items-center space-x-2">
+                                                <FileText className="h-4 w-4 text-primary" />
+                                                <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{doc.fileName}</a>
+                                            </td>
+                                            <td className="px-4 py-3">{doc.documentType}</td>
+                                            <td className="px-4 py-3">
+                                                {doc.customerName ? <span className="block">{doc.customerName}</span> : null}
+                                                {doc.secondaryCustomerName ? <span className="block text-xs text-muted-foreground">{doc.secondaryCustomerName}</span> : null}
+                                            </td>
+                                            <td className="px-4 py-3">{dayjs(doc.createdAt).format("DD MMM YYYY")}</td>
+                                            <td className="px-4 py-3">
+                                                <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm font-medium">View / Download</a>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>

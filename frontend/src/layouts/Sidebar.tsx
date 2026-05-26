@@ -1,4 +1,5 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import {
     Home, Users, MapPin, Briefcase, LogOut, FileText, FolderTree, Package, Receipt,
     ShieldAlert, X, Box, Wrench, DollarSign, FileSignature, ShoppingCart, ClipboardList,
@@ -21,6 +22,8 @@ type SidebarItem = {
     allowedRoles?: string[];
     isHeader?: boolean;
     requiredFeature?: PlanFeature;
+    isDropdown?: boolean;
+    subItems?: { label: string; action: string; icon: any }[];
 };
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
@@ -28,6 +31,15 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Amount Request Form", href: "/amount-request", icon: DollarSign },
     { label: "Expenses", href: "/expenses", icon: Receipt },
     { label: "Projects", href: "/projects", icon: FolderTree, allowedRoles: ["Admin", "Manager"] },
+    { 
+        label: "Project Documents", 
+        icon: FileText, 
+        isDropdown: true,
+        allowedRoles: ["Admin", "Manager"],
+        subItems: [
+            { label: "Project Scope", action: "OPEN_PROJECT_SCOPE_MODAL", icon: FileSignature }
+        ]
+    },
 
     { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
     { label: "Sales Management", href: "/sales/leads", icon: Target, allowedRoles: ["Admin", "Manager", "Salesman", "Engineer", "Worker", "Technician"] },
@@ -73,6 +85,11 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     const { logout, user, hasRole, hasFeature } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
+    const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+
+    const toggleDropdown = (label: string) => {
+        setOpenDropdowns((prev: Record<string, boolean>) => ({ ...prev, [label]: !prev[label] }));
+    };
 
     return (
         <div className={cn(
@@ -129,6 +146,24 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                         <Lock className="h-3 w-3 text-amber-500/70" />
                                     </div>
                                 </button>
+                            ) : item.isDropdown ? (
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        toggleDropdown(item.label);
+                                    }}
+                                    className={cn(
+                                        "w-full flex items-center justify-between space-x-3 px-4 py-2.5 rounded-lg transition-all duration-200 relative overflow-hidden group font-medium text-sm",
+                                        openDropdowns[item.label]
+                                            ? "bg-primary/10 text-primary font-semibold"
+                                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                                    )}
+                                >
+                                    <div className="flex items-center space-x-3">
+                                        <item.icon className="h-5 w-5" />
+                                        <span>{item.label}</span>
+                                    </div>
+                                </button>
                             ) : (
                                 <NavLink
                                     to={href}
@@ -145,6 +180,25 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                         <span>{item.label}</span>
                                     </div>
                                 </NavLink>
+                            )}
+
+                            {/* Custom SubItems Dropdown */}
+                            {!isLocked && item.isDropdown && openDropdowns[item.label] && item.subItems && (
+                                <div className="pl-12 flex flex-col space-y-1 mt-1 animate-in slide-in-from-top-2 duration-200">
+                                    {item.subItems.map((sub, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => {
+                                                window.dispatchEvent(new CustomEvent(sub.action));
+                                                if (isOpen) onClose();
+                                            }}
+                                            className="text-xs py-2 px-2 rounded-md transition-colors flex items-center space-x-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 text-left w-full"
+                                        >
+                                            <sub.icon className="h-3 w-3" />
+                                            <span>{sub.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             )}
 
                             {/* Submenu for Catalog */}

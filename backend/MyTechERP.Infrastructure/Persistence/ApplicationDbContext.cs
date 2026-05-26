@@ -50,6 +50,7 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<Category> Categories { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Site> Sites { get; set; }
+        public DbSet<SiteDocument> SiteDocuments { get; set; }
         public DbSet<Building> Buildings { get; set; }
         public DbSet<Floor> Floors { get; set; }
         public DbSet<Room> Rooms { get; set; }
