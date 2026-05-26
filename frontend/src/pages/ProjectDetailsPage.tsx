@@ -64,7 +64,10 @@ export const ProjectDetailsPage = () => {
                 quotationService.getAllQuotations(),
                 invoiceService.getAll(),
                 salesService.getLeads(),
-                siteDocumentService.getDocumentsBySiteId(siteId)
+                siteDocumentService.getDocumentsBySiteId(siteId).catch(err => {
+                    console.error("Failed to load documents", err);
+                    return [];
+                })
             ]);
 
             const arfData = arfDataResp.data;

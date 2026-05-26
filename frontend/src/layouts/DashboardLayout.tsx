@@ -3,7 +3,6 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { TrialBanner, TrialExpiredWall, useTrialEnforcement } from "../components/TrialBanner";
-import { ProjectScopeModal } from "../components/common/ProjectScopeModal";
 
 export const DashboardLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
@@ -39,8 +38,6 @@ export const DashboardLayout = () => {
                     </div>
                 </main>
             </div>
-            
-            <ProjectScopeModal />
         </div>
     );
 };

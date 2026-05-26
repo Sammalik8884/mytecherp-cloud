@@ -13,6 +13,7 @@ import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { CustomersPage } from "./pages/CustomersPage";
 import { SitesPage } from "./pages/SitesPage";
+import { ProjectDocumentsPage } from "./pages/ProjectDocumentsPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { QuotationsPage } from "./pages/QuotationsPage";
@@ -83,6 +84,7 @@ function App() {
                             <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager"]} />}>
                                 <Route path="/customers" element={<CustomersPage />} />
                                 <Route path="/sites" element={<SitesPage />} />
+                                <Route path="/project-documents" element={<ProjectDocumentsPage />} />
                             </Route>
 
                             {/* Catalog & Sales - Engineer/Manager/Admin Only */}

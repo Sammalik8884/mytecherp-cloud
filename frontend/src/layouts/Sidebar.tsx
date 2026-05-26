@@ -33,12 +33,9 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Projects", href: "/projects", icon: FolderTree, allowedRoles: ["Admin", "Manager"] },
     { 
         label: "Project Documents", 
-        icon: FileText, 
-        isDropdown: true,
-        allowedRoles: ["Admin", "Manager"],
-        subItems: [
-            { label: "Project Scope", action: "OPEN_PROJECT_SCOPE_MODAL", icon: FileSignature }
-        ]
+        href: "/project-documents",
+        icon: FileSignature, 
+        allowedRoles: ["Admin", "Manager"]
     },
 
     { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
