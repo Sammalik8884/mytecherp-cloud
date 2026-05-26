@@ -11,6 +11,7 @@ export interface SiteDocumentDto {
     secondaryCustomerName?: string;
     fileName: string;
     fileUrl: string;
+    downloadUrl: string;
     createdAt: string;
     uploadedByUserId: string;
 }
