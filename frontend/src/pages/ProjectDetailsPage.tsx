@@ -14,7 +14,7 @@ import { QuotationDto } from "../services/quotationService";
 import { InvoiceDto } from "../types/finance";
 import { SalesLeadDto } from "../types/sales";
 
-import { FileText, MapPin, Search, Plus, Loader2, Building, Calendar, DollarSign, Receipt, Briefcase, FileSignature, ArrowLeft, MoreVertical, Edit, Download, Eye, User, Target } from "lucide-react";
+import { FileText, MapPin, DollarSign, Receipt, Download, Eye, User, Target } from "lucide-react";
 import dayjs from "dayjs";
 
 export const ProjectDetailsPage = () => {
