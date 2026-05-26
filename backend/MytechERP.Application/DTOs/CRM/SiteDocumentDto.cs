@@ -18,6 +18,7 @@ namespace MytechERP.Application.DTOs.CRM
 
         public string FileName { get; set; } = string.Empty;
         public string FileUrl { get; set; } = string.Empty;
+        public string DownloadUrl { get; set; } = string.Empty;
         
         public DateTime CreatedAt { get; set; }
         public string UploadedByUserId { get; set; } = string.Empty;

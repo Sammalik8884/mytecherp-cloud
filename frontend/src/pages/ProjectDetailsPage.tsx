@@ -228,30 +228,13 @@ export const ProjectDetailsPage = () => {
                                                     <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 flex items-center text-sm font-medium transition-colors" title="View in browser">
                                                         <Eye className="h-4 w-4 mr-1" /> View
                                                     </a>
-                                                    <button 
-                                                        onClick={async () => {
-                                                            try {
-                                                                const response = await fetch(doc.fileUrl);
-                                                                const blob = await response.blob();
-                                                                const url = window.URL.createObjectURL(blob);
-                                                                const link = document.createElement('a');
-                                                                link.href = url;
-                                                                link.download = doc.fileName;
-                                                                document.body.appendChild(link);
-                                                                link.click();
-                                                                link.remove();
-                                                                window.URL.revokeObjectURL(url);
-                                                            } catch (error) {
-                                                                console.error("Download failed", error);
-                                                                // Fallback to opening in new tab
-                                                                window.open(doc.fileUrl, '_blank');
-                                                            }
-                                                        }} 
+                                                    <a 
+                                                        href={doc.downloadUrl} 
                                                         className="text-primary hover:text-primary/80 flex items-center text-sm font-medium transition-colors"
                                                         title="Download file"
                                                     >
                                                         <Download className="h-4 w-4 mr-1" /> Download
-                                                    </button>
+                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>

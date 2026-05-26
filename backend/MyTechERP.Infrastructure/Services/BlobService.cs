@@ -75,7 +75,7 @@ namespace MyTechERP.Infrastructure.Services
 
             return blobClient.Uri.ToString();
         }
-        public string GenerateSasUrl(string rawBlobUrl, int expiryMinutes = 60)
+        public string GenerateSasUrl(string rawBlobUrl, int expiryMinutes = 60, bool isDownload = false)
         {
             if (string.IsNullOrEmpty(rawBlobUrl)) return rawBlobUrl;
             
@@ -107,7 +107,7 @@ namespace MyTechERP.Infrastructure.Services
                     };
                     sasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.Read);
                     
-                    sasBuilder.ContentDisposition = "inline";
+                    sasBuilder.ContentDisposition = isDownload ? "attachment" : "inline";
                     
                     string ext = System.IO.Path.GetExtension(blobName).ToLower();
                     sasBuilder.ContentType = ext switch

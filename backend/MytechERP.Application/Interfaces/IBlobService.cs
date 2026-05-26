@@ -11,6 +11,6 @@ namespace MytechERP.Application.Interfaces
     {
         Task<string> UploadAsync(IFormFile file, string fileName);
         Task<string> UploadStreamAsync(System.IO.Stream stream, string fileName, string contentType);
-        string GenerateSasUrl(string rawBlobUrl, int expiryMinutes = 60);
+        string GenerateSasUrl(string rawBlobUrl, int expiryMinutes = 60, bool isDownload = false);
     }
 }

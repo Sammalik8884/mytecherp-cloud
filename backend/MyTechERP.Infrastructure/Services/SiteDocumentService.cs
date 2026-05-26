@@ -46,7 +46,8 @@ namespace MyTechERP.Infrastructure.Services
                 SecondaryCustomerId = d.SecondaryCustomerId,
                 SecondaryCustomerName = d.SecondaryCustomer?.Name,
                 FileName = d.FileName,
-                FileUrl = _blobService.GenerateSasUrl(d.FileUrl),
+                FileUrl = _blobService.GenerateSasUrl(d.FileUrl, 60, false),
+                DownloadUrl = _blobService.GenerateSasUrl(d.FileUrl, 60, true),
                 CreatedAt = d.CreatedAt,
                 UploadedByUserId = d.UploadedByUserId
             });
@@ -93,7 +94,8 @@ namespace MyTechERP.Infrastructure.Services
                 CustomerId = d.CustomerId,
                 SecondaryCustomerId = d.SecondaryCustomerId,
                 FileName = d.FileName,
-                FileUrl = _blobService.GenerateSasUrl(d.FileUrl),
+                FileUrl = _blobService.GenerateSasUrl(d.FileUrl, 60, false),
+                DownloadUrl = _blobService.GenerateSasUrl(d.FileUrl, 60, true),
                 CreatedAt = d.CreatedAt,
                 UploadedByUserId = d.UploadedByUserId
             });
