@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MytechERP.Application.DTOs.CRM;
 using MytechERP.Application.Interfaces;
 using MytechERP.domain.Entities.CRM;
-using MyTechERP.Infrastructure.Persistance;
+using MytechERP.Infrastructure.Persistance;
 using System;
 using System.Collections.Generic;
 using System.IO;
