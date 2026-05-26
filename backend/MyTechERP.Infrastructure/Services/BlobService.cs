@@ -81,7 +81,15 @@ namespace MyTechERP.Infrastructure.Services
             try
             {
                 var uri = new Uri(rawBlobUrl);
-                string blobName = uri.Segments.Last();
+                
+                string prefix = $"/{_containerName}/";
+                if (!uri.AbsolutePath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    return rawBlobUrl;
+                }
+                
+                string blobName = uri.AbsolutePath.Substring(prefix.Length);
+                blobName = Uri.UnescapeDataString(blobName);
 
                 var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
                 var blobClient = containerClient.GetBlobClient(blobName);
