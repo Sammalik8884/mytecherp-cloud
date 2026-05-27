@@ -19,9 +19,6 @@ namespace MytechERP.domain.Entities.CRM
         
         public string? Location { get; set; } // e.g., Lahore, Karachi
         
-        public string? CreatedById { get; set; }
-        public AppUser? CreatedBy { get; set; }
-        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         public string CreatedByUserId { get; set; } = string.Empty;
