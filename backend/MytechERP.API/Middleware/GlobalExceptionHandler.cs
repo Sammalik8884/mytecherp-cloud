@@ -23,8 +23,7 @@ namespace MytechERP.API.Middleware
             {
                 Status = statusCode,
                 Title = "Server Error",
-                Detail = "An Internal error occured. Please contact support. Error: " + exception.Message
-
+                Detail = "An Internal error occured. Please contact support. Error: " + exception.Message + (exception.InnerException != null ? " Inner Exception: " + exception.InnerException.Message : "")
             };
             
             context.Response.StatusCode = statusCode;

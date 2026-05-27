@@ -214,6 +214,12 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<Expense>().HasQueryFilter(e => e.TenantId == _currentUserService.TenantId && !e.IsDeleted);
             builder.Entity<ExpenseItem>().HasQueryFilter(ei => ei.TenantId == _currentUserService.TenantId);
             builder.Entity<MaterialReceivingForm>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
+
+            builder.Entity<MaterialReceivingForm>()
+                .HasOne(m => m.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(m => m.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
             
             // ─── Subscription Plan & Tenant Subscription ─────────────────────────────
             // No tenant query filter on SubscriptionPlan (it's global/shared data).

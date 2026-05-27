@@ -44,8 +44,15 @@ namespace MytechERP.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateForm([FromBody] CreateMaterialReceivingFormDto dto)
         {
-            var form = await _service.CreateFormAsync(dto);
-            return CreatedAtAction(nameof(GetFormById), new { id = form.Id }, form);
+            try 
+            {
+                var form = await _service.CreateFormAsync(dto);
+                return CreatedAtAction(nameof(GetFormById), new { id = form.Id }, form);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message, inner = ex.InnerException?.Message, stackTrace = ex.StackTrace });
+            }
         }
     }
 }
