@@ -10,6 +10,7 @@ import { CustomerDto } from "../../types/customer";
 
 export const ProjectScopeModal = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [documentType, setDocumentType] = useState("Project Scope");
     const [sites, setSites] = useState<SiteDto[]>([]);
     const [customers, setCustomers] = useState<CustomerDto[]>([]);
     
@@ -20,12 +21,28 @@ export const ProjectScopeModal = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        const handleOpen = () => {
+        const handleOpen = (e: Event) => {
+            const customEvent = e as CustomEvent;
+            if (customEvent.detail?.documentType) {
+                setDocumentType(customEvent.detail.documentType);
+            } else {
+                setDocumentType("Project Scope");
+            }
             setIsOpen(true);
             loadData();
         };
-        window.addEventListener("OPEN_PROJECT_SCOPE_MODAL", handleOpen);
-        return () => window.removeEventListener("OPEN_PROJECT_SCOPE_MODAL", handleOpen);
+        
+        // Listen for generic document modal event
+        window.addEventListener("OPEN_PROJECT_DOCUMENT_MODAL", handleOpen);
+        
+        // Backwards compatibility for old event
+        const handleLegacyOpen = () => handleOpen(new CustomEvent('OPEN_PROJECT_DOCUMENT_MODAL', { detail: { documentType: 'Project Scope' } }));
+        window.addEventListener("OPEN_PROJECT_SCOPE_MODAL", handleLegacyOpen);
+        
+        return () => {
+            window.removeEventListener("OPEN_PROJECT_DOCUMENT_MODAL", handleOpen);
+            window.removeEventListener("OPEN_PROJECT_SCOPE_MODAL", handleLegacyOpen);
+        };
     }, []);
 
     const loadData = async () => {
@@ -66,12 +83,12 @@ export const ProjectScopeModal = () => {
         try {
             await siteDocumentService.uploadDocuments(
                 Number(selectedSiteId),
-                "Project Scope",
+                documentType,
                 selectedCustomerId ? Number(selectedCustomerId) : undefined,
                 selectedSecondaryCustomerId ? Number(selectedSecondaryCustomerId) : undefined,
                 files
             );
-            toast.success("Project Scope uploaded successfully!");
+            toast.success(`${documentType} uploaded successfully!`);
             
             // Dispatch event to refresh documents if we are on the project details page
             window.dispatchEvent(new CustomEvent('REFRESH_PROJECT_DOCUMENTS', { detail: { siteId: Number(selectedSiteId) } }));
@@ -98,14 +115,14 @@ export const ProjectScopeModal = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
             <div className="bg-card w-full max-w-2xl rounded-xl shadow-2xl border border-border flex flex-col max-h-[90vh]">
                 <div className="flex items-center justify-between p-6 border-b border-border">
-                    <h2 className="text-xl font-bold">Project Scope</h2>
+                    <h2 className="text-xl font-bold">{documentType}</h2>
                     <button onClick={handleClose} className="text-muted-foreground hover:bg-secondary p-2 rounded-full transition-colors">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
 
                 <div className="p-6 overflow-y-auto flex-1">
-                    <form id="project-scope-form" onSubmit={handleSubmit} className="space-y-4">
+                    <form id="project-document-form" onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Customer Name (Optional)</label>
@@ -151,7 +168,7 @@ export const ProjectScopeModal = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-2">Project Scope Files <span className="text-destructive">*</span></label>
+                            <label className="block text-sm font-medium mb-2">{documentType} Files <span className="text-destructive">*</span></label>
                             <div className="border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center justify-center bg-secondary/30 relative hover:bg-secondary/50 transition-colors">
                                 <input 
                                     type="file" 
@@ -197,7 +214,7 @@ export const ProjectScopeModal = () => {
                     </button>
                     <button 
                         type="submit" 
-                        form="project-scope-form"
+                        form="project-document-form"
                         disabled={isSubmitting || !selectedSiteId || files.length === 0}
                         className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2 disabled:opacity-50"
                     >

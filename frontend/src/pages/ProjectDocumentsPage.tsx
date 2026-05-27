@@ -14,7 +14,7 @@ export const ProjectDocumentsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Project Scope Card */}
                 <button 
-                    onClick={() => window.dispatchEvent(new CustomEvent('OPEN_PROJECT_SCOPE_MODAL'))}
+                    onClick={() => window.dispatchEvent(new CustomEvent('OPEN_PROJECT_DOCUMENT_MODAL', { detail: { documentType: 'Project Scope' } }))}
                     className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
                 >
                     <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -26,7 +26,21 @@ export const ProjectDocumentsPage = () => {
                         <Plus className="h-4 w-4 mr-1" /> Create Document
                     </div>
                 </button>
-                
+                {/* Project Drawings IFC Card */}
+                <button 
+                    onClick={() => window.dispatchEvent(new CustomEvent('OPEN_PROJECT_DOCUMENT_MODAL', { detail: { documentType: 'Project Drawings IFC' } }))}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <FileSignature className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors">Project Drawings IFC</h3>
+                    <p className="text-sm text-muted-foreground text-center">Fill out the project drawings document and link it to a site and customer.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create Document
+                    </div>
+                </button>
+
                 {/* Future Document Cards can be added here */}
                 <div className="flex flex-col items-center justify-center p-8 bg-muted/20 border border-dashed border-border rounded-xl text-muted-foreground">
                     <p className="text-sm">More document types coming soon...</p>
