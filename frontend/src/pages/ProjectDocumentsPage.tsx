@@ -2,21 +2,63 @@ import { useState, useEffect } from "react";
 import { FileSignature, Plus, Wrench, Search, Loader2, FileCheck } from "lucide-react";
 import { ProjectScopeModal } from "../components/common/ProjectScopeModal";
 import { ToolsListModal } from "../components/common/ToolsListModal";
-import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
+import { MaterialReceivingModal } from "../components/common/MaterialReceivingModal";
 import { siteService } from "../services/siteService";
 import { SiteDto } from "../types/site";
+import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
 import MomMeetingModal from "../components/MomMeetingModal";
 import momMeetingService, { MomMeetingDto } from "../services/momMeetingService";
 import { siteDocumentService } from "../services/siteDocumentService";
 import { Users, Download, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 
+const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
+
 export const ProjectDocumentsPage = () => {
-    const [sites, setSites] = useState<SiteDto[]>([]);
-    const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
+    const [selectedLocation, setSelectedLocation] = useState<string>("");
     const [toolsLists, setToolsLists] = useState<MaterialReceivingFormDto[]>([]);
     const [isLoadingTools, setIsLoadingTools] = useState(false);
     const [showToolsDetails, setShowToolsDetails] = useState(false);
+
+    // Material Receiving State
+    const [sites, setSites] = useState<SiteDto[]>([]);
+    const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
+    const [materialReceivingLists, setMaterialReceivingLists] = useState<MaterialReceivingFormDto[]>([]);
+    const [isLoadingMaterialReceiving, setIsLoadingMaterialReceiving] = useState(false);
+    const [showMaterialReceivingDetails, setShowMaterialReceivingDetails] = useState(false);
+
+    useEffect(() => {
+        if (showMaterialReceivingDetails) {
+            siteService.getAll().then(setSites).catch(console.error);
+        }
+    }, [showMaterialReceivingDetails]);
+
+    useEffect(() => {
+        const handleRefresh = () => {
+            if (selectedSiteId) {
+                fetchMaterialReceivingLists(Number(selectedSiteId));
+            }
+        };
+        window.addEventListener("REFRESH_MATERIAL_RECEIVING_LIST", handleRefresh);
+        return () => window.removeEventListener("REFRESH_MATERIAL_RECEIVING_LIST", handleRefresh);
+    }, [selectedSiteId]);
+
+    const fetchMaterialReceivingLists = async (siteId: number) => {
+        setIsLoadingMaterialReceiving(true);
+        try {
+            const data = await materialReceivingService.getFormsBySiteId(siteId);
+            setMaterialReceivingLists(data);
+        } catch (error) {
+            console.error("Failed to load material receiving lists", error);
+        } finally {
+            setIsLoadingMaterialReceiving(false);
+        }
+    };
+
+    const handleSiteSelect = (siteId: number | "") => {
+        setSelectedSiteId(siteId);
+        if (siteId) fetchMaterialReceivingLists(Number(siteId));
+    };
 
     // MOM State
     const [showMomModal, setShowMomModal] = useState(false);
@@ -156,24 +198,18 @@ export const ProjectDocumentsPage = () => {
 
     useEffect(() => {
         const handleRefresh = () => {
-            if (selectedSiteId) {
-                fetchToolsLists(Number(selectedSiteId));
+            if (selectedLocation) {
+                fetchToolsLists(selectedLocation);
             }
         };
-        window.addEventListener("REFRESH_PROJECT_DOCUMENTS", handleRefresh);
-        return () => window.removeEventListener("REFRESH_PROJECT_DOCUMENTS", handleRefresh);
-    }, [selectedSiteId]);
+        window.addEventListener("REFRESH_TOOLS_LIST", handleRefresh);
+        return () => window.removeEventListener("REFRESH_TOOLS_LIST", handleRefresh);
+    }, [selectedLocation]);
 
-    useEffect(() => {
-        if (showToolsDetails) {
-            siteService.getAll().then(setSites).catch(console.error);
-        }
-    }, [showToolsDetails]);
-
-    const fetchToolsLists = async (siteId: number) => {
+    const fetchToolsLists = async (location: string) => {
         setIsLoadingTools(true);
         try {
-            const data = await materialReceivingService.getFormsBySiteId(siteId);
+            const data = await materialReceivingService.getFormsByLocation(location);
             setToolsLists(data);
         } catch (error) {
             console.error("Failed to load tools lists", error);
@@ -182,9 +218,9 @@ export const ProjectDocumentsPage = () => {
         }
     };
 
-    const handleSiteSelect = (siteId: number | "") => {
-        setSelectedSiteId(siteId);
-        if (siteId) fetchToolsLists(Number(siteId));
+    const handleLocationSelect = (loc: string) => {
+        setSelectedLocation(loc);
+        fetchToolsLists(loc);
     };
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -278,8 +314,8 @@ export const ProjectDocumentsPage = () => {
                     <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Wrench className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Project Tool Site</h3>
-                    <p className="text-sm text-muted-foreground text-center">Fill out the project tool site list.</p>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Tools List</h3>
+                    <p className="text-sm text-muted-foreground text-center">Fill out the dynamic tools list for your location.</p>
                     <div className="mt-4 flex items-center text-sm font-medium text-primary">
                         <Plus className="h-4 w-4 mr-1" /> Create Document
                     </div>
@@ -304,6 +340,18 @@ export const ProjectDocumentsPage = () => {
                     </div>
                 </button>
 
+                {/* Project Tool Site (Material Receiving) Card */}
+                <button 
+                    onClick={() => window.dispatchEvent(new CustomEvent('OPEN_MATERIAL_RECEIVING_MODAL'))}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-emerald-500/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Wrench className="h-8 w-8 text-emerald-500" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-emerald-500 transition-colors text-center">Project Tool Site</h3>
+                    <p className="text-sm text-muted-foreground text-center">Fill out the project tool site list.</p>
+                </button>
+
                 {/* Future Document Cards can be added here */}
                 <div className="flex flex-col items-center justify-center p-8 bg-muted/20 border border-dashed border-border rounded-xl text-muted-foreground">
                     <p className="text-sm">More document types coming soon...</p>
@@ -313,16 +361,16 @@ export const ProjectDocumentsPage = () => {
             {/* Project Tool Site / Material Receiving List Section */}
             <div className="mt-12 bg-card border border-border rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold tracking-tight text-primary">Material Receiving List</h2>
+                    <h2 className="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-500">Material Receiving List</h2>
                     <button 
-                        onClick={() => setShowToolsDetails(!showToolsDetails)}
-                        className="text-sm font-medium text-primary hover:underline"
+                        onClick={() => setShowMaterialReceivingDetails(!showMaterialReceivingDetails)}
+                        className="text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-500"
                     >
-                        {showToolsDetails ? "Hide Details" : "Show Details"}
+                        {showMaterialReceivingDetails ? "Hide Details" : "Show Details"}
                     </button>
                 </div>
 
-                {showToolsDetails && (
+                {showMaterialReceivingDetails && (
                     <div className="space-y-6 pt-4 border-t border-border">
                         <div>
                             <p className="text-sm text-muted-foreground mb-3">Select a site to view the material receiving lists:</p>
@@ -342,13 +390,13 @@ export const ProjectDocumentsPage = () => {
                             <div className="bg-secondary/20 rounded-lg p-6 border border-border">
                                 <h3 className="font-semibold text-lg mb-4">Material Receiving Lists</h3>
                                 
-                                {isLoadingTools ? (
+                                {isLoadingMaterialReceiving ? (
                                     <div className="flex justify-center p-8">
                                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
                                     </div>
-                                ) : toolsLists.length > 0 ? (
+                                ) : materialReceivingLists.length > 0 ? (
                                     <div className="space-y-6">
-                                        {toolsLists.map((list) => (
+                                        {materialReceivingLists.map((list) => (
                                             <div key={list.id} className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
                                                 <div className="bg-secondary/50 px-4 py-3 border-b border-border flex justify-between items-center">
                                                     <div>
@@ -390,6 +438,95 @@ export const ProjectDocumentsPage = () => {
                                     <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
                                         <Search className="h-8 w-8 mx-auto mb-2 opacity-20" />
                                         <p>No lists found for this site</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Tools List Details Section (Footer) */}
+            <div className="mt-12 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Tools List Details</h2>
+                    <button 
+                        onClick={() => setShowToolsDetails(!showToolsDetails)}
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        {showToolsDetails ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+
+                {showToolsDetails && (
+                    <div className="space-y-6 pt-4 border-t border-border">
+                        <div>
+                            <p className="text-sm text-muted-foreground mb-3">Select a city to view the tools list details:</p>
+                            <div className="flex flex-wrap gap-2">
+                                {LOCATIONS.map(loc => (
+                                    <button
+                                        key={loc}
+                                        onClick={() => handleLocationSelect(loc)}
+                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                            selectedLocation === loc 
+                                            ? "bg-primary text-primary-foreground" 
+                                            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                                        }`}
+                                    >
+                                        {loc}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {selectedLocation && (
+                            <div className="bg-secondary/20 rounded-lg p-6 border border-border">
+                                <h3 className="font-semibold text-lg mb-4">Tools for {selectedLocation}</h3>
+                                
+                                {isLoadingTools ? (
+                                    <div className="flex justify-center p-8">
+                                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                    </div>
+                                ) : toolsLists.length > 0 ? (
+                                    <div className="space-y-6">
+                                        {toolsLists.map((list) => (
+                                            <div key={list.id} className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+                                                <div className="bg-secondary/50 px-4 py-3 border-b border-border flex justify-between items-center">
+                                                    <div>
+                                                        <span className="font-medium">List #{list.id}</span>
+                                                        <span className="text-xs text-muted-foreground ml-2">Created by: {list.createdByUserName || "System"}</span>
+                                                    </div>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {new Date(list.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <div className="p-0">
+                                                    <table className="w-full text-sm text-left">
+                                                        <thead className="bg-muted/30 text-muted-foreground">
+                                                            <tr>
+                                                                <th className="px-4 py-2 font-medium">Item Name</th>
+                                                                <th className="px-4 py-2 font-medium">Received</th>
+                                                                <th className="px-4 py-2 font-medium">Remarks</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-border">
+                                                            {list.items.map((item, idx) => (
+                                                                <tr key={idx} className="hover:bg-muted/10 transition-colors">
+                                                                    <td className="px-4 py-2 font-medium">{item.itemName}</td>
+                                                                    <td className="px-4 py-2">{item.received || "-"}</td>
+                                                                    <td className="px-4 py-2 text-muted-foreground">{item.remarks || "-"}</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
+                                        <Search className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                                        <p>No tools lists found for {selectedLocation}</p>
                                     </div>
                                 )}
                             </div>
@@ -621,6 +758,7 @@ export const ProjectDocumentsPage = () => {
 
             <ProjectScopeModal />
             <ToolsListModal />
+            <MaterialReceivingModal />
             
             {showMomModal && (
                 <MomMeetingModal 
