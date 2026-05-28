@@ -5,7 +5,7 @@ import { ToolsListModal } from "../components/common/ToolsListModal";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
 import MomMeetingModal from "../components/MomMeetingModal";
 import momMeetingService, { MomMeetingDto } from "../services/momMeetingService";
-import { siteDocumentService, SiteDocumentDto } from "../services/siteDocumentService";
+import { siteDocumentService } from "../services/siteDocumentService";
 import { Users, Download, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 
