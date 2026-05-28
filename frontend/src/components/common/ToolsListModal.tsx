@@ -19,7 +19,7 @@ export const ToolsListModal = () => {
         const handleOpen = () => {
             setIsOpen(true);
             loadSites();
-            setItems(Array(10).fill(null).map(() => ({ itemName: "", locationValue: "", received: "", remarks: "" })));
+            setItems([{ itemName: "", locationValue: "", received: "", remarks: "" }]);
         };
         window.addEventListener("OPEN_TOOLS_LIST_MODAL", handleOpen);
         return () => window.removeEventListener("OPEN_TOOLS_LIST_MODAL", handleOpen);
@@ -117,14 +117,15 @@ export const ToolsListModal = () => {
                         </div>
 
                         <div>
-                            <div className="flex items-center justify-end mb-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-semibold text-lg">Items</h3>
                                 <button
                                     type="button"
                                     onClick={handleAddItem}
-                                    className="flex items-center space-x-1 text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1.5 rounded-md transition-colors"
+                                    className="flex items-center space-x-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md transition-colors shadow-sm"
                                 >
                                     <Plus className="h-4 w-4" />
-                                    <span>Add Row</span>
+                                    <span className="font-medium">Add Row</span>
                                 </button>
                             </div>
 
