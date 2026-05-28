@@ -343,12 +343,12 @@ export const ProjectDocumentsPage = () => {
                 {/* Project Tool Site (Material Receiving) Card */}
                 <button 
                     onClick={() => window.dispatchEvent(new CustomEvent('OPEN_MATERIAL_RECEIVING_MODAL'))}
-                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-emerald-500/50 hover:shadow-md transition-all group"
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
                 >
-                    <div className="h-16 w-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Wrench className="h-8 w-8 text-emerald-500" />
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Wrench className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-emerald-500 transition-colors text-center">Project Tool Site</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Project Tool Site</h3>
                     <p className="text-sm text-muted-foreground text-center">Fill out the project tool site list.</p>
                 </button>
 
@@ -361,10 +361,10 @@ export const ProjectDocumentsPage = () => {
             {/* Project Tool Site / Material Receiving List Section */}
             <div className="mt-12 bg-card border border-border rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-500">Project Tool Site List</h2>
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Project Tool Site List</h2>
                     <button 
                         onClick={() => setShowMaterialReceivingDetails(!showMaterialReceivingDetails)}
-                        className="text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-500"
+                        className="text-sm font-medium text-primary hover:underline"
                     >
                         {showMaterialReceivingDetails ? "Hide Details" : "Show Details"}
                     </button>
