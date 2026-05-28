@@ -140,7 +140,7 @@ export const ToolsListModal = () => {
                                                         value={item.itemName}
                                                         onChange={(e) => handleItemChange(index, "itemName", e.target.value)}
                                                         placeholder="Tool name"
-                                                        className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1"
+                                                        className="w-full bg-transparent text-foreground border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1"
                                                     />
                                                 </td>
                                                 <td className="px-4 py-2">
@@ -149,7 +149,7 @@ export const ToolsListModal = () => {
                                                         value={item.locationValue}
                                                         onChange={(e) => handleItemChange(index, "locationValue", e.target.value)}
                                                         placeholder="Location"
-                                                        className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1"
+                                                        className="w-full bg-transparent text-foreground border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1"
                                                     />
                                                 </td>
                                                 <td className="px-4 py-2">
@@ -158,7 +158,7 @@ export const ToolsListModal = () => {
                                                         value={item.received}
                                                         onChange={(e) => handleItemChange(index, "received", e.target.value)}
                                                         placeholder="Received"
-                                                        className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1"
+                                                        className="w-full bg-transparent text-foreground border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1"
                                                     />
                                                 </td>
                                                 <td className="px-4 py-2">
@@ -167,7 +167,7 @@ export const ToolsListModal = () => {
                                                         value={item.remarks}
                                                         onChange={(e) => handleItemChange(index, "remarks", e.target.value)}
                                                         placeholder="Remarks"
-                                                        className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1"
+                                                        className="w-full bg-transparent text-foreground border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1"
                                                     />
                                                 </td>
                                                 <td className="px-4 py-2 text-center">

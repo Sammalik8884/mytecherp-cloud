@@ -384,9 +384,9 @@ export const ProjectDocumentsPage = () => {
                                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
                             </div>
                         ) : momMeetings.length > 0 ? (
-                            <div className="overflow-x-auto bg-white rounded-lg border border-border">
+                            <div className="overflow-x-auto bg-card rounded-lg border border-border">
                                 <table className="w-full text-sm text-left">
-                                    <thead className="bg-light text-center text-muted-foreground border-b border-border">
+                                    <thead className="bg-muted/30 text-center text-muted-foreground border-b border-border">
                                         <tr>
                                             <th className="px-4 py-3 font-semibold">No.</th>
                                             <th className="px-4 py-3 font-semibold">Meeting Title</th>
@@ -456,9 +456,9 @@ export const ProjectDocumentsPage = () => {
                                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
                             </div>
                         ) : lettersList.length > 0 ? (
-                            <div className="overflow-x-auto bg-white rounded-lg border border-border">
+                            <div className="overflow-x-auto bg-card rounded-lg border border-border">
                                 <table className="w-full text-sm text-left">
-                                    <thead className="bg-light text-center text-muted-foreground border-b border-border">
+                                    <thead className="bg-muted/30 text-center text-muted-foreground border-b border-border">
                                         <tr>
                                             <th className="px-4 py-3 font-semibold">ID</th>
                                             <th className="px-4 py-3 font-semibold">Site/Project</th>
