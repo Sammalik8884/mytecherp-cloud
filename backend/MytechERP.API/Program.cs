@@ -125,6 +125,7 @@ builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<ISiteDocumentService, SiteDocumentService>();
 builder.Services.AddScoped<IMaterialReceivingService, MaterialReceivingService>();
+builder.Services.AddScoped<IMomMeetingService, MomMeetingService>();
 builder.Services.AddScoped<UniversalSyncService>();
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);

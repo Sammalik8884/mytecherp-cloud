@@ -101,6 +101,10 @@ namespace MytechERP.Infrastructure.Persistance
         
         public DbSet<MaterialReceivingForm> MaterialReceivingForms { get; set; }
         public DbSet<MaterialReceivingItem> MaterialReceivingItems { get; set; }
+        
+        public DbSet<MomMeeting> MomMeetings { get; set; }
+        public DbSet<MomAttendee> MomAttendees { get; set; }
+        public DbSet<MomAttachment> MomAttachments { get; set; }
 
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
@@ -216,6 +220,14 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<MaterialReceivingForm>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
 
             builder.Entity<MaterialReceivingForm>()
+                .HasOne(m => m.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(m => m.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            builder.Entity<MomMeeting>().HasQueryFilter(m => m.TenantId == _currentUserService.TenantId && !m.IsDeleted);
+            
+            builder.Entity<MomMeeting>()
                 .HasOne(m => m.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(m => m.CreatedByUserId)

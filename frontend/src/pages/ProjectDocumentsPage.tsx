@@ -3,6 +3,9 @@ import { FileSignature, Plus, Wrench, Search, Loader2 } from "lucide-react";
 import { ProjectScopeModal } from "../components/common/ProjectScopeModal";
 import { ToolsListModal } from "../components/common/ToolsListModal";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
+import MomMeetingModal from "../components/MomMeetingModal";
+import momMeetingService, { MomMeetingDto } from "../services/momMeetingService";
+import { Users } from "lucide-react";
 
 const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
 
@@ -11,6 +14,67 @@ export const ProjectDocumentsPage = () => {
     const [toolsLists, setToolsLists] = useState<MaterialReceivingFormDto[]>([]);
     const [isLoadingTools, setIsLoadingTools] = useState(false);
     const [showToolsDetails, setShowToolsDetails] = useState(false);
+
+    // MOM State
+    const [showMomModal, setShowMomModal] = useState(false);
+    const [showMomList, setShowMomList] = useState(false);
+    const [momMeetings, setMomMeetings] = useState<MomMeetingDto[]>([]);
+    const [isLoadingMom, setIsLoadingMom] = useState(false);
+    const [selectedMom, setSelectedMom] = useState<MomMeetingDto | null>(null);
+    const [isMomViewOnly, setIsMomViewOnly] = useState(false);
+
+    const fetchMomMeetings = async () => {
+        setIsLoadingMom(true);
+        try {
+            // Fetch for site 1 as a placeholder or you can create a getAll if backend has it. 
+            // For now, let's fetch for siteId 1 (since site context isn't explicit in this page).
+            const data = await momMeetingService.getMeetingsBySiteId(1);
+            setMomMeetings(data);
+        } catch (error) {
+            console.error("Failed to load MOM lists", error);
+        } finally {
+            setIsLoadingMom(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showMomList) {
+            fetchMomMeetings();
+        }
+    }, [showMomList]);
+
+    const handleMomSubmit = async (data: any) => {
+        try {
+            await momMeetingService.createMeeting({
+                ...data,
+                siteId: 1 // Default siteId for now
+            });
+            setShowMomModal(false);
+            if (showMomList) fetchMomMeetings();
+        } catch (error) {
+            console.error("Failed to create MOM", error);
+            alert("Failed to create MOM. Please try again.");
+        }
+    };
+
+    const handleViewMom = (meeting: MomMeetingDto) => {
+        setSelectedMom(meeting);
+        setIsMomViewOnly(true);
+        setShowMomModal(true);
+    };
+
+    const handleEditMom = (meeting: MomMeetingDto) => {
+        setSelectedMom(meeting);
+        setIsMomViewOnly(false);
+        setShowMomModal(true);
+    };
+
+    const handleDeleteMom = async (id: number) => {
+        if (window.confirm("Are you sure you want to delete this meeting?")) {
+            await momMeetingService.deleteMeeting(id);
+            fetchMomMeetings();
+        }
+    };
 
     useEffect(() => {
         const handleRefresh = () => {
@@ -104,6 +168,25 @@ export const ProjectDocumentsPage = () => {
                     <p className="text-sm text-muted-foreground text-center">Fill out the dynamic tools list for your location.</p>
                     <div className="mt-4 flex items-center text-sm font-medium text-primary">
                         <Plus className="h-4 w-4 mr-1" /> Create Document
+                    </div>
+                </button>
+
+                {/* MOM Card */}
+                <button 
+                    onClick={() => {
+                        setSelectedMom(null);
+                        setIsMomViewOnly(false);
+                        setShowMomModal(true);
+                    }}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Users className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Minutes of Meeting</h3>
+                    <p className="text-sm text-muted-foreground text-center">Create and view minutes of meeting details.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create MOM
                     </div>
                 </button>
 
@@ -202,8 +285,90 @@ export const ProjectDocumentsPage = () => {
                 )}
             </div>
 
+            {/* Meeting Closure List Section (Footer) */}
+            <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Meeting Closure List</h2>
+                    <button 
+                        onClick={() => setShowMomList(!showMomList)}
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        {showMomList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+
+                {showMomList && (
+                    <div className="pt-4 border-t border-border">
+                        {isLoadingMom ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                        ) : momMeetings.length > 0 ? (
+                            <div className="overflow-x-auto bg-white rounded-lg border border-border">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-light text-center text-muted-foreground border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 font-semibold">No.</th>
+                                            <th className="px-4 py-3 font-semibold">Meeting Title</th>
+                                            <th className="px-4 py-3 font-semibold">Date</th>
+                                            <th className="px-4 py-3 font-semibold">Time</th>
+                                            <th className="px-4 py-3 font-semibold">Organizer</th>
+                                            <th className="px-4 py-3 font-semibold">Present Employees</th>
+                                            <th className="px-4 py-3 font-semibold">Absent Employees</th>
+                                            <th className="px-4 py-3 font-semibold">All Employees</th>
+                                            <th className="px-4 py-3 font-semibold">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border text-center">
+                                        {momMeetings.map((m, idx) => {
+                                            const present = m.attendees.filter(a => a.employeeStatus?.toLowerCase() === 'present').length;
+                                            const absent = m.attendees.filter(a => a.employeeStatus?.toLowerCase() === 'absent').length;
+                                            const total = m.attendees.length;
+                                            
+                                            return (
+                                                <tr key={m.id} className="hover:bg-muted/10 transition-colors">
+                                                    <td className="px-4 py-3">{idx + 1}</td>
+                                                    <td className="px-4 py-3">{m.meetingTitle}</td>
+                                                    <td className="px-4 py-3">{new Date(m.meetingDate).toLocaleDateString()}</td>
+                                                    <td className="px-4 py-3">{m.timeFrom} - {m.timeTo}</td>
+                                                    <td className="px-4 py-3">{m.organizer}</td>
+                                                    <td className="px-4 py-3">{present}</td>
+                                                    <td className="px-4 py-3">{absent}</td>
+                                                    <td className="px-4 py-3">{total}</td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex justify-center gap-2">
+                                                            <button className="text-blue-500 hover:underline" onClick={() => handleViewMom(m)}>View</button>
+                                                            <button className="text-amber-500 hover:underline" onClick={() => handleEditMom(m)}>Edit</button>
+                                                            <button className="text-red-500 hover:underline" onClick={() => handleDeleteMom(m.id)}>Delete</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
+                                <p>No meetings found.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
             <ProjectScopeModal />
             <ToolsListModal />
+            
+            {showMomModal && (
+                <MomMeetingModal 
+                    show={showMomModal} 
+                    onHide={() => setShowMomModal(false)} 
+                    onSubmit={handleMomSubmit}
+                    meeting={selectedMom}
+                    isViewOnly={isMomViewOnly}
+                />
+            )}
         </div>
     );
 };
