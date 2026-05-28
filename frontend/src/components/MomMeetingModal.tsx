@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MomMeetingDto, MomAttendeeDto } from '../services/momMeetingService';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Loader2 } from 'lucide-react';
 
 interface MomMeetingModalProps {
     show: boolean;
@@ -33,6 +33,7 @@ const MomMeetingModal: React.FC<MomMeetingModalProps> = ({ show, onHide, onSubmi
         { employeeIdStr: '', employeeName: '', employeeStatus: '' }
     ]);
     const [files, setFiles] = useState<File[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!show) return null;
 
@@ -52,24 +53,31 @@ const MomMeetingModal: React.FC<MomMeetingModalProps> = ({ show, onHide, onSubmi
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({
-            meetingTitle,
-            meetingDate,
-            timeFrom,
-            timeTo,
-            location,
-            organizer,
-            meetingType,
-            agenda,
-            discussionPoints,
-            decisionsMade,
-            actionItems,
-            closingNotes,
-            attendeesJson: JSON.stringify(attendees.filter(a => a.employeeName.trim() !== '')),
-            files
-        });
+        setIsSubmitting(true);
+        try {
+            await onSubmit({
+                meetingTitle,
+                meetingDate,
+                timeFrom,
+                timeTo,
+                location,
+                organizer,
+                meetingType,
+                agenda,
+                discussionPoints,
+                decisionsMade,
+                actionItems,
+                closingNotes,
+                attendeesJson: JSON.stringify(attendees.filter(a => a.employeeName.trim() !== '')),
+                files
+            });
+        } catch (error) {
+            // Error is handled by parent, we just catch it here to stop spinner
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return createPortal(
@@ -224,11 +232,12 @@ const MomMeetingModal: React.FC<MomMeetingModalProps> = ({ show, onHide, onSubmi
                 </div>
                 
                 <div className="p-6 border-t border-border bg-secondary/10 flex justify-end gap-3 shrink-0 rounded-b-xl">
-                    <button type="button" onClick={onHide} className="px-4 py-2 border border-border rounded-lg text-foreground bg-background hover:bg-secondary transition-colors">
+                    <button type="button" onClick={onHide} disabled={isSubmitting} className="px-4 py-2 border border-border rounded-lg text-foreground bg-background hover:bg-secondary transition-colors disabled:opacity-50">
                         Close
                     </button>
                     {!isViewOnly && (
-                        <button type="submit" form="momForm" className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                        <button type="submit" form="momForm" disabled={isSubmitting} className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium flex items-center disabled:opacity-50">
+                            {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                             Submit
                         </button>
                     )}

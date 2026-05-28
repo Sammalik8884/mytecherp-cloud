@@ -6,6 +6,7 @@ import { materialReceivingService, MaterialReceivingFormDto } from "../services/
 import MomMeetingModal from "../components/MomMeetingModal";
 import momMeetingService, { MomMeetingDto } from "../services/momMeetingService";
 import { Users } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
 
@@ -45,15 +46,14 @@ export const ProjectDocumentsPage = () => {
 
     const handleMomSubmit = async (data: any) => {
         try {
-            await momMeetingService.createMeeting({
-                ...data,
-                siteId: 1 // Default siteId for now
-            });
+            await momMeetingService.createMeeting(data);
+            toast.success("Minutes of Meeting saved successfully!");
             setShowMomModal(false);
             if (showMomList) fetchMomMeetings();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to create MOM", error);
-            alert("Failed to create MOM. Please try again.");
+            toast.error(error?.response?.data?.message || error?.response?.data?.detail || "Failed to create MOM. Please try again.");
+            throw error; // Rethrow so the modal can stop its loading spinner
         }
     };
 
@@ -71,8 +71,13 @@ export const ProjectDocumentsPage = () => {
 
     const handleDeleteMom = async (id: number) => {
         if (window.confirm("Are you sure you want to delete this meeting?")) {
-            await momMeetingService.deleteMeeting(id);
-            fetchMomMeetings();
+            try {
+                await momMeetingService.deleteMeeting(id);
+                toast.success("Meeting deleted successfully!");
+                fetchMomMeetings();
+            } catch (error) {
+                toast.error("Failed to delete meeting");
+            }
         }
     };
 
