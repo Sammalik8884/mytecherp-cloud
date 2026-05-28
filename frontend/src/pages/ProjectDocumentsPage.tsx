@@ -361,7 +361,7 @@ export const ProjectDocumentsPage = () => {
             {/* Project Tool Site / Material Receiving List Section */}
             <div className="mt-12 bg-card border border-border rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-500">Material Receiving List</h2>
+                    <h2 className="text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-500">Project Tool Site List</h2>
                     <button 
                         onClick={() => setShowMaterialReceivingDetails(!showMaterialReceivingDetails)}
                         className="text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-500"
@@ -373,7 +373,7 @@ export const ProjectDocumentsPage = () => {
                 {showMaterialReceivingDetails && (
                     <div className="space-y-6 pt-4 border-t border-border">
                         <div>
-                            <p className="text-sm text-muted-foreground mb-3">Select a site to view the material receiving lists:</p>
+                            <p className="text-sm text-muted-foreground mb-3">Select a site to view the project tool site lists:</p>
                             <select 
                                 value={selectedSiteId} 
                                 onChange={(e) => handleSiteSelect(e.target.value === "" ? "" : Number(e.target.value))}
@@ -388,7 +388,7 @@ export const ProjectDocumentsPage = () => {
 
                         {selectedSiteId && (
                             <div className="bg-secondary/20 rounded-lg p-6 border border-border">
-                                <h3 className="font-semibold text-lg mb-4">Material Receiving Lists</h3>
+                                <h3 className="font-semibold text-lg mb-4">Project Tool Site Lists</h3>
                                 
                                 {isLoadingMaterialReceiving ? (
                                     <div className="flex justify-center p-8">

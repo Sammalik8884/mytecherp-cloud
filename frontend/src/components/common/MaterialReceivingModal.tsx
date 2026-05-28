@@ -69,11 +69,11 @@ export const MaterialReceivingModal = () => {
                 siteId: Number(siteId),
                 items: validItems
             });
-            toast.success("Material Receiving List saved successfully!");
+            toast.success("Project Tool Site List saved successfully!");
             handleClose();
             window.dispatchEvent(new CustomEvent('REFRESH_MATERIAL_RECEIVING_LIST'));
         } catch (error: any) {
-            toast.error(error?.response?.data?.message || "Failed to save Material Receiving List");
+            toast.error(error?.response?.data?.message || "Failed to save Project Tool Site List");
         } finally {
             setIsSubmitting(false);
         }
