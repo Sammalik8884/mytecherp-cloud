@@ -3,16 +3,17 @@ import { FileSignature, Plus, Wrench, Search, Loader2, FileCheck } from "lucide-
 import { ProjectScopeModal } from "../components/common/ProjectScopeModal";
 import { ToolsListModal } from "../components/common/ToolsListModal";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
+import { siteService } from "../services/siteService";
+import { SiteDto } from "../types/site";
 import MomMeetingModal from "../components/MomMeetingModal";
 import momMeetingService, { MomMeetingDto } from "../services/momMeetingService";
 import { siteDocumentService } from "../services/siteDocumentService";
 import { Users, Download, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
-
 export const ProjectDocumentsPage = () => {
-    const [selectedLocation, setSelectedLocation] = useState<string>("");
+    const [sites, setSites] = useState<SiteDto[]>([]);
+    const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
     const [toolsLists, setToolsLists] = useState<MaterialReceivingFormDto[]>([]);
     const [isLoadingTools, setIsLoadingTools] = useState(false);
     const [showToolsDetails, setShowToolsDetails] = useState(false);
@@ -155,18 +156,24 @@ export const ProjectDocumentsPage = () => {
 
     useEffect(() => {
         const handleRefresh = () => {
-            if (selectedLocation) {
-                fetchToolsLists(selectedLocation);
+            if (selectedSiteId) {
+                fetchToolsLists(Number(selectedSiteId));
             }
         };
-        window.addEventListener("REFRESH_TOOLS_LIST", handleRefresh);
-        return () => window.removeEventListener("REFRESH_TOOLS_LIST", handleRefresh);
-    }, [selectedLocation]);
+        window.addEventListener("REFRESH_PROJECT_DOCUMENTS", handleRefresh);
+        return () => window.removeEventListener("REFRESH_PROJECT_DOCUMENTS", handleRefresh);
+    }, [selectedSiteId]);
 
-    const fetchToolsLists = async (location: string) => {
+    useEffect(() => {
+        if (showToolsDetails) {
+            siteService.getAll().then(setSites).catch(console.error);
+        }
+    }, [showToolsDetails]);
+
+    const fetchToolsLists = async (siteId: number) => {
         setIsLoadingTools(true);
         try {
-            const data = await materialReceivingService.getFormsByLocation(location);
+            const data = await materialReceivingService.getFormsBySiteId(siteId);
             setToolsLists(data);
         } catch (error) {
             console.error("Failed to load tools lists", error);
@@ -175,9 +182,9 @@ export const ProjectDocumentsPage = () => {
         }
     };
 
-    const handleLocationSelect = (loc: string) => {
-        setSelectedLocation(loc);
-        fetchToolsLists(loc);
+    const handleSiteSelect = (siteId: number | "") => {
+        setSelectedSiteId(siteId);
+        if (siteId) fetchToolsLists(Number(siteId));
     };
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -271,8 +278,8 @@ export const ProjectDocumentsPage = () => {
                     <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Wrench className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Tools List</h3>
-                    <p className="text-sm text-muted-foreground text-center">Fill out the dynamic tools list for your location.</p>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Project Tool Site</h3>
+                    <p className="text-sm text-muted-foreground text-center">Fill out the project tool site list.</p>
                     <div className="mt-4 flex items-center text-sm font-medium text-primary">
                         <Plus className="h-4 w-4 mr-1" /> Create Document
                     </div>
@@ -303,10 +310,10 @@ export const ProjectDocumentsPage = () => {
                 </div>
             </div>
 
-            {/* Tools List Details Section (Footer) */}
+            {/* Project Tool Site / Material Receiving List Section */}
             <div className="mt-12 bg-card border border-border rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold tracking-tight text-primary">Tools List Details</h2>
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Material Receiving List</h2>
                     <button 
                         onClick={() => setShowToolsDetails(!showToolsDetails)}
                         className="text-sm font-medium text-primary hover:underline"
@@ -318,27 +325,22 @@ export const ProjectDocumentsPage = () => {
                 {showToolsDetails && (
                     <div className="space-y-6 pt-4 border-t border-border">
                         <div>
-                            <p className="text-sm text-muted-foreground mb-3">Select a city to view the tools list details:</p>
-                            <div className="flex flex-wrap gap-2">
-                                {LOCATIONS.map(loc => (
-                                    <button
-                                        key={loc}
-                                        onClick={() => handleLocationSelect(loc)}
-                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                            selectedLocation === loc 
-                                            ? "bg-primary text-primary-foreground" 
-                                            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                                        }`}
-                                    >
-                                        {loc}
-                                    </button>
+                            <p className="text-sm text-muted-foreground mb-3">Select a site to view the material receiving lists:</p>
+                            <select 
+                                value={selectedSiteId} 
+                                onChange={(e) => handleSiteSelect(e.target.value === "" ? "" : Number(e.target.value))}
+                                className="w-full md:w-1/3 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            >
+                                <option value="">-- Select Site --</option>
+                                {sites.map(site => (
+                                    <option key={site.id} value={site.id}>{site.name}</option>
                                 ))}
-                            </div>
+                            </select>
                         </div>
 
-                        {selectedLocation && (
+                        {selectedSiteId && (
                             <div className="bg-secondary/20 rounded-lg p-6 border border-border">
-                                <h3 className="font-semibold text-lg mb-4">Tools for {selectedLocation}</h3>
+                                <h3 className="font-semibold text-lg mb-4">Material Receiving Lists</h3>
                                 
                                 {isLoadingTools ? (
                                     <div className="flex justify-center p-8">
@@ -350,7 +352,7 @@ export const ProjectDocumentsPage = () => {
                                             <div key={list.id} className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
                                                 <div className="bg-secondary/50 px-4 py-3 border-b border-border flex justify-between items-center">
                                                     <div>
-                                                        <span className="font-medium">List #{list.id}</span>
+                                                        <span className="font-medium">Form #{list.id}</span>
                                                         <span className="text-xs text-muted-foreground ml-2">Created by: {list.createdByUserName || "System"}</span>
                                                     </div>
                                                     <span className="text-xs text-muted-foreground">
@@ -359,19 +361,23 @@ export const ProjectDocumentsPage = () => {
                                                 </div>
                                                 <div className="p-0">
                                                     <table className="w-full text-sm text-left">
-                                                        <thead className="bg-muted/30 text-muted-foreground">
+                                                        <thead className="bg-muted/30 text-muted-foreground border-b border-border">
                                                             <tr>
-                                                                <th className="px-4 py-2 font-medium">Item Name</th>
-                                                                <th className="px-4 py-2 font-medium">Received</th>
-                                                                <th className="px-4 py-2 font-medium">Remarks</th>
+                                                                <th className="px-4 py-3 font-semibold w-16">No.</th>
+                                                                <th className="px-4 py-3 font-semibold">Items</th>
+                                                                <th className="px-4 py-3 font-semibold">Delivered</th>
+                                                                <th className="px-4 py-3 font-semibold">Received</th>
+                                                                <th className="px-4 py-3 font-semibold">Remarks</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-border">
                                                             {list.items.map((item, idx) => (
                                                                 <tr key={idx} className="hover:bg-muted/10 transition-colors">
-                                                                    <td className="px-4 py-2 font-medium">{item.itemName}</td>
-                                                                    <td className="px-4 py-2">{item.received || "-"}</td>
-                                                                    <td className="px-4 py-2 text-muted-foreground">{item.remarks || "-"}</td>
+                                                                    <td className="px-4 py-3 text-muted-foreground">{idx + 1}:</td>
+                                                                    <td className="px-4 py-3 font-medium">{item.itemName}</td>
+                                                                    <td className="px-4 py-3">{item.locationValue || "-"}</td>
+                                                                    <td className="px-4 py-3">{item.received || "-"}</td>
+                                                                    <td className="px-4 py-3 text-muted-foreground">{item.remarks || "-"}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -383,7 +389,7 @@ export const ProjectDocumentsPage = () => {
                                 ) : (
                                     <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
                                         <Search className="h-8 w-8 mx-auto mb-2 opacity-20" />
-                                        <p>No tools lists found for {selectedLocation}</p>
+                                        <p>No lists found for this site</p>
                                     </div>
                                 )}
                             </div>
