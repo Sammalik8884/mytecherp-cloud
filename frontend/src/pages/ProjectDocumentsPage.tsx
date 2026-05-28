@@ -306,7 +306,7 @@ export const ProjectDocumentsPage = () => {
             {/* Tools List Details Section (Footer) */}
             <div className="mt-12 bg-card border border-border rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold tracking-tight">Tools List Details</h2>
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Tools List Details</h2>
                     <button 
                         onClick={() => setShowToolsDetails(!showToolsDetails)}
                         className="text-sm font-medium text-primary hover:underline"
