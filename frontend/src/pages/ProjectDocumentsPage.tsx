@@ -27,7 +27,7 @@ export const ProjectDocumentsPage = () => {
 
     // Letters State
     const [showLettersList, setShowLettersList] = useState(false);
-    const [lettersList, setLettersList] = useState<SiteDocumentDto[]>([]);
+    const [lettersList, setLettersList] = useState<any[]>([]);
     const [isLoadingLetters, setIsLoadingLetters] = useState(false);
 
     const fetchMomMeetings = async () => {
@@ -54,7 +54,35 @@ export const ProjectDocumentsPage = () => {
         try {
             const data = await siteDocumentService.getAllDocuments();
             // Filter only Letters/Communication By Mytech
-            setLettersList(data.filter(d => d.documentType === 'Letters/Communication By Mytech'));
+            const letters = data.filter(d => d.documentType === 'Letters/Communication By Mytech')
+                                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            
+            const grouped: any[] = [];
+            letters.forEach(doc => {
+                const group = grouped.find(g => 
+                    g.siteId === doc.siteId && 
+                    g.customerId === doc.customerId && 
+                    g.secondaryCustomerId === doc.secondaryCustomerId &&
+                    Math.abs(new Date(g.createdAt).getTime() - new Date(doc.createdAt).getTime()) < 60000 // 1 minute
+                );
+
+                if (group) {
+                    group.documents.push(doc);
+                } else {
+                    grouped.push({
+                        id: grouped.length + 1, // Visual ID
+                        siteId: doc.siteId,
+                        siteName: doc.siteName,
+                        customerId: doc.customerId,
+                        customerName: doc.customerName,
+                        secondaryCustomerId: doc.secondaryCustomerId,
+                        secondaryCustomerName: doc.secondaryCustomerName,
+                        createdAt: doc.createdAt,
+                        documents: [doc]
+                    });
+                }
+            });
+            setLettersList(grouped);
         } catch (error) {
             console.error("Failed to load letters list", error);
         } finally {
@@ -441,28 +469,36 @@ export const ProjectDocumentsPage = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border text-center">
-                                        {lettersList.map((doc) => (
-                                            <tr key={doc.id} className="hover:bg-muted/10 transition-colors">
-                                                <td className="px-4 py-3">{doc.id}</td>
-                                                <td className="px-4 py-3">{doc.siteName}</td>
-                                                <td className="px-4 py-3">
-                                                    {doc.customerName || "-"}
-                                                    {doc.secondaryCustomerName ? <span className="block text-xs text-muted-foreground">Sec: {doc.secondaryCustomerName}</span> : null}
+                                        {lettersList.map((group) => (
+                                            <tr key={group.id} className="hover:bg-muted/10 transition-colors">
+                                                <td className="px-4 py-4 align-top">{group.id}</td>
+                                                <td className="px-4 py-4 align-top">{group.siteName}</td>
+                                                <td className="px-4 py-4 align-top">
+                                                    {group.customerName || "-"}
+                                                    {group.secondaryCustomerName ? <span className="block text-xs text-muted-foreground mt-1">Sec: {group.secondaryCustomerName}</span> : null}
                                                 </td>
-                                                <td className="px-4 py-3 text-left">
-                                                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium text-primary flex items-center gap-1">
-                                                        <FileSignature className="h-4 w-4" /> {doc.fileName}
-                                                    </a>
+                                                <td className="px-4 py-4 text-left align-top">
+                                                    <div className="flex flex-col gap-3">
+                                                        {group.documents.map((d: any) => (
+                                                            <a key={d.id} href={d.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium text-primary flex items-center gap-1">
+                                                                <FileSignature className="h-4 w-4 shrink-0" /> <span className="truncate">{d.fileName}</span>
+                                                            </a>
+                                                        ))}
+                                                    </div>
                                                 </td>
-                                                <td className="px-4 py-3">{new Date(doc.createdAt).toLocaleString()}</td>
-                                                <td className="px-4 py-3">
-                                                    <div className="flex justify-center gap-3">
-                                                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors" title="View">
-                                                            <Eye className="h-4 w-4" />
-                                                        </a>
-                                                        <a href={doc.downloadUrl} className="text-emerald-500 hover:text-emerald-600 transition-colors" title="Download">
-                                                            <Download className="h-4 w-4" />
-                                                        </a>
+                                                <td className="px-4 py-4 align-top">{new Date(group.createdAt).toLocaleString()}</td>
+                                                <td className="px-4 py-4 align-top">
+                                                    <div className="flex flex-col gap-3">
+                                                        {group.documents.map((d: any) => (
+                                                            <div key={d.id} className="flex justify-center gap-3">
+                                                                <a href={d.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors" title="View">
+                                                                    <Eye className="h-4 w-4" />
+                                                                </a>
+                                                                <a href={d.downloadUrl} className="text-emerald-500 hover:text-emerald-600 transition-colors" title="Download">
+                                                                    <Download className="h-4 w-4" />
+                                                                </a>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </td>
                                             </tr>
