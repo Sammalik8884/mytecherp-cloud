@@ -26,6 +26,13 @@ namespace MytechERP.API.Controllers
             return Ok(docs);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllDocuments()
+        {
+            var docs = await _siteDocumentService.GetAllDocumentsAsync();
+            return Ok(docs);
+        }
+
         [HttpPost("upload")]
         public async Task<IActionResult> UploadDocuments([FromForm] int siteId, [FromForm] string documentType, [FromForm] int? customerId, [FromForm] int? secondaryCustomerId, [FromForm] List<IFormFile> files)
         {

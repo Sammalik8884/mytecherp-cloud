@@ -22,6 +22,11 @@ export const siteDocumentService = {
         return response.data;
     },
 
+    getAllDocuments: async (): Promise<SiteDocumentDto[]> => {
+        const response = await apiClient.get<SiteDocumentDto[]>('/sitedocument');
+        return response.data;
+    },
+
     uploadDocuments: async (siteId: number, documentType: string, customerId: number | undefined, secondaryCustomerId: number | undefined, files: File[]): Promise<SiteDocumentDto[]> => {
         const formData = new FormData();
         formData.append('siteId', siteId.toString());

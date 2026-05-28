@@ -53,6 +53,34 @@ namespace MyTechERP.Infrastructure.Services
             });
         }
 
+        public async Task<IEnumerable<SiteDocumentDto>> GetAllDocumentsAsync()
+        {
+            var documents = await _context.SiteDocuments
+                .Include(d => d.Site)
+                .Include(d => d.Customer)
+                .Include(d => d.SecondaryCustomer)
+                .Where(d => !d.IsDeleted)
+                .OrderByDescending(d => d.CreatedAt)
+                .ToListAsync();
+
+            return documents.Select(d => new SiteDocumentDto
+            {
+                Id = d.Id,
+                SiteId = d.SiteId,
+                SiteName = d.Site?.Name ?? "",
+                DocumentType = d.DocumentType,
+                CustomerId = d.CustomerId,
+                CustomerName = d.Customer?.Name,
+                SecondaryCustomerId = d.SecondaryCustomerId,
+                SecondaryCustomerName = d.SecondaryCustomer?.Name,
+                FileName = d.FileName,
+                FileUrl = _blobService.GenerateSasUrl(d.FileUrl, 60, false),
+                DownloadUrl = _blobService.GenerateSasUrl(d.FileUrl, 60, true),
+                CreatedAt = d.CreatedAt,
+                UploadedByUserId = d.UploadedByUserId
+            });
+        }
+
         public async Task<IEnumerable<SiteDocumentDto>> UploadDocumentsAsync(int siteId, string documentType, int? customerId, int? secondaryCustomerId, List<IFormFile> files)
         {
             var uploadedDocuments = new List<SiteDocument>();

@@ -5,7 +5,8 @@ import { ToolsListModal } from "../components/common/ToolsListModal";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
 import MomMeetingModal from "../components/MomMeetingModal";
 import momMeetingService, { MomMeetingDto } from "../services/momMeetingService";
-import { Users } from "lucide-react";
+import { siteDocumentService, SiteDocumentDto } from "../services/siteDocumentService";
+import { Users, Download, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
@@ -23,6 +24,11 @@ export const ProjectDocumentsPage = () => {
     const [isLoadingMom, setIsLoadingMom] = useState(false);
     const [selectedMom, setSelectedMom] = useState<MomMeetingDto | null>(null);
     const [isMomViewOnly, setIsMomViewOnly] = useState(false);
+
+    // Letters State
+    const [showLettersList, setShowLettersList] = useState(false);
+    const [lettersList, setLettersList] = useState<SiteDocumentDto[]>([]);
+    const [isLoadingLetters, setIsLoadingLetters] = useState(false);
 
     const fetchMomMeetings = async () => {
         setIsLoadingMom(true);
@@ -42,6 +48,33 @@ export const ProjectDocumentsPage = () => {
             fetchMomMeetings();
         }
     }, [showMomList]);
+
+    const fetchLetters = async () => {
+        setIsLoadingLetters(true);
+        try {
+            const data = await siteDocumentService.getAllDocuments();
+            // Filter only Letters/Communication By Mytech
+            setLettersList(data.filter(d => d.documentType === 'Letters/Communication By Mytech'));
+        } catch (error) {
+            console.error("Failed to load letters list", error);
+        } finally {
+            setIsLoadingLetters(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showLettersList) {
+            fetchLetters();
+        }
+    }, [showLettersList]);
+
+    useEffect(() => {
+        const handleRefreshDocs = () => {
+            if (showLettersList) fetchLetters();
+        };
+        window.addEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefreshDocs);
+        return () => window.removeEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefreshDocs);
+    }, [showLettersList]);
 
     const handleMomSubmit = async (data: any) => {
         try {
@@ -370,6 +403,76 @@ export const ProjectDocumentsPage = () => {
                         ) : (
                             <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
                                 <p>No meetings found.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Letters/Communication By Mytech List Section (Footer) */}
+            <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Letters/Communication By Mytech List</h2>
+                    <button 
+                        onClick={() => setShowLettersList(!showLettersList)}
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        {showLettersList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+
+                {showLettersList && (
+                    <div className="pt-4 border-t border-border">
+                        {isLoadingLetters ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                        ) : lettersList.length > 0 ? (
+                            <div className="overflow-x-auto bg-white rounded-lg border border-border">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-light text-center text-muted-foreground border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 font-semibold">ID</th>
+                                            <th className="px-4 py-3 font-semibold">Site/Project</th>
+                                            <th className="px-4 py-3 font-semibold">Customer</th>
+                                            <th className="px-4 py-3 font-semibold">Filename</th>
+                                            <th className="px-4 py-3 font-semibold">Date Time</th>
+                                            <th className="px-4 py-3 font-semibold">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border text-center">
+                                        {lettersList.map((doc) => (
+                                            <tr key={doc.id} className="hover:bg-muted/10 transition-colors">
+                                                <td className="px-4 py-3">{doc.id}</td>
+                                                <td className="px-4 py-3">{doc.siteName}</td>
+                                                <td className="px-4 py-3">
+                                                    {doc.customerName || "-"}
+                                                    {doc.secondaryCustomerName ? <span className="block text-xs text-muted-foreground">Sec: {doc.secondaryCustomerName}</span> : null}
+                                                </td>
+                                                <td className="px-4 py-3 text-left">
+                                                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium text-primary flex items-center gap-1">
+                                                        <FileSignature className="h-4 w-4" /> {doc.fileName}
+                                                    </a>
+                                                </td>
+                                                <td className="px-4 py-3">{new Date(doc.createdAt).toLocaleString()}</td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex justify-center gap-3">
+                                                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors" title="View">
+                                                            <Eye className="h-4 w-4" />
+                                                        </a>
+                                                        <a href={doc.downloadUrl} className="text-emerald-500 hover:text-emerald-600 transition-colors" title="Download">
+                                                            <Download className="h-4 w-4" />
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
+                                <p>No letters or communication documents found.</p>
                             </div>
                         )}
                     </div>

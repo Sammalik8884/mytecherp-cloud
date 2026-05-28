@@ -8,6 +8,7 @@ namespace MytechERP.Application.Interfaces
     public interface ISiteDocumentService
     {
         Task<IEnumerable<SiteDocumentDto>> GetDocumentsBySiteIdAsync(int siteId);
+        Task<IEnumerable<SiteDocumentDto>> GetAllDocumentsAsync();
         Task<IEnumerable<SiteDocumentDto>> UploadDocumentsAsync(int siteId, string documentType, int? customerId, int? secondaryCustomerId, List<IFormFile> files);
         Task DeleteDocumentAsync(int documentId);
     }
