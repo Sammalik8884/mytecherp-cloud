@@ -216,14 +216,6 @@ export const ProjectDetailsPage = () => {
                     <div className="bg-card border border-border rounded-xl p-6">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="font-semibold text-lg">Project Tool Site List</h3>
-                            <button 
-                                onClick={() => {
-                                    window.dispatchEvent(new CustomEvent('OPEN_MATERIAL_RECEIVING_MODAL'));
-                                }}
-                                className="bg-emerald-600 text-white px-4 py-2 rounded text-sm hover:bg-emerald-700 transition-colors"
-                            >
-                                + Add Form
-                            </button>
                         </div>
                         {materialReceiving.length === 0 ? (
                             <div className="text-center p-8 text-muted-foreground border border-dashed border-border rounded-lg">
