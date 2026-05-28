@@ -212,6 +212,67 @@ export const ProjectDetailsPage = () => {
                     </div>
                 )}
 
+                {activeTab === 'material_receiving' && (
+                    <div className="bg-card border border-border rounded-xl p-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-semibold text-lg">Project Tool Site List</h3>
+                            <button 
+                                onClick={() => {
+                                    window.dispatchEvent(new CustomEvent('OPEN_MATERIAL_RECEIVING_MODAL'));
+                                }}
+                                className="bg-emerald-600 text-white px-4 py-2 rounded text-sm hover:bg-emerald-700 transition-colors"
+                            >
+                                + Add Form
+                            </button>
+                        </div>
+                        {materialReceiving.length === 0 ? (
+                            <div className="text-center p-8 text-muted-foreground border border-dashed border-border rounded-lg">
+                                No project tool site forms found for this site.
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {materialReceiving.map((list) => (
+                                    <div key={list.id} className="bg-background border border-border rounded-lg overflow-hidden shadow-sm">
+                                        <div className="bg-secondary/50 px-4 py-3 border-b border-border flex justify-between items-center">
+                                            <div>
+                                                <span className="font-medium">Form #{list.id}</span>
+                                                <span className="text-xs text-muted-foreground ml-2">Created by: {list.createdByUserName || "System"}</span>
+                                            </div>
+                                            <span className="text-xs text-muted-foreground">
+                                                {new Date(list.createdAt).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <div className="p-0 overflow-x-auto">
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="bg-muted/30 text-muted-foreground border-b border-border">
+                                                    <tr>
+                                                        <th className="px-4 py-3 font-semibold w-16">No.</th>
+                                                        <th className="px-4 py-3 font-semibold">Items</th>
+                                                        <th className="px-4 py-3 font-semibold">Delivered</th>
+                                                        <th className="px-4 py-3 font-semibold">Received</th>
+                                                        <th className="px-4 py-3 font-semibold">Remarks</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-border">
+                                                    {list.items.map((item, idx) => (
+                                                        <tr key={idx} className="hover:bg-muted/10 transition-colors">
+                                                            <td className="px-4 py-3 text-muted-foreground">{idx + 1}:</td>
+                                                            <td className="px-4 py-3 font-medium">{item.itemName}</td>
+                                                            <td className="px-4 py-3">{item.locationValue || "-"}</td>
+                                                            <td className="px-4 py-3">{item.received || "-"}</td>
+                                                            <td className="px-4 py-3 text-muted-foreground">{item.remarks || "-"}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {activeTab === 'documents' && (
                      <div className="bg-card border border-border rounded-xl overflow-hidden">
                         <table className="w-full text-sm text-left">
