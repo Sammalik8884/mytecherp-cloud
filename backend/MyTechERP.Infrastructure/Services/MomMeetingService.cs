@@ -39,6 +39,19 @@ namespace MyTechERP.Infrastructure.Services
             return MapToDto(meeting);
         }
 
+        public async Task<List<MomMeetingDto>> GetAllMeetingsAsync()
+        {
+            var meetings = await _context.Set<MomMeeting>()
+                .Include(m => m.Site)
+                .Include(m => m.CreatedByUser)
+                .Include(m => m.Attendees)
+                .Include(m => m.Attachments)
+                .OrderByDescending(m => m.MeetingDate)
+                .ToListAsync();
+
+            return meetings.Select(MapToDto).ToList();
+        }
+
         public async Task<List<MomMeetingDto>> GetMeetingsBySiteIdAsync(int siteId)
         {
             var meetings = await _context.Set<MomMeeting>()

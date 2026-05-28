@@ -27,9 +27,8 @@ export const ProjectDocumentsPage = () => {
     const fetchMomMeetings = async () => {
         setIsLoadingMom(true);
         try {
-            // Fetch for site 1 as a placeholder or you can create a getAll if backend has it. 
-            // For now, let's fetch for siteId 1 (since site context isn't explicit in this page).
-            const data = await momMeetingService.getMeetingsBySiteId(1);
+            // Fetch all meetings since there's no site context here yet.
+            const data = await momMeetingService.getAllMeetings();
             setMomMeetings(data);
         } catch (error) {
             console.error("Failed to load MOM lists", error);

@@ -26,6 +26,13 @@ namespace MytechERP.API.Controllers
             return Ok(meeting);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var meetings = await _service.GetAllMeetingsAsync();
+            return Ok(meetings);
+        }
+
         [HttpGet("site/{siteId}")]
         public async Task<IActionResult> GetBySiteId(int siteId)
         {

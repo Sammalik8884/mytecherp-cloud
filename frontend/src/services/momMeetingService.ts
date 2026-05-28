@@ -65,6 +65,11 @@ const momMeetingService = {
         return response.data;
     },
 
+    getAllMeetings: async (): Promise<MomMeetingDto[]> => {
+        const response = await apiClient.get('/MomMeeting');
+        return response.data;
+    },
+
     createMeeting: async (dto: CreateMomMeetingDto): Promise<MomMeetingDto> => {
         const formData = new FormData();
         
