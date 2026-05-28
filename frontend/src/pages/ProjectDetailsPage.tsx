@@ -7,6 +7,8 @@ import { quotationService } from "../services/quotationService";
 import { invoiceService } from "../services/invoiceService";
 import { salesService } from "../services/salesService";
 import { siteDocumentService, SiteDocumentDto } from "../services/siteDocumentService";
+import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
+import { Wrench } from "lucide-react";
 
 import { SiteDto } from "../types/site";
 import { ExpenseDto } from "../api/expenseApi";
@@ -28,6 +30,7 @@ export const ProjectDetailsPage = () => {
     const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
     const [leads, setLeads] = useState<SalesLeadDto[]>([]);
     const [documents, setDocuments] = useState<SiteDocumentDto[]>([]);
+    const [materialReceiving, setMaterialReceiving] = useState<MaterialReceivingFormDto[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
@@ -42,8 +45,15 @@ export const ProjectDetailsPage = () => {
                 siteDocumentService.getDocumentsBySiteId(siteId).then(setDocuments);
             }
         };
+        const handleRefreshMaterial = () => {
+            materialReceivingService.getFormsBySiteId(siteId).then(setMaterialReceiving);
+        };
         window.addEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefresh);
-        return () => window.removeEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefresh);
+        window.addEventListener('REFRESH_MATERIAL_RECEIVING_LIST', handleRefreshMaterial);
+        return () => {
+            window.removeEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefresh);
+            window.removeEventListener('REFRESH_MATERIAL_RECEIVING_LIST', handleRefreshMaterial);
+        };
     }, [siteId]);
 
     const loadData = async () => {
@@ -56,7 +66,8 @@ export const ProjectDetailsPage = () => {
                 quoteData,
                 invoiceData,
                 leadData,
-                documentData
+                documentData,
+                materialReceivingData
             ] = await Promise.all([
                 siteService.getById(siteId),
                 expenseApi.getBySiteId(siteId),
@@ -66,6 +77,10 @@ export const ProjectDetailsPage = () => {
                 salesService.getLeads(),
                 siteDocumentService.getDocumentsBySiteId(siteId).catch(err => {
                     console.error("Failed to load documents", err);
+                    return [];
+                }),
+                materialReceivingService.getFormsBySiteId(siteId).catch(err => {
+                    console.error("Failed to load material receiving forms", err);
                     return [];
                 })
             ]);
@@ -82,6 +97,7 @@ export const ProjectDetailsPage = () => {
             setInvoices(invoiceData.filter((i: any) => i.quotationId && quoteIds.includes(i.quotationId)));
             setLeads(leadData.filter((l: any) => l.siteId === siteId));
             setDocuments(documentData);
+            setMaterialReceiving(materialReceivingData);
             
         } catch (error) {
             console.error("Failed to load project details", error);
@@ -112,6 +128,7 @@ export const ProjectDetailsPage = () => {
                     <button onClick={() => setActiveTab('overview')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'overview' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}>Overview</button>
                     <button onClick={() => setActiveTab('leads')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'leads' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Target className="h-4 w-4" /> <span>Leads ({leads.length})</span></button>
                     <button onClick={() => setActiveTab('quotes')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'quotes' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileText className="h-4 w-4" /> <span>Quotes ({quotations.length})</span></button>
+                    <button onClick={() => setActiveTab('material_receiving')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'material_receiving' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Wrench className="h-4 w-4" /> <span>Material Receiving ({materialReceiving.length})</span></button>
                     <button onClick={() => setActiveTab('documents')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'documents' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileText className="h-4 w-4" /> <span>Documents ({documents.length})</span></button>
                     <button onClick={() => setActiveTab('invoices')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'invoices' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Receipt className="h-4 w-4" /> <span>Invoices ({invoices.length})</span></button>
                     <button onClick={() => setActiveTab('arfs')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'arfs' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><DollarSign className="h-4 w-4" /> <span>ARFs ({arfs.length})</span></button>
