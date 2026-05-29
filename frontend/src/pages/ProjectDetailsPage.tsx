@@ -8,6 +8,8 @@ import { invoiceService } from "../services/invoiceService";
 import { salesService } from "../services/salesService";
 import { siteDocumentService, SiteDocumentDto } from "../services/siteDocumentService";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
+import { dprService, DailyProgressReportDto } from "../services/dprService";
+import { FileCheck } from "lucide-react";
 import { Wrench } from "lucide-react";
 
 import { SiteDto } from "../types/site";
@@ -32,12 +34,17 @@ export const ProjectDetailsPage = () => {
     const [documents, setDocuments] = useState<SiteDocumentDto[]>([]);
     const [materialReceiving, setMaterialReceiving] = useState<MaterialReceivingFormDto[]>([]);
 
+
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
 
     useEffect(() => {
         loadData();
     }, [siteId]);
+
+    const [dprs, setDprs] = useState<DailyProgressReportDto[]>([]);
+
+
 
     useEffect(() => {
         const handleRefresh = (e: any) => {
@@ -48,11 +55,16 @@ export const ProjectDetailsPage = () => {
         const handleRefreshMaterial = () => {
             materialReceivingService.getFormsBySiteId(siteId).then(setMaterialReceiving);
         };
+        const handleRefreshDpr = () => {
+            dprService.getBySiteId(siteId).then(setDprs);
+        };
         window.addEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefresh);
         window.addEventListener('REFRESH_MATERIAL_RECEIVING_LIST', handleRefreshMaterial);
+        window.addEventListener('REFRESH_DPR_LIST', handleRefreshDpr);
         return () => {
             window.removeEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefresh);
             window.removeEventListener('REFRESH_MATERIAL_RECEIVING_LIST', handleRefreshMaterial);
+            window.removeEventListener('REFRESH_DPR_LIST', handleRefreshDpr);
         };
     }, [siteId]);
 
@@ -67,7 +79,8 @@ export const ProjectDetailsPage = () => {
                 invoiceData,
                 leadData,
                 documentData,
-                materialReceivingData
+                materialReceivingData,
+                dprData
             ] = await Promise.all([
                 siteService.getById(siteId),
                 expenseApi.getBySiteId(siteId),
@@ -81,6 +94,10 @@ export const ProjectDetailsPage = () => {
                 }),
                 materialReceivingService.getFormsBySiteId(siteId).catch(err => {
                     console.error("Failed to load material receiving forms", err);
+                    return [];
+                }),
+                dprService.getBySiteId(siteId).catch(err => {
+                    console.error("Failed to load dprs", err);
                     return [];
                 })
             ]);
@@ -98,6 +115,7 @@ export const ProjectDetailsPage = () => {
             setLeads(leadData.filter((l: any) => l.siteId === siteId));
             setDocuments(documentData);
             setMaterialReceiving(materialReceivingData);
+            setDprs(dprData);
             
         } catch (error) {
             console.error("Failed to load project details", error);
@@ -129,6 +147,7 @@ export const ProjectDetailsPage = () => {
                     <button onClick={() => setActiveTab('leads')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'leads' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Target className="h-4 w-4" /> <span>Leads ({leads.length})</span></button>
                     <button onClick={() => setActiveTab('quotes')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'quotes' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileText className="h-4 w-4" /> <span>Quotes ({quotations.length})</span></button>
                     <button onClick={() => setActiveTab('material_receiving')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'material_receiving' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Wrench className="h-4 w-4" /> <span>Project Tool Site ({materialReceiving.length})</span></button>
+                    <button onClick={() => setActiveTab('dprs')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'dprs' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileCheck className="h-4 w-4" /> <span>DPRs ({dprs.length})</span></button>
                     <button onClick={() => setActiveTab('documents')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'documents' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileText className="h-4 w-4" /> <span>Documents ({documents.length})</span></button>
                     <button onClick={() => setActiveTab('invoices')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'invoices' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Receipt className="h-4 w-4" /> <span>Invoices ({invoices.length})</span></button>
                     <button onClick={() => setActiveTab('arfs')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'arfs' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><DollarSign className="h-4 w-4" /> <span>ARFs ({arfs.length})</span></button>
@@ -258,6 +277,70 @@ export const ProjectDetailsPage = () => {
                                                 </tbody>
                                             </table>
                                         </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                
+                {activeTab === 'dprs' && (
+                    <div className="space-y-4 animate-in fade-in">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">Daily Site Progress Reports</h2>
+                        </div>
+                        {dprs.length === 0 ? (
+                            <div className="text-center py-12 bg-secondary/20 rounded-lg border border-dashed border-border">
+                                <p className="text-muted-foreground">No DPRs recorded for this site yet.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {dprs.map((report) => (
+                                    <div key={report.id} className="bg-card border border-border rounded-lg p-5 shadow-sm">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h4 className="font-semibold text-lg">{new Date(report.date).toLocaleDateString()}</h4>
+                                                <p className="text-sm text-muted-foreground mt-1">In-charge: <span className="font-medium text-foreground">{report.siteInCharge}</span></p>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                                            <div>
+                                                <p className="text-muted-foreground mb-1">Total Workers</p>
+                                                <p className="font-medium">{report.totalWorkers}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-muted-foreground mb-1">Opening Time</p>
+                                                <p className="font-medium">{report.siteOpeningTime}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-muted-foreground mb-1">Closing Time</p>
+                                                <p className="font-medium">{report.siteClosingTime}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-muted-foreground mb-1">Activities</p>
+                                                <p className="font-medium">{report.activities.length}</p>
+                                            </div>
+                                        </div>
+                                        {report.attachments && report.attachments.length > 0 && (
+                                            <div className="mt-4 pt-4 border-t border-border">
+                                                <p className="text-sm font-medium mb-2">Attachments:</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {report.attachments.map((att: any) => (
+                                                        <a 
+                                                            key={att.id} 
+                                                            href={att.fileUrl} 
+                                                            target="_blank" 
+                                                            rel="noreferrer"
+                                                            className="text-xs flex items-center space-x-1 bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-foreground transition-colors"
+                                                        >
+                                                            <Download className="h-3 w-3" />
+                                                            <span>{att.fileName}</span>
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

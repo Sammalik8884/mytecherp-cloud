@@ -102,6 +102,12 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<MaterialReceivingForm> MaterialReceivingForms { get; set; }
         public DbSet<MaterialReceivingItem> MaterialReceivingItems { get; set; }
         
+        
+        public DbSet<DailyProgressReport> DailyProgressReports { get; set; }
+        public DbSet<DprActivity> DprActivities { get; set; }
+        public DbSet<DprEmployee> DprEmployees { get; set; }
+        public DbSet<DprMaterial> DprMaterials { get; set; }
+        public DbSet<DprAttachment> DprAttachments { get; set; }
         public DbSet<MomMeeting> MomMeetings { get; set; }
         public DbSet<MomAttendee> MomAttendees { get; set; }
         public DbSet<MomAttachment> MomAttachments { get; set; }
@@ -225,6 +231,20 @@ namespace MytechERP.Infrastructure.Persistance
                 .HasForeignKey(m => m.CreatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
                 
+            
+            builder.Entity<DailyProgressReport>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
+            
+            builder.Entity<DailyProgressReport>()
+                .HasOne(m => m.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(m => m.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<DprActivity>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
+            builder.Entity<DprEmployee>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
+            builder.Entity<DprMaterial>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
+            builder.Entity<DprAttachment>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
+
             builder.Entity<MomMeeting>().HasQueryFilter(m => m.TenantId == _currentUserService.TenantId && !m.IsDeleted);
             
             builder.Entity<MomMeeting>()
