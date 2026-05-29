@@ -118,14 +118,14 @@ export const DailyProgressReportModal = () => {
                 if (act.trim() !== '') formData.append(`Activities[${i}]`, act);
             });
 
-            employees.forEach((emp, i) => {
+            employees.filter(emp => emp.employeeName.trim() !== '').forEach((emp, i) => {
                 formData.append(`Employees[${i}].EmployeeName`, emp.employeeName);
                 formData.append(`Employees[${i}].InTime`, emp.inTime);
                 formData.append(`Employees[${i}].OutTime`, emp.outTime);
                 formData.append(`Employees[${i}].OverTime`, emp.overTime);
             });
 
-            materials.forEach((mat, i) => {
+            materials.filter(mat => mat.item.trim() !== '').forEach((mat, i) => {
                 formData.append(`Materials[${i}].Item`, mat.item);
                 formData.append(`Materials[${i}].Quantity`, mat.quantity);
                 formData.append(`Materials[${i}].Remarks`, mat.remarks);
