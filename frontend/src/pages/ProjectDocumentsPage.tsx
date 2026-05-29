@@ -395,33 +395,23 @@ export const ProjectDocumentsPage = () => {
 
                 
                 {/* DPR Card */}
-                <div 
+                <button 
                     onClick={() => {
                         setShowToolsDetails(false);
                         setShowMaterialReceivingDetails(false);
                         setShowMomList(false);
                         setShowLettersList(false);
                         setShowMaterialApprovalsList(false);
-                        setShowDprDetails(true);
+                        window.dispatchEvent(new CustomEvent('OPEN_DPR_MODAL'));
                     }}
-                    className={`group relative overflow-hidden rounded-xl bg-card border ${showDprDetails ? 'border-primary shadow-md' : 'border-border'} p-6 transition-all hover:shadow-md hover:border-primary cursor-pointer`}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
                 >
-                    <div className="absolute top-0 right-0 p-4">
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('OPEN_DPR_MODAL')); }}
-                            className="bg-primary/10 text-primary hover:bg-primary/20 p-2 rounded-full transition-colors"
-                        >
-                            <Plus className="h-5 w-5" />
-                        </button>
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <FileCheck className="h-8 w-8 text-primary" />
                     </div>
-                    <div className="flex flex-col items-center mt-2">
-                        <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <FileCheck className="h-8 w-8" />
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">DPR (Daily progress report)</h3>
-                        <p className="text-sm text-muted-foreground text-center">Daily site progress report.</p>
-                    </div>
-                </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">DPR (Daily progress report)</h3>
+                    <p className="text-sm text-muted-foreground text-center">Daily site progress report.</p>
+                </button>
 
                 {/* Project Tool Site (Material Receiving) Card */}
                 <button 
@@ -458,105 +448,115 @@ export const ProjectDocumentsPage = () => {
 
             
             {/* DPR List Section */}
-            {showDprDetails && (
-                <div className="mt-8 bg-card rounded-xl border border-border shadow-sm p-6 animate-in fade-in slide-in-from-bottom-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                        <h2 className="text-xl font-bold tracking-tight text-primary">Daily Site Progress Report List</h2>
+            <div className="mt-12 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Daily Site Progress Report List</h2>
+                    <div className="flex items-center space-x-4">
                         <button 
                             onClick={() => window.dispatchEvent(new CustomEvent('OPEN_DPR_MODAL'))}
-                            className="flex items-center space-x-2 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md transition-colors"
+                            className="flex items-center space-x-1 text-sm font-medium text-primary hover:underline bg-primary/10 px-3 py-1.5 rounded-md transition-colors"
                         >
                             <Plus className="h-4 w-4" />
                             <span>Create DPR</span>
                         </button>
-                    </div>
-                    
-                    <div className="bg-secondary/20 p-4 rounded-lg mb-6 border border-border">
-                        <p className="text-sm text-muted-foreground mb-3">Select a site to view the daily progress reports:</p>
-                        <select 
-                            value={selectedSiteId} 
-                            onChange={(e) => handleDprSiteSelect(Number(e.target.value) || "")}
-                            className="w-full md:w-1/3 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        <button 
+                            onClick={() => setShowDprDetails(!showDprDetails)}
+                            className="text-sm font-medium text-primary hover:underline"
                         >
-                            <option value="">-- Select Site --</option>
-                            {sites.map(site => (
-                                <option key={site.id} value={site.id}>{site.name}</option>
-                            ))}
-                        </select>
+                            {showDprDetails ? "Hide Details" : "Show Details"}
+                        </button>
                     </div>
+                </div>
 
-                    {selectedSiteId && (
+                {showDprDetails && (
+                    <div className="space-y-6 pt-4 border-t border-border">
                         <div>
-                            <h3 className="font-semibold text-lg mb-4">Daily Site Progress Reports</h3>
-                            {isLoadingDpr ? (
-                                <div className="flex justify-center items-center py-12">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary/60" />
-                                </div>
-                            ) : dprLists.length === 0 ? (
-                                <div className="text-center py-12 bg-secondary/10 rounded-lg border border-dashed border-border">
-                                    <p className="text-muted-foreground">No reports found for this site.</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {dprLists.map((report) => (
-                                        <div key={report.id} className="bg-background border border-border rounded-lg p-5 hover:shadow-sm transition-shadow">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div>
-                                                    <h4 className="font-semibold text-lg">{report.siteName} - {new Date(report.date).toLocaleDateString()}</h4>
-                                                    <p className="text-sm text-muted-foreground mt-1">In-charge: <span className="font-medium text-foreground">{report.siteInCharge}</span></p>
-                                                </div>
-                                                <div className="flex space-x-2">
-                                                    <button onClick={() => handleDeleteDpr(report.id)} className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 px-3 py-1.5 rounded text-sm font-medium transition-colors">
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
-                                                <div>
-                                                    <p className="text-muted-foreground mb-1">Total Workers</p>
-                                                    <p className="font-medium">{report.totalWorkers}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-muted-foreground mb-1">Opening Time</p>
-                                                    <p className="font-medium">{report.siteOpeningTime}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-muted-foreground mb-1">Closing Time</p>
-                                                    <p className="font-medium">{report.siteClosingTime}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-muted-foreground mb-1">Activities</p>
-                                                    <p className="font-medium">{report.activities.length}</p>
-                                                </div>
-                                            </div>
-                                            
-                                            {report.attachments && report.attachments.length > 0 && (
-                                                <div className="mt-4 pt-4 border-t border-border">
-                                                    <p className="text-sm font-medium mb-2">Attachments ({report.attachments.length}):</p>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {report.attachments.map((att: any) => (
-                                                            <a 
-                                                                key={att.id} 
-                                                                href={att.fileUrl} 
-                                                                target="_blank" 
-                                                                rel="noreferrer"
-                                                                className="text-xs flex items-center space-x-1 bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-foreground transition-colors"
-                                                            >
-                                                                <Download className="h-3 w-3" />
-                                                                <span>{att.fileName}</span>
-                                                            </a>
-                                                        ))}
+                            <p className="text-sm text-muted-foreground mb-3">Select a site to view the daily progress reports:</p>
+                            <select 
+                                value={selectedSiteId} 
+                                onChange={(e) => handleDprSiteSelect(Number(e.target.value) || "")}
+                                className="w-full md:w-1/3 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            >
+                                <option value="">-- Select Site --</option>
+                                {sites.map(site => (
+                                    <option key={site.id} value={site.id}>{site.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {selectedSiteId && (
+                            <div>
+                                <h3 className="font-semibold text-lg mb-4">Daily Site Progress Reports</h3>
+                                {isLoadingDpr ? (
+                                    <div className="flex justify-center items-center py-12">
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary/60" />
+                                    </div>
+                                ) : dprLists.length === 0 ? (
+                                    <div className="text-center py-12 bg-secondary/10 rounded-lg border border-dashed border-border">
+                                        <p className="text-muted-foreground">No reports found for this site.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {dprLists.map((report) => (
+                                            <div key={report.id} className="bg-card border border-border rounded-lg p-5 shadow-sm">
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div>
+                                                        <h4 className="font-semibold text-lg">{report.siteName} - {new Date(report.date).toLocaleDateString()}</h4>
+                                                        <p className="text-sm text-muted-foreground mt-1">In-charge: <span className="font-medium text-foreground">{report.siteInCharge}</span></p>
+                                                    </div>
+                                                    <div className="flex space-x-2">
+                                                        <button onClick={() => handleDeleteDpr(report.id)} className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 px-3 py-1.5 rounded text-sm font-medium transition-colors">
+                                                            Delete
+                                                        </button>
                                                     </div>
                                                 </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                                                    <div>
+                                                        <p className="text-muted-foreground mb-1">Total Workers</p>
+                                                        <p className="font-medium">{report.totalWorkers}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground mb-1">Opening Time</p>
+                                                        <p className="font-medium">{report.siteOpeningTime}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground mb-1">Closing Time</p>
+                                                        <p className="font-medium">{report.siteClosingTime}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground mb-1">Activities</p>
+                                                        <p className="font-medium">{report.activities.length}</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                {report.attachments && report.attachments.length > 0 && (
+                                                    <div className="mt-4 pt-4 border-t border-border">
+                                                        <p className="text-sm font-medium mb-2">Attachments ({report.attachments.length}):</p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {report.attachments.map((att: any) => (
+                                                                <a 
+                                                                    key={att.id} 
+                                                                    href={att.fileUrl} 
+                                                                    target="_blank" 
+                                                                    rel="noreferrer"
+                                                                    className="text-xs flex items-center space-x-1 bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-foreground transition-colors"
+                                                                >
+                                                                    <Download className="h-3 w-3" />
+                                                                    <span>{att.fileName}</span>
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
 
             {/* Project Tool Site / Material Receiving List Section */}
             <div className="mt-12 bg-card border border-border rounded-xl p-6 shadow-sm">
