@@ -13,6 +13,7 @@ import { itemProcurementService, ItemProcurementDto } from "../services/itemProc
 import { ItemProcurementDetailsModal } from "../components/common/ItemProcurementDetailsModal";
 import { DprDetailsModal, DprViewMode } from "../components/common/DprDetailsModal";
 import { ConfirmModal } from "../components/common/ConfirmModal";
+import { MaterialReceivingModal } from "../components/common/MaterialReceivingModal";
 import { FileCheck } from "lucide-react";
 import { Wrench } from "lucide-react";
 
@@ -622,6 +623,8 @@ export const ProjectDetailsPage = () => {
                     confirmText="Delete"
                 />
             )}
+
+            <MaterialReceivingModal />
         </div>
     );
 };
