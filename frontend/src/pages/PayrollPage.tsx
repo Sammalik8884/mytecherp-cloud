@@ -8,6 +8,7 @@ import { payrollService } from "../services/payrollService";
 import { authService } from "../services/authService";
 import { PayslipDto, EmployeePayrollProfileDto } from "../types/hr";
 import { toast } from "react-hot-toast";
+import { ConfirmModal } from "../components/common/ConfirmModal";
 
 export const PayrollPage = () => {
     // ---- Tabs & General State ----
@@ -25,6 +26,7 @@ export const PayrollPage = () => {
     const [showGenerateModal, setShowGenerateModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showEntryModal, setShowEntryModal] = useState(false);
+    const [payslipToApprove, setPayslipToApprove] = useState<number | null>(null);
 
     // Entry Form
     const [entryForm, setEntryForm] = useState({
@@ -146,17 +148,22 @@ export const PayrollPage = () => {
         }
     };
 
-    const handleApproveAndPay = async (id: number) => {
-        if (!window.confirm("Approve this payslip and mark it as Paid? This action cannot be reversed.")) return;
+    const handleApproveAndPay = (id: number) => {
+        setPayslipToApprove(id);
+    };
+
+    const confirmApproveAndPay = async () => {
+        if (!payslipToApprove) return;
         try {
-            setProcessingId(id);
-            await payrollService.approveAndPay(id);
+            setProcessingId(payslipToApprove);
+            await payrollService.approveAndPay(payslipToApprove);
             toast.success("Payslip marked as Paid!");
             fetchData();
         } catch (error: any) {
             toast.error(error.response?.data?.Message || "Failed to approve payment.");
         } finally {
             setProcessingId(null);
+            setPayslipToApprove(null);
         }
     };
 
@@ -782,6 +789,17 @@ export const PayrollPage = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal 
+                isOpen={!!payslipToApprove}
+                title="Approve & Pay"
+                message="Approve this payslip and mark it as Paid? This action cannot be reversed."
+                confirmText="Approve & Pay"
+                cancelText="Cancel"
+                type="warning"
+                onConfirm={confirmApproveAndPay}
+                onCancel={() => setPayslipToApprove(null)}
+            />
         </div>
     );
 };

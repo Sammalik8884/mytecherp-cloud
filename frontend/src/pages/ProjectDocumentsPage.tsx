@@ -6,6 +6,7 @@ import { MaterialReceivingModal } from "../components/common/MaterialReceivingMo
 import { DailyProgressReportModal } from "../components/common/DailyProgressReportModal";
 import { dprService, DailyProgressReportDto } from "../services/dprService";
 import { DprDetailsModal, DprViewMode } from "../components/common/DprDetailsModal";
+import { ConfirmModal } from "../components/common/ConfirmModal";
 import { siteService } from "../services/siteService";
 import { SiteDto } from "../types/site";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
@@ -83,6 +84,7 @@ export const ProjectDocumentsPage = () => {
     const [showDprDetails, setShowDprDetails] = useState(false);
     const [selectedReportForDetails, setSelectedReportForDetails] = useState<any>(null);
     const [dprViewMode, setDprViewMode] = useState<DprViewMode>(null);
+    const [dprToDelete, setDprToDelete] = useState<number | null>(null);
 
     useEffect(() => {
         if (showDprDetails) {
@@ -117,15 +119,20 @@ export const ProjectDocumentsPage = () => {
         if (siteId) fetchDprLists(Number(siteId));
     };
 
-    const handleDeleteDpr = async (id: number) => {
-        if (window.confirm("Are you sure you want to delete this report?")) {
-            try {
-                await dprService.delete(id);
-                toast.success("Report deleted successfully!");
-                if (selectedSiteId) fetchDprLists(Number(selectedSiteId));
-            } catch (error) {
-                toast.error("Failed to delete report");
-            }
+    const handleDeleteDpr = (id: number) => {
+        setDprToDelete(id);
+    };
+
+    const confirmDeleteDpr = async () => {
+        if (!dprToDelete) return;
+        try {
+            await dprService.delete(dprToDelete);
+            toast.success("Report deleted successfully!");
+            if (selectedSiteId) fetchDprLists(Number(selectedSiteId));
+        } catch (error) {
+            toast.error("Failed to delete report");
+        } finally {
+            setDprToDelete(null);
         }
     };
 
@@ -228,6 +235,8 @@ export const ProjectDocumentsPage = () => {
         }
     };
 
+    const [momToDelete, setMomToDelete] = useState<number | null>(null);
+
     const handleViewMom = (meeting: MomMeetingDto) => {
         setSelectedMom(meeting);
         setIsMomViewOnly(true);
@@ -240,15 +249,20 @@ export const ProjectDocumentsPage = () => {
         setShowMomModal(true);
     };
 
-    const handleDeleteMom = async (id: number) => {
-        if (window.confirm("Are you sure you want to delete this meeting?")) {
-            try {
-                await momMeetingService.deleteMeeting(id);
-                toast.success("Meeting deleted successfully!");
-                fetchMomMeetings();
-            } catch (error) {
-                toast.error("Failed to delete meeting");
-            }
+    const handleDeleteMom = (id: number) => {
+        setMomToDelete(id);
+    };
+
+    const confirmDeleteMom = async () => {
+        if (!momToDelete) return;
+        try {
+            await momMeetingService.deleteMeeting(momToDelete);
+            toast.success("Meeting deleted successfully!");
+            fetchMomMeetings();
+        } catch (error) {
+            toast.error("Failed to delete meeting");
+        } finally {
+            setMomToDelete(null);
         }
     };
 
@@ -969,6 +983,28 @@ export const ProjectDocumentsPage = () => {
             <DailyProgressReportModal />
             <DprDetailsModal isOpen={!!dprViewMode} onClose={() => setDprViewMode(null)} report={selectedReportForDetails} viewMode={dprViewMode} />
             
+            <ConfirmModal 
+                isOpen={!!dprToDelete}
+                title="Delete Report"
+                message="Are you sure you want to delete this report? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+                onConfirm={confirmDeleteDpr}
+                onCancel={() => setDprToDelete(null)}
+            />
+
+            <ConfirmModal 
+                isOpen={!!momToDelete}
+                title="Delete Meeting"
+                message="Are you sure you want to delete this meeting? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+                onConfirm={confirmDeleteMom}
+                onCancel={() => setMomToDelete(null)}
+            />
+
             {showMomModal && (
                 <MomMeetingModal 
                     show={showMomModal} 
