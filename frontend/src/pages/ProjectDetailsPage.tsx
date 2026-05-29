@@ -9,6 +9,8 @@ import { salesService } from "../services/salesService";
 import { siteDocumentService, SiteDocumentDto } from "../services/siteDocumentService";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
 import { dprService, DailyProgressReportDto } from "../services/dprService";
+import { itemProcurementService, ItemProcurementDto } from "../services/itemProcurementService";
+import { ItemProcurementDetailsModal } from "../components/common/ItemProcurementDetailsModal";
 import { DprDetailsModal, DprViewMode } from "../components/common/DprDetailsModal";
 import { FileCheck } from "lucide-react";
 import { Wrench } from "lucide-react";
@@ -34,6 +36,9 @@ export const ProjectDetailsPage = () => {
     const [leads, setLeads] = useState<SalesLeadDto[]>([]);
     const [documents, setDocuments] = useState<SiteDocumentDto[]>([]);
     const [materialReceiving, setMaterialReceiving] = useState<MaterialReceivingFormDto[]>([]);
+    const [procurements, setProcurements] = useState<ItemProcurementDto[]>([]);
+    const [selectedProcurement, setSelectedProcurement] = useState<ItemProcurementDto | null>(null);
+    const [showProcurementDetails, setShowProcurementDetails] = useState(false);
 
 
     const [loading, setLoading] = useState(true);
@@ -83,7 +88,8 @@ export const ProjectDetailsPage = () => {
                 leadData,
                 documentData,
                 materialReceivingData,
-                dprData
+                dprData,
+                procurementData
             ] = await Promise.all([
                 siteService.getById(siteId),
                 expenseApi.getBySiteId(siteId),
@@ -102,6 +108,10 @@ export const ProjectDetailsPage = () => {
                 dprService.getBySiteId(siteId).catch(err => {
                     console.error("Failed to load dprs", err);
                     return [];
+                }),
+                itemProcurementService.getAll(siteId).catch(err => {
+                    console.error("Failed to load procurements", err);
+                    return [];
                 })
             ]);
 
@@ -119,6 +129,7 @@ export const ProjectDetailsPage = () => {
             setDocuments(documentData);
             setMaterialReceiving(materialReceivingData);
             setDprs(dprData);
+            setProcurements(procurementData);
             
         } catch (error) {
             console.error("Failed to load project details", error);
@@ -151,6 +162,7 @@ export const ProjectDetailsPage = () => {
                     <button onClick={() => setActiveTab('quotes')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'quotes' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileText className="h-4 w-4" /> <span>Quotes ({quotations.length})</span></button>
                     <button onClick={() => setActiveTab('material_receiving')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'material_receiving' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Wrench className="h-4 w-4" /> <span>Project Tool Site ({materialReceiving.length})</span></button>
                     <button onClick={() => setActiveTab('dprs')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'dprs' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileCheck className="h-4 w-4" /> <span>DPRs ({dprs.length})</span></button>
+                    <button onClick={() => setActiveTab('procurements')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'procurements' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileCheck className="h-4 w-4" /> <span>Procurements ({procurements.length})</span></button>
                     <button onClick={() => setActiveTab('documents')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'documents' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><FileText className="h-4 w-4" /> <span>Documents ({documents.length})</span></button>
                     <button onClick={() => setActiveTab('invoices')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'invoices' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><Receipt className="h-4 w-4" /> <span>Invoices ({invoices.length})</span></button>
                     <button onClick={() => setActiveTab('arfs')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center space-x-2 ${activeTab === 'arfs' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:bg-muted/50'}`}><DollarSign className="h-4 w-4" /> <span>ARFs ({arfs.length})</span></button>
@@ -343,7 +355,50 @@ export const ProjectDetailsPage = () => {
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
                                                     <div className="flex flex-col space-y-1">
-                                                        <button onClick={() => window.open(`/dpr/${report.id}/print?siteId=${siteId}`, '_blank')} className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">PDF</button>
+                                                        <button onClick={() => dprService.downloadPdf(report.id)} className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">PDF</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'procurements' && (
+                    <div className="space-y-4 animate-in fade-in">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">Item Procurements</h2>
+                        </div>
+                        {procurements.length === 0 ? (
+                            <div className="text-center py-12 bg-secondary/20 rounded-lg border border-dashed border-border">
+                                <p className="text-muted-foreground">No procurements recorded for this site yet.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto border border-border rounded-lg bg-card mt-4">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-secondary/50 border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 text-center border-r border-border">No.</th>
+                                            <th className="px-4 py-3 border-r border-border">Site Name</th>
+                                            <th className="px-4 py-3 border-r border-border">Date</th>
+                                            <th className="px-4 py-3 border-r border-border">Prepared By</th>
+                                            <th className="px-4 py-3 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {procurements.map((proc, idx) => (
+                                            <tr key={proc.id} className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors">
+                                                <td className="px-4 py-3 text-center border-r border-border">{idx + 1}</td>
+                                                <td className="px-4 py-3 border-r border-border">{proc.siteName}</td>
+                                                <td className="px-4 py-3 border-r border-border">{new Date(proc.date).toLocaleDateString()}</td>
+                                                <td className="px-4 py-3 border-r border-border">{proc.createdByUserName}</td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <div className="flex flex-wrap items-center justify-center gap-2">
+                                                        <button onClick={() => { setSelectedProcurement(proc); setShowProcurementDetails(true); }} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">View</button>
+                                                        <button onClick={() => itemProcurementService.downloadPdf(proc.id)} className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">PDF</button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -506,6 +561,14 @@ export const ProjectDetailsPage = () => {
             </div>
 
             <DprDetailsModal isOpen={!!dprViewMode} onClose={() => setDprViewMode(null)} report={selectedReportForDetails} viewMode={dprViewMode} />
+            
+            {selectedProcurement && showProcurementDetails && (
+                <ItemProcurementDetailsModal 
+                    isOpen={showProcurementDetails}
+                    onClose={() => setShowProcurementDetails(false)}
+                    procurement={selectedProcurement}
+                />
+            )}
         </div>
     );
 };

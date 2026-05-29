@@ -61,4 +61,15 @@ export const dprService = {
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/DailyProgressReport/${id}`);
   },
+
+  downloadPdf: async (id: number): Promise<void> => {
+    const response = await apiClient.get(`/DailyProgressReport/${id}/pdf`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Daily_Progress_Report_${id}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+  }
 };

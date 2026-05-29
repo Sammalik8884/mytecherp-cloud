@@ -112,6 +112,9 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<MomAttendee> MomAttendees { get; set; }
         public DbSet<MomAttachment> MomAttachments { get; set; }
 
+        public DbSet<ItemProcurement> ItemProcurements { get; set; }
+        public DbSet<ItemProcurementItem> ItemProcurementItems { get; set; }
+
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<TenantSubscription> TenantSubscriptions { get; set; }
@@ -251,6 +254,15 @@ namespace MytechERP.Infrastructure.Persistance
                 .HasOne(m => m.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(m => m.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ItemProcurement>().HasQueryFilter(ip => ip.TenantId == _currentUserService.TenantId && !ip.IsDeleted);
+            builder.Entity<ItemProcurementItem>().HasQueryFilter(ipi => ipi.TenantId == _currentUserService.TenantId && !ipi.IsDeleted);
+
+            builder.Entity<ItemProcurement>()
+                .HasOne(ip => ip.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(ip => ip.CreatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
             
             // ─── Subscription Plan & Tenant Subscription ─────────────────────────────

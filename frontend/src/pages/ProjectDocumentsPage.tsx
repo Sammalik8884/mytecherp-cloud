@@ -12,6 +12,9 @@ import { SiteDto } from "../types/site";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
 import MomMeetingModal from "../components/MomMeetingModal";
 import momMeetingService, { MomMeetingDto } from "../services/momMeetingService";
+import { itemProcurementService, ItemProcurementDto } from "../services/itemProcurementService";
+import { ItemProcurementModal } from "../components/common/ItemProcurementModal";
+import { ItemProcurementDetailsModal } from "../components/common/ItemProcurementDetailsModal";
 import { siteDocumentService } from "../services/siteDocumentService";
 import { Users, Download, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -140,6 +143,64 @@ export const ProjectDocumentsPage = () => {
     const [showMaterialApprovalsList, setShowMaterialApprovalsList] = useState(false);
     const [materialApprovalsList, setMaterialApprovalsList] = useState<any[]>([]);
     const [isLoadingMaterialApprovals, setIsLoadingMaterialApprovals] = useState(false);
+
+    // Item Procurement State
+    const [showProcurementModal, setShowProcurementModal] = useState(false);
+    const [showProcurementList, setShowProcurementList] = useState(false);
+    const [procurementList, setProcurementList] = useState<ItemProcurementDto[]>([]);
+    const [isLoadingProcurement, setIsLoadingProcurement] = useState(false);
+    const [selectedProcurement, setSelectedProcurement] = useState<ItemProcurementDto | null>(null);
+    const [showProcurementDetails, setShowProcurementDetails] = useState(false);
+    const [procurementToDelete, setProcurementToDelete] = useState<number | null>(null);
+
+    const fetchProcurements = async () => {
+        setIsLoadingProcurement(true);
+        try {
+            const data = await itemProcurementService.getAll();
+            setProcurementList(data);
+        } catch (error) {
+            console.error("Failed to load Item Procurements", error);
+        } finally {
+            setIsLoadingProcurement(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showProcurementList) {
+            fetchProcurements();
+        }
+    }, [showProcurementList]);
+
+    const handleProcurementSubmit = async (data: any) => {
+        try {
+            if (selectedProcurement) {
+                await itemProcurementService.update(selectedProcurement.id, data);
+                toast.success("Item Procurement updated successfully!");
+            } else {
+                await itemProcurementService.create(data);
+                toast.success("Item Procurement created successfully!");
+            }
+            setShowProcurementModal(false);
+            if (showProcurementList) fetchProcurements();
+        } catch (error: any) {
+            console.error("Failed to save Item Procurement", error);
+            toast.error("Failed to save Item Procurement.");
+            throw error;
+        }
+    };
+
+    const confirmDeleteProcurement = async () => {
+        if (!procurementToDelete) return;
+        try {
+            await itemProcurementService.delete(procurementToDelete);
+            toast.success("Procurement deleted successfully!");
+            fetchProcurements();
+        } catch (error) {
+            toast.error("Failed to delete procurement");
+        } finally {
+            setProcurementToDelete(null);
+        }
+    };
 
     const fetchMomMeetings = async () => {
         setIsLoadingMom(true);
@@ -302,6 +363,25 @@ export const ProjectDocumentsPage = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Item Procurement Card */}
+                <button 
+                    onClick={() => {
+                        setSelectedProcurement(null);
+                        siteService.getAll().then(setSites).catch(console.error);
+                        setShowProcurementModal(true);
+                    }}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <FileSignature className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Item Procurement</h3>
+                    <p className="text-sm text-muted-foreground text-center">Create and manage item procurement requests for sites.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create Procurement
+                    </div>
+                </button>
+
                 {/* Project Scope Card */}
                 <button 
                     onClick={() => window.dispatchEvent(new CustomEvent('OPEN_PROJECT_DOCUMENT_MODAL', { detail: { documentType: 'Project Scope' } }))}
@@ -559,7 +639,7 @@ export const ProjectDocumentsPage = () => {
                                                         </td>
                                                         <td className="px-4 py-3 text-center border-r border-border">
                                                             <div className="flex flex-col space-y-1">
-                                                                <button onClick={() => window.open(`/dpr/${report.id}/print?siteId=${selectedSiteId}`, '_blank')} className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">PDF</button>
+                                                                <button onClick={() => dprService.downloadPdf(report.id)} className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">PDF</button>
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-center">
@@ -573,6 +653,78 @@ export const ProjectDocumentsPage = () => {
                                         </table>
                                     </div>
                                 )}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Item Procurement List Section */}
+            <div className="mt-12 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Item Procurement List</h2>
+                    <div className="flex items-center space-x-4">
+                        <button 
+                            onClick={() => {
+                                setSelectedProcurement(null);
+                                siteService.getAll().then(setSites).catch(console.error);
+                                setShowProcurementModal(true);
+                            }}
+                            className="flex items-center space-x-1 text-sm font-medium text-primary hover:underline bg-primary/10 px-3 py-1.5 rounded-md transition-colors"
+                        >
+                            <Plus className="h-4 w-4" />
+                            <span>Create Procurement</span>
+                        </button>
+                        <button 
+                            onClick={() => setShowProcurementList(!showProcurementList)}
+                            className="text-sm font-medium text-primary hover:underline"
+                        >
+                            {showProcurementList ? "Hide List" : "Show List"}
+                        </button>
+                    </div>
+                </div>
+
+                {showProcurementList && (
+                    <div className="space-y-6 pt-4 border-t border-border">
+                        {isLoadingProcurement ? (
+                            <div className="flex justify-center items-center py-12">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary/60" />
+                            </div>
+                        ) : procurementList.length === 0 ? (
+                            <div className="text-center py-12 bg-secondary/10 rounded-lg border border-dashed border-border">
+                                <p className="text-muted-foreground">No procurements found.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto border border-border rounded-lg bg-card mt-4">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-secondary/50 border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 text-center border-r border-border">No.</th>
+                                            <th className="px-4 py-3 border-r border-border">Site Name</th>
+                                            <th className="px-4 py-3 border-r border-border">Date</th>
+                                            <th className="px-4 py-3 border-r border-border">Prepared By</th>
+                                            <th className="px-4 py-3 text-center border-r border-border">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {procurementList.map((proc, idx) => (
+                                            <tr key={proc.id} className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors">
+                                                <td className="px-4 py-3 text-center border-r border-border">{idx + 1}</td>
+                                                <td className="px-4 py-3 border-r border-border">{proc.siteName}</td>
+                                                <td className="px-4 py-3 border-r border-border">{new Date(proc.date).toLocaleDateString()}</td>
+                                                <td className="px-4 py-3 border-r border-border">{proc.createdByUserName}</td>
+                                                <td className="px-4 py-3 text-center border-r border-border">
+                                                    <div className="flex flex-wrap items-center justify-center gap-2">
+                                                        <button onClick={() => { setSelectedProcurement(proc); setShowProcurementDetails(true); }} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">View/Print</button>
+                                                        <button onClick={() => itemProcurementService.downloadPdf(proc.id)} className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">PDF</button>
+                                                        <button onClick={() => { siteService.getAll().then(setSites).catch(console.error); setSelectedProcurement(proc); setShowProcurementModal(true); }} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">Edit</button>
+                                                        <button onClick={() => setProcurementToDelete(proc.id)} className="text-red-500 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded text-sm font-medium transition-colors">Delete</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         )}
                     </div>
@@ -1014,6 +1166,33 @@ export const ProjectDocumentsPage = () => {
                     isViewOnly={isMomViewOnly}
                 />
             )}
+
+            <ItemProcurementModal 
+                isOpen={showProcurementModal}
+                onClose={() => setShowProcurementModal(false)}
+                onSubmit={handleProcurementSubmit}
+                sites={sites}
+                initialData={selectedProcurement}
+            />
+
+            {selectedProcurement && showProcurementDetails && (
+                <ItemProcurementDetailsModal 
+                    isOpen={showProcurementDetails}
+                    onClose={() => setShowProcurementDetails(false)}
+                    procurement={selectedProcurement}
+                />
+            )}
+
+            <ConfirmModal 
+                isOpen={!!procurementToDelete}
+                title="Delete Procurement"
+                message="Are you sure you want to delete this procurement? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
+                onConfirm={confirmDeleteProcurement}
+                onCancel={() => setProcurementToDelete(null)}
+            />
         </div>
     );
 };

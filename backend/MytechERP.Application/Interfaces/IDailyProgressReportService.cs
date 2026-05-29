@@ -8,6 +8,7 @@ namespace MytechERP.Application.Interfaces
     {
         Task<DailyProgressReportDto> CreateAsync(CreateDailyProgressReportDto dto);
         Task<List<DailyProgressReportDto>> GetBySiteIdAsync(int siteId);
+        Task<DailyProgressReportDto> GetByIdAsync(int id);
         Task DeleteAsync(int id);
     }
 }

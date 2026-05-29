@@ -38,5 +38,13 @@ namespace MytechERP.API.Controllers
             await _dprService.DeleteAsync(id);
             return NoContent();
         }
+
+        [HttpGet("{id}/pdf")]
+        public async Task<IActionResult> GeneratePdf(int id, [FromServices] IDailyProgressReportPdfService pdfService)
+        {
+            var report = await _dprService.GetByIdAsync(id);
+            var pdfBytes = await pdfService.GeneratePdfAsync(report);
+            return File(pdfBytes, "application/pdf", $"Daily_Progress_Report_{id}.pdf");
+        }
     }
 }

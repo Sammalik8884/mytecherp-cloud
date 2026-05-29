@@ -114,12 +114,23 @@ namespace MyTechERP.Infrastructure.Services
                 .OrderByDescending(d => d.Date)
                 .ToListAsync();
 
-            var result = new List<DailyProgressReportDto>();
-            foreach (var report in reports)
-            {
-                result.Add(MapToDto(report));
-            }
-            return result;
+            return reports.Select(r => MapToDto(r)).ToList();
+        }
+
+        public async Task<DailyProgressReportDto> GetByIdAsync(int id)
+        {
+            var tenantId = _currentUserService.TenantId ?? throw new UnauthorizedAccessException();
+            var report = await _context.DailyProgressReports
+                .Include(r => r.Activities)
+                .Include(r => r.Employees)
+                .Include(r => r.Materials)
+                .Include(r => r.Attachments)
+                .Include(r => r.Site)
+                .Include(r => r.CreatedByUser)
+                .FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenantId && !r.IsDeleted);
+
+            if (report == null) throw new KeyNotFoundException("Report not found");
+            return MapToDto(report);
         }
 
         public async Task DeleteAsync(int id)
