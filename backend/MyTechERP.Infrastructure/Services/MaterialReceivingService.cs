@@ -129,5 +129,42 @@ namespace MyTechERP.Infrastructure.Services
 
             return await GetFormByIdAsync(form.Id);
         }
+
+        public async Task<MaterialReceivingFormDto> UpdateFormAsync(int id, CreateMaterialReceivingFormDto dto)
+        {
+            var form = await _context.Set<MaterialReceivingForm>()
+                .Include(f => f.Items)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (form == null) throw new KeyNotFoundException("Form not found");
+
+            form.SiteId = dto.SiteId;
+            form.Location = dto.Location;
+
+            _context.Set<MaterialReceivingItem>().RemoveRange(form.Items);
+            
+            form.Items = dto.Items.Select(i => new MaterialReceivingItem
+            {
+                ItemName = i.ItemName,
+                LocationValue = i.LocationValue,
+                Received = i.Received,
+                Remarks = i.Remarks
+            }).ToList();
+
+            await _context.SaveChangesAsync();
+            return await GetFormByIdAsync(form.Id);
+        }
+
+        public async Task DeleteFormAsync(int id)
+        {
+            var form = await _context.Set<MaterialReceivingForm>()
+                .FirstOrDefaultAsync(f => f.Id == id);
+            
+            if (form != null)
+            {
+                _context.Set<MaterialReceivingForm>().Remove(form);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

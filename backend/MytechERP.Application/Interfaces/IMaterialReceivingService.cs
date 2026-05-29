@@ -10,5 +10,7 @@ namespace MytechERP.Application.Interfaces
         Task<List<MaterialReceivingFormDto>> GetFormsBySiteIdAsync(int siteId);
         Task<List<MaterialReceivingFormDto>> GetFormsByLocationAsync(string location);
         Task<MaterialReceivingFormDto> CreateFormAsync(CreateMaterialReceivingFormDto dto);
+        Task<MaterialReceivingFormDto> UpdateFormAsync(int id, CreateMaterialReceivingFormDto dto);
+        Task DeleteFormAsync(int id);
     }
 }

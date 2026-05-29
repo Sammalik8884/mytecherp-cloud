@@ -23,6 +23,7 @@ import { SalesLeadDto } from "../types/sales";
 
 import { FileText, MapPin, DollarSign, Receipt, Download, Eye, User, Target } from "lucide-react";
 import dayjs from "dayjs";
+import toast from "react-hot-toast";
 
 export const ProjectDetailsPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -291,6 +292,30 @@ export const ProjectDetailsPage = () => {
                                                     ))}
                                                 </tbody>
                                             </table>
+                                        </div>
+                                        <div className="bg-secondary/50 px-4 py-2 border-t border-border flex justify-end gap-2">
+                                            <button 
+                                                className="text-amber-500 hover:underline text-xs"
+                                                onClick={() => window.dispatchEvent(new CustomEvent('OPEN_MATERIAL_RECEIVING_MODAL', { detail: list }))}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button 
+                                                className="text-red-500 hover:underline text-xs"
+                                                onClick={async () => {
+                                                    if (window.confirm('Are you sure you want to delete this form?')) {
+                                                        try {
+                                                            await materialReceivingService.deleteForm(list.id);
+                                                            toast.success('Form deleted successfully');
+                                                            materialReceivingService.getFormsBySiteId(siteId).then(setMaterialReceiving); // Refresh list
+                                                        } catch (error) {
+                                                            toast.error('Failed to delete form');
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                Delete
+                                            </button>
                                         </div>
                                     </div>
                                 ))}

@@ -54,5 +54,33 @@ namespace MytechERP.API.Controllers
                 return StatusCode(500, new { message = ex.Message, inner = ex.InnerException?.Message, stackTrace = ex.StackTrace });
             }
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateForm(int id, [FromBody] CreateMaterialReceivingFormDto dto)
+        {
+            try
+            {
+                var form = await _service.UpdateFormAsync(id, dto);
+                return Ok(form);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteForm(int id)
+        {
+            try
+            {
+                await _service.DeleteFormAsync(id);
+                return NoContent();
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

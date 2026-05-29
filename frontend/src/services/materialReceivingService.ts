@@ -43,5 +43,14 @@ export const materialReceivingService = {
     createForm: async (data: CreateMaterialReceivingFormDto): Promise<MaterialReceivingFormDto> => {
         const response = await apiClient.post('/MaterialReceiving', data);
         return response.data;
+    },
+
+    updateForm: async (id: number, data: CreateMaterialReceivingFormDto): Promise<MaterialReceivingFormDto> => {
+        const response = await apiClient.put(`/MaterialReceiving/${id}`, data);
+        return response.data;
+    },
+
+    deleteForm: async (id: number): Promise<void> => {
+        await apiClient.delete(`/MaterialReceiving/${id}`);
     }
 };

@@ -15,11 +15,22 @@ export const MaterialReceivingModal = () => {
     const [items, setItems] = useState<MaterialReceivingItemDto[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [initialData, setInitialData] = useState<any>(null);
+
     useEffect(() => {
-        const handleOpen = () => {
+        const handleOpen = (e: any) => {
             setIsOpen(true);
             loadSites();
-            setItems([{ itemName: "", locationValue: "", received: "", remarks: "" }]);
+            const data = e.detail;
+            if (data) {
+                setInitialData(data);
+                setSiteId(data.siteId || "");
+                setItems(data.items.length > 0 ? data.items : [{ itemName: "", locationValue: "", received: "", remarks: "" }]);
+            } else {
+                setInitialData(null);
+                setSiteId("");
+                setItems([{ itemName: "", locationValue: "", received: "", remarks: "" }]);
+            }
         };
         window.addEventListener("OPEN_MATERIAL_RECEIVING_MODAL", handleOpen);
         return () => window.removeEventListener("OPEN_MATERIAL_RECEIVING_MODAL", handleOpen);
@@ -65,11 +76,19 @@ export const MaterialReceivingModal = () => {
 
         setIsSubmitting(true);
         try {
-            await materialReceivingService.createForm({
-                siteId: Number(siteId),
-                items: validItems
-            });
-            toast.success("Project Tool Site List saved successfully!");
+            if (initialData) {
+                await materialReceivingService.updateForm(initialData.id, {
+                    siteId: Number(siteId),
+                    items: validItems
+                });
+                toast.success("Project Tool Site List updated successfully!");
+            } else {
+                await materialReceivingService.createForm({
+                    siteId: Number(siteId),
+                    items: validItems
+                });
+                toast.success("Project Tool Site List saved successfully!");
+            }
             handleClose();
             window.dispatchEvent(new CustomEvent('REFRESH_MATERIAL_RECEIVING_LIST'));
         } catch (error: any) {
