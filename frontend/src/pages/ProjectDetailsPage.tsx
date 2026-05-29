@@ -12,6 +12,7 @@ import { dprService, DailyProgressReportDto } from "../services/dprService";
 import { itemProcurementService, ItemProcurementDto } from "../services/itemProcurementService";
 import { ItemProcurementDetailsModal } from "../components/common/ItemProcurementDetailsModal";
 import { DprDetailsModal, DprViewMode } from "../components/common/DprDetailsModal";
+import { ConfirmModal } from "../components/common/ConfirmModal";
 import { FileCheck } from "lucide-react";
 import { Wrench } from "lucide-react";
 
@@ -26,6 +27,9 @@ import dayjs from "dayjs";
 import toast from "react-hot-toast";
 
 export const ProjectDetailsPage = () => {
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<{title: string, message: string, onConfirm: () => void} | null>(null);
+
     const { id } = useParams<{ id: string }>();
     const siteId = Number(id);
 
@@ -295,23 +299,28 @@ export const ProjectDetailsPage = () => {
                                         </div>
                                         <div className="bg-secondary/50 px-4 py-2 border-t border-border flex justify-end gap-2">
                                             <button 
-                                                className="text-amber-500 hover:underline text-xs"
+                                                className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
                                                 onClick={() => window.dispatchEvent(new CustomEvent('OPEN_MATERIAL_RECEIVING_MODAL', { detail: list }))}
                                             >
                                                 Edit
                                             </button>
                                             <button 
-                                                className="text-red-500 hover:underline text-xs"
-                                                onClick={async () => {
-                                                    if (window.confirm('Are you sure you want to delete this form?')) {
-                                                        try {
-                                                            await materialReceivingService.deleteForm(list.id);
-                                                            toast.success('Form deleted successfully');
-                                                            materialReceivingService.getFormsBySiteId(siteId).then(setMaterialReceiving); // Refresh list
-                                                        } catch (error) {
-                                                            toast.error('Failed to delete form');
+                                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                                                onClick={() => {
+                                                    setConfirmAction({
+                                                        title: 'Delete Form',
+                                                        message: 'Are you sure you want to delete this form?',
+                                                        onConfirm: async () => {
+                                                            try {
+                                                                await materialReceivingService.deleteForm(list.id);
+                                                                toast.success('Form deleted successfully');
+                                                                materialReceivingService.getFormsBySiteId(siteId).then(setMaterialReceiving); // Refresh list
+                                                            } catch (error) {
+                                                                toast.error('Failed to delete form');
+                                                            }
                                                         }
-                                                    }
+                                                    });
+                                                    setIsConfirmModalOpen(true);
                                                 }}
                                             >
                                                 Delete
@@ -592,6 +601,25 @@ export const ProjectDetailsPage = () => {
                     isOpen={showProcurementDetails}
                     onClose={() => setShowProcurementDetails(false)}
                     procurement={selectedProcurement}
+                />
+            )}
+            
+            {confirmAction && (
+                <ConfirmModal 
+                    isOpen={isConfirmModalOpen}
+                    title={confirmAction.title}
+                    message={confirmAction.message}
+                    onConfirm={() => {
+                        confirmAction.onConfirm();
+                        setIsConfirmModalOpen(false);
+                        setConfirmAction(null);
+                    }}
+                    onCancel={() => {
+                        setIsConfirmModalOpen(false);
+                        setConfirmAction(null);
+                    }}
+                    type="danger"
+                    confirmText="Delete"
                 />
             )}
         </div>

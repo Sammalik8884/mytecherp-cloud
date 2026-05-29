@@ -22,6 +22,9 @@ import { toast } from "react-hot-toast";
 const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
 
 export const ProjectDocumentsPage = () => {
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<{title: string, message: string, onConfirm: () => void} | null>(null);
+
     const [selectedLocation, setSelectedLocation] = useState<string>("");
     const [toolsLists, setToolsLists] = useState<MaterialReceivingFormDto[]>([]);
     const [isLoadingTools, setIsLoadingTools] = useState(false);
@@ -804,6 +807,35 @@ export const ProjectDocumentsPage = () => {
                                                         </tbody>
                                                     </table>
                                                 </div>
+                                                <div className="bg-secondary/50 px-4 py-2 border-t border-border flex justify-end gap-2">
+                                                    <button 
+                                                        className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                                                        onClick={() => window.dispatchEvent(new CustomEvent('OPEN_MATERIAL_RECEIVING_MODAL', { detail: list }))}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button 
+                                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                                                        onClick={() => {
+                                                            setConfirmAction({
+                                                                title: 'Delete Form',
+                                                                message: 'Are you sure you want to delete this form?',
+                                                                onConfirm: async () => {
+                                                                    try {
+                                                                        await materialReceivingService.deleteForm(list.id);
+                                                                        toast.success('Form deleted successfully');
+                                                                        if (selectedSiteId) fetchMaterialReceivingLists(Number(selectedSiteId));
+                                                                    } catch (error) {
+                                                                        toast.error('Failed to delete form');
+                                                                    }
+                                                                }
+                                                            });
+                                                            setIsConfirmModalOpen(true);
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -895,23 +927,28 @@ export const ProjectDocumentsPage = () => {
                                                 </div>
                                                 <div className="bg-secondary/50 px-4 py-2 border-t border-border flex justify-end gap-2">
                                                     <button 
-                                                        className="text-amber-500 hover:underline text-xs"
+                                                        className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
                                                         onClick={() => window.dispatchEvent(new CustomEvent('OPEN_MATERIAL_RECEIVING_MODAL', { detail: list }))}
                                                     >
                                                         Edit
                                                     </button>
                                                     <button 
-                                                        className="text-red-500 hover:underline text-xs"
-                                                        onClick={async () => {
-                                                            if (window.confirm('Are you sure you want to delete this list?')) {
-                                                                try {
-                                                                    await materialReceivingService.deleteForm(list.id);
-                                                                    toast.success('List deleted successfully');
-                                                                    handleLocationSelect(selectedLocation); // Refresh list
-                                                                } catch (error) {
-                                                                    toast.error('Failed to delete list');
+                                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                                                        onClick={() => {
+                                                            setConfirmAction({
+                                                                title: 'Delete List',
+                                                                message: 'Are you sure you want to delete this list?',
+                                                                onConfirm: async () => {
+                                                                    try {
+                                                                        await materialReceivingService.deleteForm(list.id);
+                                                                        toast.success('List deleted successfully');
+                                                                        handleLocationSelect(selectedLocation);
+                                                                    } catch (error) {
+                                                                        toast.error('Failed to delete list');
+                                                                    }
                                                                 }
-                                                            }
+                                                            });
+                                                            setIsConfirmModalOpen(true);
                                                         }}
                                                     >
                                                         Delete
@@ -1157,6 +1194,24 @@ export const ProjectDocumentsPage = () => {
             <ToolsListModal />
             <MaterialReceivingModal />
             <DailyProgressReportModal />
+            {confirmAction && (
+                <ConfirmModal 
+                    isOpen={isConfirmModalOpen}
+                    title={confirmAction.title}
+                    message={confirmAction.message}
+                    onConfirm={() => {
+                        confirmAction.onConfirm();
+                        setIsConfirmModalOpen(false);
+                        setConfirmAction(null);
+                    }}
+                    onCancel={() => {
+                        setIsConfirmModalOpen(false);
+                        setConfirmAction(null);
+                    }}
+                    type="danger"
+                    confirmText="Delete"
+                />
+            )}
             <DprDetailsModal isOpen={!!dprViewMode} onClose={() => setDprViewMode(null)} report={selectedReportForDetails} viewMode={dprViewMode} />
             
             <ConfirmModal 
