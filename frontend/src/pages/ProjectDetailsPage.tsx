@@ -9,6 +9,7 @@ import { salesService } from "../services/salesService";
 import { siteDocumentService, SiteDocumentDto } from "../services/siteDocumentService";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
 import { dprService, DailyProgressReportDto } from "../services/dprService";
+import { DprDetailsModal, DprViewMode } from "../components/common/DprDetailsModal";
 import { FileCheck } from "lucide-react";
 import { Wrench } from "lucide-react";
 
@@ -43,6 +44,8 @@ export const ProjectDetailsPage = () => {
     }, [siteId]);
 
     const [dprs, setDprs] = useState<DailyProgressReportDto[]>([]);
+    const [selectedReportForDetails, setSelectedReportForDetails] = useState<any>(null);
+    const [dprViewMode, setDprViewMode] = useState<DprViewMode>(null);
 
 
 
@@ -295,54 +298,58 @@ export const ProjectDetailsPage = () => {
                                 <p className="text-muted-foreground">No DPRs recorded for this site yet.</p>
                             </div>
                         ) : (
-                            <div className="space-y-4">
-                                {dprs.map((report) => (
-                                    <div key={report.id} className="bg-card border border-border rounded-lg p-5 shadow-sm">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div>
-                                                <h4 className="font-semibold text-lg">{new Date(report.date).toLocaleDateString()}</h4>
-                                                <p className="text-sm text-muted-foreground mt-1">In-charge: <span className="font-medium text-foreground">{report.siteInCharge}</span></p>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
-                                            <div>
-                                                <p className="text-muted-foreground mb-1">Total Workers</p>
-                                                <p className="font-medium">{report.totalWorkers}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-muted-foreground mb-1">Opening Time</p>
-                                                <p className="font-medium">{report.siteOpeningTime}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-muted-foreground mb-1">Closing Time</p>
-                                                <p className="font-medium">{report.siteClosingTime}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-muted-foreground mb-1">Activities</p>
-                                                <p className="font-medium">{report.activities.length}</p>
-                                            </div>
-                                        </div>
-                                        {report.attachments && report.attachments.length > 0 && (
-                                            <div className="mt-4 pt-4 border-t border-border">
-                                                <p className="text-sm font-medium mb-2">Attachments:</p>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {report.attachments.map((att: any) => (
-                                                        <a 
-                                                            key={att.id} 
-                                                            href={att.fileUrl} 
-                                                            target="_blank" 
-                                                            rel="noreferrer"
-                                                            className="text-xs flex items-center space-x-1 bg-secondary hover:bg-secondary/80 px-2 py-1 rounded text-foreground transition-colors"
-                                                        >
-                                                            <Download className="h-3 w-3" />
-                                                            <span>{att.fileName}</span>
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                            <div className="overflow-x-auto border border-border rounded-lg bg-card mt-4">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-secondary/50 border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 text-center border-r border-border">No.</th>
+                                            <th className="px-4 py-3 border-r border-border">Project Name</th>
+                                            <th className="px-4 py-3 border-r border-border">Site In-charge</th>
+                                            <th className="px-4 py-3 text-center border-r border-border">Total workers</th>
+                                            <th className="px-4 py-3 border-r border-border">Date</th>
+                                            <th className="px-4 py-3 border-r border-border">Site Opening Time</th>
+                                            <th className="px-4 py-3 border-r border-border">Site Closing Time</th>
+                                            <th className="px-4 py-3 text-center border-r border-border">All Activities</th>
+                                            <th className="px-4 py-3 text-center border-r border-border">All Items</th>
+                                            <th className="px-4 py-3 text-center border-r border-border">Employee Lists</th>
+                                            <th className="px-4 py-3 text-center border-r border-border">Attachments</th>
+                                            <th className="px-4 py-3 text-center">View</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {dprs.map((report, idx) => (
+                                            <tr key={report.id} className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors">
+                                                <td className="px-4 py-3 text-center border-r border-border">{idx + 1}</td>
+                                                <td className="px-4 py-3 border-r border-border">{site?.name}</td>
+                                                <td className="px-4 py-3 border-r border-border">{report.siteInCharge}</td>
+                                                <td className="px-4 py-3 text-center border-r border-border">{report.totalWorkers}</td>
+                                                <td className="px-4 py-3 border-r border-border">
+                                                    {new Date(report.date).toLocaleDateString()}<br />
+                                                    <span className="text-xs text-muted-foreground">{new Date(report.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                                </td>
+                                                <td className="px-4 py-3 border-r border-border">{report.siteOpeningTime}</td>
+                                                <td className="px-4 py-3 border-r border-border">{report.siteClosingTime}</td>
+                                                <td className="px-4 py-3 text-center border-r border-border">
+                                                    <button onClick={() => {setSelectedReportForDetails({...report, siteName: site?.name}); setDprViewMode('activities');}} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">All Activities</button>
+                                                </td>
+                                                <td className="px-4 py-3 text-center border-r border-border">
+                                                    <button onClick={() => {setSelectedReportForDetails({...report, siteName: site?.name}); setDprViewMode('items');}} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">All Items</button>
+                                                </td>
+                                                <td className="px-4 py-3 text-center border-r border-border">
+                                                    <button onClick={() => {setSelectedReportForDetails({...report, siteName: site?.name}); setDprViewMode('employees');}} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">All Employee</button>
+                                                </td>
+                                                <td className="px-4 py-3 text-center border-r border-border">
+                                                    <button onClick={() => {setSelectedReportForDetails({...report, siteName: site?.name}); setDprViewMode('attachments');}} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">View</button>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <div className="flex flex-col space-y-1">
+                                                        <button onClick={() => window.open(`/dpr/${report.id}/print?siteId=${siteId}`, '_blank')} className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">PDF</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         )}
                     </div>
@@ -497,6 +504,8 @@ export const ProjectDetailsPage = () => {
                 )}
 
             </div>
+
+            <DprDetailsModal isOpen={!!dprViewMode} onClose={() => setDprViewMode(null)} report={selectedReportForDetails} viewMode={dprViewMode} />
         </div>
     );
 };

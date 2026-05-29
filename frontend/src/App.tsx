@@ -46,6 +46,7 @@ import { ProjectsPage } from "./pages/ProjectsPage";
 import { ProjectDetailsPage } from "./pages/ProjectDetailsPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
 import { AddExpensePage } from "./pages/AddExpensePage";
+import { DprPrintView } from "./pages/DprPrintView";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./auth/AuthContext";
 import { SyncProvider } from "./contexts/SyncContext";
@@ -159,6 +160,11 @@ function App() {
                         <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager"]} />}>
                             <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
                             <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
+                        </Route>
+
+                        {/* Print Routes */}
+                        <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Salesman", "Estimation", "Accounts Head", "Technician", "Worker"]} />}>
+                            <Route path="/dpr/:id/print" element={<DprPrintView />} />
                         </Route>
                     </Route>
 
