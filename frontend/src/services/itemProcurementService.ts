@@ -1,4 +1,4 @@
-import api from './api';
+import { apiClient } from './apiClient';
 
 export interface ItemProcurementItemDto {
     id: number;
@@ -32,33 +32,33 @@ export interface CreateItemProcurementDto {
 
 export const itemProcurementService = {
     getAll: async (siteId?: number): Promise<ItemProcurementDto[]> => {
-        const response = await api.get('/ItemProcurement', {
+        const response = await apiClient.get('/ItemProcurement', {
             params: { siteId }
         });
         return response.data;
     },
 
     getById: async (id: number): Promise<ItemProcurementDto> => {
-        const response = await api.get(`/ItemProcurement/${id}`);
+        const response = await apiClient.get(`/ItemProcurement/${id}`);
         return response.data;
     },
 
     create: async (data: CreateItemProcurementDto): Promise<ItemProcurementDto> => {
-        const response = await api.post('/ItemProcurement', data);
+        const response = await apiClient.post('/ItemProcurement', data);
         return response.data;
     },
 
     update: async (id: number, data: CreateItemProcurementDto): Promise<ItemProcurementDto> => {
-        const response = await api.put(`/ItemProcurement/${id}`, data);
+        const response = await apiClient.put(`/ItemProcurement/${id}`, data);
         return response.data;
     },
 
     delete: async (id: number): Promise<void> => {
-        await api.delete(`/ItemProcurement/${id}`);
+        await apiClient.delete(`/ItemProcurement/${id}`);
     },
 
     downloadPdf: async (id: number): Promise<void> => {
-        const response = await api.get(`/ItemProcurement/${id}/pdf`, {
+        const response = await apiClient.get(`/ItemProcurement/${id}/pdf`, {
             responseType: 'blob'
         });
         const url = window.URL.createObjectURL(new Blob([response.data]));

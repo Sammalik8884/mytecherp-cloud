@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SiteDto } from '../../types/crm';
+import { SiteDto } from '../../types/site';
 import { CreateItemProcurementDto, CreateItemProcurementItemDto, ItemProcurementDto } from '../../services/itemProcurementService';
 import { X, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
