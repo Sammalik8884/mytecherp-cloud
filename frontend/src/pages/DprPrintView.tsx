@@ -85,7 +85,7 @@ export const DprPrintView = () => {
                         <h2 className="text-lg font-bold mb-3 bg-gray-100 p-2">Activities</h2>
                         <ul className="list-disc pl-6 text-sm space-y-1">
                             {report.activities.map((act: any, i: number) => (
-                                <li key={i}>{act.activityName || act}</li>
+                                <li key={i}>{act.activityDone || act}</li>
                             ))}
                         </ul>
                     </div>

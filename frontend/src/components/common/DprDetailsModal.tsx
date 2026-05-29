@@ -48,7 +48,7 @@ export const DprDetailsModal = ({ isOpen, onClose, report, viewMode }: DprDetail
                                     {report.activities && report.activities.length > 0 ? report.activities.map((act: any, idx: number) => (
                                         <tr key={act.id || idx} className="border-b border-border last:border-0">
                                             <td className="px-4 py-3 text-center border-r border-border">{idx + 1}</td>
-                                            <td className="px-4 py-3">{act.activityName || act}</td>
+                                            <td className="px-4 py-3">{act.activityDone || act}</td>
                                         </tr>
                                     )) : (
                                         <tr><td colSpan={2} className="px-4 py-8 text-center text-muted-foreground">No activities found.</td></tr>
