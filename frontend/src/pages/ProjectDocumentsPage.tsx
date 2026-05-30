@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileSignature, Plus, Wrench, Search, Loader2, FileCheck } from "lucide-react";
+import { Users, Download, Eye, FileSignature, Plus, Wrench, Search, Loader2, FileCheck, FileText } from "lucide-react";
 import { ProjectScopeModal } from "../components/common/ProjectScopeModal";
 import { ToolsListModal } from "../components/common/ToolsListModal";
 import { MaterialReceivingModal } from "../components/common/MaterialReceivingModal";
@@ -18,8 +18,10 @@ import { itemProcurementService, ItemProcurementDto } from "../services/itemProc
 import { ItemProcurementModal } from "../components/common/ItemProcurementModal";
 import { ItemProcurementDetailsModal } from "../components/common/ItemProcurementDetailsModal";
 import { siteDocumentService } from "../services/siteDocumentService";
-import { Users, Download, Eye } from "lucide-react";
+// redundant import removed
 import { toast } from "react-hot-toast";
+import { ProjectTechnicalHandoverModal } from "../components/common/ProjectTechnicalHandoverModal";
+import projectTechnicalHandoverService, { ProjectTechnicalHandoverDto } from "../services/projectTechnicalHandoverService";
 
 const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
 
@@ -157,6 +159,46 @@ export const ProjectDocumentsPage = () => {
     const [showMaterialApprovalsList, setShowMaterialApprovalsList] = useState(false);
     const [materialApprovalsList, setMaterialApprovalsList] = useState<any[]>([]);
     const [isLoadingMaterialApprovals, setIsLoadingMaterialApprovals] = useState(false);
+
+    // Project Technical Handover State
+    const [showHandoverModal, setShowHandoverModal] = useState(false);
+    const [showHandoverList, setShowHandoverList] = useState(false);
+    const [handoverList, setHandoverList] = useState<ProjectTechnicalHandoverDto[]>([]);
+    const [isLoadingHandover, setIsLoadingHandover] = useState(false);
+    const [selectedHandover, setSelectedHandover] = useState<ProjectTechnicalHandoverDto | null>(null);
+    const [isHandoverViewOnly, setIsHandoverViewOnly] = useState(false);
+    const [handoverToDelete, setHandoverToDelete] = useState<number | null>(null);
+
+    const fetchHandovers = async () => {
+        setIsLoadingHandover(true);
+        try {
+            const data = await projectTechnicalHandoverService.getAll();
+            setHandoverList(data);
+        } catch (error) {
+            console.error("Failed to load Project Technical Handovers", error);
+        } finally {
+            setIsLoadingHandover(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showHandoverList) {
+            fetchHandovers();
+        }
+    }, [showHandoverList]);
+
+    const confirmDeleteHandover = async () => {
+        if (!handoverToDelete) return;
+        try {
+            await projectTechnicalHandoverService.delete(handoverToDelete);
+            toast.success("Handover deleted successfully!");
+            fetchHandovers();
+        } catch (error) {
+            toast.error("Failed to delete handover");
+        } finally {
+            setHandoverToDelete(null);
+        }
+    };
 
     // Item Procurement State
     const [showProcurementModal, setShowProcurementModal] = useState(false);
@@ -473,6 +515,25 @@ export const ProjectDocumentsPage = () => {
                     <p className="text-sm text-muted-foreground text-center">Fill out the project scope document and link it to a site and customer.</p>
                     <div className="mt-4 flex items-center text-sm font-medium text-primary">
                         <Plus className="h-4 w-4 mr-1" /> Create Document
+                    </div>
+                </button>
+
+                {/* Project Technical Handover Card */}
+                <button 
+                    onClick={() => {
+                        setSelectedHandover(null);
+                        setIsHandoverViewOnly(false);
+                        setShowHandoverModal(true);
+                    }}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <FileText className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Project Technical Handover</h3>
+                    <p className="text-sm text-muted-foreground text-center">Create and manage technical handover documents with site and customer details.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create Handover
                     </div>
                 </button>
                 {/* Project Drawings IFC Card */}
@@ -1284,6 +1345,21 @@ export const ProjectDocumentsPage = () => {
                         )}
                     </div>
                 )}
+                
+                {/* Project Technical Handover List Toggle */}
+                <button 
+                    onClick={() => {
+                        setShowHandoverList(!showHandoverList);
+                        if (!showHandoverList) fetchHandovers();
+                    }}
+                    className={`flex flex-col items-center justify-center p-8 bg-card border rounded-xl hover:shadow-md transition-all group ${showHandoverList ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/50'}`}
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Search className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">View Technical Handovers</h3>
+                    <p className="text-sm text-muted-foreground text-center">View all existing project technical handover documents.</p>
+                </button>
             </div>
 
             {/* Material Approvals List Section */}
@@ -1357,7 +1433,107 @@ export const ProjectDocumentsPage = () => {
                 )}
             </div>
 
+            {/* Project Technical Handover List View */}
+            {showHandoverList && (
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm mt-8 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-bold">Project Technical Handovers</h2>
+                        <button 
+                            onClick={() => {
+                                setShowHandoverList(false);
+                            }}
+                            className="text-sm text-muted-foreground hover:text-foreground"
+                        >
+                            Close View
+                        </button>
+                    </div>
+
+                    {isLoadingHandover ? (
+                        <div className="flex justify-center items-center py-12">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    ) : handoverList.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground bg-secondary/30 rounded-lg border border-dashed border-border">
+                            No technical handovers found.
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-muted-foreground uppercase bg-secondary/50">
+                                    <tr>
+                                        <th className="px-4 py-3 rounded-tl-lg font-medium">ID</th>
+                                        <th className="px-4 py-3 font-medium">Site</th>
+                                        <th className="px-4 py-3 font-medium">Customer</th>
+                                        <th className="px-4 py-3 font-medium">Secondary Customer</th>
+                                        <th className="px-4 py-3 font-medium">Date</th>
+                                        <th className="px-4 py-3 rounded-tr-lg font-medium text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {handoverList.map((h) => (
+                                        <tr key={h.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                                            <td className="px-4 py-3 font-medium">TH-{h.id}</td>
+                                            <td className="px-4 py-3">{h.siteName}</td>
+                                            <td className="px-4 py-3">{h.customerName || '-'}</td>
+                                            <td className="px-4 py-3">{h.secondaryCustomerName || '-'}</td>
+                                            <td className="px-4 py-3">{new Date(h.createdAt).toLocaleString()}</td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex justify-end space-x-2">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSelectedHandover(h);
+                                                            setIsHandoverViewOnly(true);
+                                                            setShowHandoverModal(true);
+                                                        }}
+                                                        className="px-3 py-1.5 text-xs font-medium bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+                                                    >
+                                                        View
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSelectedHandover(h);
+                                                            setIsHandoverViewOnly(false);
+                                                            setShowHandoverModal(true);
+                                                        }}
+                                                        className="px-3 py-1.5 text-xs font-medium bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setHandoverToDelete(h.id)}
+                                                        className="px-3 py-1.5 text-xs font-medium bg-destructive/10 text-destructive rounded-md hover:bg-destructive/20 transition-colors"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            )}
+
             <ProjectScopeModal />
+            <ProjectTechnicalHandoverModal 
+                isOpen={showHandoverModal}
+                onClose={() => setShowHandoverModal(false)}
+                handoverData={selectedHandover}
+                isViewOnly={isHandoverViewOnly}
+                onSaveSuccess={() => {
+                    if (showHandoverList) fetchHandovers();
+                }}
+            />
+            <ConfirmModal 
+                isOpen={handoverToDelete !== null}
+                onCancel={() => setHandoverToDelete(null)}
+                onConfirm={confirmDeleteHandover}
+                title="Delete Technical Handover"
+                message="Are you sure you want to delete this technical handover? This action cannot be undone."
+                confirmText="Delete"
+            />
             <ToolsListModal />
             <MaterialReceivingModal />
             <DailyProgressReportModal />

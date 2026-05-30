@@ -119,6 +119,9 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<ItemProcurement> ItemProcurements { get; set; }
         public DbSet<ItemProcurementItem> ItemProcurementItems { get; set; }
 
+        public DbSet<ProjectTechnicalHandover> ProjectTechnicalHandovers { get; set; }
+        public DbSet<ProjectTechnicalHandoverAttachment> ProjectTechnicalHandoverAttachments { get; set; }
+
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<TenantSubscription> TenantSubscriptions { get; set; }

@@ -129,6 +129,7 @@ builder.Services.AddScoped<IDailyProgressReportService, DailyProgressReportServi
 builder.Services.AddScoped<IMomMeetingService, MomMeetingService>();
 builder.Services.AddScoped<IMeetingMinutesExecutionService, MeetingMinutesExecutionService>();
 builder.Services.AddScoped<IItemProcurementService, ItemProcurementService>();
+builder.Services.AddScoped<IProjectTechnicalHandoverService, ProjectTechnicalHandoverService>();
 builder.Services.AddScoped<MyTechERP.Infrastructure.Services.IItemProcurementPdfService, MyTechERP.Infrastructure.Services.ItemProcurementPdfService>();
 builder.Services.AddScoped<MytechERP.Application.Interfaces.IDailyProgressReportPdfService, MytechERP.Infrastructure.Services.DailyProgressReportPdfService>();
 builder.Services.AddScoped<UniversalSyncService>();
