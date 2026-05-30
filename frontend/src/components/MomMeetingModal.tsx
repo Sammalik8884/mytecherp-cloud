@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MomMeetingDto, MomAttendeeDto } from '../services/momMeetingService';
-import { X, Plus, Loader2 } from 'lucide-react';
+import { X, Plus, Loader2, Trash2 } from 'lucide-react';
 
 interface MomMeetingModalProps {
     show: boolean;
@@ -11,7 +11,7 @@ interface MomMeetingModalProps {
     isViewOnly?: boolean;
 }
 
-const MEETING_TYPES = ['general', 'technical', 'financial', 'progress review', 'emergency', 'safety'];
+const MEETING_TYPES = ['general', 'technical', 'financial', 'progress review', 'emergency and safety'];
 const EMPLOYEE_STATUSES = ['present', 'absent', 'excused'];
 
 const MomMeetingModal: React.FC<MomMeetingModalProps> = ({ show, onHide, onSubmit, meeting, isViewOnly }) => {
@@ -39,6 +39,14 @@ const MomMeetingModal: React.FC<MomMeetingModalProps> = ({ show, onHide, onSubmi
 
     const handleAddAttendeeRow = () => {
         setAttendees([...attendees, { employeeIdStr: '', employeeName: '', employeeStatus: '' }]);
+    };
+
+    const handleDeleteAttendeeRow = (index: number) => {
+        if (attendees.length > 1) {
+            setAttendees(attendees.filter((_, i) => i !== index));
+        } else {
+            setAttendees([{ employeeIdStr: '', employeeName: '', employeeStatus: '' }]);
+        }
     };
 
     const handleAttendeeChange = (index: number, field: keyof MomAttendeeDto, value: string) => {
@@ -83,8 +91,8 @@ const MomMeetingModal: React.FC<MomMeetingModalProps> = ({ show, onHide, onSubmi
     return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
             <div className="bg-card w-full max-w-5xl rounded-xl shadow-2xl border border-border flex flex-col max-h-[90vh]">
-                <div className="flex justify-between items-center p-6 border-b border-border shrink-0">
-                    <h2 className="text-xl font-bold">{isViewOnly ? 'View Minutes of Meeting' : 'Minutes of Meeting Details'}</h2>
+                <div className="flex justify-between items-center p-6 border-b border-border shrink-0 bg-secondary/30">
+                    <h2 className="text-xl font-bold bg-secondary/50 px-4 py-2 rounded-lg">{isViewOnly ? 'View Minutes of Meeting' : 'Meeting Minutes of Execution'}</h2>
                     <button onClick={onHide} className="text-muted-foreground hover:bg-secondary p-2 rounded-full transition-colors">
                         <X className="h-5 w-5" />
                     </button>
@@ -152,7 +160,8 @@ const MomMeetingModal: React.FC<MomMeetingModalProps> = ({ show, onHide, onSubmi
                                             <th className="p-3 border-r border-border w-16 text-center font-medium">S#</th>
                                             <th className="p-3 border-r border-border font-medium">Employee Id</th>
                                             <th className="p-3 border-r border-border font-medium">Employee Name</th>
-                                            <th className="p-3 font-medium">Employee Status</th>
+                                            <th className="p-3 border-r border-border font-medium">Employee Status</th>
+                                            {!isViewOnly && <th className="p-3 font-medium w-12 text-center"></th>}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border">
@@ -160,17 +169,29 @@ const MomMeetingModal: React.FC<MomMeetingModalProps> = ({ show, onHide, onSubmi
                                             <tr key={index} className="last:border-b-0 hover:bg-muted/10 transition-colors">
                                                 <td className="p-2 border-r border-border text-center">{index + 1}:</td>
                                                 <td className="p-2 border-r border-border">
-                                                    <input type="text" className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1 px-2" value={attendee.employeeIdStr} onChange={(e: any) => handleAttendeeChange(index, 'employeeIdStr', e.target.value)} readOnly={isViewOnly} />
+                                                    <input type="text" className="w-full bg-background border border-input rounded p-1.5 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50" value={attendee.employeeIdStr} onChange={(e: any) => handleAttendeeChange(index, 'employeeIdStr', e.target.value)} readOnly={isViewOnly} />
                                                 </td>
                                                 <td className="p-2 border-r border-border">
-                                                    <input type="text" className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1 px-2" value={attendee.employeeName} onChange={(e: any) => handleAttendeeChange(index, 'employeeName', e.target.value)} readOnly={isViewOnly} />
+                                                    <input type="text" className="w-full bg-background border border-input rounded p-1.5 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50" value={attendee.employeeName} onChange={(e: any) => handleAttendeeChange(index, 'employeeName', e.target.value)} readOnly={isViewOnly} />
                                                 </td>
-                                                <td className="p-2">
-                                                    <select className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1 px-2" value={attendee.employeeStatus} onChange={(e: any) => handleAttendeeChange(index, 'employeeStatus', e.target.value)} disabled={isViewOnly}>
+                                                <td className="p-2 border-r border-border">
+                                                    <select className="w-full bg-background border border-input rounded p-1.5 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50" value={attendee.employeeStatus} onChange={(e: any) => handleAttendeeChange(index, 'employeeStatus', e.target.value)} disabled={isViewOnly}>
                                                         <option value="">Open this select menu</option>
                                                         {EMPLOYEE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                                     </select>
                                                 </td>
+                                                {!isViewOnly && (
+                                                    <td className="p-2 text-center">
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => handleDeleteAttendeeRow(index)}
+                                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded transition-colors"
+                                                            title="Remove Row"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </td>
+                                                )}
                                             </tr>
                                         ))}
                                     </tbody>
