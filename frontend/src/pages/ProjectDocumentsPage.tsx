@@ -1346,20 +1346,6 @@ export const ProjectDocumentsPage = () => {
                     </div>
                 )}
                 
-                {/* Project Technical Handover List Toggle */}
-                <button 
-                    onClick={() => {
-                        setShowHandoverList(!showHandoverList);
-                        if (!showHandoverList) fetchHandovers();
-                    }}
-                    className={`flex flex-col items-center justify-center p-8 bg-card border rounded-xl hover:shadow-md transition-all group ${showHandoverList ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/50'}`}
-                >
-                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Search className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">View Technical Handovers</h3>
-                    <p className="text-sm text-muted-foreground text-center">View all existing project technical handover documents.</p>
-                </button>
             </div>
 
             {/* Material Approvals List Section */}
@@ -1433,22 +1419,24 @@ export const ProjectDocumentsPage = () => {
                 )}
             </div>
 
-            {/* Project Technical Handover List View */}
-            {showHandoverList && (
-                <div className="bg-card border border-border rounded-xl p-6 shadow-sm mt-8 animate-in fade-in slide-in-from-bottom-4">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold">Project Technical Handovers</h2>
-                        <button 
-                            onClick={() => {
-                                setShowHandoverList(false);
-                            }}
-                            className="text-sm text-muted-foreground hover:text-foreground"
-                        >
-                            Close View
-                        </button>
-                    </div>
+            {/* Project Technical Handover List Section */}
+            <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Project Technical Handover List</h2>
+                    <button 
+                        onClick={() => {
+                            setShowHandoverList(!showHandoverList);
+                            if (!showHandoverList) fetchHandovers();
+                        }}
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        {showHandoverList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
 
-                    {isLoadingHandover ? (
+                {showHandoverList && (
+                    <div className="pt-4 border-t border-border">
+                        {isLoadingHandover ? (
                         <div className="flex justify-center items-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
@@ -1513,8 +1501,9 @@ export const ProjectDocumentsPage = () => {
                             </table>
                         </div>
                     )}
-                </div>
-            )}
+                    </div>
+                )}
+            </div>
 
             <ProjectScopeModal />
             <ProjectTechnicalHandoverModal 
