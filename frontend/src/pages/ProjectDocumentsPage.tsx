@@ -1021,9 +1021,9 @@ export const ProjectDocumentsPage = () => {
                                                     <td className="px-4 py-3">{total}</td>
                                                     <td className="px-4 py-3">
                                                         <div className="flex justify-center gap-2">
-                                                            <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors" onClick={() => handleViewMom(m)}>View</button>
-                                                            <button className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors" onClick={() => handleEditMom(m)}>Edit</button>
-                                                            <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors" onClick={() => handleDeleteMom(m.id)}>Delete</button>
+                                                            <button className="text-blue-500 hover:underline" onClick={() => handleViewMom(m)}>View</button>
+                                                            <button className="text-amber-500 hover:underline" onClick={() => handleEditMom(m)}>Edit</button>
+                                                            <button className="text-red-500 hover:underline" onClick={() => handleDeleteMom(m.id)}>Delete</button>
                                                         </div>
                                                     </td>
                                                 </tr>
