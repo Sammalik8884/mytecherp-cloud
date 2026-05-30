@@ -10,6 +10,7 @@ namespace MytechERP.Application.Interfaces
         Task<List<MeetingMinutesExecutionDto>> GetAllMeetingsAsync();
         Task<List<MeetingMinutesExecutionDto>> GetMeetingsBySiteIdAsync(int siteId);
         Task<MeetingMinutesExecutionDto> CreateMeetingAsync(CreateMeetingMinutesExecutionDto dto);
+        Task<MeetingMinutesExecutionDto> UpdateMeetingAsync(int id, CreateMeetingMinutesExecutionDto dto);
         Task DeleteMeetingAsync(int id);
     }
 }

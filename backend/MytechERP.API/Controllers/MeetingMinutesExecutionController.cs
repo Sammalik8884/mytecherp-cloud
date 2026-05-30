@@ -54,6 +54,21 @@ namespace MytechERP.API.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromForm] CreateMeetingMinutesExecutionDto dto)
+        {
+            try
+            {
+                var meeting = await _service.UpdateMeetingAsync(id, dto);
+                if (meeting == null) return NotFound();
+                return Ok(meeting);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message, inner = ex.InnerException?.Message, stackTrace = ex.StackTrace });
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

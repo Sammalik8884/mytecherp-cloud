@@ -99,6 +99,36 @@ const meetingMinutesExecutionService = {
         return response.data;
     },
 
+    updateMeeting: async (id: number, dto: CreateMeetingMinutesExecutionDto): Promise<MeetingMinutesExecutionDto> => {
+        const formData = new FormData();
+        
+        if (dto.siteId) formData.append('siteId', dto.siteId.toString());
+        formData.append('meetingTitle', dto.meetingTitle);
+        formData.append('meetingDate', dto.meetingDate);
+        formData.append('timeFrom', dto.timeFrom);
+        formData.append('timeTo', dto.timeTo);
+        formData.append('location', dto.location);
+        formData.append('organizer', dto.organizer);
+        formData.append('meetingType', dto.meetingType);
+        formData.append('agenda', dto.agenda);
+        formData.append('discussionPoints', dto.discussionPoints);
+        formData.append('decisionsMade', dto.decisionsMade);
+        formData.append('actionItems', dto.actionItems);
+        formData.append('closingNotes', dto.closingNotes);
+        formData.append('attendeesJson', dto.attendeesJson);
+        
+        if (dto.attachments && dto.attachments.length > 0) {
+            Array.from(dto.attachments).forEach((file) => {
+                formData.append('attachments', file);
+            });
+        }
+
+        const response = await apiClient.put(`/MeetingMinutesExecution/${id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
+
     deleteMeeting: async (id: number): Promise<void> => {
         await apiClient.delete(`/MeetingMinutesExecution/${id}`);
     }

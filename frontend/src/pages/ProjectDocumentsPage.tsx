@@ -361,13 +361,18 @@ export const ProjectDocumentsPage = () => {
 
     const handleMomExecutionSubmit = async (data: any) => {
         try {
-            await meetingMinutesExecutionService.createMeeting(data);
-            toast.success("Minutes of Execution Meeting saved successfully!");
+            if (selectedMomExecution) {
+                await meetingMinutesExecutionService.updateMeeting(selectedMomExecution.id, data);
+                toast.success("Minutes of Execution Meeting updated successfully!");
+            } else {
+                await meetingMinutesExecutionService.createMeeting(data);
+                toast.success("Minutes of Execution Meeting saved successfully!");
+            }
             setShowMomExecutionModal(false);
             if (showMomExecutionList) fetchMomExecutionMeetings();
         } catch (error: any) {
-            console.error("Failed to create MOM Execution", error);
-            toast.error(error?.response?.data?.message || error?.response?.data?.detail || "Failed to create MOM Execution. Please try again.");
+            console.error("Failed to save MOM Execution", error);
+            toast.error(error?.response?.data?.message || error?.response?.data?.detail || "Failed to save MOM Execution. Please try again.");
             throw error;
         }
     };

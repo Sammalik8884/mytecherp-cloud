@@ -120,6 +120,67 @@ namespace MyTechERP.Infrastructure.Services
             return await GetMeetingByIdAsync(meeting.Id);
         }
 
+        public async Task<MeetingMinutesExecutionDto> UpdateMeetingAsync(int id, CreateMeetingMinutesExecutionDto dto)
+        {
+            var meeting = await _context.Set<MeetingMinutesExecution>()
+                .Include(m => m.Attendees)
+                .Include(m => m.Attachments)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (meeting == null) return null;
+
+            var attendeesDto = string.IsNullOrWhiteSpace(dto.AttendeesJson) 
+                ? new List<MeetingMinutesExecutionAttendeeDto>() 
+                : JsonSerializer.Deserialize<List<MeetingMinutesExecutionAttendeeDto>>(dto.AttendeesJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            meeting.SiteId = dto.SiteId;
+            meeting.MeetingTitle = dto.MeetingTitle;
+            meeting.MeetingDate = dto.MeetingDate;
+            meeting.TimeFrom = dto.TimeFrom;
+            meeting.TimeTo = dto.TimeTo;
+            meeting.Location = dto.Location;
+            meeting.Organizer = dto.Organizer;
+            meeting.MeetingType = dto.MeetingType;
+            meeting.Agenda = dto.Agenda;
+            meeting.DiscussionPoints = dto.DiscussionPoints;
+            meeting.DecisionsMade = dto.DecisionsMade;
+            meeting.ActionItems = dto.ActionItems;
+            meeting.ClosingNotes = dto.ClosingNotes;
+
+            // Update attendees (simplistic replace)
+            _context.Set<MeetingMinutesExecutionAttendee>().RemoveRange(meeting.Attendees);
+            meeting.Attendees = attendeesDto.Select(a => new MeetingMinutesExecutionAttendee
+            {
+                EmployeeIdStr = a.EmployeeIdStr,
+                EmployeeName = a.EmployeeName,
+                EmployeeStatus = a.EmployeeStatus
+            }).ToList();
+
+            if (dto.Attachments != null && dto.Attachments.Any())
+            {
+                foreach (var file in dto.Attachments)
+                {
+                    if (file.Length > 0)
+                    {
+                        string fileExtension = Path.GetExtension(file.FileName);
+                        string fileName = $"momdocs/{_currentUserService.TenantId}/{Guid.NewGuid()}{fileExtension}";
+                        var url = await _blobService.UploadAsync(file, fileName);
+
+                        meeting.Attachments.Add(new MeetingMinutesExecutionAttachment
+                        {
+                            FileName = file.FileName,
+                            FileUrl = url
+                        });
+                    }
+                }
+            }
+
+            _context.Set<MeetingMinutesExecution>().Update(meeting);
+            await _context.SaveChangesAsync();
+
+            return await GetMeetingByIdAsync(meeting.Id);
+        }
+
         public async Task DeleteMeetingAsync(int id)
         {
             var meeting = await _context.Set<MeetingMinutesExecution>().FindAsync(id);
