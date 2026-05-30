@@ -51,6 +51,7 @@ export const ProjectDetailsPage = () => {
 
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
+    const [documentsTab, setDocumentsTab] = useState<'general' | 'handovers'>('general');
 
     useEffect(() => {
         loadData();
@@ -455,109 +456,122 @@ export const ProjectDetailsPage = () => {
 
                 {activeTab === 'documents' && (
                     <div className="space-y-6">
-                        <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-                            <div className="bg-secondary/30 px-4 py-3 border-b border-border">
-                                <h3 className="font-semibold text-lg">General Documents</h3>
-                            </div>
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-muted text-muted-foreground">
-                                    <tr>
-                                        <th className="px-4 py-3">Document Name</th>
-                                        <th className="px-4 py-3">Type</th>
-                                        <th className="px-4 py-3">Customer</th>
-                                        <th className="px-4 py-3">Date</th>
-                                        <th className="px-4 py-3">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border">
-                                    {documents.length === 0 ? (
-                                        <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No documents found.</td></tr>
-                                    ) : (
-                                        documents.map(doc => (
-                                            <tr key={doc.id} className="hover:bg-muted/50">
-                                                <td className="px-4 py-3 font-medium flex items-center space-x-2">
-                                                    <FileText className="h-4 w-4 text-primary" />
-                                                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{doc.fileName}</a>
-                                                </td>
-                                                <td className="px-4 py-3">{doc.documentType}</td>
-                                                <td className="px-4 py-3">
-                                                    {doc.customerName ? <span className="block">{doc.customerName}</span> : null}
-                                                    {doc.secondaryCustomerName ? <span className="block text-xs text-muted-foreground">{doc.secondaryCustomerName}</span> : null}
-                                                </td>
-                                                <td className="px-4 py-3">{dayjs(doc.createdAt).format("DD MMM YYYY")}</td>
-                                                <td className="px-4 py-3">
-                                                    <div className="flex items-center space-x-3">
-                                                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 flex items-center text-sm font-medium transition-colors" title="View in browser">
-                                                            <Eye className="h-4 w-4 mr-1" /> View
-                                                        </a>
-                                                        <a 
-                                                            href={doc.downloadUrl} 
-                                                            className="text-primary hover:text-primary/80 flex items-center text-sm font-medium transition-colors"
-                                                            title="Download file"
-                                                        >
-                                                            <Download className="h-4 w-4 mr-1" /> Download
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                        <div className="flex space-x-2 border-b border-border pb-2">
+                            <button 
+                                onClick={() => setDocumentsTab('general')} 
+                                className={`px-4 py-2 text-sm font-medium rounded-t-md transition-colors ${documentsTab === 'general' ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground hover:bg-muted'}`}
+                            >
+                                General Documents ({documents.length})
+                            </button>
+                            <button 
+                                onClick={() => setDocumentsTab('handovers')} 
+                                className={`px-4 py-2 text-sm font-medium rounded-t-md transition-colors ${documentsTab === 'handovers' ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground hover:bg-muted'}`}
+                            >
+                                Project Technical Handovers ({handovers.length})
+                            </button>
                         </div>
 
-                        <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-                            <div className="bg-secondary/30 px-4 py-3 border-b border-border">
-                                <h3 className="font-semibold text-lg">Project Technical Handovers</h3>
-                            </div>
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-muted text-muted-foreground">
-                                    <tr>
-                                        <th className="px-4 py-3">ID</th>
-                                        <th className="px-4 py-3">Attachments</th>
-                                        <th className="px-4 py-3">Customer</th>
-                                        <th className="px-4 py-3">Date</th>
-                                        <th className="px-4 py-3">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border text-center">
-                                    {handovers.length === 0 ? (
-                                        <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No technical handovers found.</td></tr>
-                                    ) : (
-                                        handovers.map(handover => (
-                                            <tr key={handover.id} className="hover:bg-muted/50">
-                                                <td className="px-4 py-3 align-top text-left">{handover.id}</td>
-                                                <td className="px-4 py-3 text-left align-top">
-                                                    <div className="flex flex-col gap-2">
-                                                        {handover.attachments?.map((d: any) => (
-                                                            <a key={d.id} href={d.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium text-primary flex items-center gap-1">
-                                                                <FileCheck className="h-4 w-4 shrink-0" /> <span className="truncate">{d.fileName}</span>
+                        {documentsTab === 'general' && (
+                            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm animate-in fade-in">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted text-muted-foreground">
+                                        <tr>
+                                            <th className="px-4 py-3">Document Name</th>
+                                            <th className="px-4 py-3">Type</th>
+                                            <th className="px-4 py-3">Customer</th>
+                                            <th className="px-4 py-3">Date</th>
+                                            <th className="px-4 py-3">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {documents.length === 0 ? (
+                                            <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No documents found.</td></tr>
+                                        ) : (
+                                            documents.map(doc => (
+                                                <tr key={doc.id} className="hover:bg-muted/50">
+                                                    <td className="px-4 py-3 font-medium flex items-center space-x-2">
+                                                        <FileText className="h-4 w-4 text-primary" />
+                                                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{doc.fileName}</a>
+                                                    </td>
+                                                    <td className="px-4 py-3">{doc.documentType}</td>
+                                                    <td className="px-4 py-3">
+                                                        {doc.customerName ? <span className="block">{doc.customerName}</span> : null}
+                                                        {doc.secondaryCustomerName ? <span className="block text-xs text-muted-foreground">{doc.secondaryCustomerName}</span> : null}
+                                                    </td>
+                                                    <td className="px-4 py-3">{dayjs(doc.createdAt).format("DD MMM YYYY")}</td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center space-x-3">
+                                                            <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 flex items-center text-sm font-medium transition-colors" title="View in browser">
+                                                                <Eye className="h-4 w-4 mr-1" /> View
                                                             </a>
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-3 text-left align-top">
-                                                    {handover.customerName ? <span className="block">{handover.customerName}</span> : null}
-                                                    {handover.secondaryCustomerName ? <span className="block text-xs text-muted-foreground">{handover.secondaryCustomerName}</span> : null}
-                                                </td>
-                                                <td className="px-4 py-3 align-top text-left">{dayjs(handover.createdAt).format("DD MMM YYYY")}</td>
-                                                <td className="px-4 py-3 align-top text-left">
-                                                    <div className="flex flex-col gap-2">
-                                                        {handover.attachments?.map((d: any) => (
-                                                            <div key={d.id} className="flex gap-3">
-                                                                <a href={d.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors" title="View">
-                                                                    <Eye className="h-4 w-4" />
+                                                            <a 
+                                                                href={doc.downloadUrl} 
+                                                                className="text-primary hover:text-primary/80 flex items-center text-sm font-medium transition-colors"
+                                                                title="Download file"
+                                                            >
+                                                                <Download className="h-4 w-4 mr-1" /> Download
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {documentsTab === 'handovers' && (
+                            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm animate-in fade-in">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted text-muted-foreground">
+                                        <tr>
+                                            <th className="px-4 py-3">ID</th>
+                                            <th className="px-4 py-3">Attachments</th>
+                                            <th className="px-4 py-3">Customer</th>
+                                            <th className="px-4 py-3">Date</th>
+                                            <th className="px-4 py-3">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border text-center">
+                                        {handovers.length === 0 ? (
+                                            <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No technical handovers found.</td></tr>
+                                        ) : (
+                                            handovers.map(handover => (
+                                                <tr key={handover.id} className="hover:bg-muted/50">
+                                                    <td className="px-4 py-3 align-top text-left">{handover.id}</td>
+                                                    <td className="px-4 py-3 text-left align-top">
+                                                        <div className="flex flex-col gap-2">
+                                                            {handover.attachments?.map((d: any) => (
+                                                                <a key={d.id} href={d.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium text-primary flex items-center gap-1">
+                                                                    <FileCheck className="h-4 w-4 shrink-0" /> <span className="truncate">{d.fileName}</span>
                                                                 </a>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-left align-top">
+                                                        {handover.customerName ? <span className="block">{handover.customerName}</span> : null}
+                                                        {handover.secondaryCustomerName ? <span className="block text-xs text-muted-foreground">{handover.secondaryCustomerName}</span> : null}
+                                                    </td>
+                                                    <td className="px-4 py-3 align-top text-left">{dayjs(handover.createdAt).format("DD MMM YYYY")}</td>
+                                                    <td className="px-4 py-3 align-top text-left">
+                                                        <div className="flex flex-col gap-2">
+                                                            {handover.attachments?.map((d: any) => (
+                                                                <div key={d.id} className="flex gap-3">
+                                                                    <a href={d.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors" title="View">
+                                                                        <Eye className="h-4 w-4" />
+                                                                    </a>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 )}
 
