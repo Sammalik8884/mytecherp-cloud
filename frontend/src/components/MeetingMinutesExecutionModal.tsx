@@ -1,0 +1,264 @@
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { MeetingMinutesExecutionDto, MeetingMinutesExecutionAttendeeDto } from '../services/meetingMinutesExecutionService';
+import { X, Plus, Loader2 } from 'lucide-react';
+
+interface MeetingMinutesExecutionModalProps {
+    show: boolean;
+    onHide: () => void;
+    onSubmit: (data: any) => void;
+    meeting?: MeetingMinutesExecutionDto | null;
+    isViewOnly?: boolean;
+}
+
+const MEETING_TYPES = ['general', 'technical', 'financial', 'progress review', 'emergency', 'safety'];
+const EMPLOYEE_STATUSES = ['present', 'absent', 'excused'];
+
+const MeetingMinutesExecutionModal: React.FC<MeetingMinutesExecutionModalProps> = ({ show, onHide, onSubmit, meeting, isViewOnly }) => {
+    const [meetingTitle, setMeetingTitle] = useState(meeting?.meetingTitle || '');
+    const [meetingDate, setMeetingDate] = useState(meeting?.meetingDate ? meeting.meetingDate.substring(0, 10) : '');
+    const [timeFrom, setTimeFrom] = useState(meeting?.timeFrom || '');
+    const [timeTo, setTimeTo] = useState(meeting?.timeTo || '');
+    const [location, setLocation] = useState(meeting?.location || '');
+    const [organizer, setOrganizer] = useState(meeting?.organizer || '');
+    const [meetingType, setMeetingType] = useState(meeting?.meetingType || '');
+
+    const [agenda, setAgenda] = useState(meeting?.agenda || '');
+    const [discussionPoints, setDiscussionPoints] = useState(meeting?.discussionPoints || '');
+    const [decisionsMade, setDecisionsMade] = useState(meeting?.decisionsMade || '');
+    const [actionItems, setActionItems] = useState(meeting?.actionItems || '');
+    const [closingNotes, setClosingNotes] = useState(meeting?.closingNotes || '');
+
+    const [attendees, setAttendees] = useState<MeetingMinutesExecutionAttendeeDto[]>(meeting?.attendees && meeting.attendees.length > 0 ? meeting.attendees : [
+        { employeeIdStr: '', employeeName: '', employeeStatus: '' }
+    ]);
+    const [files, setFiles] = useState<File[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    if (!show) return null;
+
+    const handleAddAttendeeRow = () => {
+        setAttendees([...attendees, { employeeIdStr: '', employeeName: '', employeeStatus: '' }]);
+    };
+
+    const handleDeleteAttendeeRow = (index: number) => {
+        const newAttendees = attendees.filter((_, i) => i !== index);
+        setAttendees(newAttendees);
+    };
+
+    const handleAttendeeChange = (index: number, field: keyof MeetingMinutesExecutionAttendeeDto, value: string) => {
+        const newAttendees = [...attendees];
+        newAttendees[index] = { ...newAttendees[index], [field]: value };
+        setAttendees(newAttendees);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setFiles(Array.from(e.target.files));
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            await onSubmit({
+                meetingTitle,
+                meetingDate,
+                timeFrom,
+                timeTo,
+                location,
+                organizer,
+                meetingType,
+                agenda,
+                discussionPoints,
+                decisionsMade,
+                actionItems,
+                closingNotes,
+                attendeesJson: JSON.stringify(attendees.filter(a => a.employeeName.trim() !== '')),
+                attachments: files
+            });
+        } catch (error) {
+            // Error is handled by parent, we just catch it here to stop spinner
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+            <div className="bg-card w-full max-w-5xl rounded-xl shadow-2xl border border-border flex flex-col max-h-[90vh]">
+                <div className="flex justify-between items-center p-6 border-b border-border shrink-0">
+                    <h2 className="text-xl font-bold">{isViewOnly ? 'View Minutes of Execution Meeting' : 'Minutes of Execution Meeting Details'}</h2>
+                    <button onClick={onHide} className="text-muted-foreground hover:bg-secondary p-2 rounded-full transition-colors">
+                        <X className="h-5 w-5" />
+                    </button>
+                </div>
+
+                <div className="p-6 overflow-y-auto flex-1">
+                    <form id="momExecutionForm" onSubmit={handleSubmit} className="space-y-6">
+                        
+                        {/* MEETING DETAILS */}
+                        <div className="bg-secondary/20 p-6 rounded-lg border border-border">
+                            <h3 className="bg-secondary/50 text-foreground px-4 py-2 rounded-md font-semibold inline-block mb-4">Meeting Details</h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">Meeting Title</label>
+                                    <input type="text" className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" value={meetingTitle} onChange={(e: any) => setMeetingTitle(e.target.value)} readOnly={isViewOnly} required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">Date</label>
+                                    <input type="date" className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" value={meetingDate} onChange={(e: any) => setMeetingDate(e.target.value)} readOnly={isViewOnly} required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">Time</label>
+                                    <div className="flex gap-2 items-center">
+                                        <div className="w-1/2">
+                                            <span className="text-xs text-muted-foreground block mb-1">From</span>
+                                            <input type="time" className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" value={timeFrom} onChange={(e: any) => setTimeFrom(e.target.value)} readOnly={isViewOnly} required />
+                                        </div>
+                                        <div className="w-1/2">
+                                            <span className="text-xs text-muted-foreground block mb-1">To</span>
+                                            <input type="time" className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" value={timeTo} onChange={(e: any) => setTimeTo(e.target.value)} readOnly={isViewOnly} required />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">Location</label>
+                                    <input type="text" className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" value={location} onChange={(e: any) => setLocation(e.target.value)} readOnly={isViewOnly} required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">Organizer</label>
+                                    <input type="text" className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" value={organizer} onChange={(e: any) => setOrganizer(e.target.value)} readOnly={isViewOnly} required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">Meeting Type</label>
+                                    <select className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" value={meetingType} onChange={(e: any) => setMeetingType(e.target.value)} disabled={isViewOnly} required>
+                                        <option value="">Open this select menu</option>
+                                        {MEETING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ATTENDEE INFORMATION */}
+                        <div className="bg-secondary/20 p-6 rounded-lg border border-border">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="bg-secondary/50 text-foreground px-4 py-2 rounded-md font-semibold inline-block">Attendee Information</h3>
+                            </div>
+                            
+                            <div className="border border-border rounded-lg overflow-hidden">
+                                <table className="w-full bg-card text-sm text-left">
+                                    <thead className="bg-secondary/50 text-muted-foreground border-b border-border">
+                                        <tr>
+                                            <th className="p-3 border-r border-border w-16 text-center font-medium">S#</th>
+                                            <th className="p-3 border-r border-border font-medium">Employee Id</th>
+                                            <th className="p-3 border-r border-border font-medium">Employee Name</th>
+                                            <th className="p-3 border-r border-border font-medium">Employee Status</th>
+                                            {!isViewOnly && <th className="p-3 text-center font-medium w-24">Action</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {attendees.map((attendee, index) => (
+                                            <tr key={index} className="last:border-b-0 hover:bg-muted/10 transition-colors">
+                                                <td className="p-2 border-r border-border text-center">{index + 1}:</td>
+                                                <td className="p-2 border-r border-border">
+                                                    <input type="text" className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1 px-2" value={attendee.employeeIdStr} onChange={(e: any) => handleAttendeeChange(index, 'employeeIdStr', e.target.value)} readOnly={isViewOnly} />
+                                                </td>
+                                                <td className="p-2 border-r border-border">
+                                                    <input type="text" className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1 px-2" value={attendee.employeeName} onChange={(e: any) => handleAttendeeChange(index, 'employeeName', e.target.value)} readOnly={isViewOnly} />
+                                                </td>
+                                                <td className="p-2 border-r border-border">
+                                                    <select className="w-full bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none py-1 px-2" value={attendee.employeeStatus} onChange={(e: any) => handleAttendeeChange(index, 'employeeStatus', e.target.value)} disabled={isViewOnly}>
+                                                        <option value="">Open this select menu</option>
+                                                        {EMPLOYEE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                    </select>
+                                                </td>
+                                                {!isViewOnly && (
+                                                    <td className="p-2 text-center">
+                                                        <button type="button" onClick={() => handleDeleteAttendeeRow(index)} className="text-red-500 hover:text-red-700 transition-colors">
+                                                            <X className="h-5 w-5 mx-auto" />
+                                                        </button>
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {!isViewOnly && (
+                                <button type="button" onClick={handleAddAttendeeRow} className="mt-4 text-primary font-medium hover:underline flex items-center text-sm">
+                                    <Plus className="h-4 w-4 mr-1" /> Add Row
+                                </button>
+                            )}
+                        </div>
+
+                        {/* OTHER DETAILS */}
+                        <div className="bg-secondary/20 p-6 rounded-lg border border-border space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold mb-1">Agenda</label>
+                                <textarea className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" rows={2} value={agenda} onChange={(e: any) => setAgenda(e.target.value)} readOnly={isViewOnly}></textarea>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold mb-1">Discussion Points</label>
+                                <textarea className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" rows={3} value={discussionPoints} onChange={(e: any) => setDiscussionPoints(e.target.value)} readOnly={isViewOnly}></textarea>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold mb-1">Decisions Made</label>
+                                <textarea className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" rows={2} value={decisionsMade} onChange={(e: any) => setDecisionsMade(e.target.value)} readOnly={isViewOnly}></textarea>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold mb-1">Action Items</label>
+                                <textarea className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" rows={2} value={actionItems} onChange={(e: any) => setActionItems(e.target.value)} readOnly={isViewOnly}></textarea>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold mb-1">Closing Notes</label>
+                                <textarea className="w-full border border-input bg-background rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary/50" rows={2} value={closingNotes} onChange={(e: any) => setClosingNotes(e.target.value)} readOnly={isViewOnly}></textarea>
+                            </div>
+
+                            {!isViewOnly && (
+                                <div>
+                                    <label className="block text-sm font-semibold mb-1">Attachments</label>
+                                    <input type="file" multiple onChange={handleFileChange} className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" />
+                                </div>
+                            )}
+
+                            {isViewOnly && meeting?.attachments && meeting.attachments.length > 0 && (
+                                <div>
+                                    <p className="block text-sm font-semibold mb-2">Attachments:</p>
+                                    <ul className="space-y-2">
+                                        {meeting.attachments.map((att: any) => (
+                                            <li key={att.id} className="flex gap-2 items-center">
+                                                <a href={att.fileUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-secondary text-secondary-foreground text-sm rounded hover:bg-secondary/80 transition-colors">View</a>
+                                                <span className="text-sm">{att.fileName}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+
+                    </form>
+                </div>
+                
+                <div className="p-6 border-t border-border bg-secondary/10 flex justify-end gap-3 shrink-0 rounded-b-xl">
+                    <button type="button" onClick={onHide} disabled={isSubmitting} className="px-4 py-2 border border-border rounded-lg text-foreground bg-background hover:bg-secondary transition-colors disabled:opacity-50">
+                        Close
+                    </button>
+                    {!isViewOnly && (
+                        <button type="submit" form="momExecutionForm" disabled={isSubmitting} className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium flex items-center disabled:opacity-50">
+                            {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Submit
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+export default MeetingMinutesExecutionModal;

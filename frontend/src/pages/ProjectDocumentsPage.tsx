@@ -12,6 +12,8 @@ import { SiteDto } from "../types/site";
 import { materialReceivingService, MaterialReceivingFormDto } from "../services/materialReceivingService";
 import MomMeetingModal from "../components/MomMeetingModal";
 import momMeetingService, { MomMeetingDto } from "../services/momMeetingService";
+import MeetingMinutesExecutionModal from "../components/MeetingMinutesExecutionModal";
+import meetingMinutesExecutionService, { MeetingMinutesExecutionDto } from "../services/meetingMinutesExecutionService";
 import { itemProcurementService, ItemProcurementDto } from "../services/itemProcurementService";
 import { ItemProcurementModal } from "../components/common/ItemProcurementModal";
 import { ItemProcurementDetailsModal } from "../components/common/ItemProcurementDetailsModal";
@@ -77,6 +79,15 @@ export const ProjectDocumentsPage = () => {
     const [isLoadingMom, setIsLoadingMom] = useState(false);
     const [selectedMom, setSelectedMom] = useState<MomMeetingDto | null>(null);
     const [isMomViewOnly, setIsMomViewOnly] = useState(false);
+
+    // MOM Execution State
+    const [showMomExecutionModal, setShowMomExecutionModal] = useState(false);
+    const [showMomExecutionList, setShowMomExecutionList] = useState(false);
+    const [momExecutionMeetings, setMomExecutionMeetings] = useState<MeetingMinutesExecutionDto[]>([]);
+    const [isLoadingMomExecution, setIsLoadingMomExecution] = useState(false);
+    const [selectedMomExecution, setSelectedMomExecution] = useState<MeetingMinutesExecutionDto | null>(null);
+    const [isMomExecutionViewOnly, setIsMomExecutionViewOnly] = useState(false);
+    const [momExecutionToDelete, setMomExecutionToDelete] = useState<number | null>(null);
 
     // Letters State
     const [showLettersList, setShowLettersList] = useState(false);
@@ -330,6 +341,66 @@ export const ProjectDocumentsPage = () => {
         }
     };
 
+    const fetchMomExecutionMeetings = async () => {
+        setIsLoadingMomExecution(true);
+        try {
+            const data = await meetingMinutesExecutionService.getAllMeetings();
+            setMomExecutionMeetings(data);
+        } catch (error) {
+            console.error("Failed to load MOM Execution lists", error);
+        } finally {
+            setIsLoadingMomExecution(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showMomExecutionList) {
+            fetchMomExecutionMeetings();
+        }
+    }, [showMomExecutionList]);
+
+    const handleMomExecutionSubmit = async (data: any) => {
+        try {
+            await meetingMinutesExecutionService.createMeeting(data);
+            toast.success("Minutes of Execution Meeting saved successfully!");
+            setShowMomExecutionModal(false);
+            if (showMomExecutionList) fetchMomExecutionMeetings();
+        } catch (error: any) {
+            console.error("Failed to create MOM Execution", error);
+            toast.error(error?.response?.data?.message || error?.response?.data?.detail || "Failed to create MOM Execution. Please try again.");
+            throw error;
+        }
+    };
+
+    const handleViewMomExecution = (meeting: MeetingMinutesExecutionDto) => {
+        setSelectedMomExecution(meeting);
+        setIsMomExecutionViewOnly(true);
+        setShowMomExecutionModal(true);
+    };
+
+    const handleEditMomExecution = (meeting: MeetingMinutesExecutionDto) => {
+        setSelectedMomExecution(meeting);
+        setIsMomExecutionViewOnly(false);
+        setShowMomExecutionModal(true);
+    };
+
+    const handleDeleteMomExecution = (id: number) => {
+        setMomExecutionToDelete(id);
+    };
+
+    const confirmDeleteMomExecution = async () => {
+        if (!momExecutionToDelete) return;
+        try {
+            await meetingMinutesExecutionService.deleteMeeting(momExecutionToDelete);
+            toast.success("Meeting deleted successfully!");
+            fetchMomExecutionMeetings();
+        } catch (error) {
+            toast.error("Failed to delete meeting");
+        } finally {
+            setMomExecutionToDelete(null);
+        }
+    };
+
     useEffect(() => {
         const handleRefresh = () => {
             if (selectedLocation) {
@@ -490,6 +561,25 @@ export const ProjectDocumentsPage = () => {
                     <p className="text-sm text-muted-foreground text-center">Create and view minutes of meeting details.</p>
                     <div className="mt-4 flex items-center text-sm font-medium text-primary">
                         <Plus className="h-4 w-4 mr-1" /> Create MOM
+                    </div>
+                </button>
+
+                {/* MOM Execution Card */}
+                <button 
+                    onClick={() => {
+                        setSelectedMomExecution(null);
+                        setIsMomExecutionViewOnly(false);
+                        setShowMomExecutionModal(true);
+                    }}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Users className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Minutes of Execution Meeting</h3>
+                    <p className="text-sm text-muted-foreground text-center">Create and view minutes of execution meeting details.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create MOM Execution
                     </div>
                 </button>
 
@@ -1041,6 +1131,78 @@ export const ProjectDocumentsPage = () => {
                 )}
             </div>
 
+            {/* Meeting Minutes Execution List Section (Footer) */}
+            <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Meeting Minutes Execution List</h2>
+                    <button 
+                        onClick={() => setShowMomExecutionList(!showMomExecutionList)}
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        {showMomExecutionList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+
+                {showMomExecutionList && (
+                    <div className="pt-4 border-t border-border">
+                        {isLoadingMomExecution ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                        ) : momExecutionMeetings.length > 0 ? (
+                            <div className="overflow-x-auto bg-card rounded-lg border border-border">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted/30 text-center text-muted-foreground border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 font-semibold">No.</th>
+                                            <th className="px-4 py-3 font-semibold">Meeting Title</th>
+                                            <th className="px-4 py-3 font-semibold">Date</th>
+                                            <th className="px-4 py-3 font-semibold">Time</th>
+                                            <th className="px-4 py-3 font-semibold">Organizer</th>
+                                            <th className="px-4 py-3 font-semibold">Present Employees</th>
+                                            <th className="px-4 py-3 font-semibold">Absent Employees</th>
+                                            <th className="px-4 py-3 font-semibold">All Employees</th>
+                                            <th className="px-4 py-3 font-semibold">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border text-center">
+                                        {momExecutionMeetings.map((m, idx) => {
+                                            const present = m.attendees.filter(a => a.employeeStatus?.toLowerCase() === 'present').length;
+                                            const absent = m.attendees.filter(a => a.employeeStatus?.toLowerCase() === 'absent').length;
+                                            const total = m.attendees.length;
+                                            
+                                            return (
+                                                <tr key={m.id} className="hover:bg-muted/10 transition-colors">
+                                                    <td className="px-4 py-3">{idx + 1}</td>
+                                                    <td className="px-4 py-3">{m.meetingTitle}</td>
+                                                    <td className="px-4 py-3">{new Date(m.meetingDate).toLocaleDateString()}</td>
+                                                    <td className="px-4 py-3">{m.timeFrom} - {m.timeTo}</td>
+                                                    <td className="px-4 py-3">{m.organizer}</td>
+                                                    <td className="px-4 py-3">{present}</td>
+                                                    <td className="px-4 py-3">{absent}</td>
+                                                    <td className="px-4 py-3">{total}</td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex justify-center gap-2">
+                                                            <button className="text-blue-500 hover:underline" onClick={() => handleViewMomExecution(m)}>View</button>
+                                                            <button className="text-amber-500 hover:underline" onClick={() => handleEditMomExecution(m)}>Edit</button>
+                                                            <button className="text-red-500 hover:underline" onClick={() => handleDeleteMomExecution(m.id)}>Delete</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
+                                <p>No execution meetings found.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
             {/* Letters/Communication By Mytech List Section (Footer) */}
             <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
@@ -1271,6 +1433,25 @@ export const ProjectDocumentsPage = () => {
                 type="danger"
                 onConfirm={confirmDeleteProcurement}
                 onCancel={() => setProcurementToDelete(null)}
+            />
+
+            <MeetingMinutesExecutionModal
+                show={showMomExecutionModal}
+                onHide={() => setShowMomExecutionModal(false)}
+                onSubmit={handleMomExecutionSubmit}
+                meeting={selectedMomExecution}
+                isViewOnly={isMomExecutionViewOnly}
+            />
+
+            <ConfirmModal
+                isOpen={momExecutionToDelete !== null}
+                onCancel={() => setMomExecutionToDelete(null)}
+                onConfirm={confirmDeleteMomExecution}
+                title="Delete Execution Meeting"
+                message="Are you sure you want to delete this meeting? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                type="danger"
             />
         </div>
     );

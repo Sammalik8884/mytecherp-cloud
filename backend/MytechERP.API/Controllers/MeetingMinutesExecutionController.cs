@@ -1,0 +1,64 @@
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using MytechERP.Application.DTOs.CRM;
+using MytechERP.Application.Interfaces;
+
+namespace MytechERP.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class MeetingMinutesExecutionController : ControllerBase
+    {
+        private readonly IMeetingMinutesExecutionService _service;
+
+        public MeetingMinutesExecutionController(IMeetingMinutesExecutionService service)
+        {
+            _service = service;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var meeting = await _service.GetMeetingByIdAsync(id);
+            if (meeting == null) return NotFound();
+            return Ok(meeting);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var meetings = await _service.GetAllMeetingsAsync();
+            return Ok(meetings);
+        }
+
+        [HttpGet("site/{siteId}")]
+        public async Task<IActionResult> GetBySiteId(int siteId)
+        {
+            var meetings = await _service.GetMeetingsBySiteIdAsync(siteId);
+            return Ok(meetings);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromForm] CreateMeetingMinutesExecutionDto dto)
+        {
+            try
+            {
+                var meeting = await _service.CreateMeetingAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = meeting.Id }, meeting);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message, inner = ex.InnerException?.Message, stackTrace = ex.StackTrace });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _service.DeleteMeetingAsync(id);
+            return NoContent();
+        }
+    }
+}

@@ -112,6 +112,10 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<MomAttendee> MomAttendees { get; set; }
         public DbSet<MomAttachment> MomAttachments { get; set; }
 
+        public DbSet<MeetingMinutesExecution> MeetingMinutesExecutions { get; set; }
+        public DbSet<MeetingMinutesExecutionAttendee> MeetingMinutesExecutionAttendees { get; set; }
+        public DbSet<MeetingMinutesExecutionAttachment> MeetingMinutesExecutionAttachments { get; set; }
+
         public DbSet<ItemProcurement> ItemProcurements { get; set; }
         public DbSet<ItemProcurementItem> ItemProcurementItems { get; set; }
 
@@ -251,6 +255,14 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<MomMeeting>().HasQueryFilter(m => m.TenantId == _currentUserService.TenantId && !m.IsDeleted);
             
             builder.Entity<MomMeeting>()
+                .HasOne(m => m.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(m => m.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<MeetingMinutesExecution>().HasQueryFilter(m => m.TenantId == _currentUserService.TenantId && !m.IsDeleted);
+            
+            builder.Entity<MeetingMinutesExecution>()
                 .HasOne(m => m.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(m => m.CreatedByUserId)
