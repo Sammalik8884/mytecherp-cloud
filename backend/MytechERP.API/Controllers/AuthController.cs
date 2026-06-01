@@ -27,6 +27,7 @@ namespace MytechERP.API.Controllers
 
        
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             try
@@ -43,6 +44,7 @@ namespace MytechERP.API.Controllers
 
         
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
@@ -57,6 +59,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("login-step-two")]
+        [AllowAnonymous]
         public async Task<IActionResult> LoginStepTwo([FromBody] LoginStepTwoRequest request)
         {
             try
