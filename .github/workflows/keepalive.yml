@@ -26,7 +26,7 @@ jobs:
         run: |
           echo "Pinging Backend API..."
           curl -sSf -o /dev/null -w "Backend:  HTTP %{http_code} in %{time_total}s\n" \
-            "https://mytecherpapi20260322094207-fnfwfsf5bshubmfs.francecentral-01.azurewebsites.net" \
+            "https://mytecherp-backend-prod-900.azurewebsites.net/api/Ping" \
             || echo "Backend ping failed (non-fatal)"
 
       - name: Summary
