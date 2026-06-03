@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { SiteDto } from '../../types/site';
 import { CreateItemProcurementDto, CreateItemProcurementItemDto, ItemProcurementDto } from '../../services/itemProcurementService';
 import { X, Plus, Trash2 } from 'lucide-react';
@@ -97,8 +98,8 @@ export const ItemProcurementModal: React.FC<ItemProcurementModalProps> = ({
         }
     };
 
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
             <div className="bg-white border border-gray-200 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <h2 className="text-xl font-bold text-gray-900">
@@ -264,5 +265,5 @@ export const ItemProcurementModal: React.FC<ItemProcurementModalProps> = ({
                 </div>
             </div>
         </div>
-    );
+    ), document.body);
 };
