@@ -47,15 +47,14 @@ export const ItemProcurementModal: React.FC<ItemProcurementModalProps> = ({
     if (!isOpen) return null;
 
     const handleAddRows = () => {
-        if (typeof rowCount === 'number' && rowCount > 0) {
-            const newRows = Array.from({ length: rowCount }).map(() => ({
-                itemName: '',
-                quantity: 1,
-                remarks: ''
-            }));
-            setItems(prev => [...prev, ...newRows]);
-            setRowCount('');
-        }
+        const rowsToAdd = (typeof rowCount === 'number' && rowCount > 0) ? rowCount : 1;
+        const newRows = Array.from({ length: rowsToAdd }).map(() => ({
+            itemName: '',
+            quantity: 1,
+            remarks: ''
+        }));
+        setItems(prev => [...prev, ...newRows]);
+        setRowCount('');
     };
 
     const handleItemChange = (index: number, field: keyof CreateItemProcurementItemDto, value: any) => {
