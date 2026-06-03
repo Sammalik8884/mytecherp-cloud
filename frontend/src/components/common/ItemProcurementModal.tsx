@@ -265,5 +265,5 @@ export const ItemProcurementModal: React.FC<ItemProcurementModalProps> = ({
                 </div>
             </div>
         </div>
-    ), document.body);
+    , document.body);
 };
