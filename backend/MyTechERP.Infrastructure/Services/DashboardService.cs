@@ -272,7 +272,7 @@ namespace MyTechERP.Infrastructure.Services
                 .Where(q => q.CreatedByUserId == userId && q.CreatedAt >= startOfPeriod && q.CreatedAt <= endOfPeriod);
 
             var totalQuotations = await query.CountAsync();
-            var totalQuotationValue = await query.SumAsync(q => q.GrandTotal);
+            var totalQuotationValue = await query.SumAsync(q => (decimal?)q.GrandTotal) ?? 0;
             var pendingQuotations = await query.CountAsync(q => q.Status == QuotationStatus.Draft || q.Status == QuotationStatus.PendingApproval);
             var approvedQuotations = await query.CountAsync(q => q.Status == QuotationStatus.Approved);
 
@@ -284,10 +284,10 @@ namespace MyTechERP.Infrastructure.Services
             
             var valueRaw = await (groupDaily
                 ? query.GroupBy(q => new { q.CreatedAt.Year, q.CreatedAt.Month, q.CreatedAt.Day })
-                       .Select(g => new { g.Key.Year, g.Key.Month, Day = g.Key.Day, Total = g.Sum(q => q.GrandTotal) })
+                       .Select(g => new { g.Key.Year, g.Key.Month, Day = g.Key.Day, Total = g.Sum(q => (decimal?)q.GrandTotal) ?? 0 })
                        .ToListAsync()
                 : query.GroupBy(q => new { q.CreatedAt.Year, q.CreatedAt.Month })
-                       .Select(g => new { g.Key.Year, g.Key.Month, Day = 1, Total = g.Sum(q => q.GrandTotal) })
+                       .Select(g => new { g.Key.Year, g.Key.Month, Day = 1, Total = g.Sum(q => (decimal?)q.GrandTotal) ?? 0 })
                        .ToListAsync());
 
             var dateLabels = new List<DateTime>();
