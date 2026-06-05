@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import { PremiumChart } from './PremiumChart';
 import { apiClient } from '../../services/apiClient';
-import { Calendar, RefreshCw, FileText, TrendingUp, CheckCircle, Clock, ChevronRight } from 'lucide-react';
+import { Calendar, RefreshCw, FileText, TrendingUp, CheckCircle, Clock } from 'lucide-react';
 import { format, subDays, subMonths, subYears } from 'date-fns';
 import { Link } from 'react-router-dom';
 
