@@ -5,7 +5,7 @@ namespace MytechERP.Application.DTOs.Dashboard
 {
     public class RecentQuotationDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string QuotationNumber { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
         public decimal GrandTotal { get; set; }

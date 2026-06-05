@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 
 interface ChartDataPoint { name: string; value: number; secondaryValue?: number }
 interface RecentQuotation {
-    id: string;
+    id: number;
     quotationNumber: string;
     customerName: string;
     grandTotal: number;
