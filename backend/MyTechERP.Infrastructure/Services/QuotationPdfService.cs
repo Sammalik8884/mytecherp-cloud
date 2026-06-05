@@ -188,14 +188,14 @@ namespace MyTechERP.Infrastructure.Services
                 if (importedItems.Any())
                 {
                     col.Item().PaddingBottom(14)
-                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Imported Supply Items", importedItems, quote.Currency, true));
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Imported Items Supply", importedItems, quote.Currency, true));
                     sectionLetter++;
                 }
 
                 if (localItems.Any())
                 {
                     col.Item().PaddingBottom(14)
-                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Local Supply Items", localItems, quote.Currency, false));
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Local Items Supply", localItems, quote.Currency, false));
                     sectionLetter++;
                 }
 
@@ -209,14 +209,14 @@ namespace MyTechERP.Infrastructure.Services
                 if (importedServiceItems.Any())
                 {
                     col.Item().PaddingBottom(14)
-                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Imported Services", importedServiceItems, quote.Currency, false, false));
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Imported Items Services", importedServiceItems, quote.Currency, false, false));
                     sectionLetter++;
                 }
 
                 if (localServiceItems.Any())
                 {
                     col.Item().PaddingBottom(14)
-                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Local Services", localServiceItems, quote.Currency, false, false));
+                        .Element(c => DrawSection(c, $"Section {sectionLetter}: Local Items Services", localServiceItems, quote.Currency, false, false));
                     sectionLetter++;
                 }
 

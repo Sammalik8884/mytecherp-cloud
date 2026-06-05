@@ -830,10 +830,10 @@ export const QuotationFormPage = () => {
                 {/* ── 1. SECTIONS TOGGLE ── */}
                 <div className="bg-secondary/20 border border-border/50 rounded-2xl p-4 md:p-6 shadow-md flex justify-center gap-3 md:gap-6 flex-wrap">
                      {[
-                         { label: "Imported Items", checked: showImported, onChange: setShowImported, color: "blue" },
-                         { label: "Local Items", checked: showLocal, onChange: setShowLocal, color: "emerald" },
-                         { label: "Imported Services", checked: showImportedServices, onChange: setShowImportedServices, color: "purple" },
-                           { label: "Local Services", checked: showLocalServices, onChange: setShowLocalServices, color: "orange" },
+                         { label: "Imported Items Supply", checked: showImported, onChange: setShowImported, color: "blue" },
+                         { label: "Local Items Supply", checked: showLocal, onChange: setShowLocal, color: "emerald" },
+                         { label: "Imported Items Services", checked: showImportedServices, onChange: setShowImportedServices, color: "purple" },
+                           { label: "Local Items Services", checked: showLocalServices, onChange: setShowLocalServices, color: "orange" },
                      ].map(opt => (
                          <label key={opt.label} className={`flex items-center gap-2 md:gap-3 cursor-pointer p-3 md:p-4 rounded-xl border-2 transition-all text-sm md:text-base ${opt.checked ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-border hover:border-primary/40'}`}>
                              <input type="checkbox" className="hidden" checked={opt.checked} onChange={e => opt.onChange(e.target.checked)}/>
@@ -865,8 +865,8 @@ export const QuotationFormPage = () => {
                          <label className="text-xs font-semibold text-muted-foreground block mb-1.5">PDF Supply Column</label>
                          <select value={formData.supplyColumnMode} onChange={e => setFormData({...formData, supplyColumnMode: e.target.value})} className={selectCls}>
                             <option value="Both">Both (Imported + Local)</option>
-                            <option value="ImportedOnly">Imported Items &amp; Services Only</option>
-                            <option value="LocalOnly">Local Items &amp; Services Only</option>
+                            <option value="ImportedOnly">Imported Items Supply &amp; Services Only</option>
+                            <option value="LocalOnly">Local Items Supply &amp; Services Only</option>
                          </select>
                      </div>
                      <div>
@@ -895,7 +895,7 @@ export const QuotationFormPage = () => {
                          <div className="flex justify-between items-center mb-4 pl-3">
                              <h3 className="text-base md:text-lg font-bold text-blue-500 dark:text-blue-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                                 Imported Items
+                                 Imported Items Supply
                              </h3>
                              <button type="button" onClick={handleAddImported} className="text-sm bg-blue-500/10 text-blue-500 dark:text-blue-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-blue-500/20 transition-colors">
                                  <Plus className="w-4 h-4 mr-1"/> Add Row
@@ -1038,7 +1038,7 @@ export const QuotationFormPage = () => {
                          <div className="flex justify-between items-center mb-4 pl-3">
                              <h3 className="text-base md:text-lg font-bold text-emerald-500 dark:text-emerald-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                 Local Items
+                                 Local Items Supply
                              </h3>
                              <button type="button" onClick={handleAddLocal} className="text-sm bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-emerald-500/20 transition-colors">
                                  <Plus className="w-4 h-4 mr-1"/> Add Row
@@ -1153,7 +1153,7 @@ export const QuotationFormPage = () => {
                          <div className="flex justify-between items-center mb-4 pl-3">
                              <h3 className="text-base md:text-lg font-bold text-purple-500 dark:text-purple-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
-                                 Imported Services
+                                 Imported Items Services
                              </h3>
                              <button type="button" onClick={handleAddImportedService} className="text-sm bg-purple-500/10 text-purple-500 dark:text-purple-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-purple-500/20 transition-colors">
                                  <Plus className="w-4 h-4 mr-1"/> Add Row
@@ -1228,7 +1228,7 @@ export const QuotationFormPage = () => {
                          <div className="flex justify-between items-center mb-4 pl-3">
                              <h3 className="text-base md:text-lg font-bold text-orange-500 dark:text-orange-400 flex items-center gap-2">
                                  <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                                 Local Services
+                                 Local Items Services
                              </h3>
                              <button type="button" onClick={handleAddLocalService} className="text-sm bg-orange-500/10 text-orange-500 dark:text-orange-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-orange-500/20 transition-colors">
                                  <Plus className="w-4 h-4 mr-1"/> Add Row
