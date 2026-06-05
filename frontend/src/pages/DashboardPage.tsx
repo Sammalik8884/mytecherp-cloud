@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { format, subDays, subMonths, subYears } from 'date-fns';
 
+import { EstimatorDashboard } from '../components/dashboard/EstimatorDashboard';
+
 interface ChartDataPoint { name: string; value: number; secondaryValue?: number }
 interface DashboardMetrics {
     totalQuotations: number;
@@ -60,7 +62,6 @@ export const DashboardPage: React.FC = () => {
                 startDate = customStartDate;
                 endDate = customEndDate;
             } else if (dateRange === 'all') {
-                // For all time, pass dates way in the past/future to capture everything
                 startDate = '2000-01-01';
                 endDate = '2100-01-01';
             }
@@ -85,6 +86,10 @@ export const DashboardPage: React.FC = () => {
 
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+    if (user?.roles?.includes('Estimation') && !user?.roles?.includes('Admin') && !user?.roles?.includes('Manager')) {
+        return <EstimatorDashboard />;
+    }
 
     if (!(user?.roles?.includes('Admin') || user?.roles?.includes('Manager'))) {
         return (

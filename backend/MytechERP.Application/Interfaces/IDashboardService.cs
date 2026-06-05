@@ -11,5 +11,6 @@ namespace MytechERP.Application.Interfaces
     {
         Task<DashboardMetricsDto> GetExecutiveMetricsAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task<SalesmanActivityResponseDto> GetSalesmanActivityMetricsAsync(DateTime? startDate = null, DateTime? endDate = null);
+        Task<EstimatorDashboardMetricsDto> GetEstimatorMetricsAsync(string userId, DateTime? startDate = null, DateTime? endDate = null);
     }
 }

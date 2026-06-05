@@ -261,5 +261,83 @@ namespace MyTechERP.Infrastructure.Services
 
             return response;
         }
+
+        public async Task<EstimatorDashboardMetricsDto> GetEstimatorMetricsAsync(string userId, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var endOfPeriod = endDate?.Date.AddDays(1).AddSeconds(-1) ?? DateTime.UtcNow;
+            var startOfPeriod = startDate?.Date ?? endOfPeriod.AddMonths(-6);
+
+            var query = _context.Quotations
+                .Include(q => q.Customer)
+                .Where(q => q.CreatedByUserId == userId && q.CreatedAt >= startOfPeriod && q.CreatedAt <= endOfPeriod);
+
+            var totalQuotations = await query.CountAsync();
+            var totalQuotationValue = await query.SumAsync(q => q.GrandTotal);
+            var pendingQuotations = await query.CountAsync(q => q.Status == QuotationStatus.Draft || q.Status == QuotationStatus.PendingApproval);
+            var approvedQuotations = await query.CountAsync(q => q.Status == QuotationStatus.Approved);
+
+            var statusRaw = await query.GroupBy(q => q.Status)
+                .Select(g => new { Status = g.Key.ToString(), Count = g.Count() })
+                .ToListAsync();
+
+            bool groupDaily = (endOfPeriod - startOfPeriod).TotalDays <= 31;
+            
+            var valueRaw = await (groupDaily
+                ? query.GroupBy(q => new { q.CreatedAt.Year, q.CreatedAt.Month, q.CreatedAt.Day })
+                       .Select(g => new { g.Key.Year, g.Key.Month, Day = g.Key.Day, Total = g.Sum(q => q.GrandTotal) })
+                       .ToListAsync()
+                : query.GroupBy(q => new { q.CreatedAt.Year, q.CreatedAt.Month })
+                       .Select(g => new { g.Key.Year, g.Key.Month, Day = 1, Total = g.Sum(q => q.GrandTotal) })
+                       .ToListAsync());
+
+            var dateLabels = new List<DateTime>();
+            if (groupDaily)
+            {
+                for (var d = startOfPeriod.Date; d <= endOfPeriod.Date; d = d.AddDays(1))
+                    dateLabels.Add(d);
+            }
+            else
+            {
+                var currentMonth = new DateTime(startOfPeriod.Year, startOfPeriod.Month, 1);
+                while (currentMonth <= new DateTime(endOfPeriod.Year, endOfPeriod.Month, 1))
+                {
+                    dateLabels.Add(currentMonth);
+                    currentMonth = currentMonth.AddMonths(1);
+                }
+            }
+
+            var valueChart = dateLabels.Select(d =>
+            {
+                var match = valueRaw.FirstOrDefault(r => r.Year == d.Year && r.Month == d.Month && (!groupDaily || r.Day == d.Day));
+                return new ChartDataPoint { Name = groupDaily ? d.ToString("MMM dd") : d.ToString("MMM yyyy"), Value = match?.Total ?? 0 };
+            }).ToList();
+
+            var recent = await _context.Quotations
+                .Include(q => q.Customer)
+                .Where(q => q.CreatedByUserId == userId)
+                .OrderByDescending(q => q.CreatedAt)
+                .Take(10)
+                .Select(q => new RecentQuotationDto
+                {
+                    Id = q.Id,
+                    QuotationNumber = q.QuoteNumber,
+                    CustomerName = q.Customer != null ? (q.Customer.CompanyName ?? q.Customer.Name) : "Unknown",
+                    GrandTotal = q.GrandTotal,
+                    Status = q.Status.ToString(),
+                    CreatedAt = q.CreatedAt
+                })
+                .ToListAsync();
+
+            return new EstimatorDashboardMetricsDto
+            {
+                TotalQuotations = totalQuotations,
+                TotalQuotationValue = totalQuotationValue,
+                PendingQuotations = pendingQuotations,
+                ApprovedQuotations = approvedQuotations,
+                QuotationsByStatus = statusRaw.Select(x => new ChartDataPoint { Name = x.Status, Value = x.Count }).ToList(),
+                QuotationValueOverTime = valueChart,
+                RecentQuotations = recent
+            };
+        }
     }
 }

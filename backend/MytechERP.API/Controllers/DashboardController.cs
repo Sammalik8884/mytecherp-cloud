@@ -93,5 +93,22 @@ namespace MytechERP.API.Controllers
                 return StatusCode(500, new { message = "Failed to generate PDF.", detail = ex.Message });
             }
         }
+        [HttpGet("estimator-metrics")]
+        [Authorize(Roles = Roles.Estimation)]
+        public async Task<IActionResult> GetEstimatorMetrics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        {
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+                var metrics = await _dashboardService.GetEstimatorMetricsAsync(userId, startDate, endDate);
+                return Ok(metrics);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Failed to generate estimator metrics.", detail = ex.Message });
+            }
+        }
     }
 }
