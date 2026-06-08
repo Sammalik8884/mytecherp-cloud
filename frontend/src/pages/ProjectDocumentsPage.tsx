@@ -31,6 +31,8 @@ import ToolBoxTalkModal from '../components/common/ToolBoxTalkModal';
 import TrainingDetailModal from '../components/common/TrainingDetailModal';
 import { toolBoxTalkService, ToolBoxTalkDto } from "../services/toolBoxTalkService";
 import { trainingDetailService, TrainingDetailDto } from "../services/trainingDetailService";
+import { IncidentRecordModal } from '../components/common/IncidentRecordModal';
+import { incidentRecordService, IncidentRecord } from '../services/incidentRecordService';
 
 const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
 
@@ -86,7 +88,21 @@ export const ProjectDocumentsPage = () => {
         fetchProcurements();
         fetchHandovers();
         fetchSpotCheckSites();
+        fetchIncidentRecords();
     }, []);
+
+    const fetchIncidentRecords = async () => {
+        setIsLoadingIncidentRecord(true);
+        try {
+            const data = await incidentRecordService.getAll();
+            setIncidentRecordList(data || []);
+        } catch (error) {
+            console.error('Failed to fetch incident records', error);
+            toast.error('Failed to load Incident Records');
+        } finally {
+            setIsLoadingIncidentRecord(false);
+        }
+    };
 
     useEffect(() => {
         if (showMaterialReceivingDetails) {
@@ -229,6 +245,14 @@ export const ProjectDocumentsPage = () => {
     const [isLoadingToolBoxTalk, setIsLoadingToolBoxTalk] = useState(false);
     const [toolBoxTalkEditId, setToolBoxTalkEditId] = useState<number | undefined>();
 
+    // Incident Record State
+    const [showIncidentRecordModal, setShowIncidentRecordModal] = useState(false);
+    const [showIncidentRecordList, setShowIncidentRecordList] = useState(false);
+    const [incidentRecordList, setIncidentRecordList] = useState<IncidentRecord[]>([]);
+    const [isLoadingIncidentRecord, setIsLoadingIncidentRecord] = useState(false);
+    const [selectedIncidentRecord, setSelectedIncidentRecord] = useState<IncidentRecord | null>(null);
+    const [isIncidentRecordViewOnly, setIsIncidentRecordViewOnly] = useState(false);
+
     const fetchToolBoxTalks = async () => {
         setIsLoadingToolBoxTalk(true);
         try {
@@ -310,6 +334,12 @@ export const ProjectDocumentsPage = () => {
         } catch (error) {
             toast.error("Failed to update status");
         }
+    };
+
+    const handleOpenIncidentRecord = (record?: IncidentRecord, isViewOnly = false) => {
+        setSelectedIncidentRecord(record || null);
+        setIsIncidentRecordViewOnly(isViewOnly);
+        setShowIncidentRecordModal(true);
     };
 
     // Project Technical Handover State
@@ -838,6 +868,21 @@ export const ProjectDocumentsPage = () => {
                     <p className="text-sm text-muted-foreground text-center">Fill out the Training Details document and link it to a site.</p>
                     <div className="mt-4 flex items-center text-sm font-medium text-primary">
                         <Plus className="h-4 w-4 mr-1" /> Create Form
+                    </div>
+                </button>
+
+                {/* Incident Record Card */}
+                <button 
+                    onClick={() => handleOpenIncidentRecord(undefined, false)}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <FileSignature className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Incident Record</h3>
+                    <p className="text-sm text-muted-foreground text-center">Log and manage incident records for the site.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create Record
                     </div>
                 </button>
 
@@ -1491,6 +1536,69 @@ export const ProjectDocumentsPage = () => {
                         ) : (
                             <div className="text-center py-8 text-muted-foreground">
                                 No spot checks found.
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Incident Record List Section */}
+            <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Incident Record</h2>
+                    <button 
+                        onClick={() => setShowIncidentRecordList(!showIncidentRecordList)}
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        {showIncidentRecordList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+
+                {showIncidentRecordList && (
+                    <div className="pt-4 border-t border-border">
+                        {isLoadingIncidentRecord ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                        ) : incidentRecordList.length > 0 ? (
+                            <div className="overflow-x-auto bg-card rounded-lg border border-border">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted/30 text-center text-muted-foreground border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 font-semibold">ID</th>
+                                            <th className="px-4 py-3 font-semibold text-left">Site</th>
+                                            <th className="px-4 py-3 font-semibold">Doc</th>
+                                            <th className="px-4 py-3 font-semibold">Issue</th>
+                                            <th className="px-4 py-3 font-semibold">Issue Date</th>
+                                            <th className="px-4 py-3 font-semibold">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border text-center">
+                                        {incidentRecordList.map((record) => (
+                                            <tr key={record.id} className="hover:bg-muted/10 transition-colors">
+                                                <td className="px-4 py-4 align-top">{record.id}</td>
+                                                <td className="px-4 py-4 text-left align-top">{record.siteName}</td>
+                                                <td className="px-4 py-4 align-top">{record.doc}</td>
+                                                <td className="px-4 py-4 align-top">{record.issue}</td>
+                                                <td className="px-4 py-4 align-top">{new Date(record.issueDate).toLocaleDateString()}</td>
+                                                <td className="px-4 py-4 align-top">
+                                                    <div className="flex justify-center gap-3">
+                                                        <button onClick={() => handleOpenIncidentRecord(record, true)} className="text-blue-500 hover:text-blue-600 transition-colors" title="View">
+                                                            <Eye className="h-4 w-4" />
+                                                        </button>
+                                                        <button onClick={() => handleOpenIncidentRecord(record, false)} className="text-emerald-500 hover:text-emerald-600 transition-colors" title="Edit">
+                                                            <Wrench className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
+                                <p>No Incident Records found.</p>
                             </div>
                         )}
                     </div>
@@ -2338,9 +2446,20 @@ export const ProjectDocumentsPage = () => {
                     if (showTrainingDetailList) fetchTrainingDetails();
                 }}
                 onSuccess={() => {
-                    if (showTrainingDetailList) fetchTrainingDetails();
+                    fetchTrainingDetails();
+                    setShowTrainingDetailModal(false);
                 }}
                 editId={trainingDetailEditId}
+            />
+
+            <IncidentRecordModal
+                isOpen={showIncidentRecordModal}
+                onClose={() => setShowIncidentRecordModal(false)}
+                record={selectedIncidentRecord}
+                isViewOnly={isIncidentRecordViewOnly}
+                onSuccess={() => {
+                    fetchIncidentRecords();
+                }}
             />
 
             <ConfirmModal 

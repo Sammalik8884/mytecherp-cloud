@@ -129,6 +129,9 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<ProjectSpotCheckSite> ProjectSpotCheckSites { get; set; }
         public DbSet<ProjectSpotCheckSiteItem> ProjectSpotCheckSiteItems { get; set; }
 
+        public DbSet<IncidentRecord> IncidentRecords { get; set; }
+        public DbSet<IncidentRecordItem> IncidentRecordItems { get; set; }
+
 
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
@@ -323,6 +326,15 @@ namespace MytechERP.Infrastructure.Persistance
 
             builder.Entity<ProjectSpotCheckSiteItem>()
                 .HasQueryFilter(e => !e.IsDeleted && e.TenantId == _currentUserService.TenantId);
+
+            builder.Entity<IncidentRecord>()
+                .HasQueryFilter(e => !e.IsDeleted && e.TenantId == _currentUserService.TenantId);
+
+            builder.Entity<IncidentRecordItem>()
+                .HasOne(i => i.IncidentRecord)
+                .WithMany(p => p.Items)
+                .HasForeignKey(i => i.IncidentRecordId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<TenantSubscription>()
                 .HasOne(ts => ts.Tenant)

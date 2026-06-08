@@ -788,6 +788,88 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.ToTable("Floors");
                 });
 
+            modelBuilder.Entity("MytechERP.domain.Entities.CRM.IncidentRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Doc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Issue")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("IssueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SiteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiteId");
+
+                    b.ToTable("IncidentRecords");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.CRM.IncidentRecordItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CorrectiveAction")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DescriptionOfIncident")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("IncidentRecordId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ToWhom")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncidentRecordId");
+
+                    b.ToTable("IncidentRecordItems");
+                });
+
             modelBuilder.Entity("MytechERP.domain.Entities.CRM.ItemProcurement", b =>
                 {
                     b.Property<int>("Id")
@@ -4021,6 +4103,28 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.Navigation("Building");
                 });
 
+            modelBuilder.Entity("MytechERP.domain.Entities.CRM.IncidentRecord", b =>
+                {
+                    b.HasOne("MytechERP.domain.Entities.CRM.Site", "Site")
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Site");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.CRM.IncidentRecordItem", b =>
+                {
+                    b.HasOne("MytechERP.domain.Entities.CRM.IncidentRecord", "IncidentRecord")
+                        .WithMany("Items")
+                        .HasForeignKey("IncidentRecordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IncidentRecord");
+                });
+
             modelBuilder.Entity("MytechERP.domain.Entities.CRM.ItemProcurement", b =>
                 {
                     b.HasOne("MytechERP.domain.Entities.AppUser", "CreatedByUser")
@@ -4751,6 +4855,11 @@ namespace MyTechERP.Infrastructure.Migrations
             modelBuilder.Entity("MytechERP.domain.Entities.CRM.Floor", b =>
                 {
                     b.Navigation("Rooms");
+                });
+
+            modelBuilder.Entity("MytechERP.domain.Entities.CRM.IncidentRecord", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("MytechERP.domain.Entities.CRM.ItemProcurement", b =>
