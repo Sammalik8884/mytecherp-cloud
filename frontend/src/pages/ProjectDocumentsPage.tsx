@@ -160,6 +160,11 @@ export const ProjectDocumentsPage = () => {
     const [materialApprovalsList, setMaterialApprovalsList] = useState<any[]>([]);
     const [isLoadingMaterialApprovals, setIsLoadingMaterialApprovals] = useState(false);
 
+    // Approved Drawings State
+    const [showApprovedDrawingsList, setShowApprovedDrawingsList] = useState(false);
+    const [approvedDrawingsList, setApprovedDrawingsList] = useState<any[]>([]);
+    const [isLoadingApprovedDrawings, setIsLoadingApprovedDrawings] = useState(false);
+
     // Project Technical Handover State
     const [showHandoverModal, setShowHandoverModal] = useState(false);
     const [showHandoverList, setShowHandoverList] = useState(false);
@@ -280,6 +285,7 @@ export const ProjectDocumentsPage = () => {
     const fetchDocuments = async () => {
         setIsLoadingLetters(true);
         setIsLoadingMaterialApprovals(true);
+        setIsLoadingApprovedDrawings(true);
         try {
             const data = await siteDocumentService.getAllDocuments();
             
@@ -317,27 +323,45 @@ export const ProjectDocumentsPage = () => {
             });
             setMaterialApprovalsList(groupedApprovals);
 
+            // Approved Drawings
+            const approvedDrawings = data.filter(d => d.documentType === 'Project Approved Project As built drawings')
+                                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            
+            const groupedApprovedDrawings: any[] = [];
+            approvedDrawings.forEach(doc => {
+                const group = groupedApprovedDrawings.find(g => 
+                    g.siteId === doc.siteId && 
+                    g.customerId === doc.customerId && 
+                    g.secondaryCustomerId === doc.secondaryCustomerId &&
+                    Math.abs(new Date(g.createdAt).getTime() - new Date(doc.createdAt).getTime()) < 60000
+                );
+                if (group) { group.documents.push(doc); } 
+                else { groupedApprovedDrawings.push({ id: groupedApprovedDrawings.length + 1, siteId: doc.siteId, siteName: doc.siteName, customerId: doc.customerId, customerName: doc.customerName, secondaryCustomerId: doc.secondaryCustomerId, secondaryCustomerName: doc.secondaryCustomerName, createdAt: doc.createdAt, documents: [doc] }); }
+            });
+            setApprovedDrawingsList(groupedApprovedDrawings);
+
         } catch (error) {
             console.error("Failed to load documents list", error);
         } finally {
             setIsLoadingLetters(false);
             setIsLoadingMaterialApprovals(false);
+            setIsLoadingApprovedDrawings(false);
         }
     };
 
     useEffect(() => {
-        if (showLettersList || showMaterialApprovalsList) {
+        if (showLettersList || showMaterialApprovalsList || showApprovedDrawingsList) {
             fetchDocuments();
         }
-    }, [showLettersList, showMaterialApprovalsList]);
+    }, [showLettersList, showMaterialApprovalsList, showApprovedDrawingsList]);
 
     useEffect(() => {
         const handleRefreshDocs = () => {
-            if (showLettersList || showMaterialApprovalsList) fetchDocuments();
+            if (showLettersList || showMaterialApprovalsList || showApprovedDrawingsList) fetchDocuments();
         };
         window.addEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefreshDocs);
         return () => window.removeEventListener('REFRESH_PROJECT_DOCUMENTS', handleRefreshDocs);
-    }, [showLettersList, showMaterialApprovalsList]);
+    }, [showLettersList, showMaterialApprovalsList, showApprovedDrawingsList]);
 
     const handleMomSubmit = async (data: any) => {
         try {
@@ -673,6 +697,7 @@ export const ProjectDocumentsPage = () => {
                         setShowMomList(false);
                         setShowLettersList(false);
                         setShowMaterialApprovalsList(false);
+                        setShowApprovedDrawingsList(false);
                         window.dispatchEvent(new CustomEvent('OPEN_DPR_MODAL'));
                     }}
                     className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
@@ -1428,6 +1453,77 @@ export const ProjectDocumentsPage = () => {
                         ) : (
                             <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
                                 <p>No material approvals found.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Approved Project As built drawings List Section */}
+            <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Project Approved Project As built drawings List</h2>
+                    <button 
+                        onClick={() => setShowApprovedDrawingsList(!showApprovedDrawingsList)}
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        {showApprovedDrawingsList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+
+                {showApprovedDrawingsList && (
+                    <div className="pt-4 border-t border-border">
+                        {isLoadingApprovedDrawings ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                        ) : approvedDrawingsList.length > 0 ? (
+                            <div className="overflow-x-auto bg-card rounded-lg border border-border">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted/30 text-center text-muted-foreground border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 font-semibold">ID</th>
+                                            <th className="px-4 py-3 font-semibold">Filename</th>
+                                            <th className="px-4 py-3 font-semibold">Date Time</th>
+                                            <th className="px-4 py-3 font-semibold">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border text-center">
+                                        {approvedDrawingsList.map((group) => (
+                                            <tr key={group.id} className="hover:bg-muted/10 transition-colors">
+                                                <td className="px-4 py-4 align-top">{group.id}</td>
+                                                <td className="px-4 py-4 text-left align-top">
+                                                    <div className="flex flex-col gap-3">
+                                                        {group.documents.map((d: any) => (
+                                                            <a key={d.id} href={d.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium text-primary flex items-center gap-1">
+                                                                <FileCheck className="h-4 w-4 shrink-0" /> <span className="truncate">{d.fileName}</span>
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 align-top">{new Date(group.createdAt).toLocaleString()}</td>
+                                                <td className="px-4 py-4 align-top">
+                                                    <div className="flex flex-col gap-3">
+                                                        {group.documents.map((d: any) => (
+                                                            <div key={d.id} className="flex justify-center gap-3">
+                                                                <a href={d.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors" title="View">
+                                                                    <Eye className="h-4 w-4" />
+                                                                </a>
+                                                                <a href={d.downloadUrl} className="text-emerald-500 hover:text-emerald-600 transition-colors" title="Download">
+                                                                    <Download className="h-4 w-4" />
+                                                                </a>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center p-8 text-muted-foreground bg-card border border-dashed border-border rounded-lg">
+                                <p>No approved drawings found.</p>
                             </div>
                         )}
                     </div>
