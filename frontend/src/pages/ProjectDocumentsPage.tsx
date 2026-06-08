@@ -1382,12 +1382,12 @@ export const ProjectDocumentsPage = () => {
             </div>
 
             {/* Project Spot Check Site List */}
-            <div className="mt-8 bg-card rounded-xl border border-border overflow-hidden mb-6">
-                <div className="p-4 flex items-center justify-between border-b border-border bg-muted/30">
-                    <h3 className="text-lg font-semibold text-primary">Project Spot Check Site List</h3>
+            <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm mb-6">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Project Spot Check Site List</h2>
                     <button
                         onClick={() => setShowSpotCheckSiteList(!showSpotCheckSiteList)}
-                        className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                        className="text-sm font-medium text-primary hover:underline"
                     >
                         {showSpotCheckSiteList ? "Hide Details" : "Show Details"}
                     </button>
