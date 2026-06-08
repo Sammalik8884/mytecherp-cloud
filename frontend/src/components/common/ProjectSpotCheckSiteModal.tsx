@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Trash2, Upload, File as FileIcon } from 'lucide-react';
 import { ProjectSpotCheckSite, projectSpotCheckSiteService } from '../../services/projectSpotCheckSiteService';
 import { siteService } from '../../services/siteService';
@@ -171,7 +172,9 @@ export const ProjectSpotCheckSiteModal: React.FC<ProjectSpotCheckSiteModalProps>
         }
     };
 
-    return (
+    if (!isOpen) return null;
+
+    return createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 sm:p-6 overflow-hidden">
             <div className="bg-background rounded-2xl w-full max-w-6xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-border animate-in fade-in zoom-in duration-200">
                 
@@ -367,6 +370,7 @@ export const ProjectSpotCheckSiteModal: React.FC<ProjectSpotCheckSiteModalProps>
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
