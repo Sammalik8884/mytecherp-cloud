@@ -23,6 +23,7 @@ import { toast } from "react-hot-toast";
 import { ProjectTechnicalHandoverModal } from "../components/common/ProjectTechnicalHandoverModal";
 import projectTechnicalHandoverService, { ProjectTechnicalHandoverDto } from "../services/projectTechnicalHandoverService";
 
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import ToolBoxTalkModal from '../components/common/ToolBoxTalkModal';
 import TrainingDetailModal from '../components/common/TrainingDetailModal';
 import { ProjectSpotCheckModal } from '../components/common/ProjectSpotCheckModal';
@@ -2256,13 +2257,15 @@ export const ProjectDocumentsPage = () => {
                 />
             )}
             
-            <ProjectSpotCheckModal 
-                isOpen={showSpotCheckModal}
-                onClose={() => setShowSpotCheckModal(false)}
-                spotCheck={selectedSpotCheck}
-                isViewOnly={isSpotCheckViewOnly}
-                onSuccess={fetchSpotChecks}
-            />
+            <ErrorBoundary>
+                <ProjectSpotCheckModal 
+                    isOpen={showSpotCheckModal}
+                    onClose={() => setShowSpotCheckModal(false)}
+                    spotCheck={selectedSpotCheck}
+                    isViewOnly={isSpotCheckViewOnly}
+                    onSuccess={fetchSpotChecks}
+                />
+            </ErrorBoundary>
 
             <DprDetailsModal isOpen={!!dprViewMode} onClose={() => setDprViewMode(null)} report={selectedReportForDetails} viewMode={dprViewMode} />
             
