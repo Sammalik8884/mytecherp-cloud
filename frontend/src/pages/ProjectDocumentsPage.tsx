@@ -72,10 +72,11 @@ export const ProjectDocumentsPage = () => {
     const confirmDeleteSpotCheckSite = async (id: number) => {
         try {
             await projectSpotCheckSiteService.delete(id);
+            toast.success('Project spot check site deleted successfully!');
             fetchSpotCheckSites();
         } catch (error) {
             console.error("Failed to delete spot check site", error);
-            alert("Failed to delete spot check site");
+            toast.error("Failed to delete spot check site");
         }
     };
 
@@ -1383,7 +1384,7 @@ export const ProjectDocumentsPage = () => {
             {/* Project Spot Check Site List */}
             <div className="mt-8 bg-card rounded-xl border border-border overflow-hidden mb-6">
                 <div className="p-4 flex items-center justify-between border-b border-border bg-muted/30">
-                    <h3 className="text-lg font-semibold text-foreground">Project Spot Check Site List</h3>
+                    <h3 className="text-lg font-semibold text-primary">Project Spot Check Site List</h3>
                     <button
                         onClick={() => setShowSpotCheckSiteList(!showSpotCheckSiteList)}
                         className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"

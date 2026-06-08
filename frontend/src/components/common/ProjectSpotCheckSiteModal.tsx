@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { toast } from 'react-hot-toast';
 import { X, Plus, Trash2, Upload, File as FileIcon } from 'lucide-react';
 import { ProjectSpotCheckSite, projectSpotCheckSiteService } from '../../services/projectSpotCheckSiteService';
 import { siteService } from '../../services/siteService';
@@ -105,7 +106,7 @@ export const ProjectSpotCheckSiteModal: React.FC<ProjectSpotCheckSiteModalProps>
             setUploadedFiles(newUploadedFiles);
         } catch (error) {
             console.error('Failed to process files', error);
-            alert('Failed to process files.');
+            toast.error('Failed to process files.');
         } finally {
             setIsUploading(false);
         }
@@ -144,7 +145,7 @@ export const ProjectSpotCheckSiteModal: React.FC<ProjectSpotCheckSiteModalProps>
 
     const handleSave = async () => {
         if (!siteId) {
-            alert('Please select a site.');
+            toast.error('Please select a site.');
             return;
         }
 
@@ -162,11 +163,12 @@ export const ProjectSpotCheckSiteModal: React.FC<ProjectSpotCheckSiteModalProps>
                 await projectSpotCheckSiteService.create(payload);
             }
 
+            toast.success(spotCheck ? 'Spot check site updated successfully!' : 'Spot check site saved successfully!');
             if (onSuccess) onSuccess();
             onClose();
         } catch (error) {
-            console.error('Failed to save', error);
-            alert('Failed to save project spot check site.');
+            console.error('Failed to save spot check site', error);
+            toast.error('Failed to save project spot check site.');
         } finally {
             setIsSaving(false);
         }
