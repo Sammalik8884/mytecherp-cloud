@@ -25,27 +25,27 @@ export interface CreateProjectSpotCheckSiteData {
 
 export const projectSpotCheckSiteService = {
     getAll: async () => {
-        const response = await apiClient.get('/api/ProjectSpotCheckSite');
+        const response = await apiClient.get('/ProjectSpotCheckSite');
         return response.data;
     },
 
     getById: async (id: number) => {
-        const response = await apiClient.get(`/api/ProjectSpotCheckSite/${id}`);
+        const response = await apiClient.get(`/ProjectSpotCheckSite/${id}`);
         return response.data;
     },
 
     create: async (data: CreateProjectSpotCheckSiteData) => {
-        const response = await apiClient.post('/api/ProjectSpotCheckSite', data);
+        const response = await apiClient.post('/ProjectSpotCheckSite', data);
         return response.data;
     },
 
     update: async (id: number, data: CreateProjectSpotCheckSiteData) => {
-        const response = await apiClient.put(`/api/ProjectSpotCheckSite/${id}`, data);
+        const response = await apiClient.put(`/ProjectSpotCheckSite/${id}`, data);
         return response.data;
     },
 
     delete: async (id: number) => {
-        const response = await apiClient.delete(`/api/ProjectSpotCheckSite/${id}`);
+        const response = await apiClient.delete(`/ProjectSpotCheckSite/${id}`);
         return response.data;
     }
 };
