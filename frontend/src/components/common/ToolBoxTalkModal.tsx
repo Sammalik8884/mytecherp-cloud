@@ -183,7 +183,7 @@ export default function ToolBoxTalkModal({ isOpen, onClose, onSuccess, editId }:
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
             <div className="bg-background rounded-xl shadow-2xl w-full max-w-5xl border border-border flex flex-col max-h-[90vh]">
                 
                 {/* Header */}
