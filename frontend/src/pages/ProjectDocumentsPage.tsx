@@ -55,7 +55,7 @@ export const ProjectDocumentsPage = () => {
     const [isSpotCheckSiteViewOnly, setIsSpotCheckSiteViewOnly] = useState(false);
     const [spotCheckSiteList, setSpotCheckSiteList] = useState<ProjectSpotCheckSite[]>([]);
     const [isLoadingSpotCheckSite, setIsLoadingSpotCheckSite] = useState(false);
-    const [showSpotCheckSiteList, setShowSpotCheckSiteList] = useState(true);
+    const [showSpotCheckSiteList, setShowSpotCheckSiteList] = useState(false);
 
     const fetchSpotCheckSites = async () => {
         setIsLoadingSpotCheckSite(true);
