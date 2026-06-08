@@ -126,8 +126,9 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<ProjectTechnicalHandover> ProjectTechnicalHandovers { get; set; }
         public DbSet<ProjectTechnicalHandoverAttachment> ProjectTechnicalHandoverAttachments { get; set; }
 
-        public DbSet<ProjectSpotCheck> ProjectSpotChecks { get; set; }
-        public DbSet<ProjectSpotCheckItem> ProjectSpotCheckItems { get; set; }
+        public DbSet<ProjectSpotCheckSite> ProjectSpotCheckSites { get; set; }
+        public DbSet<ProjectSpotCheckSiteItem> ProjectSpotCheckSiteItems { get; set; }
+
 
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
@@ -311,16 +312,16 @@ namespace MytechERP.Infrastructure.Persistance
                 .HasForeignKey(p => p.TrainingDetailId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<ProjectSpotCheck>()
+            builder.Entity<ProjectSpotCheckSite>()
                 .HasQueryFilter(e => !e.IsDeleted && e.TenantId == _currentUserService.TenantId);
 
-            builder.Entity<ProjectSpotCheckItem>()
-                .HasOne(i => i.ProjectSpotCheck)
+            builder.Entity<ProjectSpotCheckSiteItem>()
+                .HasOne(i => i.ProjectSpotCheckSite)
                 .WithMany(p => p.Items)
-                .HasForeignKey(i => i.ProjectSpotCheckId)
+                .HasForeignKey(i => i.ProjectSpotCheckSiteId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<ProjectSpotCheckItem>()
+            builder.Entity<ProjectSpotCheckSiteItem>()
                 .HasQueryFilter(e => !e.IsDeleted && e.TenantId == _currentUserService.TenantId);
 
             builder.Entity<TenantSubscription>()

@@ -6,6 +6,9 @@ import { MaterialReceivingModal } from "../components/common/MaterialReceivingMo
 import { DailyProgressReportModal } from "../components/common/DailyProgressReportModal";
 import { dprService, DailyProgressReportDto } from "../services/dprService";
 import { DprDetailsModal, DprViewMode } from "../components/common/DprDetailsModal";
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
+import { projectSpotCheckSiteService, ProjectSpotCheckSite } from '../services/projectSpotCheckSiteService';
+import { ProjectSpotCheckSiteModal } from '../components/common/ProjectSpotCheckSiteModal';
 import { ConfirmModal } from "../components/common/ConfirmModal";
 import { siteService } from "../services/siteService";
 import { SiteDto } from "../types/site";
@@ -46,6 +49,43 @@ export const ProjectDocumentsPage = () => {
     const [materialReceivingLists, setMaterialReceivingLists] = useState<MaterialReceivingFormDto[]>([]);
     const [isLoadingMaterialReceiving, setIsLoadingMaterialReceiving] = useState(false);
     const [showMaterialReceivingDetails, setShowMaterialReceivingDetails] = useState(false);
+
+    const [showSpotCheckSiteModal, setShowSpotCheckSiteModal] = useState(false);
+    const [selectedSpotCheckSite, setSelectedSpotCheckSite] = useState<ProjectSpotCheckSite | null>(null);
+    const [isSpotCheckSiteViewOnly, setIsSpotCheckSiteViewOnly] = useState(false);
+    const [spotCheckSiteList, setSpotCheckSiteList] = useState<ProjectSpotCheckSite[]>([]);
+    const [isLoadingSpotCheckSite, setIsLoadingSpotCheckSite] = useState(false);
+    const [showSpotCheckSiteList, setShowSpotCheckSiteList] = useState(true);
+
+    const fetchSpotCheckSites = async () => {
+        setIsLoadingSpotCheckSite(true);
+        try {
+            const data = await projectSpotCheckSiteService.getAll();
+            setSpotCheckSiteList(data);
+        } catch (error) {
+            console.error("Failed to fetch spot check sites:", error);
+        } finally {
+            setIsLoadingSpotCheckSite(false);
+        }
+    };
+
+    const confirmDeleteSpotCheckSite = async (id: number) => {
+        try {
+            await projectSpotCheckSiteService.delete(id);
+            fetchSpotCheckSites();
+        } catch (error) {
+            console.error("Failed to delete spot check site", error);
+            alert("Failed to delete spot check site");
+        }
+    };
+
+    useEffect(() => {
+        fetchMomMeetings();
+        fetchMomExecutionMeetings();
+        fetchProcurements();
+        fetchHandovers();
+        fetchSpotCheckSites();
+    }, []);
 
     useEffect(() => {
         if (showMaterialReceivingDetails) {
@@ -761,6 +801,24 @@ export const ProjectDocumentsPage = () => {
                     </div>
                 </button>
 
+                <button 
+                    onClick={() => {
+                        setSelectedSpotCheckSite(null);
+                        setIsSpotCheckSiteViewOnly(false);
+                        setShowSpotCheckSiteModal(true);
+                    }}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <FileCheck className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Project Spot Check Site</h3>
+                    <p className="text-sm text-muted-foreground text-center">Create project spot checks and attach multiple files for the site.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create Spot Check
+                    </div>
+                </button>
+
                 {/* Letters/Communication By Mytech Card */}
                 <button 
                     onClick={() => window.dispatchEvent(new CustomEvent('OPEN_PROJECT_DOCUMENT_MODAL', { detail: { documentType: 'Letters/Communication By Mytech' } }))}
@@ -1316,6 +1374,83 @@ export const ProjectDocumentsPage = () => {
                                         <p>No tools lists found for {selectedLocation}</p>
                                     </div>
                                 )}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Project Spot Check Site List */}
+            <div className="mt-8 bg-card rounded-xl border border-border overflow-hidden mb-6">
+                <div className="p-4 flex items-center justify-between border-b border-border bg-muted/30">
+                    <h3 className="text-lg font-semibold text-foreground">Project Spot Check Site List</h3>
+                    <button
+                        onClick={() => setShowSpotCheckSiteList(!showSpotCheckSiteList)}
+                        className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                    >
+                        {showSpotCheckSiteList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+                {showSpotCheckSiteList && (
+                    <div className="p-4">
+                        {isLoadingSpotCheckSite ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            </div>
+                        ) : spotCheckSiteList.length > 0 ? (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                                        <tr>
+                                            <th className="px-6 py-3 font-medium">ID</th>
+                                            <th className="px-6 py-3 font-medium">Site</th>
+                                            <th className="px-6 py-3 font-medium">Date Time</th>
+                                            <th className="px-6 py-3 font-medium text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {Array.isArray(spotCheckSiteList) && spotCheckSiteList.map((spotCheck) => (
+                                            <tr key={spotCheck.id} className="hover:bg-muted/30 transition-colors">
+                                                <td className="px-6 py-4">#{spotCheck.id}</td>
+                                                <td className="px-6 py-4 font-medium">{spotCheck.siteName}</td>
+                                                <td className="px-6 py-4">{new Date(spotCheck.createdAt).toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button 
+                                                            onClick={() => {
+                                                                setSelectedSpotCheckSite(spotCheck);
+                                                                setIsSpotCheckSiteViewOnly(true);
+                                                                setShowSpotCheckSiteModal(true);
+                                                            }}
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            title="View"
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => {
+                                                                setConfirmAction({
+                                                                    title: "Delete Spot Check Site",
+                                                                    message: "Are you sure you want to delete this project spot check site?",
+                                                                    onConfirm: () => confirmDeleteSpotCheckSite(spotCheck.id)
+                                                                });
+                                                                setIsConfirmModalOpen(true);
+                                                            }}
+                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                                No spot checks found.
                             </div>
                         )}
                     </div>
@@ -2113,6 +2248,16 @@ export const ProjectDocumentsPage = () => {
                     confirmText="Delete"
                 />
             )}
+
+            <ErrorBoundary>
+                <ProjectSpotCheckSiteModal 
+                    isOpen={showSpotCheckSiteModal}
+                    onClose={() => setShowSpotCheckSiteModal(false)}
+                    spotCheck={selectedSpotCheckSite}
+                    isViewOnly={isSpotCheckSiteViewOnly}
+                    onSuccess={fetchSpotCheckSites}
+                />
+            </ErrorBoundary>
 
             <DprDetailsModal isOpen={!!dprViewMode} onClose={() => setDprViewMode(null)} report={selectedReportForDetails} viewMode={dprViewMode} />
             
