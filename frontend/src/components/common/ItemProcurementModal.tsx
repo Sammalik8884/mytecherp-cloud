@@ -24,7 +24,7 @@ export const ItemProcurementModal: React.FC<ItemProcurementModalProps> = ({
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [remarks, setRemarks] = useState<string>('');
     const [items, setItems] = useState<CreateItemProcurementItemDto[]>([{ itemName: '', quantity: 1, remarks: '' }]);
-    const [rowCount, setRowCount] = useState<number | ''>('');
+    const [rowCount, setRowCount] = useState<string>('');
 
     useEffect(() => {
         if (initialData) {
@@ -47,7 +47,8 @@ export const ItemProcurementModal: React.FC<ItemProcurementModalProps> = ({
     if (!isOpen) return null;
 
     const handleAddRows = () => {
-        const rowsToAdd = (typeof rowCount === 'number' && rowCount > 0) ? rowCount : 1;
+        const parsed = parseInt(rowCount);
+        const rowsToAdd = (!isNaN(parsed) && parsed > 0) ? parsed : 1;
         const newRows = Array.from({ length: rowsToAdd }).map(() => ({
             itemName: '',
             quantity: 1,
@@ -168,7 +169,7 @@ export const ItemProcurementModal: React.FC<ItemProcurementModalProps> = ({
                                         type="number"
                                         min="1"
                                         value={rowCount}
-                                        onChange={(e) => setRowCount(e.target.value ? Number(e.target.value) : '')}
+                                        onChange={(e) => setRowCount(e.target.value)}
                                         placeholder="No. of rows"
                                         className="w-32 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                     />
