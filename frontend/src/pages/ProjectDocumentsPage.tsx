@@ -22,8 +22,11 @@ import { siteDocumentService } from "../services/siteDocumentService";
 import { toast } from "react-hot-toast";
 import { ProjectTechnicalHandoverModal } from "../components/common/ProjectTechnicalHandoverModal";
 import projectTechnicalHandoverService, { ProjectTechnicalHandoverDto } from "../services/projectTechnicalHandoverService";
-import ToolBoxTalkModal from "../components/common/ToolBoxTalkModal";
+
+import ToolBoxTalkModal from '../components/common/ToolBoxTalkModal';
+import TrainingDetailModal from '../components/common/TrainingDetailModal';
 import { toolBoxTalkService, ToolBoxTalkDto } from "../services/toolBoxTalkService";
+import { trainingDetailService, TrainingDetailDto } from "../services/trainingDetailService";
 
 const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
 
@@ -191,11 +194,36 @@ export const ProjectDocumentsPage = () => {
         }
     };
 
+    // Training Details State
+    const [showTrainingDetailModal, setShowTrainingDetailModal] = useState(false);
+    const [showTrainingDetailList, setShowTrainingDetailList] = useState(false);
+    const [trainingDetailList, setTrainingDetailList] = useState<TrainingDetailDto[]>([]);
+    const [isLoadingTrainingDetail, setIsLoadingTrainingDetail] = useState(false);
+    const [trainingDetailEditId, setTrainingDetailEditId] = useState<number | undefined>();
+
+    const fetchTrainingDetails = async () => {
+        setIsLoadingTrainingDetail(true);
+        try {
+            const data = await trainingDetailService.getAll();
+            setTrainingDetailList(data);
+        } catch (error) {
+            console.error("Failed to load Training Details", error);
+        } finally {
+            setIsLoadingTrainingDetail(false);
+        }
+    };
+
     useEffect(() => {
         if (showToolBoxTalkList) {
             fetchToolBoxTalks();
         }
     }, [showToolBoxTalkList]);
+
+    useEffect(() => {
+        if (showTrainingDetailList) {
+            fetchTrainingDetails();
+        }
+    }, [showTrainingDetailList]);
 
     const confirmDeleteAttendee = async (attendeeId: number) => {
         try {
@@ -214,6 +242,26 @@ export const ProjectDocumentsPage = () => {
             fetchToolBoxTalks();
         } catch (error) {
             toast.error("Failed to update attendee");
+        }
+    };
+
+    const confirmDeleteParticipant = async (participantId: number) => {
+        try {
+            await trainingDetailService.deleteParticipant(participantId);
+            toast.success("Participant removed successfully!");
+            fetchTrainingDetails();
+        } catch (error) {
+            toast.error("Failed to remove participant");
+        }
+    };
+
+    const handleUpdateParticipantStatus = async (participantId: number, name: string, status: string) => {
+        try {
+            await trainingDetailService.updateParticipant(participantId, { name, status });
+            toast.success("Participant status updated!");
+            fetchTrainingDetails();
+        } catch (error) {
+            toast.error("Failed to update status");
         }
     };
 
@@ -693,6 +741,26 @@ export const ProjectDocumentsPage = () => {
                         <Plus className="h-4 w-4 mr-1" /> Create Document
                     </div>
                 </button>
+
+                {/* Training Details Form Card */}
+                <button 
+                    onClick={() => {
+                        setTrainingDetailEditId(undefined);
+                        setShowTrainingDetailModal(true);
+                    }}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <FileSignature className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Training Details Form</h3>
+                    <p className="text-sm text-muted-foreground text-center">Create training detail document with participants.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create Document
+                    </div>
+                </button>
+
+
 
                 {/* Letters/Communication By Mytech Card */}
                 <button 
@@ -1785,6 +1853,110 @@ export const ProjectDocumentsPage = () => {
                         ) : (
                             <div className="text-center p-8 text-muted-foreground border border-dashed border-border rounded-lg bg-muted/10">
                                 <FileText className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                                <p>No TBT records found.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Training Details List Section */}
+            <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Training Details Form</h2>
+                    <button 
+                        onClick={() => {
+                            setShowTrainingDetailList(!showTrainingDetailList);
+                            if (!showTrainingDetailList) fetchTrainingDetails();
+                        }}
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        {showTrainingDetailList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+
+                {showTrainingDetailList && (
+                    <div className="pt-4 border-t border-border">
+                        {isLoadingTrainingDetail ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                        ) : trainingDetailList.length > 0 ? (
+                            <div className="overflow-x-auto bg-card rounded-lg border border-border">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted/30 text-center text-muted-foreground border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 font-semibold">Emp Id</th>
+                                            <th className="px-4 py-3 font-semibold text-left">Participant Name</th>
+                                            <th className="px-4 py-3 font-semibold">Location</th>
+                                            <th className="px-4 py-3 font-semibold">Training Type</th>
+                                            <th className="px-4 py-3 font-semibold w-48">Status</th>
+                                            <th className="px-4 py-3 font-semibold w-16 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {trainingDetailList.flatMap(td => td.participants.map(participant => (
+                                            <tr key={participant.id} className="hover:bg-muted/10 text-center">
+                                                <td className="px-4 py-3 font-medium text-foreground">{participant.employeeId}</td>
+                                                <td className="px-4 py-3 text-left">
+                                                    <input
+                                                        type="text"
+                                                        defaultValue={participant.participantName}
+                                                        onBlur={(e) => {
+                                                            if (e.target.value !== participant.participantName) {
+                                                                handleUpdateParticipantStatus(participant.id, e.target.value, participant.employeeStatus);
+                                                            }
+                                                        }}
+                                                        className="w-full bg-transparent outline-none focus:ring-1 focus:ring-primary rounded px-2 py-1"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">{td.location}</td>
+                                                <td className="px-4 py-3">{td.trainingType}</td>
+                                                <td className="px-4 py-3">
+                                                    <select
+                                                        value={participant.employeeStatus}
+                                                        onChange={(e) => handleUpdateParticipantStatus(participant.id, participant.participantName, e.target.value)}
+                                                        className="w-full border border-border rounded px-3 py-1.5 focus:ring-2 focus:ring-primary/20 outline-none bg-background text-center"
+                                                    >
+                                                        <option value="Present">Present</option>
+                                                        <option value="Absent">Absent</option>
+                                                        <option value="Excused">Excused</option>
+                                                    </select>
+                                                </td>
+                                                <td className="px-4 py-3 flex justify-center gap-2">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setTrainingDetailEditId(td.id);
+                                                            setShowTrainingDetailModal(true);
+                                                        }}
+                                                        className="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
+                                                        title="Edit Training Detail Form"
+                                                    >
+                                                        <Wrench className="h-4 w-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setConfirmAction({
+                                                                title: "Remove Participant",
+                                                                message: "Are you sure you want to remove this participant?",
+                                                                onConfirm: () => confirmDeleteParticipant(participant.id)
+                                                            });
+                                                            setIsConfirmModalOpen(true);
+                                                        }}
+                                                        className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors"
+                                                        title="Delete Participant"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center p-8 text-muted-foreground border border-dashed border-border rounded-lg bg-muted/10">
+                                <FileText className="h-10 w-10 mx-auto mb-3 opacity-20" />
                                 <p>No training details found.</p>
                             </div>
                         )}
@@ -1899,6 +2071,18 @@ export const ProjectDocumentsPage = () => {
                     if (showToolBoxTalkList) fetchToolBoxTalks();
                 }}
                 editId={toolBoxTalkEditId}
+            />
+
+            <TrainingDetailModal
+                isOpen={showTrainingDetailModal}
+                onClose={() => {
+                    setShowTrainingDetailModal(false);
+                    if (showTrainingDetailList) fetchTrainingDetails();
+                }}
+                onSuccess={() => {
+                    if (showTrainingDetailList) fetchTrainingDetails();
+                }}
+                editId={trainingDetailEditId}
             />
 
             <ConfirmModal 

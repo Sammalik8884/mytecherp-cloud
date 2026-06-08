@@ -132,6 +132,7 @@ builder.Services.AddScoped<IItemProcurementService, ItemProcurementService>();
 builder.Services.AddScoped<IProjectTechnicalHandoverService, ProjectTechnicalHandoverService>();
 builder.Services.AddScoped<IToolBoxTalkRepository, ToolBoxTalkRepository>();
 builder.Services.AddScoped<IToolBoxTalkService, MytechERP.Application.Services.ToolBoxTalkService>();
+builder.Services.AddScoped<ITrainingDetailService, MyTechERP.Infrastructure.Services.TrainingDetailService>();
 builder.Services.AddScoped<MyTechERP.Infrastructure.Services.IItemProcurementPdfService, MyTechERP.Infrastructure.Services.ItemProcurementPdfService>();
 builder.Services.AddScoped<MytechERP.Application.Interfaces.IDailyProgressReportPdfService, MytechERP.Infrastructure.Services.DailyProgressReportPdfService>();
 builder.Services.AddScoped<UniversalSyncService>();
