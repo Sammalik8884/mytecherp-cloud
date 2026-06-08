@@ -126,6 +126,9 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<ProjectTechnicalHandover> ProjectTechnicalHandovers { get; set; }
         public DbSet<ProjectTechnicalHandoverAttachment> ProjectTechnicalHandoverAttachments { get; set; }
 
+        public DbSet<ProjectSpotCheck> ProjectSpotChecks { get; set; }
+        public DbSet<ProjectSpotCheckItem> ProjectSpotCheckItems { get; set; }
+
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<TenantSubscription> TenantSubscriptions { get; set; }
@@ -302,6 +305,24 @@ namespace MytechERP.Infrastructure.Persistance
             // TenantSubscription is NOT filtered by the current tenant so the webhook
             // controller (which runs as system/anonymous) can look up any tenant by
             // StripeSubscriptionId. Access control is enforced by the controller.
+            builder.Entity<TrainingDetailParticipant>()
+                .HasOne(p => p.TrainingDetail)
+                .WithMany(t => t.Participants)
+                .HasForeignKey(p => p.TrainingDetailId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProjectSpotCheck>()
+                .HasQueryFilter(e => !e.IsDeleted && e.TenantId == _currentUserService.TenantId);
+
+            builder.Entity<ProjectSpotCheckItem>()
+                .HasOne(i => i.ProjectSpotCheck)
+                .WithMany(p => p.Items)
+                .HasForeignKey(i => i.ProjectSpotCheckId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProjectSpotCheckItem>()
+                .HasQueryFilter(e => !e.IsDeleted && e.TenantId == _currentUserService.TenantId);
+
             builder.Entity<TenantSubscription>()
                 .HasOne(ts => ts.Tenant)
                 .WithMany()

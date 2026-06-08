@@ -25,8 +25,10 @@ import projectTechnicalHandoverService, { ProjectTechnicalHandoverDto } from "..
 
 import ToolBoxTalkModal from '../components/common/ToolBoxTalkModal';
 import TrainingDetailModal from '../components/common/TrainingDetailModal';
+import { ProjectSpotCheckModal } from '../components/common/ProjectSpotCheckModal';
 import { toolBoxTalkService, ToolBoxTalkDto } from "../services/toolBoxTalkService";
 import { trainingDetailService, TrainingDetailDto } from "../services/trainingDetailService";
+import { getProjectSpotChecks, deleteProjectSpotCheck, ProjectSpotCheck } from "../services/projectSpotCheckService";
 
 const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
 
@@ -181,6 +183,49 @@ export const ProjectDocumentsPage = () => {
     const [toolBoxTalkList, setToolBoxTalkList] = useState<ToolBoxTalkDto[]>([]);
     const [isLoadingToolBoxTalk, setIsLoadingToolBoxTalk] = useState(false);
     const [toolBoxTalkEditId, setToolBoxTalkEditId] = useState<number | undefined>();
+
+    // Project Spot Check State
+    const [showSpotCheckModal, setShowSpotCheckModal] = useState(false);
+    const [showSpotCheckList, setShowSpotCheckList] = useState(false);
+    const [spotCheckList, setSpotCheckList] = useState<ProjectSpotCheck[]>([]);
+    const [isLoadingSpotCheck, setIsLoadingSpotCheck] = useState(false);
+    const [selectedSpotCheck, setSelectedSpotCheck] = useState<ProjectSpotCheck | null>(null);
+    const [isSpotCheckViewOnly, setIsSpotCheckViewOnly] = useState(false);
+
+    const fetchSpotChecks = async () => {
+        setIsLoadingSpotCheck(true);
+        try {
+            const data = await getProjectSpotChecks();
+            if (Array.isArray(data)) {
+                setSpotCheckList(data);
+            } else {
+                console.error("Invalid data format for spot checks", data);
+                setSpotCheckList([]);
+            }
+        } catch (error) {
+            console.error("Error fetching spot checks", error);
+            toast.error("Failed to load Project Spot Checks");
+            setSpotCheckList([]);
+        } finally {
+            setIsLoadingSpotCheck(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showSpotCheckList) {
+            fetchSpotChecks();
+        }
+    }, [showSpotCheckList]);
+
+    const confirmDeleteSpotCheck = async (id: number) => {
+        try {
+            await deleteProjectSpotCheck(id);
+            toast.success("Spot Check deleted successfully");
+            fetchSpotChecks();
+        } catch (err) {
+            toast.error("Failed to delete spot check");
+        }
+    };
 
     const fetchToolBoxTalks = async () => {
         setIsLoadingToolBoxTalk(true);
@@ -754,13 +799,30 @@ export const ProjectDocumentsPage = () => {
                         <FileSignature className="h-8 w-8 text-primary" />
                     </div>
                     <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Training Details Form</h3>
-                    <p className="text-sm text-muted-foreground text-center">Create training detail document with participants.</p>
+                    <p className="text-sm text-muted-foreground text-center">Fill out the Training Details document and link it to a site.</p>
                     <div className="mt-4 flex items-center text-sm font-medium text-primary">
-                        <Plus className="h-4 w-4 mr-1" /> Create Document
+                        <Plus className="h-4 w-4 mr-1" /> Create Form
                     </div>
                 </button>
 
-
+                {/* Project Spot Check Site Card */}
+                <button 
+                    onClick={() => {
+                        setSelectedSpotCheck(null);
+                        setIsSpotCheckViewOnly(false);
+                        setShowSpotCheckModal(true);
+                    }}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <FileCheck className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Project Spot Check Site</h3>
+                    <p className="text-sm text-muted-foreground text-center">Create project spot checks and attach multiple files for the site.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create Spot Check
+                    </div>
+                </button>
 
                 {/* Letters/Communication By Mytech Card */}
                 <button 
@@ -1317,6 +1379,85 @@ export const ProjectDocumentsPage = () => {
                                         <p>No tools lists found for {selectedLocation}</p>
                                     </div>
                                 )}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Project Spot Check List */}
+            <div className="mt-8 bg-card rounded-xl border border-border overflow-hidden mb-6">
+                <div className="p-4 flex items-center justify-between border-b border-border bg-muted/30">
+                    <h3 className="text-lg font-semibold text-foreground">Project Spot Check Site List</h3>
+                    <button
+                        onClick={() => {
+                            setShowSpotCheckList(!showSpotCheckList);
+                        }}
+                        className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                    >
+                        {showSpotCheckList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+                {showSpotCheckList && (
+                    <div className="p-4">
+                        {isLoadingSpotCheck ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            </div>
+                        ) : spotCheckList.length > 0 ? (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                                        <tr>
+                                            <th className="px-6 py-3 font-medium">ID</th>
+                                            <th className="px-6 py-3 font-medium">Site</th>
+                                            <th className="px-6 py-3 font-medium">Date Time</th>
+                                            <th className="px-6 py-3 font-medium text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {Array.isArray(spotCheckList) && spotCheckList.map((spotCheck) => (
+                                            <tr key={spotCheck.id} className="hover:bg-muted/30 transition-colors">
+                                                <td className="px-6 py-4">#{spotCheck.id}</td>
+                                                <td className="px-6 py-4 font-medium">{spotCheck.siteName}</td>
+                                                <td className="px-6 py-4">{new Date(spotCheck.createdAt).toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button 
+                                                            onClick={() => {
+                                                                setSelectedSpotCheck(spotCheck);
+                                                                setIsSpotCheckViewOnly(true);
+                                                                setShowSpotCheckModal(true);
+                                                            }}
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            title="View"
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => {
+                                                                setConfirmAction({
+                                                                    title: "Delete Spot Check",
+                                                                    message: "Are you sure you want to delete this project spot check?",
+                                                                    onConfirm: () => confirmDeleteSpotCheck(spotCheck.id)
+                                                                });
+                                                                setIsConfirmModalOpen(true);
+                                                            }}
+                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                                No spot checks found.
                             </div>
                         )}
                     </div>
@@ -2114,6 +2255,15 @@ export const ProjectDocumentsPage = () => {
                     confirmText="Delete"
                 />
             )}
+            
+            <ProjectSpotCheckModal 
+                isOpen={showSpotCheckModal}
+                onClose={() => setShowSpotCheckModal(false)}
+                spotCheck={selectedSpotCheck}
+                isViewOnly={isSpotCheckViewOnly}
+                onSuccess={fetchSpotChecks}
+            />
+
             <DprDetailsModal isOpen={!!dprViewMode} onClose={() => setDprViewMode(null)} report={selectedReportForDetails} viewMode={dprViewMode} />
             
             <ConfirmModal 

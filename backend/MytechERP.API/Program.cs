@@ -135,6 +135,7 @@ builder.Services.AddScoped<IToolBoxTalkService, MytechERP.Application.Services.T
 builder.Services.AddScoped<ITrainingDetailService, MyTechERP.Infrastructure.Services.TrainingDetailService>();
 builder.Services.AddScoped<MyTechERP.Infrastructure.Services.IItemProcurementPdfService, MyTechERP.Infrastructure.Services.ItemProcurementPdfService>();
 builder.Services.AddScoped<MytechERP.Application.Interfaces.IDailyProgressReportPdfService, MytechERP.Infrastructure.Services.DailyProgressReportPdfService>();
+builder.Services.AddScoped<IProjectSpotCheckService, ProjectSpotCheckService>();
 builder.Services.AddScoped<UniversalSyncService>();
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(options =>
