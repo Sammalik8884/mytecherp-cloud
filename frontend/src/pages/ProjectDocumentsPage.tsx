@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Download, Eye, FileSignature, Plus, Wrench, Search, Loader2, FileCheck, FileText } from "lucide-react";
+import { Users, Download, Eye, FileSignature, Plus, Wrench, Search, Loader2, FileCheck, FileText, Trash2 } from "lucide-react";
 import { ProjectScopeModal } from "../components/common/ProjectScopeModal";
 import { ToolsListModal } from "../components/common/ToolsListModal";
 import { MaterialReceivingModal } from "../components/common/MaterialReceivingModal";
@@ -22,6 +22,8 @@ import { siteDocumentService } from "../services/siteDocumentService";
 import { toast } from "react-hot-toast";
 import { ProjectTechnicalHandoverModal } from "../components/common/ProjectTechnicalHandoverModal";
 import projectTechnicalHandoverService, { ProjectTechnicalHandoverDto } from "../services/projectTechnicalHandoverService";
+import ToolBoxTalkModal from "../components/common/ToolBoxTalkModal";
+import { toolBoxTalkService, ToolBoxTalkDto } from "../services/toolBoxTalkService";
 
 const LOCATIONS = ["Lahore", "Karachi", "Islamabad", "Peshawar", "Balochistan"];
 
@@ -169,6 +171,51 @@ export const ProjectDocumentsPage = () => {
     const [showRiskAssessmentList, setShowRiskAssessmentList] = useState(false);
     const [riskAssessmentList, setRiskAssessmentList] = useState<any[]>([]);
     const [isLoadingRiskAssessment, setIsLoadingRiskAssessment] = useState(false);
+
+    // Tool Box Talk State
+    const [showToolBoxTalkModal, setShowToolBoxTalkModal] = useState(false);
+    const [showToolBoxTalkList, setShowToolBoxTalkList] = useState(false);
+    const [toolBoxTalkList, setToolBoxTalkList] = useState<ToolBoxTalkDto[]>([]);
+    const [isLoadingToolBoxTalk, setIsLoadingToolBoxTalk] = useState(false);
+    const [toolBoxTalkEditId, setToolBoxTalkEditId] = useState<number | undefined>();
+
+    const fetchToolBoxTalks = async () => {
+        setIsLoadingToolBoxTalk(true);
+        try {
+            const data = await toolBoxTalkService.getAll();
+            setToolBoxTalkList(data);
+        } catch (error) {
+            console.error("Failed to load Tool Box Talks", error);
+        } finally {
+            setIsLoadingToolBoxTalk(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showToolBoxTalkList) {
+            fetchToolBoxTalks();
+        }
+    }, [showToolBoxTalkList]);
+
+    const confirmDeleteAttendee = async (attendeeId: number) => {
+        try {
+            await toolBoxTalkService.deleteAttendee(attendeeId);
+            toast.success("Attendee removed successfully!");
+            fetchToolBoxTalks();
+        } catch (error) {
+            toast.error("Failed to remove attendee");
+        }
+    };
+
+    const handleUpdateAttendeeStatus = async (attendeeId: number, name: string, status: string) => {
+        try {
+            await toolBoxTalkService.updateAttendee(attendeeId, { employeeName: name, status: status, id: attendeeId, toolBoxTalkId: 0 });
+            toast.success("Attendee updated successfully!");
+            fetchToolBoxTalks();
+        } catch (error) {
+            toast.error("Failed to update attendee");
+        }
+    };
 
     // Project Technical Handover State
     const [showHandoverModal, setShowHandoverModal] = useState(false);
@@ -624,6 +671,24 @@ export const ProjectDocumentsPage = () => {
                     </div>
                     <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Project Risk Assessment Form</h3>
                     <p className="text-sm text-muted-foreground text-center">Upload the project risk assessment form and link it to a site and customer.</p>
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                        <Plus className="h-4 w-4 mr-1" /> Create Document
+                    </div>
+                </button>
+
+                {/* Tool Box Talk Card */}
+                <button 
+                    onClick={() => {
+                        setToolBoxTalkEditId(undefined);
+                        setShowToolBoxTalkModal(true);
+                    }}
+                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <FileSignature className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Tool Box Talk</h3>
+                    <p className="text-sm text-muted-foreground text-center">Create a tool box talk document with attendance.</p>
                     <div className="mt-4 flex items-center text-sm font-medium text-primary">
                         <Plus className="h-4 w-4 mr-1" /> Create Document
                     </div>
@@ -1626,6 +1691,107 @@ export const ProjectDocumentsPage = () => {
                 )}
             </div>
 
+            {/* Tool Box Talk List Section */}
+            <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Training Details List</h2>
+                    <button 
+                        onClick={() => {
+                            setShowToolBoxTalkList(!showToolBoxTalkList);
+                            if (!showToolBoxTalkList) fetchToolBoxTalks();
+                        }}
+                        className="text-sm font-medium text-primary hover:underline"
+                    >
+                        {showToolBoxTalkList ? "Hide Details" : "Show Details"}
+                    </button>
+                </div>
+
+                {showToolBoxTalkList && (
+                    <div className="pt-4 border-t border-border">
+                        {isLoadingToolBoxTalk ? (
+                            <div className="flex justify-center p-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                        ) : toolBoxTalkList.length > 0 ? (
+                            <div className="overflow-x-auto bg-card rounded-lg border border-border">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted/30 text-center text-muted-foreground border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 font-semibold">Emp No.</th>
+                                            <th className="px-4 py-3 font-semibold">TBT Form No</th>
+                                            <th className="px-4 py-3 font-semibold text-left">Name</th>
+                                            <th className="px-4 py-3 font-semibold w-48">Status</th>
+                                            <th className="px-4 py-3 font-semibold w-16 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {toolBoxTalkList.flatMap(tbt => tbt.attendees.map(attendee => (
+                                            <tr key={attendee.id} className="hover:bg-muted/10 text-center">
+                                                <td className="px-4 py-3 font-medium text-foreground">{attendee.id}</td>
+                                                <td className="px-4 py-3 font-medium text-primary">{tbt.formNo}</td>
+                                                <td className="px-4 py-3 text-left">
+                                                    <input
+                                                        type="text"
+                                                        defaultValue={attendee.employeeName}
+                                                        onBlur={(e) => {
+                                                            if (e.target.value !== attendee.employeeName) {
+                                                                handleUpdateAttendeeStatus(attendee.id, e.target.value, attendee.status);
+                                                            }
+                                                        }}
+                                                        className="w-full bg-transparent outline-none focus:ring-1 focus:ring-primary rounded px-2 py-1"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <select
+                                                        value={attendee.status}
+                                                        onChange={(e) => handleUpdateAttendeeStatus(attendee.id, attendee.employeeName, e.target.value)}
+                                                        className="w-full border border-border rounded px-3 py-1.5 focus:ring-2 focus:ring-primary/20 outline-none bg-background text-center"
+                                                    >
+                                                        <option value="Present">Present</option>
+                                                        <option value="Absent">Absent</option>
+                                                    </select>
+                                                </td>
+                                                <td className="px-4 py-3 flex justify-center gap-2">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setToolBoxTalkEditId(tbt.id);
+                                                            setShowToolBoxTalkModal(true);
+                                                        }}
+                                                        className="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
+                                                        title="Edit TBT Form"
+                                                    >
+                                                        <Wrench className="h-4 w-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setConfirmAction({
+                                                                title: "Remove Attendee",
+                                                                message: "Are you sure you want to remove this attendee?",
+                                                                onConfirm: () => confirmDeleteAttendee(attendee.id)
+                                                            });
+                                                            setIsConfirmModalOpen(true);
+                                                        }}
+                                                        className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors"
+                                                        title="Delete Attendee"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center p-8 text-muted-foreground border border-dashed border-border rounded-lg bg-muted/10">
+                                <FileText className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                                <p>No training details found.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
             {/* Project Technical Handover List Section */}
             <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
@@ -1713,7 +1879,7 @@ export const ProjectDocumentsPage = () => {
             </div>
 
             <ProjectScopeModal />
-            <ProjectTechnicalHandoverModal 
+            <ProjectTechnicalHandoverModal
                 isOpen={showHandoverModal}
                 onClose={() => setShowHandoverModal(false)}
                 handoverData={selectedHandover}
@@ -1722,6 +1888,19 @@ export const ProjectDocumentsPage = () => {
                     if (showHandoverList) fetchHandovers();
                 }}
             />
+
+            <ToolBoxTalkModal
+                isOpen={showToolBoxTalkModal}
+                onClose={() => {
+                    setShowToolBoxTalkModal(false);
+                    if (showToolBoxTalkList) fetchToolBoxTalks();
+                }}
+                onSuccess={() => {
+                    if (showToolBoxTalkList) fetchToolBoxTalks();
+                }}
+                editId={toolBoxTalkEditId}
+            />
+
             <ConfirmModal 
                 isOpen={handoverToDelete !== null}
                 onCancel={() => setHandoverToDelete(null)}

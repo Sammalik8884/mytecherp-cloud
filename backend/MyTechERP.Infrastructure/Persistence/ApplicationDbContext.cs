@@ -51,6 +51,8 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Site> Sites { get; set; }
         public DbSet<SiteDocument> SiteDocuments { get; set; }
+        public DbSet<ToolBoxTalk> ToolBoxTalks { get; set; }
+        public DbSet<ToolBoxTalkAttendee> ToolBoxTalkAttendees { get; set; }
         public DbSet<Building> Buildings { get; set; }
         public DbSet<Floor> Floors { get; set; }
         public DbSet<Room> Rooms { get; set; }
@@ -197,6 +199,8 @@ namespace MytechERP.Infrastructure.Persistance
                 .OnDelete(DeleteBehavior.Restrict); 
             builder.Entity<Customer>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId && !x.IsDeleted);
             builder.Entity<Site>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId && !x.IsDeleted);
+            builder.Entity<ToolBoxTalk>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId && !x.IsDeleted);
+            builder.Entity<ToolBoxTalkAttendee>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId && !x.IsDeleted);
             builder.Entity<Building>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId && !x.IsDeleted);
             builder.Entity<Floor>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId);
             builder.Entity<Room>().HasQueryFilter(x => x.TenantId == _currentUserService.TenantId);

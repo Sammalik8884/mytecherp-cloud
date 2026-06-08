@@ -15,6 +15,7 @@ import { DprDetailsModal, DprViewMode } from "../components/common/DprDetailsMod
 import { ConfirmModal } from "../components/common/ConfirmModal";
 import { MaterialReceivingModal } from "../components/common/MaterialReceivingModal";
 import projectTechnicalHandoverService, { ProjectTechnicalHandoverDto } from "../services/projectTechnicalHandoverService";
+import { toolBoxTalkService, ToolBoxTalkDto } from "../services/toolBoxTalkService";
 import { FileCheck } from "lucide-react";
 import { Wrench } from "lucide-react";
 
@@ -47,11 +48,12 @@ export const ProjectDetailsPage = () => {
     const [selectedProcurement, setSelectedProcurement] = useState<ItemProcurementDto | null>(null);
     const [showProcurementDetails, setShowProcurementDetails] = useState(false);
     const [handovers, setHandovers] = useState<ProjectTechnicalHandoverDto[]>([]);
+    const [toolBoxTalks, setToolBoxTalks] = useState<ToolBoxTalkDto[]>([]);
 
 
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
-    const [documentsTab, setDocumentsTab] = useState<'general' | 'handovers'>('general');
+    const [documentsTab, setDocumentsTab] = useState<'general' | 'handovers' | 'toolBoxTalks'>('general');
 
     useEffect(() => {
         loadData();
@@ -99,7 +101,8 @@ export const ProjectDetailsPage = () => {
                 materialReceivingData,
                 dprData,
                 procurementData,
-                handoverData
+                handoverData,
+                toolBoxTalkData
             ] = await Promise.all([
                 siteService.getById(siteId),
                 expenseApi.getBySiteId(siteId),
@@ -126,6 +129,10 @@ export const ProjectDetailsPage = () => {
                 projectTechnicalHandoverService.getBySiteId(siteId).catch(err => {
                     console.error("Failed to load handovers", err);
                     return [];
+                }),
+                toolBoxTalkService.getAll().catch(err => {
+                    console.error("Failed to load tool box talks", err);
+                    return [];
                 })
             ]);
 
@@ -145,6 +152,7 @@ export const ProjectDetailsPage = () => {
             setDprs(dprData);
             setProcurements(procurementData);
             setHandovers(handoverData);
+            setToolBoxTalks(toolBoxTalkData.filter((t: any) => t.siteId === siteId));
             
         } catch (error) {
             console.error("Failed to load project details", error);
@@ -469,6 +477,12 @@ export const ProjectDetailsPage = () => {
                             >
                                 Project Technical Handovers ({handovers.length})
                             </button>
+                            <button 
+                                onClick={() => setDocumentsTab('toolBoxTalks')} 
+                                className={`px-4 py-2 text-sm font-medium rounded-t-md transition-colors ${documentsTab === 'toolBoxTalks' ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground hover:bg-muted'}`}
+                            >
+                                Tool Box Talks ({toolBoxTalks.length})
+                            </button>
                         </div>
 
                         {documentsTab === 'general' && (
@@ -564,6 +578,45 @@ export const ProjectDetailsPage = () => {
                                                                 </div>
                                                             ))}
                                                         </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {documentsTab === 'toolBoxTalks' && (
+                            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm animate-in fade-in">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-muted text-muted-foreground">
+                                        <tr>
+                                            <th className="px-4 py-3 border-r border-border">Form No</th>
+                                            <th className="px-4 py-3 border-r border-border">Date</th>
+                                            <th className="px-4 py-3 border-r border-border">Subject</th>
+                                            <th className="px-4 py-3 border-r border-border">Performed By</th>
+                                            <th className="px-4 py-3">Attendees</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border text-center">
+                                        {toolBoxTalks.length === 0 ? (
+                                            <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No tool box talks found.</td></tr>
+                                        ) : (
+                                            toolBoxTalks.map(tbt => (
+                                                <tr key={tbt.id} className="hover:bg-muted/50">
+                                                    <td className="px-4 py-3 font-medium border-r border-border text-left align-top">{tbt.formNo}</td>
+                                                    <td className="px-4 py-3 border-r border-border text-left align-top">{new Date(tbt.date).toLocaleDateString()}</td>
+                                                    <td className="px-4 py-3 border-r border-border text-left align-top">{tbt.subject}</td>
+                                                    <td className="px-4 py-3 border-r border-border text-left align-top">{tbt.tbtPerformedBy}</td>
+                                                    <td className="px-4 py-3 text-left align-top">
+                                                        <ul className="list-disc list-inside text-xs">
+                                                            {tbt.attendees.map(a => (
+                                                                <li key={a.id} className={a.status === 'Present' ? 'text-green-600' : 'text-red-500'}>
+                                                                    {a.employeeName} ({a.status})
+                                                                </li>
+                                                            ))}
+                                                        </ul>
                                                     </td>
                                                 </tr>
                                             ))
