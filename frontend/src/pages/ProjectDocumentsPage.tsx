@@ -575,21 +575,6 @@ export const ProjectDocumentsPage = () => {
                     </div>
                 </button>
 
-                {/* Approved Project Drawings Shop Card */}
-                <button 
-                    onClick={() => window.dispatchEvent(new CustomEvent('OPEN_PROJECT_DOCUMENT_MODAL', { detail: { documentType: 'Approved Project Drawings Shop' } }))}
-                    className="flex flex-col items-center justify-center p-8 bg-card border border-border rounded-xl hover:border-primary/50 hover:shadow-md transition-all group"
-                >
-                    <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <FileSignature className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors text-center">Approved Project Drawings Shop</h3>
-                    <p className="text-sm text-muted-foreground text-center">Fill out the approved shop drawings document and link it to a site and customer.</p>
-                    <div className="mt-4 flex items-center text-sm font-medium text-primary">
-                        <Plus className="h-4 w-4 mr-1" /> Create Document
-                    </div>
-                </button>
-
                 {/* Project Approved Project As built drawings Card */}
                 <button 
                     onClick={() => window.dispatchEvent(new CustomEvent('OPEN_PROJECT_DOCUMENT_MODAL', { detail: { documentType: 'Project Approved Project As built drawings' } }))}
