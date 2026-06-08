@@ -261,7 +261,8 @@ export const ProjectSpotCheckModal: React.FC<ProjectSpotCheckModalProps> = ({
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-16">No.</th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[300px]">Items</th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-24">Yes/No</th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-24">Yes</th>
+                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-24">No</th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-24">NA</th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Comments/Action Required</th>
                       {!isViewOnly && <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider w-16">Action</th>}
@@ -293,6 +294,15 @@ export const ProjectSpotCheckModal: React.FC<ProjectSpotCheckModalProps> = ({
                             type="checkbox"
                             checked={item.isYes || false}
                             onChange={(e) => handleItemChange(index, 'isYes', e.target.checked)}
+                            disabled={isViewOnly}
+                            className="h-5 w-5 text-primary focus:ring-primary border-border rounded cursor-pointer"
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                          <input
+                            type="checkbox"
+                            checked={item.isNo || false}
+                            onChange={(e) => handleItemChange(index, 'isNo', e.target.checked)}
                             disabled={isViewOnly}
                             className="h-5 w-5 text-primary focus:ring-primary border-border rounded cursor-pointer"
                           />
