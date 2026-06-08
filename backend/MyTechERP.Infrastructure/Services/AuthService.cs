@@ -173,14 +173,15 @@ namespace MyTechERP.Infrastructure.Services
             if (validUsers.Count > 1)
             {
                 var authClaims = new List<Claim> { new Claim(ClaimTypes.Email, request.Email) };
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
+                var keyString = _configuration["JwtSettings:Key"] ?? "ThisIsMySecretKeyForMyTechERPProject123!";
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(authClaims),
                     Expires = DateTime.UtcNow.AddMinutes(15), 
                     SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature),
-                    Issuer = _configuration["JwtSettings:Issuer"],
-                    Audience = _configuration["JwtSettings:Audience"]
+                    Issuer = _configuration["JwtSettings:Issuer"] ?? "MyTechERP",
+                    Audience = _configuration["JwtSettings:Audience"] ?? "MyTechERP_Users"
                 };
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -207,7 +208,8 @@ namespace MyTechERP.Infrastructure.Services
         public async Task<AuthResponse> LoginStepTwoAsync(string tempToken, int tenantId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]);
+            var keyString = _configuration["JwtSettings:Key"] ?? "ThisIsMySecretKeyForMyTechERPProject123!";
+            var key = Encoding.UTF8.GetBytes(keyString);
             
             try
             {
@@ -216,9 +218,9 @@ namespace MyTechERP.Infrastructure.Services
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
-                    ValidIssuer = _configuration["JwtSettings:Issuer"],
+                    ValidIssuer = _configuration["JwtSettings:Issuer"] ?? "MyTechERP",
                     ValidateAudience = true,
-                    ValidAudience = _configuration["JwtSettings:Audience"],
+                    ValidAudience = _configuration["JwtSettings:Audience"] ?? "MyTechERP_Users",
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
@@ -257,14 +259,16 @@ namespace MyTechERP.Infrastructure.Services
                 authClaims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
+            var keyString = _configuration["JwtSettings:Key"] ?? "ThisIsMySecretKeyForMyTechERPProject123!";
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
+            var durationString = _configuration["JwtSettings:DurationInMinutes"] ?? "60";
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(authClaims),
-                Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["JwtSettings:DurationInMinutes"])),
+                Expires = DateTime.UtcNow.AddMinutes(double.Parse(durationString)),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature),
-                Issuer = _configuration["JwtSettings:Issuer"],
-                Audience = _configuration["JwtSettings:Audience"]
+                Issuer = _configuration["JwtSettings:Issuer"] ?? "MyTechERP",
+                Audience = _configuration["JwtSettings:Audience"] ?? "MyTechERP_Users"
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
