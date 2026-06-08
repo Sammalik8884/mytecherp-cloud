@@ -144,9 +144,9 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    var keyString = jwtSettings["Key"] ?? "InitialDefaultKeyForStartupOnly123!";
+    var keyString = jwtSettings["Key"] ?? "ThisIsMySecretKeyForMyTechERPProject123!";
     var signingKey = keyString == "CONFIGURE_IN_AZURE_APP_SERVICE" 
-        ? new SymmetricSecurityKey(Encoding.ASCII.GetBytes("InitialDefaultKeyForStartupOnly123!"))
+        ? new SymmetricSecurityKey(Encoding.ASCII.GetBytes("ThisIsMySecretKeyForMyTechERPProject123!"))
         : new SymmetricSecurityKey(Encoding.ASCII.GetBytes(keyString));
 
     options.TokenValidationParameters = new TokenValidationParameters
