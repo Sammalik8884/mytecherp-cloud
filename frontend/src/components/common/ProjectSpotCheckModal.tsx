@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, CheckCircle } from 'lucide-react';
+import { X, Plus, Trash2, FileCheck } from 'lucide-react';
 import { SiteDto } from '../../types/site';
 import { siteService } from '../../services/siteService';
 import { ProjectSpotCheck, ProjectSpotCheckItem, createProjectSpotCheck, updateProjectSpotCheck } from '../../services/projectSpotCheckService';
@@ -205,7 +205,7 @@ export const ProjectSpotCheckModal: React.FC<ProjectSpotCheckModalProps> = ({
               <div className="flex justify-between items-center mb-5">
                 <div className="flex items-center gap-2">
                   <div className="bg-green-100 p-2 rounded-full">
-                     <CheckCircle className="h-6 w-6 text-green-600" />
+                     <FileCheck className="h-6 w-6 text-green-600" />
                   </div>
                   <h3 className="text-2xl leading-6 font-semibold text-foreground">
                     {isViewOnly ? 'View Project Spot Check Site' : spotCheck ? 'Edit Project Spot Check Site' : 'Project Spot Check Site'}
@@ -232,7 +232,7 @@ export const ProjectSpotCheckModal: React.FC<ProjectSpotCheckModalProps> = ({
                   disabled={isViewOnly}
                 >
                   <option value="">Select a Site</option>
-                  {sites.map(site => (
+                  {sites?.map(site => (
                     <option key={site.id} value={site.id}>{site.name}</option>
                   ))}
                 </select>
@@ -252,7 +252,7 @@ export const ProjectSpotCheckModal: React.FC<ProjectSpotCheckModalProps> = ({
                     </tr>
                   </thead>
                   <tbody className="bg-background divide-y divide-border">
-                    {items.map((item, index) => (
+                    {items?.map((item, index) => (
                       <tr key={index} className="hover:bg-muted/50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground text-center">
                           {index + 1}:
