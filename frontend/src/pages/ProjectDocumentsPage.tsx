@@ -1694,7 +1694,7 @@ export const ProjectDocumentsPage = () => {
             {/* Tool Box Talk List Section */}
             <div className="mt-6 bg-card border border-border rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold tracking-tight text-primary">Training Details List</h2>
+                    <h2 className="text-xl font-bold tracking-tight text-primary">Tool Box Talk</h2>
                     <button 
                         onClick={() => {
                             setShowToolBoxTalkList(!showToolBoxTalkList);
