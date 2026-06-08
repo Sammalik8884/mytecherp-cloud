@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Trash2, Loader2, Save } from 'lucide-react';
 import { siteService } from '../../services/siteService';
 import { toolBoxTalkService } from '../../services/toolBoxTalkService';
@@ -182,7 +183,7 @@ export default function ToolBoxTalkModal({ isOpen, onClose, onSuccess, editId }:
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
             <div className="bg-background rounded-xl shadow-2xl w-full max-w-5xl border border-border flex flex-col max-h-[90vh]">
                 
@@ -422,6 +423,7 @@ export default function ToolBoxTalkModal({ isOpen, onClose, onSuccess, editId }:
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
