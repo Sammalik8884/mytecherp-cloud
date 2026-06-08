@@ -10,10 +10,12 @@ namespace MyTechERP.Infrastructure.Services
     public class DashboardService : IDashboardService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ICurrentUserService _currentUserService;
 
-        public DashboardService(ApplicationDbContext context)
+        public DashboardService(ApplicationDbContext context, ICurrentUserService currentUserService)
         {
             _context = context;
+            _currentUserService = currentUserService;
         }
 
         public async Task<DashboardMetricsDto> GetExecutiveMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
@@ -267,9 +269,20 @@ namespace MyTechERP.Infrastructure.Services
             var endOfPeriod = endDate?.Date.AddDays(1).AddSeconds(-1) ?? DateTime.UtcNow;
             var startOfPeriod = startDate?.Date ?? endOfPeriod.AddMonths(-6);
 
+            var userEmail = _currentUserService.Email;
+            var userRoles = _currentUserService.Roles?.ToList() ?? new List<string>();
+            bool isAdminOrHuzefa = userRoles.Contains("Admin") || string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase);
+
             var query = _context.Quotations
                 .Include(q => q.Customer)
-                .Where(q => q.CreatedByUserId == userId && q.CreatedAt >= startOfPeriod && q.CreatedAt <= endOfPeriod);
+                .AsQueryable();
+
+            if (!isAdminOrHuzefa)
+            {
+                query = query.Where(q => q.CreatedByUserId == userId);
+            }
+
+            query = query.Where(q => q.CreatedAt >= startOfPeriod && q.CreatedAt <= endOfPeriod);
 
             var totalQuotations = await query.CountAsync();
             var totalQuotationValue = await query.SumAsync(q => (decimal?)q.GrandTotal) ?? 0;
