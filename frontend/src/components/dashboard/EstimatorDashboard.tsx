@@ -154,7 +154,7 @@ export const EstimatorDashboard: React.FC = () => {
 
             {loading ? (
                 <div className="grid gap-6">
-                    <div className="grid gap-4 md:grid-cols-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {[1, 2, 3, 4].map(i => <div key={i} className="h-32 rounded-2xl bg-muted animate-pulse border border-border" />)}
                     </div>
                     <div className="h-80 rounded-2xl bg-muted animate-pulse border border-border" />
@@ -166,7 +166,7 @@ export const EstimatorDashboard: React.FC = () => {
             ) : metrics ? (
                 <div className="space-y-6">
                     {/* KPI Cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-card border border-border rounded-2xl p-5 elevation-1">
                             <div className="flex items-center justify-between mb-3">
                                 <p className="text-sm font-semibold text-muted-foreground">Total Quotes</p>
