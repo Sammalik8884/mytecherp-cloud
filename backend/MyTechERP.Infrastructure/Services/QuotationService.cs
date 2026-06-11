@@ -257,41 +257,14 @@ namespace MyTechERP.Infrastructure.Services
 
             var newItems = await CalculateItemsAsync(existingQuote, dto);
 
-            // Match and Update existing items to preserve IDs (for invoice tracking)
-            var existingItems = existingQuote.Items.ToList();
-            
-            // 1. Remove items no longer in the new list
-            foreach (var oldItem in existingItems)
-            {
-                if (!newItems.Any(n => n.Description == oldItem.Description && n.ItemType == oldItem.ItemType))
-                {
-                    existingQuote.Items.Remove(oldItem);
-                }
-            }
+            // Since quotations can only be edited in Draft or Rejected status, they have no invoices yet.
+            // We can safely replace the entire collection to ensure exact sync with the frontend.
+            _context.QuotationsItem.RemoveRange(existingQuote.Items);
+            existingQuote.Items.Clear();
 
-            // 2. Update existing or add new
             foreach (var newItem in newItems)
             {
-                var match = existingQuote.Items.FirstOrDefault(o => o.Description == newItem.Description && o.ItemType == newItem.ItemType);
-                if (match != null)
-                {
-                    // Update properties
-                    match.Quantity = newItem.Quantity;
-                    match.UnitPrice = newItem.UnitPrice;
-                    match.LineTotal = newItem.LineTotal;
-                    match.UnitCost = newItem.UnitCost;
-                    match.MarginPercentage = newItem.MarginPercentage;
-                    match.OriginalPrice = newItem.OriginalPrice;
-                    match.CalculationBreakdown = newItem.CalculationBreakdown;
-                    match.Unit = newItem.Unit;
-                    match.UnitQty = newItem.UnitQty;
-                    match.ProductId = newItem.ProductId;
-                    match.ServiceName = newItem.ServiceName;
-                }
-                else
-                {
-                    existingQuote.Items.Add(newItem);
-                }
+                existingQuote.Items.Add(newItem);
             }
 
             // Recalculate totals
