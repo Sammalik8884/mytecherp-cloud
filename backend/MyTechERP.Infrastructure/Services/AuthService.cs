@@ -316,7 +316,7 @@ namespace MyTechERP.Infrastructure.Services
         
         private async Task EnsureRolesExist()
         {
-            string[] roleNames = { "Admin", "Manager", "Engineer", "Technician", "Customer", "Estimation", "Salesman", "Accounts Head" };
+            string[] roleNames = { "Admin", "Manager", "Engineer", "Technician", "Customer", "Estimation", "Salesman", "Accounts Head", "Software Developer" };
 
             foreach (var roleName in roleNames)
             {

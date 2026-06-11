@@ -18,7 +18,8 @@ namespace MytechERP.domain.Roles
         public const string Salesman = "Salesman";
         public const string Worker = "Worker"; // Added just in case
         public const string AccountsHead = "Accounts Head";
+        public const string SoftwareDeveloper = "Software Developer";
 
-        public const string AllInternal = Admin + "," + Manager + "," + Engineer + "," + Estimation + "," + Technician + "," + Salesman + "," + Worker + "," + AccountsHead;
+        public const string AllInternal = Admin + "," + Manager + "," + Engineer + "," + Estimation + "," + Technician + "," + Salesman + "," + Worker + "," + AccountsHead + "," + SoftwareDeveloper;
     }
 }
