@@ -14,7 +14,7 @@ namespace MytechERP.domain.Entities.HR
         public string ApplicantName { get; set; }
         public string Designation { get; set; }
         public DateTime ApplicationDate { get; set; }
-        public string EmployeeCode { get; set; }
+        public string? EmployeeCode { get; set; }
         public string PhoneNumber { get; set; }
         public string EmployeeType { get; set; }
         public string Subject { get; set; }
@@ -23,9 +23,9 @@ namespace MytechERP.domain.Entities.HR
         // Status: "Pending", "Approved by Director", "Approved by CEO", "Your application is rejected"
         public string Status { get; set; }
         
-        public string DirectorRemarks { get; set; }
-        public string CeoRemarks { get; set; }
-        public string RejectionRemarks { get; set; }
+        public string? DirectorRemarks { get; set; }
+        public string? CeoRemarks { get; set; }
+        public string? RejectionRemarks { get; set; }
 
         public string CreatedByUserId { get; set; }
         public AppUser CreatedByUser { get; set; }
