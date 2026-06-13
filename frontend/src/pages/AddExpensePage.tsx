@@ -4,7 +4,7 @@ import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi"
 import { expenseApi, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
 import { officeApi, OfficeDto } from "../api/officeApi";
 import { SiteDto } from "../types/site";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import toast from "react-hot-toast";
 import { Check, X, Plus, Trash2, ExternalLink, Paperclip } from "lucide-react";
@@ -14,7 +14,7 @@ export const AddExpensePage = () => {
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+
     const { user } = useAuth();
     
     const [showExcessModal, setShowExcessModal] = useState(false);

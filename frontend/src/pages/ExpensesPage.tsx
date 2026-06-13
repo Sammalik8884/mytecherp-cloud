@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 
 export const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
-    const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [arfTotals, setArfTotals] = useState<Record<number, number>>({});
     const navigate = useNavigate();
@@ -20,12 +19,8 @@ export const ExpensesPage = () => {
     const loadExpenses = async () => {
         try {
             setLoading(true);
-            const [data, arfData] = await Promise.all([
-                expenseApi.getAll(),
-                amountRequestApi.getAll().then(r => r.data)
-            ]);
+            const data = await expenseApi.getAll();
             setExpenses(data);
-            setArfs(arfData);
             
             // Calculate totals per ARF
             const totals: Record<number, number> = {};

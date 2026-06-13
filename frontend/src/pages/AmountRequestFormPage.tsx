@@ -5,7 +5,7 @@ import { SiteDto } from "../types/site";
 import { officeApi, OfficeDto } from "../api/officeApi";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
-import { ArfAdjustmentModal } from '../components/finance/ArfAdjustmentModal';
+
 import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
@@ -20,7 +20,7 @@ const AmountRequestFormPage = () => {
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
-    const [adjustmentModal, setAdjustmentModal] = useState<{ isOpen: boolean; releasedAmount: number; newArfId: number } | null>(null);
+
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
 
     // Form State
@@ -89,7 +89,7 @@ const AmountRequestFormPage = () => {
             const expensesList = Array.isArray(expensesData) ? expensesData : [];
             
             expensesList.forEach((e: ExpenseDto) => {
-                if (e.amountRequestFormId && !e.isAllocatedExcess) {
+                if (e.amountRequestFormId) {
                     totals[e.amountRequestFormId] = (totals[e.amountRequestFormId] || 0) + e.totalExpenseAmount;
                 }
             });
@@ -98,7 +98,7 @@ const AmountRequestFormPage = () => {
             expensesList.forEach((e: ExpenseDto) => {
                 if (e.createdByEmail === user?.email) {
                     const totalForThisArf = e.amountRequestFormId ? (totals[e.amountRequestFormId] || 0) : 0;
-                    if (!e.isAllocatedExcess && e.arfReleasedAmount > 0 && totalForThisArf < e.arfReleasedAmount) {
+                    if (e.arfReleasedAmount > 0 && totalForThisArf < e.arfReleasedAmount) {
                         currentRedCount++;
                     }
                 }
@@ -239,7 +239,7 @@ const AmountRequestFormPage = () => {
     const handleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!selectedForm || !e.target.files || e.target.files.length === 0) return;
         
-        const files = Array.from(e.target.files);
+        const files = Array.from(e.target.files) as File[];
         try {
             toast.loading(`Uploading ${files.length} attachment(s)...`, { id: "upload" });
             for (const file of files) {
@@ -492,26 +492,7 @@ const AmountRequestFormPage = () => {
                             </div>
                         </div>
 
-                        {selectedForm.status === "Released" && (
-                            <div className="mb-8 p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
-                                <div>
-                                    <h3 className="text-blue-800 font-bold text-lg">Adjust Excess Expenses</h3>
-                                    <p className="text-blue-700 text-sm mt-1">
-                                        You can use this released amount to adjust and close out any previously over-consumed ARFs.
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => setAdjustmentModal({
-                                        isOpen: true,
-                                        releasedAmount: selectedForm.accountsReleasedAmount || 0,
-                                        newArfId: selectedForm.id
-                                    })}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors whitespace-nowrap"
-                                >
-                                    Adjust Expenses
-                                </button>
-                            </div>
-                        )}
+
 
                         {/* Approvals Section */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -745,18 +726,7 @@ const AmountRequestFormPage = () => {
                 </div>
             )}
 
-            {adjustmentModal && (
-                <ArfAdjustmentModal
-                    isOpen={adjustmentModal.isOpen}
-                    onClose={() => setAdjustmentModal(null)}
-                    releasedAmount={adjustmentModal.releasedAmount}
-                    newArfId={adjustmentModal.newArfId}
-                    onSuccess={() => {
-                        fetchData();
-                        setAdjustmentModal(null);
-                    }}
-                />
-            )}
+
         </div>
     );
 };

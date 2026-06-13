@@ -694,13 +694,7 @@ export const ProjectDetailsPage = () => {
                             <tbody className="divide-y divide-border">
                                 {expenses.map(exp => {
                                     let arfElement: React.ReactNode;
-                                    if (exp.isAllocatedExcess) {
-                                        arfElement = (
-                                            <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                                                Excess from {exp.sourceArfNumber}
-                                            </span>
-                                        );
-                                    } else if (exp.arfReleasedAmount > 0) {
+                                    if (exp.arfReleasedAmount > 0) {
                                         if (exp.totalExpenseAmount < exp.arfReleasedAmount) {
                                             arfElement = <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">{exp.arfNumber || "N/A"}</span>;
                                         } else if (exp.totalExpenseAmount === exp.arfReleasedAmount) {
