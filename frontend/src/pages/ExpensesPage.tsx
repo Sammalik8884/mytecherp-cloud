@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
+import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 
 import { ChevronDown, ChevronRight, Plus, Receipt } from "lucide-react";
 import dayjs from "dayjs";
@@ -9,6 +10,7 @@ export const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [arfTotals, setArfTotals] = useState<Record<number, number>>({});
+    const [arfEffectiveReleased, setArfEffectiveReleased] = useState<Record<number, number>>({});
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,19 +20,36 @@ export const ExpensesPage = () => {
     const loadExpenses = async () => {
         try {
             setLoading(true);
-            const data = await expenseApi.getAll();
+            const [data, arfsRes] = await Promise.all([
+                expenseApi.getAll(),
+                amountRequestApi.getAll()
+            ]);
             setExpenses(data);
             
             // Calculate totals per ARF
             const totals: Record<number, number> = {};
+            const effectiveReleased: Record<number, number> = {};
 
             data.forEach((e: ExpenseDto) => {
                 if (e.amountRequestFormId) {
                     const arfId = e.amountRequestFormId;
                     totals[arfId] = (totals[arfId] || 0) + e.totalExpenseAmount;
+                    
+                    if (e.arfNumber && !(arfId in effectiveReleased)) {
+                        // Original ARF released amount
+                        const originalReleased = e.arfReleasedAmount || 0;
+                        
+                        // Find any excess ARFs generated for this ARF
+                        const excessReleased = arfsRes.data
+                            .filter(a => a.purposeOfAdvance?.includes(`from ${e.arfNumber}`))
+                            .reduce((sum, a) => sum + (a.accountsReleasedAmount || 0), 0);
+                            
+                        effectiveReleased[arfId] = originalReleased + excessReleased;
+                    }
                 }
             });
             setArfTotals(totals);
+            setArfEffectiveReleased(effectiveReleased);
         } catch (error) {
             console.error("Failed to load expenses", error);
         } finally {
@@ -118,17 +137,18 @@ export const ExpensesPage = () => {
 
                                 const renderRow = (expense: ExpenseDto, isMain: boolean) => {
                                     const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
+                                    const effectiveReleasedAmount = expense.amountRequestFormId ? (arfEffectiveReleased[expense.amountRequestFormId] || expense.arfReleasedAmount) : expense.arfReleasedAmount;
                                     const excessItemsAmount = expense.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
 
                                     let arfElement: React.ReactNode;
-                                    if (expense.arfReleasedAmount > 0) {
-                                        if (totalForThisArf < expense.arfReleasedAmount) {
+                                    if (effectiveReleasedAmount > 0) {
+                                        if (totalForThisArf < effectiveReleasedAmount) {
                                             arfElement = (
                                                 <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
                                                     {expense.arfNumber || "N/A"}
                                                 </span>
                                             );
-                                        } else if (totalForThisArf === expense.arfReleasedAmount) {
+                                        } else if (totalForThisArf === effectiveReleasedAmount) {
                                             arfElement = (
                                                 <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
                                                     {expense.arfNumber || "N/A"}

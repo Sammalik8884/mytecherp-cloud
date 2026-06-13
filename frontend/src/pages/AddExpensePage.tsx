@@ -29,6 +29,7 @@ export const AddExpensePage = () => {
     const [sites, setSites] = useState<SiteDto[]>([]);
     const [offices, setOffices] = useState<OfficeDto[]>([]);
     const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
+    const [allArfs, setAllArfs] = useState<AmountRequestFormDto[]>([]);
     
     const [locationType, setLocationType] = useState<'site' | 'office'>('site');
     const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
@@ -83,6 +84,7 @@ export const AddExpensePage = () => {
                 (a.status === "Released" || a.status === "Approved - Ready for Accounts") 
             );
             setArfs(availableArfs);
+            setAllArfs(arfData);
 
             if (isEditMode && id) {
                 const expense = await expenseApi.getById(Number(id));
@@ -193,7 +195,13 @@ export const AddExpensePage = () => {
     };
 
     const selectedArf = arfs.find((a: any) => a.id === Number(selectedArfId));
-    const releasedAmount = selectedArf?.accountsReleasedAmount || 0;
+    
+    // Find any excess ARFs generated for this ARF and add their released amounts
+    const excessReleased = selectedArf ? allArfs
+        .filter(a => a.purposeOfAdvance?.includes(`from ${selectedArf.arfNumber || selectedArf.id}`))
+        .reduce((sum, a) => sum + (a.accountsReleasedAmount || 0), 0) : 0;
+        
+    const releasedAmount = (selectedArf?.accountsReleasedAmount || 0) + excessReleased;
     const alreadySpent = arfConsumedAmounts[Number(selectedArfId)] || 0;
     const remainingArfBalance = Math.max(0, releasedAmount - alreadySpent);
     
