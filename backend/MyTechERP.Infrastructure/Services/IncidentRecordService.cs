@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MytechERP.Application.DTOs.CRM;
 using MytechERP.Application.Interfaces;
+using MytechERP.domain.Entities;
 using MytechERP.domain.Entities.CRM;
 using MytechERP.Infrastructure.Persistance;
 
@@ -13,11 +15,19 @@ namespace MyTechERP.Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly INotificationService _notificationService;
 
-        public IncidentRecordService(ApplicationDbContext context, ICurrentUserService currentUserService)
+        public IncidentRecordService(
+            ApplicationDbContext context, 
+            ICurrentUserService currentUserService,
+            UserManager<AppUser> userManager,
+            INotificationService notificationService)
         {
             _context = context;
             _currentUserService = currentUserService;
+            _userManager = userManager;
+            _notificationService = notificationService;
         }
 
         public async Task<IncidentRecordDto> CreateAsync(CreateIncidentRecordDto dto, string userId)
@@ -44,6 +54,32 @@ namespace MyTechERP.Infrastructure.Services
 
             _context.IncidentRecords.Add(entity);
             await _context.SaveChangesAsync();
+
+            // Notify Admins, Managers, and Faisal Ghani
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var managers = await _userManager.GetUsersInRoleAsync("Manager");
+            
+            var allRecipients = admins.Concat(managers).ToList();
+            
+            var faisal = await _userManager.FindByEmailAsync("faisal.ghani@mytecheng.com");
+            if (faisal != null && !allRecipients.Any(u => u.Id == faisal.Id))
+            {
+                allRecipients.Add(faisal);
+            }
+
+            var creatorName = _currentUserService.UserId != null ? (await _userManager.FindByIdAsync(_currentUserService.UserId))?.FullName ?? "Someone" : "Someone";
+            string siteName = entity.SiteId > 0 ? (await _context.Sites.FindAsync(entity.SiteId))?.Name : "Unknown Site";
+
+            foreach (var recipient in allRecipients)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    userId: recipient.Id,
+                    title: "New Incident Record",
+                    message: $"{creatorName} submitted a new Incident Record for {siteName}.",
+                    type: "IncidentRecord",
+                    targetId: entity.Id
+                );
+            }
 
             return await GetByIdAsync(entity.Id);
         }
