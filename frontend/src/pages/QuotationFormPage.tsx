@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, ArrowLeft, Loader2, Search, Calculator, Pencil } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Loader2, Search, Calculator, Pencil, X } from "lucide-react";
 import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
@@ -109,6 +109,13 @@ export const QuotationFormPage = () => {
 
     // Product Selection Modal Target
     const [productModalTarget, setProductModalTarget] = useState<{ list: "imported" | "local", index: number } | null>(null);
+
+    // Custom row modal state
+    const [customRowModal, setCustomRowModal] = useState<{ isOpen: boolean, listType: "Imported" | "Local" | "ImportedService" | "LocalService" | null, rowIndex: string }>({
+        isOpen: false,
+        listType: null,
+        rowIndex: ""
+    });
 
     const handleOpenProductModal = (target: { list: "imported" | "local", index: number }) => {
         setProductModalTarget(target);
@@ -417,10 +424,14 @@ export const QuotationFormPage = () => {
     };
 
     const handleAddCustomRow = (listType: "Imported" | "Local" | "ImportedService" | "LocalService") => {
-        const inputStr = window.prompt("After which row number would you like to insert the new row? (e.g. 1)");
-        if (inputStr === null || inputStr.trim() === "") return;
+        setCustomRowModal({ isOpen: true, listType, rowIndex: "" });
+    };
+
+    const confirmAddCustomRow = () => {
+        const { listType, rowIndex } = customRowModal;
+        if (!listType) return;
         
-        let targetIndex = parseInt(inputStr, 10);
+        let targetIndex = parseInt(rowIndex, 10);
         if (isNaN(targetIndex) || targetIndex < 0) targetIndex = 1;
         
         const emptyRow = makeEmptyRow(listType === "ImportedService" ? "ImportedService" : listType === "LocalService" ? "LocalService" : listType);
@@ -442,6 +453,7 @@ export const QuotationFormPage = () => {
             arr.splice(targetIndex, 0, emptyRow);
             setLocalServiceItems(arr);
         }
+        setCustomRowModal({ isOpen: false, listType: null, rowIndex: "" });
     };
     /* ─── Resolve unit for payload ─── */
     const resolveUnit = (item: UiItem) => {
@@ -1509,6 +1521,42 @@ export const QuotationFormPage = () => {
                         <button onClick={() => setModalBreakdown(null)} className="w-full mt-6 bg-secondary hover:bg-secondary/80 text-foreground py-3 rounded-xl font-semibold transition-colors border border-border">
                             Close
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Row Modal */}
+            {customRowModal.isOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                    <div className="bg-background border border-border rounded-xl w-full max-w-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between p-4 border-b border-border/50 bg-muted/30">
+                            <h3 className="font-semibold text-foreground">Insert Custom Row</h3>
+                            <button onClick={() => setCustomRowModal({ isOpen: false, listType: null, rowIndex: "" })} className="p-1.5 hover:bg-muted rounded-md text-muted-foreground transition-colors">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <label className="text-sm text-foreground">After which row number would you like to insert the new row? (e.g. 1)</label>
+                            <input 
+                                type="number" 
+                                min="0"
+                                autoFocus
+                                className={inputCls} 
+                                value={customRowModal.rowIndex} 
+                                onChange={e => setCustomRowModal({ ...customRowModal, rowIndex: e.target.value })}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') confirmAddCustomRow();
+                                }}
+                            />
+                            <div className="flex justify-end gap-2 pt-2">
+                                <button type="button" onClick={() => setCustomRowModal({ isOpen: false, listType: null, rowIndex: "" })} className="px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-secondary/80 rounded-lg transition-colors">
+                                    Cancel
+                                </button>
+                                <button type="button" onClick={confirmAddCustomRow} className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors">
+                                    OK
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
