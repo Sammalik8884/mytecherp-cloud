@@ -66,6 +66,7 @@ export const AddExpensePage = () => {
             const consumedMap: Record<number, number> = {};
             expenseData.forEach((e: any) => {
                 if (e.amountRequestFormId) {
+                    if (isEditMode && String(e.id) === String(id)) return;
                     consumedMap[e.amountRequestFormId] = (consumedMap[e.amountRequestFormId] || 0) + e.totalExpenseAmount;
                 }
             });
@@ -190,14 +191,16 @@ export const AddExpensePage = () => {
 
     const selectedArf = arfs.find((a: any) => a.id === Number(selectedArfId));
     const releasedAmount = selectedArf?.accountsReleasedAmount || 0;
+    const alreadySpent = arfConsumedAmounts[Number(selectedArfId)] || 0;
+    const remainingArfBalance = Math.max(0, releasedAmount - alreadySpent);
     
     // Calculate total
     const totalAmount = rows.reduce((sum: number, row: any) => sum + (Number(row.amount) || 0), 0);
     
     // Check match
-    const isAmountEqual = selectedArf ? totalAmount === releasedAmount : false;
-    const isAmountAbove = selectedArf ? totalAmount > releasedAmount : false;
-    const excessAmount = isAmountAbove ? totalAmount - releasedAmount : 0;
+    const isAmountEqual = selectedArf ? totalAmount === remainingArfBalance : false;
+    const isAmountAbove = selectedArf ? totalAmount > remainingArfBalance : false;
+    const excessAmount = isAmountAbove ? totalAmount - remainingArfBalance : 0;
 
     const handleSubmit = async () => {
         if (locationType === 'site' && !selectedSiteId) return toast.error("Please select a site first.");
@@ -479,7 +482,15 @@ export const AddExpensePage = () => {
                             </div>
                             {selectedArf && (
                                 <div className="text-xs flex justify-between mt-1">
-                                    <span className="text-muted-foreground">Released Amount: Rs {releasedAmount.toLocaleString()}</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-muted-foreground">Released Amount: Rs {releasedAmount.toLocaleString()}</span>
+                                        {alreadySpent > 0 && (
+                                            <>
+                                                <span className="text-amber-600 font-medium mt-0.5">Already Spent: Rs {alreadySpent.toLocaleString()}</span>
+                                                <span className="text-primary font-medium mt-0.5">Remaining Balance: Rs {remainingArfBalance.toLocaleString()}</span>
+                                            </>
+                                        )}
+                                    </div>
                                     <div className="text-right">
                                         <span className={isAmountEqual ? "text-emerald-600 font-medium" : "text-red-600"}>
                                             Total Entered: Rs {totalAmount.toLocaleString()}
