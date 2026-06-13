@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext";
 import { siteService } from "../services/siteService";
 import { SiteDto } from "../types/site";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
+import { expenseApi, ExpenseDto } from "../api/expenseApi";
 import { ArfAdjustmentModal } from '../components/finance/ArfAdjustmentModal';
 import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -32,6 +33,7 @@ const AmountRequestFormPage = () => {
     const [clientName, setClientName] = useState("");
     const [purposeOfAdvance, setPurposeOfAdvance] = useState("");
     const [hiddenExpenseId, setHiddenExpenseId] = useState<string | null>(null);
+    const [redCount, setRedCount] = useState<number>(0);
 
     const isDirector = user?.email?.toLowerCase() === "shahbaz.ali@mytecheng.com" || hasRole(["Admin", "Manager"]);
     const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["Admin", "Manager"]);
@@ -51,9 +53,11 @@ const AmountRequestFormPage = () => {
             }
 
             const expenseId = searchParams.get('expenseId');
+            const siteName = searchParams.get('siteName') || '';
+            const amount = searchParams.get('amount') || '0';
             if (expenseId) {
                 setHiddenExpenseId(expenseId);
-                setPurposeOfAdvance(`Expense for this ARF has already been done`);
+                setPurposeOfAdvance(`This expense has been done at ${siteName} with amount Rs ${amount}`);
             }
         }
     }, [searchParams]);
@@ -61,12 +65,35 @@ const AmountRequestFormPage = () => {
     const fetchData = async () => {
         try {
             setIsLoading(true);
-            const [formsRes, sitesRes] = await Promise.all([
+            const [formsRes, sitesRes, expensesData] = await Promise.all([
                 amountRequestApi.getAll(),
-                siteService.getAll()
+                siteService.getAll(),
+                expenseApi.getAll().catch(() => [])
             ]);
             setForms(formsRes.data);
             setSites(sitesRes);
+
+            // Calculate red count
+            const totals: Record<number, number> = {};
+            const expensesList = Array.isArray(expensesData) ? expensesData : [];
+            
+            expensesList.forEach((e: ExpenseDto) => {
+                if (e.amountRequestFormId && !e.isAllocatedExcess) {
+                    totals[e.amountRequestFormId] = (totals[e.amountRequestFormId] || 0) + e.totalExpenseAmount;
+                }
+            });
+
+            let currentRedCount = 0;
+            expensesList.forEach((e: ExpenseDto) => {
+                if (e.createdByEmail === user?.email) {
+                    const totalForThisArf = e.amountRequestFormId ? (totals[e.amountRequestFormId] || 0) : 0;
+                    if (!e.isAllocatedExcess && e.arfReleasedAmount > 0 && totalForThisArf < e.arfReleasedAmount) {
+                        currentRedCount++;
+                    }
+                }
+            });
+            setRedCount(currentRedCount);
+
         } catch (error: any) {
             toast.error(error.response?.data || "Failed to load data");
         } finally {
@@ -223,13 +250,28 @@ const AmountRequestFormPage = () => {
                     <h1 className="text-2xl font-bold text-foreground">Amount Advance Request Form</h1>
                     <p className="text-muted-foreground text-sm">Submit and track your advance payment requests</p>
                 </div>
-                <button
-                    onClick={() => { resetForm(); setIsFormOpen(true); }}
-                    className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl transition-colors font-medium shadow-sm shadow-primary/20"
-                >
-                    <Plus className="h-5 w-5" />
-                    <span>New Request</span>
-                </button>
+                {redCount >= 5 ? (
+                    <div className="flex flex-col items-end">
+                        <button
+                            disabled
+                            className="flex items-center space-x-2 bg-muted text-muted-foreground px-4 py-2 rounded-xl font-medium cursor-not-allowed opacity-70"
+                        >
+                            <Plus className="h-5 w-5" />
+                            <span>New Request</span>
+                        </button>
+                        <span className="text-xs text-red-500 mt-1 font-medium">
+                            Please clear your 5 outstanding expenses first.
+                        </span>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => { resetForm(); setIsFormOpen(true); }}
+                        className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl transition-colors font-medium shadow-sm shadow-primary/20"
+                    >
+                        <Plus className="h-5 w-5" />
+                        <span>New Request</span>
+                    </button>
+                )}
             </div>
 
             {!isFormOpen && !selectedForm && (

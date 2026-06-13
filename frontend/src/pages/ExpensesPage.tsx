@@ -155,7 +155,7 @@ export const ExpensesPage = () => {
                                                 // No ARF generated yet
                                                 return (
                                                     <button
-                                                        onClick={() => navigate(`/amount-request?action=generateExcess&amount=${excessForThisSpecificExpense}&siteId=${expense.siteId}&expenseId=${expense.id}`)}
+                                                        onClick={() => navigate(`/amount-request?action=generateExcess&amount=${excessForThisSpecificExpense}&siteId=${expense.siteId}&siteName=${encodeURIComponent(expense.siteName)}&expenseId=${expense.id}`)}
                                                         className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
                                                     >
                                                         Generate ARF
