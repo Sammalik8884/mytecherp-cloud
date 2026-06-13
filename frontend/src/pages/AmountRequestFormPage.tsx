@@ -33,9 +33,9 @@ const AmountRequestFormPage = () => {
     const [purposeOfAdvance, setPurposeOfAdvance] = useState("");
     const [hiddenExpenseId, setHiddenExpenseId] = useState<string | null>(null);
 
-    const isDirector = user?.email?.toLowerCase() === "shahbaz.ali@mytecheng.com" || hasRole(["Admin"]);
-    const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["Admin"]);
-    const isAccounts = hasRole(["Admin", "Accounts Head"]); // Changed from Manager
+    const isDirector = user?.email?.toLowerCase() === "shahbaz.ali@mytecheng.com" || hasRole(["Admin", "Manager"]);
+    const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["Admin", "Manager"]);
+    const isAccounts = hasRole(["Admin", "Accounts Head", "Manager"]); 
 
     useEffect(() => {
         fetchData();

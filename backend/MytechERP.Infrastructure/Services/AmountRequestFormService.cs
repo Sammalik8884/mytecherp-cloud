@@ -151,7 +151,7 @@ namespace MyTechERP.Infrastructure.Services
                 .Include(a => a.Payments)
                 .AsQueryable();
 
-            if (role != "Admin" && role != "Accounts Head" && email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com")
+            if (role != "Admin" && role != "Manager" && role != "Accounts Head" && email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com")
             {
                 query = query.Where(a => a.EmployeeEmail.ToLower() == email);
             }

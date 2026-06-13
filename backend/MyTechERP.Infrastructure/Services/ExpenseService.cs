@@ -81,7 +81,7 @@ namespace MyTechERP.Infrastructure.Services
                 .Include(e => e.Items)
                 .AsQueryable();
 
-            if (role != "Admin" && role != "Accounts Head" && email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com")
+            if (role != "Admin" && role != "Manager" && role != "Accounts Head" && email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com")
             {
                 query = query.Where(e => e.CreatedByEmail.ToLower() == email);
             }

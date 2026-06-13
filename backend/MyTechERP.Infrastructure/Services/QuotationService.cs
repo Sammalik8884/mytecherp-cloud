@@ -322,7 +322,7 @@ namespace MyTechERP.Infrastructure.Services
             var userEmail = _currentUserService.Email;
             var userRoles = _currentUserService.Roles?.ToList() ?? new List<string>();
 
-            bool isAdminOrHuzefa = userRoles.Contains("Admin")
+            bool isAdminOrHuzefa = userRoles.Contains("Admin") || userRoles.Contains("Manager")
                 || string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase);
 
             var allQuotes = await _context.Quotations

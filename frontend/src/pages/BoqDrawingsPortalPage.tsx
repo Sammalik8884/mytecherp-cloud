@@ -31,7 +31,7 @@ export const BoqDrawingsPortalPage = () => {
     const { user, hasRole } = useAuth();
     
     // Check if user is the assigner (M. Huzefa or Admin)
-    const isAssigner = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' || hasRole(['Admin']);
+    const isAssigner = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' || hasRole(['Admin', 'Manager']);
 
     // Assignment Modal State
     const [assignModalOpen, setAssignModalOpen] = useState(false);
