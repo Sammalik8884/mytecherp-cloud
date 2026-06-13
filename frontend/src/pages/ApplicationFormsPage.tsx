@@ -74,7 +74,7 @@ export const ApplicationFormsPage = () => {
                 </h1>
                 <button
                     onClick={() => navigate('/application-forms/new')}
-                    className="btn btn-primary flex items-center"
+                    className="flex items-center px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
                 >
                     <Plus className="h-4 w-4 mr-2" />
                     New Application
@@ -244,7 +244,7 @@ export const ApplicationFormsPage = () => {
                                         <button
                                             disabled={isSubmitting || !remarks.trim()}
                                             onClick={() => handleStatusUpdate('Your application is rejected')}
-                                            className="btn btn-secondary text-red-600 hover:bg-red-50 hover:border-red-200"
+                                            className="flex items-center px-4 py-2 bg-white text-red-600 border border-gray-300 font-medium rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <XCircle className="h-4 w-4 mr-2" />
                                             Reject
@@ -252,7 +252,7 @@ export const ApplicationFormsPage = () => {
                                         <button
                                             disabled={isSubmitting}
                                             onClick={() => handleStatusUpdate(isDirector ? 'Approved by Director' : 'Approved by CEO')}
-                                            className="btn btn-primary bg-green-600 hover:bg-green-700 border-transparent"
+                                            className="flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <CheckCircle className="h-4 w-4 mr-2" />
                                             Approve
