@@ -23,6 +23,9 @@ namespace MytechERP.domain.Entities.Finance
         // Personal / Office Use Section
         public int? SiteId { get; set; }
         public Site? Site { get; set; }
+
+        public int? OfficeId { get; set; }
+        public Office? Office { get; set; }
         public string CustomSiteName { get; set; } = string.Empty;
         public string ClientName { get; set; } = string.Empty;
         public string PurposeOfAdvance { get; set; } = string.Empty;

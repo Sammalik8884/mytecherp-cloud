@@ -4,15 +4,13 @@ import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi"
 import { Plus, Receipt } from "lucide-react";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-import { ArfAdjustmentModal } from "../components/finance/ArfAdjustmentModal";
+
 
 export const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
     const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [arfTotals, setArfTotals] = useState<Record<number, number>>({});
-    const [expenseExcessFlags, setExpenseExcessFlags] = useState<Record<number, number>>({});
-    const [adjustmentModal, setAdjustmentModal] = useState<{ isOpen: boolean; releasedAmount: number; newArfId: number } | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,28 +29,14 @@ export const ExpensesPage = () => {
             
             // Calculate totals per ARF
             const totals: Record<number, number> = {};
-            const runningSums: Record<number, number> = {};
-            const flags: Record<number, number> = {};
 
-            // Calculate running sum from oldest to newest to pinpoint which expense caused the excess
-            [...data].reverse().forEach((e: ExpenseDto) => {
-                if (e.amountRequestFormId && !e.isAllocatedExcess) {
+            data.forEach((e: ExpenseDto) => {
+                if (e.amountRequestFormId) {
                     const arfId = e.amountRequestFormId;
-                    const previousSum = runningSums[arfId] || 0;
-                    const newSum = previousSum + e.totalExpenseAmount;
-                    runningSums[arfId] = newSum;
-                    
-                    if (newSum > e.arfReleasedAmount) {
-                        flags[e.id] = previousSum >= e.arfReleasedAmount 
-                                      ? e.totalExpenseAmount 
-                                      : newSum - e.arfReleasedAmount;
-                    }
-
                     totals[arfId] = (totals[arfId] || 0) + e.totalExpenseAmount;
                 }
             });
             setArfTotals(totals);
-            setExpenseExcessFlags(flags);
         } catch (error) {
             console.error("Failed to load expenses", error);
         } finally {
@@ -90,23 +74,16 @@ export const ExpensesPage = () => {
                                 <th className="px-4 py-3 font-medium">Total Amount</th>
                                 <th className="px-4 py-3 font-medium">Created Date</th>
                                 <th className="px-4 py-3 font-medium">Items</th>
-                                <th className="px-4 py-3 font-medium">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
                             {expenses.map((expense) => {
                                 const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
-                                const excessForThisSpecificExpense = expenseExcessFlags[expense.id] || 0;
+                                const excessItemsAmount = expense.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
 
                                 // Determine ARF number badge style based on total consumed amount vs released
                                 let arfElement: React.ReactNode;
-                                if (expense.isAllocatedExcess) {
-                                    arfElement = (
-                                        <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                                            Excess from {expense.sourceArfNumber}
-                                        </span>
-                                    );
-                                } else if (expense.arfReleasedAmount > 0) {
+                                if (expense.arfReleasedAmount > 0) {
                                     if (totalForThisArf < expense.arfReleasedAmount) {
                                         arfElement = (
                                             <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
@@ -137,60 +114,24 @@ export const ExpensesPage = () => {
                                     className="hover:bg-muted/50 transition-colors cursor-pointer"
                                 >
                                     <td className="px-4 py-3 font-medium">EXP-{expense.id.toString().padStart(4, '0')}</td>
-                                    <td className="px-4 py-3">{expense.siteName}</td>
+                                    <td className="px-4 py-3">{expense.officeId ? (expense.officeName || "Office") : (expense.siteName || "No Site")}</td>
                                     <td className="px-4 py-3">{arfElement}</td>
                                     <td className="px-4 py-3 font-medium text-emerald-600">
                                         Rs {expense.totalExpenseAmount?.toLocaleString()}
+                                        {excessItemsAmount > 0 && (
+                                            <div className="text-xs text-amber-600 mt-0.5">
+                                                + Rs {excessItemsAmount.toLocaleString()} Excess
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-4 py-3">{dayjs(expense.createdAt).format("DD MMM YYYY")}</td>
                                     <td className="px-4 py-3">{expense.items?.length || 0}</td>
-                                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                        {excessForThisSpecificExpense > 0 && !expense.isAllocatedExcess && (() => {
-                                            // Find an ARF generated specifically from THIS expense by matching the embedded ExpenseId tag
-                                            const linkedArf = arfs.find(
-                                                a => a.purposeOfAdvance?.includes(`[ExpenseId:${expense.id}]`)
-                                            );
-
-                                            if (!linkedArf) {
-                                                // No ARF generated yet
-                                                return (
-                                                    <button
-                                                        onClick={() => navigate(`/amount-request?action=generateExcess&amount=${excessForThisSpecificExpense}&siteId=${expense.siteId}&siteName=${encodeURIComponent(expense.siteName)}&expenseId=${expense.id}`)}
-                                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
-                                                    >
-                                                        Generate ARF
-                                                    </button>
-                                                );
-                                            } else if (linkedArf.status !== "Released") {
-                                                // ARF generated but not yet released
-                                                return (
-                                                    <span className="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
-                                                        ARF {linkedArf.arfNumber} ({linkedArf.status})
-                                                    </span>
-                                                );
-                                            } else {
-                                                // ARF generated AND released – show adjust button
-                                                return (
-                                                    <button
-                                                        onClick={() => setAdjustmentModal({
-                                                            isOpen: true,
-                                                            releasedAmount: linkedArf.accountsReleasedAmount || 0,
-                                                            newArfId: linkedArf.id
-                                                        })}
-                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
-                                                    >
-                                                        Adjust Expenses
-                                                    </button>
-                                                );
-                                            }
-                                        })()}
-                                    </td>
                                 </tr>
                                 );
                             })}
                             {expenses.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                                         <div className="flex flex-col items-center">
                                             <Receipt className="h-12 w-12 opacity-20 mb-3" />
                                             <p>No expenses found. Click 'Add Expense' to create one.</p>
@@ -204,18 +145,6 @@ export const ExpensesPage = () => {
             </div>
         </div>
 
-        {adjustmentModal && (
-            <ArfAdjustmentModal
-                isOpen={adjustmentModal.isOpen}
-                onClose={() => setAdjustmentModal(null)}
-                releasedAmount={adjustmentModal.releasedAmount}
-                newArfId={adjustmentModal.newArfId}
-                onSuccess={() => {
-                    loadExpenses();
-                    setAdjustmentModal(null);
-                }}
-            />
-        )}
         </>
     );
 };

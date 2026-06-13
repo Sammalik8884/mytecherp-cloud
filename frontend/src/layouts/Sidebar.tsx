@@ -2,6 +2,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import {
     Home, Users, MapPin, Briefcase, LogOut, FileText, FolderTree, Package, Receipt,
+    Building2,
     ShieldAlert, X, Box, Wrench, DollarSign, FileSignature, ShoppingCart, ClipboardList,
     Activity, RefreshCw, CreditCard, Lock, Target
 } from "lucide-react";
@@ -30,6 +31,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Dashboard", href: "/dashboard", icon: Home },
     { label: "Amount Request Form", href: "/amount-request", icon: DollarSign },
     { label: "Expenses", href: "/expenses", icon: Receipt },
+    { label: "Offices", href: "/offices", icon: Building2, allowedRoles: ["Admin", "Manager"] },
     { label: "Projects", href: "/projects", icon: FolderTree, allowedRoles: ["Admin", "Manager"] },
     { 
         label: "Project Documents", 

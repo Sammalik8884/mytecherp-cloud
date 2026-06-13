@@ -20,6 +20,8 @@ export interface AmountRequestFormDto {
   dateOfFundRequired?: string;
   siteId?: number;
   siteName?: string;
+  officeId?: number;
+  officeName?: string;
   customSiteName: string;
   clientName: string;
   purposeOfAdvance: string;

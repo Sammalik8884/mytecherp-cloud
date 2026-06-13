@@ -102,6 +102,8 @@ namespace MyTechERP.Infrastructure.Services
                 DateOfFundRequired = entity.DateOfFundRequired,
                 SiteId = entity.SiteId,
                 SiteName = entity.Site?.Name,
+                OfficeId = entity.OfficeId,
+                OfficeName = entity.Office?.Name,
                 CustomSiteName = entity.CustomSiteName,
                 ClientName = entity.ClientName,
                 PurposeOfAdvance = entity.PurposeOfAdvance,
@@ -148,6 +150,7 @@ namespace MyTechERP.Infrastructure.Services
 
             var query = _context.AmountRequestForms
                 .Include(a => a.Site)
+                .Include(a => a.Office)
                 .Include(a => a.Payments)
                 .AsQueryable();
 
@@ -188,6 +191,7 @@ namespace MyTechERP.Infrastructure.Services
                 AccountDetail = dto.AccountDetail,
                 DateOfFundRequired = dto.DateOfFundRequired,
                 SiteId = dto.SiteId,
+                OfficeId = dto.OfficeId,
                 CustomSiteName = dto.CustomSiteName,
                 ClientName = dto.ClientName,
                 PurposeOfAdvance = dto.PurposeOfAdvance,

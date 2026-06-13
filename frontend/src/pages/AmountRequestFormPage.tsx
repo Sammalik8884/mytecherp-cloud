@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { siteService } from "../services/siteService";
 import { SiteDto } from "../types/site";
+import { officeApi, OfficeDto } from "../api/officeApi";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 import { ArfAdjustmentModal } from '../components/finance/ArfAdjustmentModal';
@@ -13,6 +14,7 @@ const AmountRequestFormPage = () => {
     const { user, hasRole } = useAuth();
     const [forms, setForms] = useState<AmountRequestFormDto[]>([]);
     const [sites, setSites] = useState<SiteDto[]>([]);
+    const [offices, setOffices] = useState<OfficeDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchParams] = useSearchParams();
 
@@ -28,7 +30,9 @@ const AmountRequestFormPage = () => {
     const [accountDetail, setAccountDetail] = useState("");
     const [dateOfFundRequired, setDateOfFundRequired] = useState("");
     
+    const [locationType, setLocationType] = useState<'site' | 'office'>('site');
     const [siteId, setSiteId] = useState<number | string>("");
+    const [officeId, setOfficeId] = useState<number | string>("");
     const [customSiteName, setCustomSiteName] = useState("");
     const [clientName, setClientName] = useState("");
     const [purposeOfAdvance, setPurposeOfAdvance] = useState("");
@@ -48,8 +52,13 @@ const AmountRequestFormPage = () => {
             setAdvanceRequested(Number(searchParams.get('amount') || 0));
             
             const pSiteId = searchParams.get('siteId');
+            const pOfficeId = searchParams.get('officeId');
             if (pSiteId) {
+                setLocationType('site');
                 setSiteId(Number(pSiteId));
+            } else if (pOfficeId) {
+                setLocationType('office');
+                setOfficeId(Number(pOfficeId));
             }
 
             const expenseId = searchParams.get('expenseId');
@@ -65,13 +74,15 @@ const AmountRequestFormPage = () => {
     const fetchData = async () => {
         try {
             setIsLoading(true);
-            const [formsRes, sitesRes, expensesData] = await Promise.all([
+            const [formsRes, sitesRes, officesRes, expensesData] = await Promise.all([
                 amountRequestApi.getAll(),
                 siteService.getAll(),
+                officeApi.getAll(),
                 expenseApi.getAll().catch(() => [])
             ]);
             setForms(formsRes.data);
             setSites(sitesRes);
+            setOffices(officesRes);
 
             // Calculate red count
             const totals: Record<number, number> = {};
@@ -112,8 +123,9 @@ const AmountRequestFormPage = () => {
                 advanceRequested: Number(advanceRequested),
                 accountDetail,
                 dateOfFundRequired: dateOfFundRequired || undefined,
-                siteId: siteId === "custom" || siteId === "" ? undefined : Number(siteId),
-                customSiteName: siteId === "custom" ? customSiteName : "",
+                siteId: locationType === 'site' && siteId !== "custom" && siteId !== "" ? Number(siteId) : undefined,
+                officeId: locationType === 'office' && officeId !== "" ? Number(officeId) : undefined,
+                customSiteName: locationType === 'site' && siteId === "custom" ? customSiteName : "",
                 clientName,
                 purposeOfAdvance: finalPurpose
             });
@@ -132,7 +144,9 @@ const AmountRequestFormPage = () => {
         setAdvanceRequested("");
         setAccountDetail("");
         setDateOfFundRequired("");
+        setLocationType("site");
         setSiteId("");
+        setOfficeId("");
         setCustomSiteName("");
         setClientName("");
         setPurposeOfAdvance("");
@@ -371,17 +385,53 @@ const AmountRequestFormPage = () => {
                                 <h3 className="text-lg font-semibold border-b border-border/50 pb-2 flex items-center gap-2">
                                     <FileText className="h-5 w-5 text-primary" /> Personal / Office Use
                                 </h3>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-foreground">Site Name</label>
-                                    <select value={siteId} onChange={e => setSiteId(e.target.value === "custom" ? "custom" : Number(e.target.value))} className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all">
-                                        <option value="">-- Select a Site --</option>
-                                        {sites.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name}</option>
-                                        ))}
-                                        <option value="custom">Other (Custom Site)</option>
-                                    </select>
+                                
+                                <div className="flex items-center space-x-6 bg-muted/30 p-2 rounded-lg w-fit">
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="arfLocationType" 
+                                            className="text-primary focus:ring-primary"
+                                            checked={locationType === 'site'} 
+                                            onChange={() => setLocationType('site')} 
+                                        />
+                                        <span className="text-sm font-medium">Site / Project</span>
+                                    </label>
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="arfLocationType" 
+                                            className="text-primary focus:ring-primary"
+                                            checked={locationType === 'office'} 
+                                            onChange={() => setLocationType('office')} 
+                                        />
+                                        <span className="text-sm font-medium">Office</span>
+                                    </label>
                                 </div>
-                                {siteId === "custom" && (
+
+                                {locationType === 'site' ? (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Site Name</label>
+                                        <select value={siteId} onChange={e => setSiteId(e.target.value === "custom" ? "custom" : Number(e.target.value))} className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                                            <option value="">-- Select a Site --</option>
+                                            {sites.map(s => (
+                                                <option key={s.id} value={s.id}>{s.name}</option>
+                                            ))}
+                                            <option value="custom">Other (Custom Site)</option>
+                                        </select>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Office Name</label>
+                                        <select value={officeId} onChange={e => setOfficeId(e.target.value ? Number(e.target.value) : "")} className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all">
+                                            <option value="">-- Select an Office --</option>
+                                            {offices.map(o => (
+                                                <option key={o.id} value={o.id}>{o.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                                {locationType === 'site' && siteId === "custom" && (
                                     <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                                         <label className="text-sm font-medium text-foreground">Custom Site Name</label>
                                         <input required value={customSiteName} onChange={e => setCustomSiteName(e.target.value)} type="text" className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all" />

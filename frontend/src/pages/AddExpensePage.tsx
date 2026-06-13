@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { siteService } from "../services/siteService";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
+import { officeApi, OfficeDto } from "../api/officeApi";
 import { SiteDto } from "../types/site";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -16,13 +17,20 @@ export const AddExpensePage = () => {
     const [searchParams] = useSearchParams();
     const { user } = useAuth();
     
-    const excessAmountParam = searchParams.get("excessAmount");
-    const managedFromArfParam = searchParams.get("managedFromArf");
-    const isAllocatedExcessMode = !!(excessAmountParam && managedFromArfParam);
+    const [showExcessModal, setShowExcessModal] = useState(false);
+    const [excessItemIndices, setExcessItemIndices] = useState<number[]>([]);
+    const [excessSaved, setExcessSaved] = useState(false);
+    
+    const [arfConsumedAmounts, setArfConsumedAmounts] = useState<Record<number, number>>({});
+    const [closedArfWarning, setClosedArfWarning] = useState<{ isOpen: boolean; arfId: number } | null>(null);
 
     const [sites, setSites] = useState<SiteDto[]>([]);
+    const [offices, setOffices] = useState<OfficeDto[]>([]);
     const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
+    
+    const [locationType, setLocationType] = useState<'site' | 'office'>('site');
     const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
+    const [selectedOfficeId, setSelectedOfficeId] = useState<number | "">("");
     const [selectedArfId, setSelectedArfId] = useState<number | "">("");
     
     // State for the rows
@@ -48,9 +56,23 @@ export const AddExpensePage = () => {
     const loadInitialData = async () => {
         try {
             const siteData = await siteService.getAll();
-            const arfDataResp = await amountRequestApi.getAll();
+            const officeData = await officeApi.getAll();
+            const [arfDataResp, expenseData] = await Promise.all([
+                amountRequestApi.getAll(),
+                expenseApi.getAll()
+            ]);
             const arfData = arfDataResp.data;
+            
+            const consumedMap: Record<number, number> = {};
+            expenseData.forEach((e: any) => {
+                if (e.amountRequestFormId) {
+                    consumedMap[e.amountRequestFormId] = (consumedMap[e.amountRequestFormId] || 0) + e.totalExpenseAmount;
+                }
+            });
+            setArfConsumedAmounts(consumedMap);
+            
             setSites(siteData);
+            setOffices(officeData);
             
             // Only approved/released ARFs for the current user (in real app filtered by API)
             const availableArfs = arfData.filter((a: any) => 
@@ -60,7 +82,13 @@ export const AddExpensePage = () => {
 
             if (isEditMode && id) {
                 const expense = await expenseApi.getById(Number(id));
-                setSelectedSiteId(expense.siteId);
+                if (expense.officeId) {
+                    setLocationType('office');
+                    setSelectedOfficeId(expense.officeId);
+                } else {
+                    setLocationType('site');
+                    setSelectedSiteId(expense.siteId ?? "");
+                }
                 setSelectedArfId(expense.amountRequestFormId ?? "");
                 
                 if (expense.items && expense.items.length > 0) {
@@ -77,34 +105,36 @@ export const AddExpensePage = () => {
                         setRows(mappedRows);
                     }
                 }
-            } else {
-                // Check if we have excess amount to pre-fill
-                const excessAmountParam = searchParams.get("excessAmount");
-                const managedFromArfParam = searchParams.get("managedFromArf");
-                if (excessAmountParam && managedFromArfParam) {
-                    const amount = Number(excessAmountParam);
-                    if (!isNaN(amount) && amount > 0) {
-                        setRows(prevRows => {
-                            const newRows = [...prevRows];
-                            newRows[0] = {
-                                ...newRows[0],
-                                employeeName: user?.fullName || "",
-                                employeeDesignation: user?.designation || "",
-                                expenseDate: dayjs().format('YYYY-MM-DD'),
-                                expenseType: "Managed Amount",
-                                descriptionItems: `Managed Excess Amount from ARF ${managedFromArfParam}`,
-                                amount: amount,
-                                remarks: "Auto-allocated excess"
-                            };
-                            return newRows;
-                        });
-                        toast.success("Pre-filled managed excess amount");
-                    }
-                }
             }
         } catch (error) {
             console.error("Failed to load initial data", error);
             toast.error("Failed to load necessary data");
+        }
+    };
+
+    const handleArfSelect = (idStr: string) => {
+        if (!idStr) {
+            setSelectedArfId("");
+            return;
+        }
+        
+        const id = Number(idStr);
+        const arf = arfs.find((a: any) => a.id === id);
+        
+        // Exclude the current expense from consumed total if in edit mode
+        let currentExpenseTotal = 0;
+        if (isEditMode) {
+            currentExpenseTotal = rows.reduce((sum: number, row: any) => sum + (Number(row.amount) || 0), 0);
+        }
+        
+        const consumed = (arfConsumedAmounts[id] || 0) - currentExpenseTotal;
+        const released = arf?.accountsReleasedAmount || 0;
+        
+        if (consumed >= released && released > 0 && !isEditMode) {
+            setClosedArfWarning({ isOpen: true, arfId: id });
+            setSelectedArfId(""); // Clear it until they confirm
+        } else {
+            setSelectedArfId(id);
         }
     };
 
@@ -170,32 +200,54 @@ export const AddExpensePage = () => {
     const excessAmount = isAmountAbove ? totalAmount - releasedAmount : 0;
 
     const handleSubmit = async () => {
-        if (!selectedSiteId) return toast.error("Please select a site first.");
-        if (!isAllocatedExcessMode && !selectedArfId) return toast.error("Please select an ARF.");
+        if (locationType === 'site' && !selectedSiteId) return toast.error("Please select a site first.");
+        if (locationType === 'office' && !selectedOfficeId) return toast.error("Please select an office first.");
+        if (!selectedArfId) return toast.error("Please select an ARF.");
         
         // Filter out completely empty rows
         const validRows = rows.filter((r: any) => r.expenseDate || r.descriptionItems || r.amount > 0);
         
         if (validRows.length === 0) return toast.error("Please enter at least one expense item.");
 
+        if (isAmountAbove && !showExcessModal && !isEditMode) {
+            setShowExcessModal(true);
+            return;
+        }
+
+        submitWithExcess(validRows);
+    };
+
+    const submitWithExcess = async (validRows: any[]) => {
         try {
             setSubmitting(true);
+            
+            // Mark items as excess if their index is in excessItemIndices
+            const itemsToSubmit = validRows.map((r, i) => ({
+                ...r,
+                isExcessItem: excessItemIndices.includes(i)
+            }));
+
             const payload: CreateExpenseDto = {
-                siteId: Number(selectedSiteId),
-                amountRequestFormId: isAllocatedExcessMode ? null : Number(selectedArfId),
-                isAllocatedExcess: isAllocatedExcessMode,
-                sourceArfNumber: isAllocatedExcessMode ? managedFromArfParam : null,
-                items: validRows
+                siteId: locationType === 'site' ? Number(selectedSiteId) : null,
+                officeId: locationType === 'office' ? Number(selectedOfficeId) : null,
+                amountRequestFormId: Number(selectedArfId),
+                items: itemsToSubmit
             };
 
             if (isEditMode && id) {
                 await expenseApi.update(Number(id), payload);
                 toast.success("Expense updated successfully");
+                navigate("/expenses");
             } else {
                 await expenseApi.create(payload);
                 toast.success("Expense uploaded successfully");
+                
+                if (isAmountAbove) {
+                    setExcessSaved(true);
+                } else {
+                    navigate("/expenses");
+                }
             }
-            navigate("/expenses");
         } catch (error) {
             console.error("Failed to submit expense", error);
             toast.error("Failed to submit expense");
@@ -208,50 +260,203 @@ export const AddExpensePage = () => {
         ? "border-border" 
         : isAmountEqual 
             ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 ring-1 ring-emerald-500" 
-            : "border-red-500 bg-red-50 dark:bg-red-900/10 ring-1 ring-red-500";
+            : "border-amber-500 bg-amber-50 dark:bg-amber-900/10 ring-1 ring-amber-500";
+
+    if (excessSaved) {
+        return (
+            <div className="p-6 max-w-[1400px] mx-auto space-y-6">
+                <div className="bg-card border border-emerald-200 rounded-xl p-10 shadow-sm text-center">
+                    <div className="bg-emerald-100 text-emerald-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <Check className="h-10 w-10" />
+                    </div>
+                    <h1 className="text-3xl font-bold text-foreground mb-4">Expense Saved Successfully!</h1>
+                    <p className="text-muted-foreground mb-8 text-lg">
+                        You have spent Rs {excessAmount.toLocaleString()} more than the ARF allowed.<br />
+                        This excess amount has been logged in history.
+                    </p>
+                    <button
+                        className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 font-medium text-lg inline-flex items-center"
+                        onClick={() => {
+                            const arfLabel = selectedArf?.arfNumber || selectedArfId;
+                            navigate(`/arf/new?excessAmount=${excessAmount}&managedFromArf=${arfLabel}&siteId=${selectedSiteId}`);
+                        }}
+                    >
+                        Generate ARF for Rs {excessAmount.toLocaleString()}
+                        <ExternalLink className="ml-2 h-5 w-5" />
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 max-w-[1400px] mx-auto space-y-6">
-            <div className={`bg-card border ${isAllocatedExcessMode ? 'border-amber-200' : 'border-border'} rounded-xl p-6 shadow-sm`}>
-                <h1 className={`text-2xl font-bold tracking-tight mb-6 text-center py-3 rounded-lg ${isAllocatedExcessMode ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-muted/30 text-muted-foreground/80'}`}>
-                    {isAllocatedExcessMode ? "Allocate Excess Expense" : isEditMode ? "Edit Expense Details" : "Expense Details"}
+            {closedArfWarning?.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-background rounded-xl shadow-xl w-full max-w-md flex flex-col overflow-hidden">
+                        <div className="p-6">
+                            <h2 className="text-xl font-bold text-amber-600 mb-4 flex items-center">
+                                <span className="mr-2">🔒</span> ARF Closed
+                            </h2>
+                            <p className="text-muted-foreground">
+                                This expense has been closed. Do you want to open again?
+                            </p>
+                        </div>
+                        <div className="p-4 bg-muted/30 border-t border-border flex justify-end space-x-3">
+                            <button
+                                className="px-4 py-2 border border-border rounded-lg text-muted-foreground hover:bg-muted"
+                                onClick={() => setClosedArfWarning(null)}
+                            >
+                                No
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                                onClick={() => {
+                                    setSelectedArfId(closedArfWarning.arfId);
+                                    setClosedArfWarning(null);
+                                }}
+                            >
+                                Yes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showExcessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-background rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+                        <div className="p-6 border-b border-border">
+                            <h2 className="text-xl font-bold text-amber-600 flex items-center">
+                                <span className="mr-2">⚠️</span> Excess Amount Detected
+                            </h2>
+                            <p className="text-muted-foreground mt-2">
+                                You have spent Rs {excessAmount.toLocaleString()} more than the ARF amount. 
+                                Please select which specific item(s) below represent this excess amount.
+                            </p>
+                        </div>
+                        <div className="p-6 overflow-y-auto flex-1 bg-muted/10">
+                            <div className="space-y-3">
+                                {rows.filter((r: any) => r.expenseDate || r.descriptionItems || r.amount > 0).map((row: any, i: number) => (
+                                    <label key={i} className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${excessItemIndices.includes(i) ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'border-border bg-card hover:bg-muted/50'}`}>
+                                        <input 
+                                            type="checkbox" 
+                                            className="mt-1 mr-3 h-5 w-5 text-amber-600 rounded focus:ring-amber-500"
+                                            checked={excessItemIndices.includes(i)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setExcessItemIndices([...excessItemIndices, i]);
+                                                } else {
+                                                    setExcessItemIndices(excessItemIndices.filter(idx => idx !== i));
+                                                }
+                                            }}
+                                        />
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-semibold text-sm">{row.descriptionItems || "No Description"}</span>
+                                                <span className="font-bold text-amber-600">Rs {row.amount.toLocaleString()}</span>
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {row.expenseType} • {row.employeeName}
+                                            </div>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-border bg-card flex justify-end space-x-3">
+                            <button 
+                                className="px-4 py-2 border border-border rounded-lg text-muted-foreground hover:bg-muted"
+                                onClick={() => {
+                                    setShowExcessModal(false);
+                                    setSubmitting(false);
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium disabled:opacity-50"
+                                disabled={excessItemIndices.length === 0 || submitting}
+                                onClick={() => {
+                                    const validRows = rows.filter((r: any) => r.expenseDate || r.descriptionItems || r.amount > 0);
+                                    submitWithExcess(validRows);
+                                }}
+                            >
+                                {submitting ? "Saving..." : "Confirm Excess & Save"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className={`bg-card border border-border rounded-xl p-6 shadow-sm`}>
+                <h1 className={`text-2xl font-bold tracking-tight mb-6 text-center py-3 rounded-lg bg-muted/30 text-muted-foreground/80`}>
+                    {isEditMode ? "Edit Expense Details" : "Expense Details"}
                 </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     {/* Site Selection */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Select Site / Project *</label>
-                        <select 
-                            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                            value={selectedSiteId}
-                            onChange={(e) => setSelectedSiteId(e.target.value ? Number(e.target.value) : "")}
-                        >
-                            <option value="">-- Select a Site --</option>
-                            {sites.map((s: any) => (
-                                <option key={s.id} value={s.id}>{s.name} ({s.customerName || "No Client"})</option>
-                            ))}
-                        </select>
+                    <div className="space-y-4">
+                        <div className="flex items-center space-x-6 bg-muted/30 p-2 rounded-lg w-fit">
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    name="locationType" 
+                                    className="text-primary focus:ring-primary"
+                                    checked={locationType === 'site'} 
+                                    onChange={() => setLocationType('site')} 
+                                />
+                                <span className="text-sm font-medium">Site / Project</span>
+                            </label>
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    name="locationType" 
+                                    className="text-primary focus:ring-primary"
+                                    checked={locationType === 'office'} 
+                                    onChange={() => setLocationType('office')} 
+                                />
+                                <span className="text-sm font-medium">Office</span>
+                            </label>
+                        </div>
+                        
+                        {locationType === 'site' ? (
+                            <div className="space-y-2">
+                                <select 
+                                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                    value={selectedSiteId}
+                                    onChange={(e) => setSelectedSiteId(e.target.value ? Number(e.target.value) : "")}
+                                >
+                                    <option value="">-- Select a Site --</option>
+                                    {sites.map((s: any) => (
+                                        <option key={s.id} value={s.id}>{s.name} ({s.customerName || "No Client"})</option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <select 
+                                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                    value={selectedOfficeId}
+                                    onChange={(e) => setSelectedOfficeId(e.target.value ? Number(e.target.value) : "")}
+                                >
+                                    <option value="">-- Select an Office --</option>
+                                    {offices.map((o: any) => (
+                                        <option key={o.id} value={o.id}>{o.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
 
-                    {/* ARF Selection or Allocated Excess Notice */}
-                    {isAllocatedExcessMode ? (
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-amber-800">Allocated Excess Source</label>
-                            <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-center shadow-sm">
-                                <span className="mr-2">✨</span>
-                                <div>
-                                    This expense manages the excess amount from <strong className="font-semibold">{managedFromArfParam}</strong>. No ARF selection is required.
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-2">
+                    {/* ARF Selection */}
+                    <div className="space-y-2">
                             <label className="text-sm font-medium">Select Approved ARF *</label>
                             <div className={`relative rounded-md transition-colors ${arfBoxClass}`}>
                                 <select 
                                     className="w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm focus:outline-none appearance-none"
                                     value={selectedArfId}
-                                    onChange={(e) => setSelectedArfId(e.target.value ? Number(e.target.value) : "")}
+                                    onChange={(e) => handleArfSelect(e.target.value)}
                                     disabled={isAmountEqual && selectedArfId !== ""}
                                 >
                                     <option value="">-- Select an ARF --</option>
@@ -283,10 +488,9 @@ export const AddExpensePage = () => {
                                 </div>
                             )}
                         </div>
-                    )}
-                </div>
+                    </div>
 
-                {/* Spreadsheet-like Table */}
+                    {/* Spreadsheet-like Table */}
                 <div className="border border-border rounded-lg overflow-x-auto shadow-sm">
                     <table className="w-full text-xs">
                         <thead className="bg-muted text-muted-foreground">
@@ -422,24 +626,12 @@ export const AddExpensePage = () => {
                         Cancel
                     </button>
                     <button
-                        className={`px-6 py-2 ${isAllocatedExcessMode ? 'bg-amber-600 hover:bg-amber-700' : 'bg-primary hover:bg-primary/90'} text-white rounded-lg font-medium disabled:opacity-50`}
+                        className={`px-6 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium disabled:opacity-50`}
                         onClick={handleSubmit}
-                        disabled={submitting || !selectedSiteId || (!isAllocatedExcessMode && !selectedArfId)}
+                        disabled={submitting || (!selectedSiteId && !selectedOfficeId) || !selectedArfId}
                     >
                         {submitting ? "Submitting..." : (isEditMode ? "Update Expense" : "Submit Expense")}
                     </button>
-                    {!isAllocatedExcessMode && isAmountAbove && (
-                        <button
-                            className="px-6 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 font-medium flex items-center"
-                            onClick={() => {
-                                const arfLabel = selectedArf?.arfNumber || selectedArfId;
-                                window.open(`/expenses/new?excessAmount=${excessAmount}&managedFromArf=${arfLabel}`, '_blank');
-                            }}
-                        >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Allocate Excess (Rs {excessAmount.toLocaleString()})
-                        </button>
-                    )}
                 </div>
             </div>
         </div>

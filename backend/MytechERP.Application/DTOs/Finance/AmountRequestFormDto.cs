@@ -16,6 +16,8 @@ namespace MytechERP.Application.DTOs.Finance
 
         public int? SiteId { get; set; }
         public string? SiteName { get; set; }
+        public int? OfficeId { get; set; }
+        public string? OfficeName { get; set; }
         public string CustomSiteName { get; set; } = string.Empty;
         public string ClientName { get; set; } = string.Empty;
         public string PurposeOfAdvance { get; set; } = string.Empty;
@@ -48,6 +50,7 @@ namespace MytechERP.Application.DTOs.Finance
         public DateTime? DateOfFundRequired { get; set; }
 
         public int? SiteId { get; set; }
+        public int? OfficeId { get; set; }
         public string CustomSiteName { get; set; } = string.Empty;
         public string ClientName { get; set; } = string.Empty;
         public string PurposeOfAdvance { get; set; } = string.Empty;

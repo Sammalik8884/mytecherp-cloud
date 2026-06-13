@@ -9,30 +9,30 @@ export interface ExpenseItemDto {
     descriptionItems: string;
     amount: number;
     remarks: string;
+    isExcessItem?: boolean;
     fileUrl?: string;
     attachments?: string[];
 }
 
 export interface ExpenseDto {
     id: number;
-    siteId: number;
-    siteName: string;
+    siteId?: number | null;
+    siteName?: string;
+    officeId?: number | null;
+    officeName?: string;
     amountRequestFormId?: number | null;
     arfNumber: string;
     totalExpenseAmount: number;
     arfReleasedAmount: number;
-    isAllocatedExcess: boolean;
-    sourceArfNumber: string | null;
     createdByEmail: string;
     createdAt: string;
     items: ExpenseItemDto[];
 }
 
 export interface CreateExpenseDto {
-    siteId: number;
+    siteId?: number | null;
+    officeId?: number | null;
     amountRequestFormId?: number | null;
-    isAllocatedExcess?: boolean;
-    sourceArfNumber?: string | null;
     items: ExpenseItemDto[];
 }
 

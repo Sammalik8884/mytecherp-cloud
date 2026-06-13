@@ -12,14 +12,14 @@ namespace MytechERP.domain.Entities.Finance
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public bool IsDeleted { get; set; } = false;
 
-        public int SiteId { get; set; }
-        public Site Site { get; set; } = null!;
+        public int? SiteId { get; set; }
+        public Site? Site { get; set; }
+
+        public int? OfficeId { get; set; }
+        public Office? Office { get; set; }
 
         public int? AmountRequestFormId { get; set; }
         public AmountRequestForm? AmountRequestForm { get; set; }
-
-        public bool IsAllocatedExcess { get; set; } = false;
-        public string? SourceArfNumber { get; set; }
 
         public string CreatedByEmail { get; set; } = string.Empty;
 
@@ -37,6 +37,7 @@ namespace MytechERP.domain.Entities.Finance
         public string ExpenseType { get; set; } = string.Empty;
         public string DescriptionItems { get; set; } = string.Empty;
         public decimal Amount { get; set; }
+        public bool IsExcessItem { get; set; } = false;
         public string Remarks { get; set; } = string.Empty;
         public string FileUrl { get; set; } = string.Empty;
         public string AttachmentsJson { get; set; } = string.Empty;

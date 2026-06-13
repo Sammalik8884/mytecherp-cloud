@@ -137,6 +137,7 @@ builder.Services.AddScoped<MyTechERP.Infrastructure.Services.IItemProcurementPdf
 builder.Services.AddScoped<MytechERP.Application.Interfaces.IDailyProgressReportPdfService, MytechERP.Infrastructure.Services.DailyProgressReportPdfService>();
 builder.Services.AddScoped<IProjectSpotCheckSiteService, ProjectSpotCheckSiteService>();
 builder.Services.AddScoped<IIncidentRecordService, IncidentRecordService>();
+builder.Services.AddScoped<IOfficeService, MyTechERP.Infrastructure.Services.OfficeService>();
 builder.Services.AddScoped<UniversalSyncService>();
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(options =>
@@ -369,4 +370,28 @@ app.UseStaticFiles();
 app.MapControllers();
 app.MapHub<MytechERP.API.Hubs.SyncHub>("/hubs/sync");
 app.MapGet("/api/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<MytechERP.Infrastructure.Persistance.ApplicationDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+
+        if (!dbContext.Offices.Any())
+        {
+            dbContext.Offices.AddRange(
+                new MytechERP.domain.Entities.CRM.Office { Name = "Lahore", City = "Lahore" },
+                new MytechERP.domain.Entities.CRM.Office { Name = "Karachi", City = "Karachi" },
+                new MytechERP.domain.Entities.CRM.Office { Name = "Islamabad", City = "Islamabad" }
+            );
+            dbContext.SaveChanges();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error migrating database: " + ex.Message);
+    }
+}
+
 app.Run();

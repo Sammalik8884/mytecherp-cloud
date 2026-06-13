@@ -44,6 +44,8 @@ import { SubscriptionCancelPage } from "./pages/SubscriptionCancelPage";
 import AmountRequestFormPage from "./pages/AmountRequestFormPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ProjectDetailsPage } from "./pages/ProjectDetailsPage";
+import { OfficesListPage } from "./pages/OfficesListPage";
+import { OfficeDetailsPage } from "./pages/OfficeDetailsPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
 import { AddExpensePage } from "./pages/AddExpensePage";
 import { DprPrintView } from "./pages/DprPrintView";
@@ -149,6 +151,8 @@ function App() {
                             <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Salesman", "Estimation", "Accounts Head", "Technician", "Worker"]} />}>
                                 <Route path="/projects" element={<ProjectsPage />} />
                                 <Route path="/projects/:id" element={<ProjectDetailsPage />} />
+                                <Route path="/offices" element={<OfficesListPage />} />
+                                <Route path="/offices/:id" element={<OfficeDetailsPage />} />
                                 <Route path="/expenses" element={<ExpensesPage />} />
                                 <Route path="/expenses/new" element={<AddExpensePage />} />
                                 <Route path="/expenses/edit/:id" element={<AddExpensePage />} />
