@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 
-import { Plus, Receipt } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Receipt } from "lucide-react";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-
 
 export const ExpensesPage = () => {
     const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
@@ -39,6 +38,46 @@ export const ExpensesPage = () => {
         }
     };
 
+    const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+
+    const toggleGroup = (arfId: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newSet = new Set(expandedGroups);
+        if (newSet.has(arfId)) newSet.delete(arfId);
+        else newSet.add(arfId);
+        setExpandedGroups(newSet);
+    };
+
+    const groupedExpenses = useMemo(() => {
+        const groups: { arfId: number | null, expenses: ExpenseDto[] }[] = [];
+        const arfMap: Record<number, ExpenseDto[]> = {};
+        const noArf: ExpenseDto[] = [];
+
+        expenses.forEach(e => {
+            if (e.amountRequestFormId) {
+                if (!arfMap[e.amountRequestFormId]) arfMap[e.amountRequestFormId] = [];
+                arfMap[e.amountRequestFormId].push(e);
+            } else {
+                noArf.push(e);
+            }
+        });
+
+        Object.entries(arfMap).forEach(([arfId, list]) => {
+            list.sort((a, b) => a.id - b.id);
+            groups.push({ arfId: Number(arfId), expenses: list });
+        });
+
+        noArf.forEach(e => groups.push({ arfId: null, expenses: [e] }));
+
+        groups.sort((a, b) => {
+            const latestA = Math.max(...a.expenses.map(x => new Date(x.createdAt).getTime()));
+            const latestB = Math.max(...b.expenses.map(x => new Date(x.createdAt).getTime()));
+            return latestB - latestA;
+        });
+
+        return groups;
+    }, [expenses]);
+
     if (loading) return <div className="p-6">Loading expenses...</div>;
 
     return (
@@ -72,56 +111,80 @@ export const ExpensesPage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {expenses.map((expense) => {
-                                const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
-                                const excessItemsAmount = expense.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
+                            {groupedExpenses.map((group) => {
+                                const mainExpense = group.expenses[0];
+                                const hasMultiple = group.expenses.length > 1;
+                                const isExpanded = group.arfId ? expandedGroups.has(group.arfId) : false;
 
-                                // Determine ARF number badge style based on total consumed amount vs released
-                                let arfElement: React.ReactNode;
-                                if (expense.arfReleasedAmount > 0) {
-                                    if (totalForThisArf < expense.arfReleasedAmount) {
-                                        arfElement = (
-                                            <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                                                {expense.arfNumber || "N/A"}
-                                            </span>
-                                        );
-                                    } else if (totalForThisArf === expense.arfReleasedAmount) {
-                                        arfElement = (
-                                            <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-                                                {expense.arfNumber || "N/A"}
-                                            </span>
-                                        );
+                                const renderRow = (expense: ExpenseDto, isMain: boolean) => {
+                                    const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
+                                    const excessItemsAmount = expense.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
+
+                                    let arfElement: React.ReactNode;
+                                    if (expense.arfReleasedAmount > 0) {
+                                        if (totalForThisArf < expense.arfReleasedAmount) {
+                                            arfElement = (
+                                                <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                                                    {expense.arfNumber || "N/A"}
+                                                </span>
+                                            );
+                                        } else if (totalForThisArf === expense.arfReleasedAmount) {
+                                            arfElement = (
+                                                <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                                                    {expense.arfNumber || "N/A"}
+                                                </span>
+                                            );
+                                        } else {
+                                            arfElement = (
+                                                <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                                    {expense.arfNumber || "N/A"} (Excess)
+                                                </span>
+                                            );
+                                        }
                                     } else {
-                                        arfElement = (
-                                            <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                                                {expense.arfNumber || "N/A"} (Excess)
-                                            </span>
-                                        );
+                                        arfElement = <span>{expense.arfNumber || "N/A"}</span>;
                                     }
-                                } else {
-                                    arfElement = <span>{expense.arfNumber || "N/A"}</span>;
-                                }
+
+                                    return (
+                                        <tr 
+                                            key={expense.id} 
+                                            onClick={() => navigate(`/expenses/edit/${expense.id}`)}
+                                            className={`hover:bg-muted/50 transition-colors cursor-pointer ${!isMain ? 'bg-muted/30' : ''}`}
+                                        >
+                                            <td className="px-4 py-3 font-medium flex items-center gap-2">
+                                                {isMain && hasMultiple ? (
+                                                    <button 
+                                                        onClick={(e) => toggleGroup(expense.amountRequestFormId!, e)}
+                                                        className="p-1 hover:bg-muted rounded-md transition-colors"
+                                                    >
+                                                        {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                                    </button>
+                                                ) : (
+                                                    <div className="w-6" /> // Spacer for alignment
+                                                )}
+                                                EXP-{expense.id.toString().padStart(4, '0')}
+                                            </td>
+                                            <td className="px-4 py-3">{expense.officeId ? (expense.officeName || "Office") : (expense.siteName || "No Site")}</td>
+                                            <td className="px-4 py-3">{arfElement}</td>
+                                            <td className="px-4 py-3 font-medium text-emerald-600">
+                                                Rs {expense.totalExpenseAmount?.toLocaleString()}
+                                                {excessItemsAmount > 0 && (
+                                                    <div className="text-xs text-amber-600 mt-0.5">
+                                                        + Rs {excessItemsAmount.toLocaleString()} Excess
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">{dayjs(expense.createdAt).format("DD MMM YYYY")}</td>
+                                            <td className="px-4 py-3">{expense.items?.length || 0}</td>
+                                        </tr>
+                                    );
+                                };
 
                                 return (
-                                <tr 
-                                    key={expense.id} 
-                                    onClick={() => navigate(`/expenses/edit/${expense.id}`)}
-                                    className="hover:bg-muted/50 transition-colors cursor-pointer"
-                                >
-                                    <td className="px-4 py-3 font-medium">EXP-{expense.id.toString().padStart(4, '0')}</td>
-                                    <td className="px-4 py-3">{expense.officeId ? (expense.officeName || "Office") : (expense.siteName || "No Site")}</td>
-                                    <td className="px-4 py-3">{arfElement}</td>
-                                    <td className="px-4 py-3 font-medium text-emerald-600">
-                                        Rs {expense.totalExpenseAmount?.toLocaleString()}
-                                        {excessItemsAmount > 0 && (
-                                            <div className="text-xs text-amber-600 mt-0.5">
-                                                + Rs {excessItemsAmount.toLocaleString()} Excess
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3">{dayjs(expense.createdAt).format("DD MMM YYYY")}</td>
-                                    <td className="px-4 py-3">{expense.items?.length || 0}</td>
-                                </tr>
+                                    <React.Fragment key={`group-${group.arfId || 'no-arf'}-${mainExpense.id}`}>
+                                        {renderRow(mainExpense, true)}
+                                        {isExpanded && group.expenses.slice(1).map(exp => renderRow(exp, false))}
+                                    </React.Fragment>
                                 );
                             })}
                             {expenses.length === 0 && (

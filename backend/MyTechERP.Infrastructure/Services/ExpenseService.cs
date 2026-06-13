@@ -33,6 +33,8 @@ namespace MyTechERP.Infrastructure.Services
                 Id = entity.Id,
                 SiteId = entity.SiteId,
                 SiteName = entity.Site?.Name ?? string.Empty,
+                OfficeId = entity.OfficeId,
+                OfficeName = entity.Office?.Name ?? string.Empty,
                 AmountRequestFormId = entity.AmountRequestFormId,
                 ArfNumber = entity.AmountRequestForm?.ArfNumber ?? string.Empty,
                 CreatedByEmail = entity.CreatedByEmail,
@@ -60,6 +62,7 @@ namespace MyTechERP.Infrastructure.Services
         {
             var entity = await _context.Expenses
                 .Include(e => e.Site)
+                .Include(e => e.Office)
                 .Include(e => e.AmountRequestForm)
                 .Include(e => e.Items)
                 .FirstOrDefaultAsync(e => e.Id == id);
@@ -76,6 +79,7 @@ namespace MyTechERP.Infrastructure.Services
 
             var query = _context.Expenses
                 .Include(e => e.Site)
+                .Include(e => e.Office)
                 .Include(e => e.AmountRequestForm)
                 .Include(e => e.Items)
                 .AsQueryable();
@@ -93,6 +97,7 @@ namespace MyTechERP.Infrastructure.Services
         {
             var entities = await _context.Expenses
                 .Include(e => e.Site)
+                .Include(e => e.Office)
                 .Include(e => e.AmountRequestForm)
                 .Include(e => e.Items)
                 .Where(e => e.SiteId == siteId)
