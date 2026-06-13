@@ -344,22 +344,30 @@ namespace MyTechERP.Infrastructure.Services
             {
                 if (!string.IsNullOrEmpty(entity.EmployeeEmail))
                 {
-                    string subject = $"Amount Request Released - {entity.EmployeeName}";
-                    string body = $"<p>Dear {entity.EmployeeName},</p><p>Your ARF is approved. ARF Number is <strong>{entity.ArfNumber}</strong>.</p><p>Your amount advance request of {entity.AdvanceRequested} has been released. Please add your expenses against this ARF Number.</p><p>Remarks: {dto.Remarks}</p>";
-                    await _emailService.SendEmailAsync(entity.EmployeeEmail, subject, body);
-                    
-                    var user = await _userManager.FindByEmailAsync(entity.EmployeeEmail);
-                    if (user != null)
+                    try 
                     {
-                        string siteNameStr = entity.Site?.Name ?? entity.CustomSiteName ?? "N/A";
-                        await _notificationService.CreateNotificationAsync(
-                            user.Id,
-                            "Amount Released",
-                            $"Your payment has been released. ARF Number: {entity.ArfNumber}, Amount: Rs {dto.ReleasedAmount}, Site: {siteNameStr}",
-                            "ArfReleased",
-                            entity.Id
-                        );
+                        string subject = $"Amount Request Released - {entity.EmployeeName}";
+                        string body = $"<p>Dear {entity.EmployeeName},</p><p>Your ARF is approved. ARF Number is <strong>{entity.ArfNumber}</strong>.</p><p>Your amount advance request of {entity.AdvanceRequested} has been released. Please add your expenses against this ARF Number.</p><p>Remarks: {dto.Remarks}</p>";
+                        await _emailService.SendEmailAsync(entity.EmployeeEmail, subject, body);
                     }
+                    catch (Exception) { }
+                    
+                    try
+                    {
+                        var user = await _userManager.FindByEmailAsync(entity.EmployeeEmail);
+                        if (user != null)
+                        {
+                            string siteNameStr = entity.Site?.Name ?? entity.CustomSiteName ?? "N/A";
+                            await _notificationService.CreateNotificationAsync(
+                                user.Id,
+                                "Amount Released",
+                                $"Your payment has been released. ARF Number: {entity.ArfNumber}, Amount: Rs {dto.ReleasedAmount}, Site: {siteNameStr}",
+                                "ArfReleased",
+                                entity.Id
+                            );
+                        }
+                    }
+                    catch (Exception) { }
                 }
             }
             catch (Exception) { }
