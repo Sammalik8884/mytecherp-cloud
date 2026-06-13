@@ -27,6 +27,9 @@ namespace MytechERP.domain.Entities.HR
         public string CeoRemarks { get; set; }
         public string RejectionRemarks { get; set; }
 
+        public string CreatedByUserId { get; set; }
+        public AppUser CreatedByUser { get; set; }
+
         public ICollection<ApplicationFormAttachment> Attachments { get; set; }
     }
 }
