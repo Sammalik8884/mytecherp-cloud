@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { siteService } from "../services/siteService";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
-import { expenseApi, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
+import { expenseApi, ExpenseDto, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
 import { officeApi, OfficeDto } from "../api/officeApi";
 import { SiteDto } from "../types/site";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import toast from "react-hot-toast";
-import { Check, X, Plus, Trash2, ExternalLink, Paperclip } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, ChevronUp, FileText, Plus, Save, Trash2, Upload, X, AlertCircle, Info, ExternalLink, Paperclip } from "lucide-react";
 import dayjs from "dayjs";
 
 export const AddExpensePage = () => {
@@ -23,6 +23,8 @@ export const AddExpensePage = () => {
     
     const [arfConsumedAmounts, setArfConsumedAmounts] = useState<Record<number, number>>({});
     const [closedArfWarning, setClosedArfWarning] = useState<{ isOpen: boolean; arfId: number } | null>(null);
+    const [allExpenses, setAllExpenses] = useState<ExpenseDto[]>([]);
+    const [showArfInfoModal, setShowArfInfoModal] = useState(false);
 
     const [sites, setSites] = useState<SiteDto[]>([]);
     const [offices, setOffices] = useState<OfficeDto[]>([]);
@@ -62,6 +64,7 @@ export const AddExpensePage = () => {
                 expenseApi.getAll()
             ]);
             const arfData = arfDataResp.data;
+            setAllExpenses(expenseData);
             
             const consumedMap: Record<number, number> = {};
             expenseData.forEach((e: any) => {
@@ -299,33 +302,81 @@ export const AddExpensePage = () => {
 
     return (
         <div className="p-6 max-w-[1400px] mx-auto space-y-6">
+            {/* Closed ARF Warning Modal */}
             {closedArfWarning?.isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="bg-background rounded-xl shadow-xl w-full max-w-md flex flex-col overflow-hidden">
-                        <div className="p-6">
-                            <h2 className="text-xl font-bold text-amber-600 mb-4 flex items-center">
-                                <span className="mr-2">🔒</span> ARF Closed
-                            </h2>
-                            <p className="text-muted-foreground">
-                                This expense has been closed. Do you want to open again?
-                            </p>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="bg-background rounded-lg shadow-lg w-full max-w-md overflow-hidden">
+                        <div className="p-4 border-b border-border flex items-center gap-2 text-amber-600 bg-amber-50">
+                            <AlertCircle className="h-5 w-5" />
+                            <h3 className="font-semibold">ARF Status Warning</h3>
                         </div>
-                        <div className="p-4 bg-muted/30 border-t border-border flex justify-end space-x-3">
-                            <button
-                                className="px-4 py-2 border border-border rounded-lg text-muted-foreground hover:bg-muted"
-                                onClick={() => setClosedArfWarning(null)}
-                            >
-                                No
+                        <div className="p-4 space-y-4">
+                            <p className="text-sm">
+                                This ARF (<strong>ARF-{closedArfWarning.arfId}</strong>) has been <strong>Closed</strong> or <strong>Submitted for Approval</strong> by the creator, meaning the work is considered finished.
+                            </p>
+                            <p className="text-sm font-medium">
+                                Do you still want to add more expenses to this ARF?
+                            </p>
+                            <div className="flex justify-end gap-3 pt-4 border-t border-border mt-4">
+                                <button
+                                    onClick={() => {
+                                        setClosedArfWarning(null);
+                                        setSelectedArfId(""); // Revert selection
+                                    }}
+                                    className="px-4 py-2 text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
+                                >
+                                    Cancel Selection
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setClosedArfWarning(null);
+                                        // Selection remains what user clicked
+                                    }}
+                                    className="px-4 py-2 text-sm font-medium bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
+                                >
+                                    Yes, Proceed
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ARF Info Modal */}
+            {showArfInfoModal && selectedArf && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="bg-background rounded-lg shadow-lg w-full max-w-md overflow-hidden">
+                        <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50">
+                            <h3 className="font-semibold">ARF Consumption Details</h3>
+                            <button onClick={() => setShowArfInfoModal(false)} className="text-muted-foreground hover:text-foreground">
+                                <X className="h-4 w-4" />
                             </button>
-                            <button
-                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-                                onClick={() => {
-                                    setSelectedArfId(closedArfWarning.arfId);
-                                    setClosedArfWarning(null);
-                                }}
-                            >
-                                Yes
-                            </button>
+                        </div>
+                        <div className="p-4 space-y-4 text-sm max-h-[60vh] overflow-y-auto">
+                            <div className="bg-amber-50 text-amber-800 p-3 rounded-md text-xs border border-amber-200">
+                                This ARF was originally generated for <strong>{selectedArf.siteName || selectedArf.officeName || "Unknown Location"}</strong>.
+                            </div>
+                            
+                            <div>
+                                <h4 className="font-medium text-muted-foreground mb-2 text-xs uppercase tracking-wider">Related Expenses</h4>
+                                {allExpenses.filter(e => e.amountRequestFormId === selectedArf.id && (!isEditMode || String(e.id) !== String(id))).length === 0 ? (
+                                    <div className="text-muted-foreground italic text-xs">No other expenses found for this ARF.</div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {allExpenses
+                                            .filter(e => e.amountRequestFormId === selectedArf.id && (!isEditMode || String(e.id) !== String(id)))
+                                            .map(e => (
+                                                <div key={e.id} className="flex justify-between items-center p-2 rounded border border-border bg-card">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">EXP-{e.id.toString().padStart(4, '0')}</span>
+                                                        <span className="text-xs text-muted-foreground">{dayjs(e.createdAt).format('DD MMM YYYY')}</span>
+                                                    </div>
+                                                    <span className="font-semibold text-emerald-600">Rs {e.totalExpenseAmount.toLocaleString()}</span>
+                                                </div>
+                                            ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -486,7 +537,12 @@ export const AddExpensePage = () => {
                                         <span className="text-muted-foreground">Released Amount: Rs {releasedAmount.toLocaleString()}</span>
                                         {alreadySpent > 0 && (
                                             <>
-                                                <span className="text-amber-600 font-medium mt-0.5">Already Spent: Rs {alreadySpent.toLocaleString()}</span>
+                                                <div className="flex items-center gap-1 mt-0.5">
+                                                    <span className="text-amber-600 font-medium">Already Spent: Rs {alreadySpent.toLocaleString()}</span>
+                                                    <button type="button" onClick={() => setShowArfInfoModal(true)} className="text-amber-600 hover:text-amber-700 transition-colors p-0.5" title="View details">
+                                                        <Info className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
                                                 <span className="text-primary font-medium mt-0.5">Remaining Balance: Rs {remainingArfBalance.toLocaleString()}</span>
                                             </>
                                         )}
