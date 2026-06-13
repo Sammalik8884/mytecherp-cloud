@@ -251,36 +251,33 @@ namespace MyTechERP.Infrastructure.Services
 
                 if (dto.IsApproved)
                 {
-                    if (entity.AdvanceRequested > 50000)
+                    // Every ARF must go through CEO after Director — no amount condition
+                    entity.Status = "Waiting for CEO Approval";
+                    // Send Email + In-App notification to CEO
+                    try
                     {
-                        entity.Status = "Waiting for CEO Approval";
-                        // Send Email to CEO
-                        try
-                        {
-                            string subject = $"Amount Advance Request Approval Required - {entity.EmployeeName}";
-                            string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been approved by the Director and requires your approval.</p>";
-                            await _emailService.SendEmailAsync("munawar.hasan@mytecheng.com", subject, body);
-                        }
-                        catch (Exception) { }
+                        string subject = $"Amount Advance Request Approval Required - {entity.EmployeeName}";
+                        string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been approved by the Director and requires your approval.</p>";
+                        await _emailService.SendEmailAsync("munawar.hasan@mytecheng.com", subject, body);
                     }
-                    else
-                    {
-                        entity.Status = "Approved - Ready for Accounts";
-                        try
-                        {
-                            string subject = $"Amount Request Ready for Release - {entity.EmployeeName}";
-                            string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been fully approved and is ready for release.</p>";
-                            await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
-                        }
-                        catch (Exception) { }
+                    catch (Exception) { }
 
-                        // In-App notification to Faisal Ghani (Accounts Head)
-                        await NotifyFaisalAsync(
-                            "ARF Ready for Release",
-                            $"ARF {entity.ArfNumber} by {entity.EmployeeName} (Rs {entity.AdvanceRequested}) has been approved by the Director and is ready for release.",
-                            entity.Id
-                        );
+                    // In-App notification to CEO (munawar.hasan)
+                    try
+                    {
+                        var ceo = await _userManager.FindByEmailAsync("munawar.hasan@mytecheng.com");
+                        if (ceo != null)
+                        {
+                            await _notificationService.CreateNotificationAsync(
+                                userId: ceo.Id,
+                                title: "ARF Pending Your Approval",
+                                message: $"ARF {entity.ArfNumber} by {entity.EmployeeName} (Rs {entity.AdvanceRequested}) has been approved by the Director and is awaiting your approval.",
+                                type: "ARF",
+                                targetId: entity.Id
+                            );
+                        }
                     }
+                    catch (Exception) { }
                 }
                 else
                 {
