@@ -1,4 +1,4 @@
-import api from '../services/apiClient';
+import { apiClient as api } from '../services/apiClient';
 
 export interface ApplicationFormAttachmentDto {
     id: number;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { applicationFormApi } from '../api/applicationFormApi';
 import { Send, ArrowLeft, Plus, X } from 'lucide-react';
