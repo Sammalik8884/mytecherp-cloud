@@ -278,7 +278,12 @@ export const AddExpensePage = () => {
                         className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 font-medium text-lg inline-flex items-center"
                         onClick={() => {
                             const arfLabel = selectedArf?.arfNumber || selectedArfId;
-                            navigate(`/arf/new?excessAmount=${excessAmount}&managedFromArf=${arfLabel}&siteId=${selectedSiteId}`);
+                            const locParam = locationType === 'site' ? `siteId=${selectedSiteId}` : `officeId=${selectedOfficeId}`;
+                            const locName = locationType === 'site' 
+                                ? sites.find((s: any) => s.id === Number(selectedSiteId))?.name 
+                                : offices.find((o: any) => o.id === Number(selectedOfficeId))?.name;
+                            
+                            navigate(`/amount-request?action=generateExcess&amount=${excessAmount}&${locParam}&siteName=${encodeURIComponent(locName || '')}&managedFromArf=${arfLabel}`);
                         }}
                     >
                         Generate ARF for Rs {excessAmount.toLocaleString()}

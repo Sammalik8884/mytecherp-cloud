@@ -62,11 +62,15 @@ const AmountRequestFormPage = () => {
             }
 
             const expenseId = searchParams.get('expenseId');
+            const managedFromArf = searchParams.get('managedFromArf');
             const siteName = searchParams.get('siteName') || '';
             const amount = searchParams.get('amount') || '0';
+            
             if (expenseId) {
                 setHiddenExpenseId(expenseId);
-                setPurposeOfAdvance(`This expense has been done at ${siteName} with amount Rs ${amount}`);
+                setPurposeOfAdvance(`This expense has been done at ${siteName} with amount Rs ${amount} [ExpenseId:${expenseId}]`);
+            } else if (managedFromArf) {
+                setPurposeOfAdvance(`Excess amount of Rs ${amount} from ${managedFromArf} for ${siteName}`);
             }
         }
     }, [searchParams]);
