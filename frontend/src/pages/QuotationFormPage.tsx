@@ -415,6 +415,34 @@ export const QuotationFormPage = () => {
     const handleAddLocalService = () => {
         setLocalServiceItems([...localServiceItems, makeEmptyRow("LocalService")]);
     };
+
+    const handleAddCustomRow = (listType: "Imported" | "Local" | "ImportedService" | "LocalService") => {
+        const inputStr = window.prompt("After which row number would you like to insert the new row? (e.g. 1)");
+        if (inputStr === null || inputStr.trim() === "") return;
+        
+        let targetIndex = parseInt(inputStr, 10);
+        if (isNaN(targetIndex) || targetIndex < 0) targetIndex = 1;
+        
+        const emptyRow = makeEmptyRow(listType === "ImportedService" ? "ImportedService" : listType === "LocalService" ? "LocalService" : listType);
+        
+        if (listType === "Imported") {
+            const arr = [...importedItems];
+            arr.splice(targetIndex, 0, emptyRow);
+            setImportedItems(arr);
+        } else if (listType === "Local") {
+            const arr = [...localItems];
+            arr.splice(targetIndex, 0, emptyRow);
+            setLocalItems(arr);
+        } else if (listType === "ImportedService") {
+            const arr = [...importedServiceItems];
+            arr.splice(targetIndex, 0, emptyRow);
+            setImportedServiceItems(arr);
+        } else if (listType === "LocalService") {
+            const arr = [...localServiceItems];
+            arr.splice(targetIndex, 0, emptyRow);
+            setLocalServiceItems(arr);
+        }
+    };
     /* ─── Resolve unit for payload ─── */
     const resolveUnit = (item: UiItem) => {
         if (item.unit === "Custom" && item.customUnit) return item.customUnit;
@@ -897,9 +925,14 @@ export const QuotationFormPage = () => {
                                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                                  Imported Items Supply
                              </h3>
-                             <button type="button" onClick={handleAddImported} className="text-sm bg-blue-500/10 text-blue-500 dark:text-blue-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-blue-500/20 transition-colors">
-                                 <Plus className="w-4 h-4 mr-1"/> Add Row
-                             </button>
+                             <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => handleAddCustomRow("Imported")} className="text-sm bg-blue-500/10 text-blue-500 dark:text-blue-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-blue-500/20 transition-colors">
+                                    <Plus className="w-4 h-4 mr-1"/> Add Custom Row
+                                </button>
+                                <button type="button" onClick={handleAddImported} className="text-sm bg-blue-500/10 text-blue-500 dark:text-blue-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-blue-500/20 transition-colors">
+                                    <Plus className="w-4 h-4 mr-1"/> Add Row
+                                </button>
+                            </div>
                          </div>
 
                          {/* Config bar */}
@@ -1040,9 +1073,14 @@ export const QuotationFormPage = () => {
                                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                  Local Items Supply
                              </h3>
-                             <button type="button" onClick={handleAddLocal} className="text-sm bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-emerald-500/20 transition-colors">
-                                 <Plus className="w-4 h-4 mr-1"/> Add Row
-                             </button>
+                             <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => handleAddCustomRow("Local")} className="text-sm bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-emerald-500/20 transition-colors">
+                                    <Plus className="w-4 h-4 mr-1"/> Add Custom Row
+                                </button>
+                                <button type="button" onClick={handleAddLocal} className="text-sm bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-emerald-500/20 transition-colors">
+                                    <Plus className="w-4 h-4 mr-1"/> Add Row
+                                </button>
+                            </div>
                          </div>
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
@@ -1155,9 +1193,14 @@ export const QuotationFormPage = () => {
                                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                                  Imported Items Services
                              </h3>
-                             <button type="button" onClick={handleAddImportedService} className="text-sm bg-purple-500/10 text-purple-500 dark:text-purple-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-purple-500/20 transition-colors">
-                                 <Plus className="w-4 h-4 mr-1"/> Add Row
-                             </button>
+                             <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => handleAddCustomRow("ImportedService")} className="text-sm bg-purple-500/10 text-purple-500 dark:text-purple-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-purple-500/20 transition-colors">
+                                    <Plus className="w-4 h-4 mr-1"/> Add Custom Row
+                                </button>
+                                <button type="button" onClick={handleAddImportedService} className="text-sm bg-purple-500/10 text-purple-500 dark:text-purple-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-purple-500/20 transition-colors">
+                                    <Plus className="w-4 h-4 mr-1"/> Add Row
+                                </button>
+                            </div>
                          </div>
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
@@ -1230,9 +1273,14 @@ export const QuotationFormPage = () => {
                                  <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
                                  Local Items Services
                              </h3>
-                             <button type="button" onClick={handleAddLocalService} className="text-sm bg-orange-500/10 text-orange-500 dark:text-orange-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-orange-500/20 transition-colors">
-                                 <Plus className="w-4 h-4 mr-1"/> Add Row
-                             </button>
+                             <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => handleAddCustomRow("LocalService")} className="text-sm bg-orange-500/10 text-orange-500 dark:text-orange-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-orange-500/20 transition-colors">
+                                    <Plus className="w-4 h-4 mr-1"/> Add Custom Row
+                                </button>
+                                <button type="button" onClick={handleAddLocalService} className="text-sm bg-orange-500/10 text-orange-500 dark:text-orange-400 px-3 py-1.5 rounded-lg flex items-center hover:bg-orange-500/20 transition-colors">
+                                    <Plus className="w-4 h-4 mr-1"/> Add Row
+                                </button>
+                            </div>
                          </div>
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
