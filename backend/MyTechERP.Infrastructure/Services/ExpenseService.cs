@@ -120,6 +120,7 @@ namespace MyTechERP.Infrastructure.Services
             var entity = new Expense
             {
                 SiteId = dto.SiteId,
+                OfficeId = dto.OfficeId,
                 AmountRequestFormId = dto.AmountRequestFormId,
                 CreatedByEmail = email,
                 Items = dto.Items.Select(i => new ExpenseItem
@@ -158,6 +159,7 @@ namespace MyTechERP.Infrastructure.Services
             }
 
             entity.SiteId = dto.SiteId;
+            entity.OfficeId = dto.OfficeId;
             entity.AmountRequestFormId = dto.AmountRequestFormId;
 
             _context.ExpenseItems.RemoveRange(entity.Items);
