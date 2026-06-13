@@ -33,16 +33,16 @@ export const ExpensesPage = () => {
             data.forEach((e: ExpenseDto) => {
                 if (e.amountRequestFormId) {
                     const arfId = e.amountRequestFormId;
-                    totals[arfId] = (totals[arfId] || 0) + e.totalExpenseAmount;
+                    totals[arfId] = (totals[arfId] || 0) + (Number(e.totalExpenseAmount) || 0);
                     
                     if (e.arfNumber && !(arfId in effectiveReleased)) {
                         // Original ARF released amount
-                        const originalReleased = e.arfReleasedAmount || 0;
+                        const originalReleased = Number(e.arfReleasedAmount) || 0;
                         
                         // Find any excess ARFs generated for this ARF
                         const excessReleased = arfsRes.data
-                            .filter(a => a.purposeOfAdvance?.includes(`from ${e.arfNumber}`))
-                            .reduce((sum, a) => sum + (a.accountsReleasedAmount || 0), 0);
+                            .filter(a => a.purposeOfAdvance?.includes(e.arfNumber))
+                            .reduce((sum, a) => sum + (Number(a.accountsReleasedAmount) || 0), 0);
                             
                         effectiveReleased[arfId] = originalReleased + excessReleased;
                     }
@@ -137,8 +137,8 @@ export const ExpensesPage = () => {
 
                                 const renderRow = (expense: ExpenseDto, isMain: boolean) => {
                                     const totalForThisArf = expense.amountRequestFormId ? (arfTotals[expense.amountRequestFormId] || 0) : 0;
-                                    const effectiveReleasedAmount = expense.amountRequestFormId ? (arfEffectiveReleased[expense.amountRequestFormId] || expense.arfReleasedAmount) : expense.arfReleasedAmount;
-                                    const excessItemsAmount = expense.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
+                                    const effectiveReleasedAmount = expense.amountRequestFormId ? (arfEffectiveReleased[expense.amountRequestFormId] || Number(expense.arfReleasedAmount) || 0) : (Number(expense.arfReleasedAmount) || 0);
+                                    const excessItemsAmount = expense.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + (Number(item.amount) || 0), 0) || 0;
 
                                     let arfElement: React.ReactNode;
                                     if (effectiveReleasedAmount > 0) {
