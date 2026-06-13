@@ -348,11 +348,7 @@ namespace MyTechERP.Infrastructure.Services
                     string body = $"<p>Dear {entity.EmployeeName},</p><p>Your ARF is approved. ARF Number is <strong>{entity.ArfNumber}</strong>.</p><p>Your amount advance request of {entity.AdvanceRequested} has been released. Please add your expenses against this ARF Number.</p><p>Remarks: {dto.Remarks}</p>";
                     await _emailService.SendEmailAsync(entity.EmployeeEmail, subject, body);
                     
-                    // Find user by email AND tenantId to handle multi-tenant scenario
-                    var tenantId = _currentUserService.TenantId;
-                    var user = tenantId.HasValue
-                        ? await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail && u.TenantId == tenantId.Value)
-                        : await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail);
+                    var user = await _userManager.FindByEmailAsync(entity.EmployeeEmail);
                     if (user != null)
                     {
                         string siteNameStr = entity.Site?.Name ?? entity.CustomSiteName ?? "N/A";
