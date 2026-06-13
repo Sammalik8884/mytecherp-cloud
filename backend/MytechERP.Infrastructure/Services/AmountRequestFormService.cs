@@ -354,7 +354,11 @@ namespace MyTechERP.Infrastructure.Services
                     
                     try
                     {
-                        var user = await _userManager.FindByEmailAsync(entity.EmployeeEmail);
+                        var tenantId = _currentUserService.TenantId;
+                        var user = tenantId.HasValue
+                            ? await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail && u.TenantId == tenantId.Value)
+                            : await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail);
+                            
                         if (user != null)
                         {
                             string siteNameStr = entity.Site?.Name ?? entity.CustomSiteName ?? "N/A";
