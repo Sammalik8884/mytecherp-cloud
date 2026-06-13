@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using MytechERP.Infrastructure.Persistance;
 
 #nullable disable
 
 namespace MyTechERP.Infrastructure.Migrations
 {
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20260613174500_MakeApplicationFormFieldsNullable")]
     /// <inheritdoc />
     public partial class MakeApplicationFormFieldsNullable : Migration
     {
