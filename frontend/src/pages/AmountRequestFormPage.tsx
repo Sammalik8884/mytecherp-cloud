@@ -478,7 +478,14 @@ const AmountRequestFormPage = () => {
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div><span className="text-muted-foreground block">Name</span><span className="font-medium">{selectedForm.employeeName}</span></div>
                                     <div><span className="text-muted-foreground block">Advance Requested</span><span className="font-semibold text-primary text-base">{selectedForm.advanceRequested.toLocaleString()}</span></div>
-                                    <div className="col-span-2"><span className="text-muted-foreground block">Account Detail</span><span className="font-medium">{selectedForm.accountDetail}</span></div>
+                                    <div className="col-span-2">
+                                        <span className="text-muted-foreground block">Account Detail</span>
+                                        {(hasRole(["Accounts Head"]) || user?.email === selectedForm.employeeEmail) ? (
+                                            <span className="font-medium">{selectedForm.accountDetail}</span>
+                                        ) : (
+                                            <span className="font-medium italic text-muted-foreground">Hidden for security</span>
+                                        )}
+                                    </div>
                                     <div><span className="text-muted-foreground block">Date Required</span><span className="font-medium">{selectedForm.dateOfFundRequired ? new Date(selectedForm.dateOfFundRequired).toLocaleDateString() : '-'}</span></div>
                                 </div>
                             </div>
