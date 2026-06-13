@@ -33,7 +33,8 @@ export const ExpensesPage = () => {
             data.forEach((e: ExpenseDto) => {
                 if (e.amountRequestFormId) {
                     const arfId = e.amountRequestFormId;
-                    totals[arfId] = (totals[arfId] || 0) + (Number(e.totalExpenseAmount) || 0);
+                    const excessItemsAmount = e.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + (Number(item.amount) || 0), 0) || 0;
+                    totals[arfId] = (totals[arfId] || 0) + (Number(e.totalExpenseAmount) || 0) + excessItemsAmount;
                     
                     if (e.arfNumber && !(arfId in effectiveReleased)) {
                         // Original ARF released amount
