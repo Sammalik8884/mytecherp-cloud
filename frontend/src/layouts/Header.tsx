@@ -73,6 +73,10 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             }
         } else if (notif.type === "Assignment" || notif.type === "BOQ" || notif.type === "success" || notif.type === "error" || notif.type === "Quotation" || notif.title.includes("Quotation")) {
             navigate("/sales/boq-portal");
+        } else if (notif.type === "ARF" || notif.title.includes("Amount Request") || notif.title.includes("ARF")) {
+            navigate("/finance/arf");
+        } else if (notif.type === "IncidentRecord" || notif.title.includes("Incident")) {
+            navigate("/incident-records");
         } else {
             navigate("/dashboard");
         }

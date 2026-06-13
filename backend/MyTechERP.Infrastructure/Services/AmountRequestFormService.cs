@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MytechERP.Application.DTOs.Finance;
 using MytechERP.Application.Interfaces;
+using MytechERP.domain.Entities;
 using MytechERP.domain.Entities.Finance;
 using MyTechERP.Infrastructure.Persistence; // Assuming this is correct from ApplicationDbContext location
 using System;
@@ -18,19 +20,72 @@ namespace MyTechERP.Infrastructure.Services
         private readonly IEmailService _emailService;
         private readonly INotificationService _notificationService;
         private readonly IBlobService _blobService;
+        private readonly UserManager<AppUser> _userManager;
 
         public AmountRequestFormService(
             ApplicationDbContext context, 
             ICurrentUserService currentUserService, 
             IEmailService emailService,
             INotificationService notificationService,
-            IBlobService blobService)
+            IBlobService blobService,
+            UserManager<AppUser> userManager)
         {
             _context = context;
             _currentUserService = currentUserService;
             _emailService = emailService;
             _notificationService = notificationService;
             _blobService = blobService;
+            _userManager = userManager;
+        }
+
+        // Helper: send in-app bell notification to Faisal Ghani (Accounts Head)
+        private async Task NotifyFaisalAsync(string title, string message, int arfId)
+        {
+            try
+            {
+                var faisal = await _userManager.FindByEmailAsync("faisal.ghani@mytecheng.com");
+                if (faisal != null)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        userId: faisal.Id,
+                        title: title,
+                        message: message,
+                        type: "ARF",
+                        targetId: arfId
+                    );
+                }
+            }
+            catch (Exception) { }
+        }
+
+        // Helper: send in-app bell notification to all Admins + a specific email user
+        private async Task NotifyAdminsAndUserAsync(string email, string title, string message, int arfId)
+        {
+            try
+            {
+                var admins = await _userManager.GetUsersInRoleAsync("Admin");
+                var recipients = admins.ToList();
+
+                // Also notify the specific email user (e.g., Director shahbaz.ali)
+                if (!string.IsNullOrEmpty(email))
+                {
+                    var specificUser = await _userManager.FindByEmailAsync(email);
+                    if (specificUser != null && !recipients.Any(u => u.Id == specificUser.Id))
+                        recipients.Add(specificUser);
+                }
+
+                foreach (var user in recipients)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        userId: user.Id,
+                        title: title,
+                        message: message,
+                        type: "ARF",
+                        targetId: arfId
+                    );
+                }
+            }
+            catch (Exception) { }
         }
 
         private AmountRequestFormDto MapToDto(AmountRequestForm entity)
@@ -152,6 +207,14 @@ namespace MyTechERP.Infrastructure.Services
                     await _emailService.SendEmailAsync("shahbaz.ali@mytecheng.com", subject, body);
                 }
                 catch (Exception) { /* Log or ignore email failure */ }
+
+                // In-App notification to Admins + Director
+                await NotifyAdminsAndUserAsync(
+                    "shahbaz.ali@mytecheng.com",
+                    "New Amount Request Submitted",
+                    $"{entity.EmployeeName} submitted a new ARF ({entity.ArfNumber}) for Rs {entity.AdvanceRequested}. Awaiting your approval.",
+                    entity.Id
+                );
             }
             else
             {
@@ -163,6 +226,13 @@ namespace MyTechERP.Infrastructure.Services
                     await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
                 }
                 catch (Exception) { }
+
+                // In-App notification to Faisal Ghani (Accounts Head)
+                await NotifyFaisalAsync(
+                    "ARF Ready for Release",
+                    $"{entity.EmployeeName} submitted ARF {entity.ArfNumber} for Rs {entity.AdvanceRequested}. Auto-approved — ready for your release.",
+                    entity.Id
+                );
             }
 
             return await GetByIdAsync(entity.Id);
@@ -203,6 +273,13 @@ namespace MyTechERP.Infrastructure.Services
                             await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
                         }
                         catch (Exception) { }
+
+                        // In-App notification to Faisal Ghani (Accounts Head)
+                        await NotifyFaisalAsync(
+                            "ARF Ready for Release",
+                            $"ARF {entity.ArfNumber} by {entity.EmployeeName} (Rs {entity.AdvanceRequested}) has been approved by the Director and is ready for release.",
+                            entity.Id
+                        );
                     }
                 }
                 else
@@ -226,6 +303,13 @@ namespace MyTechERP.Infrastructure.Services
                         await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
                     }
                     catch (Exception) { }
+
+                    // In-App notification to Faisal Ghani (Accounts Head)
+                    await NotifyFaisalAsync(
+                        "ARF Ready for Release",
+                        $"ARF {entity.ArfNumber} by {entity.EmployeeName} (Rs {entity.AdvanceRequested}) has been approved by the CEO and is ready for release.",
+                        entity.Id
+                    );
                 }
                 else
                 {
