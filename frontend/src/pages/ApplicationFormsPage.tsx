@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { applicationFormApi, ApplicationFormDto } from '../api/applicationFormApi';
@@ -49,11 +50,7 @@ export const ApplicationFormsPage = () => {
         }
     };
 
-    const canApprove = (form: ApplicationFormDto) => {
-        if (isDirector && form.status === 'Pending') return true;
-        if (isCeo && form.status === 'Approved by Director') return true;
-        return false;
-    };
+
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -135,7 +132,7 @@ export const ApplicationFormsPage = () => {
             )}
 
             {/* View Modal */}
-            {selectedForm && (
+            {selectedForm && createPortal(
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
@@ -174,36 +171,39 @@ export const ApplicationFormsPage = () => {
                             </div>
 
                             <div>
-                                <label className="text-xs text-gray-500 uppercase font-semibold mb-1 block">Subject</label>
-                                <div className="p-3 bg-gray-50 rounded-lg font-medium border border-gray-200">{selectedForm.subject}</div>
+                                <label className="text-xs text-gray-500 uppercase font-semibold">Subject</label>
+                                <div className="mt-1 p-3 bg-gray-50 rounded-lg border border-gray-200">{selectedForm.subject}</div>
                             </div>
 
                             <div>
-                                <label className="text-xs text-gray-500 uppercase font-semibold mb-1 block">Description</label>
-                                <div className="p-4 bg-gray-50 rounded-lg whitespace-pre-wrap border border-gray-200">{selectedForm.description}</div>
+                                <label className="text-xs text-gray-500 uppercase font-semibold">Description</label>
+                                <div className="mt-1 p-4 bg-gray-50 rounded-lg border border-gray-200 whitespace-pre-wrap">{selectedForm.description}</div>
                             </div>
 
                             {selectedForm.attachments && selectedForm.attachments.length > 0 && (
                                 <div>
                                     <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Attachments</label>
-                                    <div className="space-y-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {selectedForm.attachments.map(att => (
                                             <a 
                                                 key={att.id} 
                                                 href={att.fileUrl} 
                                                 target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
+                                                rel="noreferrer"
+                                                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
                                             >
-                                                <FileText className="h-5 w-5 text-gray-400 mr-3 group-hover:text-primary" />
-                                                <span className="flex-1 text-sm font-medium">{att.fileName}</span>
-                                                <Download className="h-4 w-4 text-gray-400 group-hover:text-primary" />
+                                                <div className="flex items-center space-x-2 overflow-hidden">
+                                                    <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                                    <span className="text-sm truncate">{att.fileName}</span>
+                                                </div>
+                                                <Download className="h-4 w-4 text-primary flex-shrink-0" />
                                             </a>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
+                            {/* Existing Remarks */}
                             {(selectedForm.directorRemarks || selectedForm.ceoRemarks || selectedForm.rejectionRemarks) && (
                                 <div className="space-y-3 mt-6 border-t pt-4">
                                     <label className="text-xs text-gray-500 uppercase font-semibold">Remarks</label>
@@ -228,19 +228,17 @@ export const ApplicationFormsPage = () => {
                                 </div>
                             )}
 
-                            {canApprove(selectedForm) && (
-                                <div className="mt-6 border-t border-gray-100 pt-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Add Remarks (Required for rejection, optional for approval)
-                                    </label>
+                            {/* Approval/Rejection Actions based on Role */}
+                            {selectedForm.status === 'Pending' && (isDirector || isCeo) && (
+                                <div className="pt-6 border-t border-gray-100">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Add Remarks (Required for Rejection)</label>
                                     <textarea
                                         value={remarks}
                                         onChange={(e) => setRemarks(e.target.value)}
-                                        rows={3}
-                                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm mb-4"
+                                        className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary mb-4"
                                         placeholder="Enter your remarks here..."
                                     />
-                                    <div className="flex gap-3 justify-end">
+                                    <div className="flex justify-end space-x-4">
                                         <button
                                             disabled={isSubmitting || !remarks.trim()}
                                             onClick={() => handleStatusUpdate('Your application is rejected')}
@@ -251,7 +249,37 @@ export const ApplicationFormsPage = () => {
                                         </button>
                                         <button
                                             disabled={isSubmitting}
-                                            onClick={() => handleStatusUpdate(isDirector ? 'Approved by Director' : 'Approved by CEO')}
+                                            onClick={() => handleStatusUpdate('Approved by Director')}
+                                            className="flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <CheckCircle className="h-4 w-4 mr-2" />
+                                            Approve
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedForm.status === 'Approved by Director' && isCeo && (
+                                <div className="pt-6 border-t border-gray-100">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">CEO Remarks (Required for Rejection)</label>
+                                    <textarea
+                                        value={remarks}
+                                        onChange={(e) => setRemarks(e.target.value)}
+                                        className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary mb-4"
+                                        placeholder="Enter your remarks here..."
+                                    />
+                                    <div className="flex justify-end space-x-4">
+                                        <button
+                                            disabled={isSubmitting || !remarks.trim()}
+                                            onClick={() => handleStatusUpdate('Your application is rejected')}
+                                            className="flex items-center px-4 py-2 bg-white text-red-600 border border-gray-300 font-medium rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <XCircle className="h-4 w-4 mr-2" />
+                                            Reject
+                                        </button>
+                                        <button
+                                            disabled={isSubmitting}
+                                            onClick={() => handleStatusUpdate('Approved by CEO')}
                                             className="flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <CheckCircle className="h-4 w-4 mr-2" />
@@ -263,7 +291,7 @@ export const ApplicationFormsPage = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            , document.body)}
         </div>
     );
 };
