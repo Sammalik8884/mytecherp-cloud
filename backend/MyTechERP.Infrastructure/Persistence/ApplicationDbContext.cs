@@ -133,6 +133,9 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<IncidentRecord> IncidentRecords { get; set; }
         public DbSet<IncidentRecordItem> IncidentRecordItems { get; set; }
 
+        public DbSet<ApplicationForm> ApplicationForms { get; set; }
+        public DbSet<ApplicationFormAttachment> ApplicationFormAttachments { get; set; }
+
 
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
@@ -250,6 +253,13 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<Expense>().HasQueryFilter(e => e.TenantId == _currentUserService.TenantId && !e.IsDeleted);
             builder.Entity<ExpenseItem>().HasQueryFilter(ei => ei.TenantId == _currentUserService.TenantId);
             builder.Entity<MaterialReceivingForm>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
+            builder.Entity<ApplicationForm>().HasQueryFilter(af => af.TenantId == _currentUserService.TenantId && !af.IsDeleted);
+
+            builder.Entity<ApplicationFormAttachment>()
+                .HasOne(a => a.ApplicationForm)
+                .WithMany(f => f.Attachments)
+                .HasForeignKey(a => a.ApplicationFormId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<MaterialReceivingForm>()
                 .HasOne(m => m.CreatedByUser)

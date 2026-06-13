@@ -104,6 +104,7 @@ builder.Services.AddScoped<IAssetImportService, AssetImportService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAmountRequestFormService, AmountRequestFormService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<MytechERP.Application.Interfaces.HR.IApplicationFormService, MyTechERP.Infrastructure.Services.HR.ApplicationFormService>();
 // Hangfire (Skip if placeholder)
 var hangfireConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 if (!string.IsNullOrEmpty(hangfireConnection) && hangfireConnection != "CONFIGURE_IN_AZURE_APP_SERVICE")
