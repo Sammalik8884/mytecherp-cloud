@@ -464,7 +464,7 @@ const AmountRequestFormPage = () => {
                                         </>
                                     ) : (
                                         <div className="text-muted-foreground italic text-center py-4">
-                                            {selectedForm.advanceRequested <= 50000 ? "Not Required (Amount ≤ 50k)" : "Waiting for approval"}
+                                            Waiting for approval
                                         </div>
                                     )}
 
