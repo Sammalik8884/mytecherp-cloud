@@ -237,7 +237,7 @@ export const ApplicationFormsPage = () => {
                                         value={remarks}
                                         onChange={(e) => setRemarks(e.target.value)}
                                         rows={3}
-                                        className="input mb-4"
+                                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm mb-4"
                                         placeholder="Enter your remarks here..."
                                     />
                                     <div className="flex gap-3 justify-end">

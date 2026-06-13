@@ -84,19 +84,19 @@ export const NewApplicationFormPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Applicant Name <span className="text-red-500">*</span></label>
-                            <input type="text" name="applicantName" required value={formData.applicantName} onChange={handleChange} className="input" />
+                            <input type="text" name="applicantName" required value={formData.applicantName} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Designation <span className="text-red-500">*</span></label>
-                            <input type="text" name="designation" required value={formData.designation} onChange={handleChange} className="input" />
+                            <input type="text" name="designation" required value={formData.designation} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number <span className="text-red-500">*</span></label>
-                            <input type="tel" name="phoneNumber" required value={formData.phoneNumber} onChange={handleChange} className="input" />
+                            <input type="tel" name="phoneNumber" required value={formData.phoneNumber} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Employee Type <span className="text-red-500">*</span></label>
-                            <select name="employeeType" required value={formData.employeeType} onChange={handleChange} className="input">
+                            <select name="employeeType" required value={formData.employeeType} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm">
                                 <option value="">Select Type</option>
                                 <option value="Permanent">Permanent</option>
                                 <option value="Contract">Contract</option>
@@ -107,7 +107,7 @@ export const NewApplicationFormPage = () => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Employee Code (Optional)</label>
-                            <input type="text" name="employeeCode" value={formData.employeeCode} onChange={handleChange} className="input" />
+                            <input type="text" name="employeeCode" value={formData.employeeCode} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm" />
                         </div>
                     </div>
                 </div>
@@ -118,7 +118,7 @@ export const NewApplicationFormPage = () => {
                     <div className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Subject <span className="text-red-500">*</span></label>
-                            <input type="text" name="subject" required value={formData.subject} onChange={handleChange} className="input" />
+                            <input type="text" name="subject" required value={formData.subject} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm" />
                         </div>
 
                         <div>
@@ -128,7 +128,7 @@ export const NewApplicationFormPage = () => {
                                 required 
                                 value={formData.description} 
                                 onChange={handleChange} 
-                                className="input min-h-[200px]" 
+                                className="w-full min-h-[200px] rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary shadow-sm" 
                                 placeholder="Write your application here..."
                             />
                         </div>
