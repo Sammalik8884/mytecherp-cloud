@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
-import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
+import { amountRequestApi } from "../api/amountRequestApi";
 
 import { ChevronDown, ChevronRight, Plus, Receipt } from "lucide-react";
 import dayjs from "dayjs";
