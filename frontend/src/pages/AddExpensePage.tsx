@@ -195,13 +195,12 @@ export const AddExpensePage = () => {
     };
 
     const selectedArf = arfs.find((a: any) => a.id === Number(selectedArfId));
-    
-    // Find any excess ARFs generated for this ARF and add their released amounts
-    const excessReleased = selectedArf ? allArfs
-        .filter(a => a.purposeOfAdvance?.includes(`from ${selectedArf.arfNumber || selectedArf.id}`))
-        .reduce((sum, a) => sum + (a.accountsReleasedAmount || 0), 0) : 0;
+    // Find any excess ARFs generated for this ARF and add their requested/released amounts
+    const excessCovered = selectedArf ? allArfs
+        .filter(a => a.purposeOfAdvance?.includes(selectedArf.arfNumber || String(selectedArf.id)))
+        .reduce((sum, a) => sum + Math.max(Number(a.accountsReleasedAmount) || 0, Number(a.advanceRequested) || 0), 0) : 0;
         
-    const releasedAmount = (selectedArf?.accountsReleasedAmount || 0) + excessReleased;
+    const releasedAmount = (Number(selectedArf?.accountsReleasedAmount) || 0) + excessCovered;
     const alreadySpent = arfConsumedAmounts[Number(selectedArfId)] || 0;
     const remainingArfBalance = Math.max(0, releasedAmount - alreadySpent);
     
@@ -223,7 +222,7 @@ export const AddExpensePage = () => {
         
         if (validRows.length === 0) return toast.error("Please enter at least one expense item.");
 
-        if (isAmountAbove && !showExcessModal && !isEditMode) {
+        if (isAmountAbove && !showExcessModal) {
             setShowExcessModal(true);
             return;
         }
