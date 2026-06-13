@@ -136,6 +136,9 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<ApplicationForm> ApplicationForms { get; set; }
         public DbSet<ApplicationFormAttachment> ApplicationFormAttachments { get; set; }
 
+        public DbSet<VehicleTravelForm> VehicleTravelForms { get; set; }
+        public DbSet<VehicleTravelFormAttachment> VehicleTravelFormAttachments { get; set; }
+
 
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
@@ -254,11 +257,18 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<ExpenseItem>().HasQueryFilter(ei => ei.TenantId == _currentUserService.TenantId);
             builder.Entity<MaterialReceivingForm>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
             builder.Entity<ApplicationForm>().HasQueryFilter(af => af.TenantId == _currentUserService.TenantId && !af.IsDeleted);
+            builder.Entity<VehicleTravelForm>().HasQueryFilter(vtf => vtf.TenantId == _currentUserService.TenantId && !vtf.IsDeleted);
 
             builder.Entity<ApplicationFormAttachment>()
                 .HasOne(a => a.ApplicationForm)
                 .WithMany(f => f.Attachments)
                 .HasForeignKey(a => a.ApplicationFormId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<VehicleTravelFormAttachment>()
+                .HasOne(a => a.VehicleTravelForm)
+                .WithMany(f => f.Attachments)
+                .HasForeignKey(a => a.VehicleTravelFormId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<MaterialReceivingForm>()

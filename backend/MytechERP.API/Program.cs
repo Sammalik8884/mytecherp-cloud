@@ -139,6 +139,7 @@ builder.Services.AddScoped<MytechERP.Application.Interfaces.IDailyProgressReport
 builder.Services.AddScoped<IProjectSpotCheckSiteService, ProjectSpotCheckSiteService>();
 builder.Services.AddScoped<IIncidentRecordService, IncidentRecordService>();
 builder.Services.AddScoped<IOfficeService, MyTechERP.Infrastructure.Services.OfficeService>();
+builder.Services.AddScoped<MytechERP.Application.Interfaces.IVehicleTravelFormService, MyTechERP.Infrastructure.Services.HR.VehicleTravelFormService>();
 builder.Services.AddScoped<UniversalSyncService>();
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(options =>

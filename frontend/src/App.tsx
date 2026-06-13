@@ -50,6 +50,8 @@ import { ExpensesPage } from "./pages/ExpensesPage";
 import { AddExpensePage } from "./pages/AddExpensePage";
 import { ApplicationFormsPage } from "./pages/ApplicationFormsPage";
 import { NewApplicationFormPage } from "./pages/NewApplicationFormPage";
+import { VehicleTravelFormsPage } from "./pages/VehicleTravelFormsPage";
+import { NewVehicleTravelFormPage } from "./pages/NewVehicleTravelFormPage";
 import { DprPrintView } from "./pages/DprPrintView";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./auth/AuthContext";
@@ -160,6 +162,8 @@ function App() {
                                 <Route path="/expenses/edit/:id" element={<AddExpensePage />} />
                                 <Route path="/application-forms" element={<ApplicationFormsPage />} />
                                 <Route path="/application-forms/new" element={<NewApplicationFormPage />} />
+                                <Route path="/vehicle-travel-forms" element={<VehicleTravelFormsPage />} />
+                                <Route path="/vehicle-travel-forms/new" element={<NewVehicleTravelFormPage />} />
                             </Route>
                             {/* Future Iterations will add more routes here */}
                         </Route>
