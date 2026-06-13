@@ -7,7 +7,7 @@ import { SiteDto } from "../types/site";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import toast from "react-hot-toast";
-import { ArrowLeft, Check, ChevronDown, ChevronUp, FileText, Plus, Save, Trash2, Upload, X, AlertCircle, Info, ExternalLink, Paperclip } from "lucide-react";
+import { Check, Plus, Trash2, X, AlertCircle, Info, ExternalLink, Paperclip } from "lucide-react";
 import dayjs from "dayjs";
 
 export const AddExpensePage = () => {
