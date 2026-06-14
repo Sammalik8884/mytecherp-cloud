@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+import { apiClient as api } from '../services/apiClient';
 
 export interface VehicleTravelFormAttachmentDto {
     id?: number;
@@ -38,12 +36,12 @@ export interface CreateVehicleTravelFormDto {
 
 export const vehicleTravelFormApi = {
     getAll: async (): Promise<VehicleTravelFormDto[]> => {
-        const response = await axios.get(`${API_BASE_URL}/api/VehicleTravelForm`);
+        const response = await api.get(`/VehicleTravelForm`);
         return response.data;
     },
     
-    create: async (data: CreateVehicleTravelFormDto): Promise<VehicleTravelFormDto> => {
-        const response = await axios.post(`${API_BASE_URL}/api/VehicleTravelForm`, data);
+    create: async (data: any): Promise<VehicleTravelFormDto> => {
+        const response = await api.post(`/VehicleTravelForm`, data);
         return response.data;
     }
 };
