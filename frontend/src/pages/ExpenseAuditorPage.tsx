@@ -5,7 +5,7 @@ import { officeApi } from "../api/officeApi";
 import { siteService } from "../services/siteService";
 import { authService } from "../services/authService";
 import { SearchableSelect } from "../components/common/SearchableSelect";
-import { Download, Calculator, AlertTriangle, CheckCircle2, Info, Wallet } from "lucide-react";
+import { Download, Calculator, AlertTriangle, CheckCircle2, Info, Wallet, X } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "react-hot-toast";
@@ -28,6 +28,7 @@ export const ExpenseAuditorPage = () => {
     const [allEmployees, setAllEmployees] = useState<string[]>([]);
 
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedRecord, setSelectedRecord] = useState<AuditRecord | null>(null);
 
     // Filters
     const [section, setSection] = useState<"offices" | "sites" | "employees">("offices");
@@ -299,7 +300,11 @@ export const ExpenseAuditorPage = () => {
                         </thead>
                         <tbody className="divide-y divide-border/50">
                             {auditReport.map((rec, idx) => (
-                                <tr key={idx} className="hover:bg-muted/20 transition-colors group">
+                                <tr 
+                                    key={idx} 
+                                    className="hover:bg-muted/20 transition-colors group cursor-pointer"
+                                    onClick={() => setSelectedRecord(rec)}
+                                >
                                     <td className="px-6 py-4">
                                         <div className="font-medium text-foreground">{rec.arf.arfNumber || "Pending Ref"}</div>
                                         <div className="text-xs text-muted-foreground mt-1">
@@ -344,6 +349,120 @@ export const ExpenseAuditorPage = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Detail Modal */}
+            {selectedRecord && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+                    <div className="bg-card w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-xl border border-border/50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-border/50 bg-muted/20">
+                            <div>
+                                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                                    Reconciliation Details
+                                </h2>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    ARF Number: <span className="font-semibold text-foreground">{selectedRecord.arf.arfNumber || "Pending"}</span>
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setSelectedRecord(null)}
+                                className="p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                            
+                            {/* ARF Info Section */}
+                            <section>
+                                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 border-b border-border/50 pb-2">Amount Request Form Details</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-muted/10 p-4 rounded-xl border border-border/50">
+                                        <p className="text-xs text-muted-foreground mb-1">Entity / Location</p>
+                                        <p className="font-medium text-sm">{selectedRecord.arf.siteName || selectedRecord.arf.customSiteName || selectedRecord.arf.officeName || "N/A"}</p>
+                                    </div>
+                                    <div className="bg-muted/10 p-4 rounded-xl border border-border/50">
+                                        <p className="text-xs text-muted-foreground mb-1">Employee</p>
+                                        <p className="font-medium text-sm">{selectedRecord.arf.employeeName} ({selectedRecord.arf.employeeEmail})</p>
+                                    </div>
+                                    <div className="bg-muted/10 p-4 rounded-xl border border-border/50">
+                                        <p className="text-xs text-muted-foreground mb-1">Purpose of Advance</p>
+                                        <p className="font-medium text-sm">{selectedRecord.arf.purposeOfAdvance || "N/A"}</p>
+                                    </div>
+                                    <div className="bg-muted/10 p-4 rounded-xl border border-border/50">
+                                        <p className="text-xs text-muted-foreground mb-1">Released Amount</p>
+                                        <p className="font-bold text-blue-600 text-lg">
+                                            {(selectedRecord.arf.accountsReleasedAmount || selectedRecord.arf.advanceRequested || 0).toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Expenses Section */}
+                            <section>
+                                <div className="flex items-center justify-between mb-4 border-b border-border/50 pb-2">
+                                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Connected Expenses</h3>
+                                    <span className="text-sm font-bold text-purple-600 bg-purple-500/10 px-3 py-1 rounded-full">
+                                        Total: {selectedRecord.expenses.reduce((s, e) => s + e.totalExpenseAmount, 0).toLocaleString()}
+                                    </span>
+                                </div>
+                                
+                                {selectedRecord.expenses.length > 0 ? (
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {selectedRecord.expenses.map((expense, idx) => (
+                                            <div key={idx} className="bg-muted/10 p-4 rounded-xl border border-border/50 flex flex-col md:flex-row justify-between gap-4">
+                                                <div>
+                                                    <p className="font-semibold text-sm mb-1">Expense ID: {expense.id}</p>
+                                                    <p className="text-xs text-muted-foreground">Created by: {expense.createdByEmail}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-xs text-muted-foreground mb-1">Total Expense</p>
+                                                    <p className="font-bold text-foreground text-base">
+                                                        {expense.totalExpenseAmount.toLocaleString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 bg-muted/10 rounded-xl border border-border/50 border-dashed">
+                                        <p className="text-sm text-muted-foreground">No expenses have been connected to this ARF yet.</p>
+                                    </div>
+                                )}
+                            </section>
+
+                            {/* Variance Summary */}
+                            <section className={`p-5 rounded-xl border flex items-center justify-between ${
+                                selectedRecord.status === "Balanced" ? "bg-emerald-500/10 border-emerald-500/20" :
+                                selectedRecord.status === "Unaccounted Funds" ? "bg-amber-500/10 border-amber-500/20" :
+                                "bg-rose-500/10 border-rose-500/20"
+                            }`}>
+                                <div>
+                                    <h4 className={`font-bold ${
+                                        selectedRecord.status === "Balanced" ? "text-emerald-700" :
+                                        selectedRecord.status === "Unaccounted Funds" ? "text-amber-700" :
+                                        "text-rose-700"
+                                    }`}>{selectedRecord.status}</h4>
+                                    <p className="text-sm mt-1 opacity-80">{selectedRecord.resolution}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs font-semibold uppercase tracking-wider opacity-70 mb-1">Net Variance</p>
+                                    <p className={`text-2xl font-black ${
+                                        selectedRecord.variance > 0 ? "text-amber-600" :
+                                        selectedRecord.variance < 0 ? "text-rose-600" :
+                                        "text-emerald-600"
+                                    }`}>
+                                        {selectedRecord.variance > 0 ? "+" : ""}{selectedRecord.variance.toLocaleString()}
+                                    </p>
+                                </div>
+                            </section>
+
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
