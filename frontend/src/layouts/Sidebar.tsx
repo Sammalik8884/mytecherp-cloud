@@ -4,7 +4,7 @@ import {
     Home, Users, MapPin, Briefcase, LogOut, FileText, FolderTree, Package, Receipt,
     Building2,
     ShieldAlert, X, Box, Wrench, DollarSign, FileSignature, ShoppingCart, ClipboardList,
-    Activity, RefreshCw, CreditCard, Lock, Target, Car, Wallet
+    Activity, RefreshCw, CreditCard, Lock, Target, Car, Wallet, Calculator
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { PlanFeature } from "../types/auth";
@@ -73,6 +73,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
 
     { label: "Accounts Module", isHeader: true, allowedRoles: ["Admin", "Accounts Head", "Manager"] },
     { label: "ARF Dashboard", href: "/accounts/arf-dashboard", icon: Wallet, allowedRoles: ["Admin", "Accounts Head", "Manager"] },
+    { label: "Expense Auditor", href: "/accounts/expense-auditor", icon: Calculator, allowedRoles: ["Admin", "Accounts Head", "Manager"] },
 
     { label: "System", isHeader: true, allowedRoles: ["Admin", "Manager"] },
     { label: "Audit Logs", href: "/audit-logs", icon: Activity, allowedRoles: ["Admin", "Manager"], requiredFeature: PlanFeature.AuditLogs },

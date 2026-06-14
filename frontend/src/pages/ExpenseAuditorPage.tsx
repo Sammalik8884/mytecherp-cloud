@@ -1,0 +1,349 @@
+import { useState, useEffect, useMemo } from "react";
+import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
+import { expenseApi, ExpenseDto } from "../api/expenseApi";
+import { officeApi } from "../api/officeApi";
+import { siteService } from "../services/siteService";
+import { authService } from "../services/authService";
+import { SearchableSelect } from "../components/common/SearchableSelect";
+import { Download, Calculator, AlertTriangle, CheckCircle2, Info, Wallet } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { toast } from "react-hot-toast";
+
+interface AuditRecord {
+    arf: AmountRequestFormDto;
+    expenses: ExpenseDto[];
+    variance: number;
+    status: "Balanced" | "Unaccounted Funds" | "Overspent";
+    resolution: string;
+}
+
+export const ExpenseAuditorPage = () => {
+    const [allArfs, setAllArfs] = useState<AmountRequestFormDto[]>([]);
+    const [allExpenses, setAllExpenses] = useState<ExpenseDto[]>([]);
+    
+    // Entity Lists
+    const [allOffices, setAllOffices] = useState<string[]>([]);
+    const [allSites, setAllSites] = useState<string[]>([]);
+    const [allEmployees, setAllEmployees] = useState<string[]>([]);
+
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Filters
+    const [section, setSection] = useState<"offices" | "sites" | "employees">("offices");
+    const [selectedEntity, setSelectedEntity] = useState<string>("");
+    const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            setIsLoading(true);
+            const [historyRes, expensesRes, officesRes, sitesRes, usersRes] = await Promise.all([
+                amountRequestApi.getHistoryForAccounts(), // Fetches all completed/released ARFs
+                expenseApi.getAll(),
+                officeApi.getAll(),
+                siteService.getAll(),
+                authService.getUsers()
+            ]);
+            setAllArfs(historyRes.data);
+            setAllExpenses(expensesRes);
+            
+            setAllOffices(officesRes.map(o => o.name));
+            setAllSites(sitesRes.map(s => s.name));
+            setAllEmployees(usersRes.map(u => u.fullName || u.email));
+        } catch (error) {
+            console.error("Error fetching auditor data", error);
+            toast.error("Failed to load auditor data");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const getUniqueEntities = () => {
+        if (section === "offices") return allOffices;
+        if (section === "sites") return allSites;
+        return allEmployees;
+    };
+
+    // Calculate Audit Report
+    const auditReport = useMemo(() => {
+        // 1. Filter ARFs by Entity & Date
+        let filteredArfs = allArfs;
+
+        if (selectedEntity) {
+            if (section === "offices") {
+                filteredArfs = filteredArfs.filter(f => f.officeName === selectedEntity);
+            } else if (section === "sites") {
+                filteredArfs = filteredArfs.filter(f => (f.siteName || f.customSiteName) === selectedEntity);
+            } else if (section === "employees") {
+                filteredArfs = filteredArfs.filter(f => f.employeeName === selectedEntity);
+            }
+        }
+
+        if (dateRange.start) {
+            filteredArfs = filteredArfs.filter(f => new Date(f.createdAt) >= new Date(dateRange.start));
+        }
+        if (dateRange.end) {
+            const endDate = new Date(dateRange.end);
+            endDate.setHours(23, 59, 59, 999);
+            filteredArfs = filteredArfs.filter(f => new Date(f.createdAt) <= endDate);
+        }
+
+        // 2. Map ARFs to Expenses
+        const records: AuditRecord[] = filteredArfs.map(arf => {
+            const connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id);
+            const totalExpenseAmount = connectedExpenses.reduce((sum, e) => sum + e.totalExpenseAmount, 0);
+            
+            // Use the released amount by default, fallback to requested if not released yet
+            const releasedAmount = arf.accountsReleasedAmount || arf.advanceRequested || 0;
+            
+            const variance = releasedAmount - totalExpenseAmount;
+            
+            let status: AuditRecord["status"] = "Balanced";
+            let resolution = "No action needed.";
+
+            if (variance > 0) {
+                status = "Unaccounted Funds";
+                resolution = "Submit missing expenses or refund excess amount.";
+            } else if (variance < 0) {
+                status = "Overspent";
+                resolution = "Generate a new ARF to claim out-of-pocket expenses.";
+            }
+
+            return {
+                arf,
+                expenses: connectedExpenses,
+                variance,
+                status,
+                resolution
+            };
+        });
+
+        return records;
+    }, [allArfs, allExpenses, section, selectedEntity, dateRange]);
+
+    const overallTotalReleased = auditReport.reduce((sum, rec) => sum + (rec.arf.accountsReleasedAmount || rec.arf.advanceRequested || 0), 0);
+    const overallTotalExpense = auditReport.reduce((sum, rec) => sum + rec.expenses.reduce((s, e) => s + e.totalExpenseAmount, 0), 0);
+    const overallVariance = overallTotalReleased - overallTotalExpense;
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text(`Expense Audit Report - ${section.toUpperCase()}`, 14, 22);
+        
+        doc.setFontSize(12);
+        doc.text(`Entity: ${selectedEntity || "All"}`, 14, 32);
+        if (dateRange.start || dateRange.end) {
+            doc.text(`Date Range: ${dateRange.start || "Any"} to ${dateRange.end || "Any"}`, 14, 40);
+        }
+        
+        doc.text(`Total Released: ${overallTotalReleased.toLocaleString()}`, 14, 50);
+        doc.text(`Total Expenses: ${overallTotalExpense.toLocaleString()}`, 14, 56);
+        doc.text(`Net Variance: ${overallVariance.toLocaleString()}`, 14, 62);
+        
+        const tableColumn = ["ARF Number", "Entity", "Released Amt", "Expense Amt", "Variance", "Status"];
+        const tableRows: any[] = [];
+
+        auditReport.forEach(rec => {
+            const entityName = rec.arf.siteName || rec.arf.customSiteName || rec.arf.officeName || "N/A";
+            const rowData = [
+                rec.arf.arfNumber || "N/A",
+                entityName,
+                (rec.arf.accountsReleasedAmount || rec.arf.advanceRequested || 0).toLocaleString(),
+                rec.expenses.reduce((s, e) => s + e.totalExpenseAmount, 0).toLocaleString(),
+                rec.variance.toLocaleString(),
+                rec.status
+            ];
+            tableRows.push(rowData);
+        });
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 70,
+            theme: 'grid',
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [41, 128, 185] },
+        });
+
+        doc.save(`Expense_Audit_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
+    if (isLoading) {
+        return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading Auditor Data...</div>;
+    }
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border/50 shadow-sm">
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                        <Calculator className="w-7 h-7 text-primary" />
+                        Expense Auditor
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">Reconcile Released ARFs against Submitted Expenses.</p>
+                </div>
+                <button
+                    onClick={generatePDF}
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl transition-colors font-medium whitespace-nowrap"
+                >
+                    <Download className="w-4 h-4" />
+                    Export Audit PDF
+                </button>
+            </div>
+
+            {/* Filters */}
+            <div className="bg-card p-6 rounded-2xl border border-border/50 shadow-sm">
+                <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex-1 space-y-4">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Audit Scope</h3>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {["offices", "sites", "employees"].map(sec => (
+                                <button
+                                    key={sec}
+                                    onClick={() => { setSection(sec as any); setSelectedEntity(""); }}
+                                    className={`px-5 py-2 text-sm rounded-lg border font-medium transition-colors ${
+                                        section === sec ? "border-primary bg-primary/10 text-primary shadow-sm" : "border-border/50 hover:bg-muted/30 text-foreground"
+                                    }`}
+                                >
+                                    {sec.charAt(0).toUpperCase() + sec.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Search & Select {section.charAt(0).toUpperCase() + section.slice(1).slice(0, -1)}</label>
+                            <SearchableSelect
+                                options={getUniqueEntities()}
+                                value={selectedEntity}
+                                onChange={(val) => setSelectedEntity(val)}
+                                placeholder={`Search ${section}...`}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex-1 space-y-4">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Date Range</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Start Date</label>
+                                <input 
+                                    type="date" 
+                                    value={dateRange.start}
+                                    onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                                    className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-2">End Date</label>
+                                <input 
+                                    type="date" 
+                                    value={dateRange.end}
+                                    onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                                    className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-card p-6 rounded-2xl border border-border/50 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Total ARF Released</p>
+                        <h3 className="text-3xl font-bold text-foreground">{overallTotalReleased.toLocaleString()}</h3>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
+                        <Wallet className="w-6 h-6 text-blue-500" />
+                    </div>
+                </div>
+                <div className="bg-card p-6 rounded-2xl border border-border/50 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Total Expensed</p>
+                        <h3 className="text-3xl font-bold text-foreground">{overallTotalExpense.toLocaleString()}</h3>
+                    </div>
+                    <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center">
+                        <Calculator className="w-6 h-6 text-purple-500" />
+                    </div>
+                </div>
+                <div className={`bg-card p-6 rounded-2xl border shadow-sm flex items-center justify-between ${overallVariance > 0 ? "border-amber-500/50" : overallVariance < 0 ? "border-rose-500/50" : "border-emerald-500/50"}`}>
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">Net Variance</p>
+                        <h3 className={`text-3xl font-bold ${overallVariance > 0 ? "text-amber-500" : overallVariance < 0 ? "text-rose-500" : "text-emerald-500"}`}>
+                            {overallVariance > 0 ? "+" : ""}{overallVariance.toLocaleString()}
+                        </h3>
+                    </div>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${overallVariance > 0 ? "bg-amber-500/10" : overallVariance < 0 ? "bg-rose-500/10" : "bg-emerald-500/10"}`}>
+                        {overallVariance === 0 ? <CheckCircle2 className="w-6 h-6 text-emerald-500" /> : <AlertTriangle className={`w-6 h-6 ${overallVariance > 0 ? "text-amber-500" : "text-rose-500"}`} />}
+                    </div>
+                </div>
+            </div>
+
+            {/* Audit Table */}
+            <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                            <tr>
+                                <th className="px-6 py-4 font-semibold">ARF Info</th>
+                                <th className="px-6 py-4 font-semibold text-right">Released Amount</th>
+                                <th className="px-6 py-4 font-semibold text-right">Total Expense</th>
+                                <th className="px-6 py-4 font-semibold text-right">Variance</th>
+                                <th className="px-6 py-4 font-semibold">Status & Resolution</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/50">
+                            {auditReport.map((rec, idx) => (
+                                <tr key={idx} className="hover:bg-muted/20 transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="font-medium text-foreground">{rec.arf.arfNumber || "Pending Ref"}</div>
+                                        <div className="text-xs text-muted-foreground mt-1">
+                                            {rec.arf.siteName || rec.arf.customSiteName || rec.arf.officeName || "N/A"}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-right font-medium text-blue-600">
+                                        {(rec.arf.accountsReleasedAmount || rec.arf.advanceRequested || 0).toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 text-right font-medium text-purple-600">
+                                        {rec.expenses.reduce((s, e) => s + e.totalExpenseAmount, 0).toLocaleString()}
+                                    </td>
+                                    <td className={`px-6 py-4 text-right font-bold ${rec.variance > 0 ? "text-amber-500" : rec.variance < 0 ? "text-rose-500" : "text-emerald-500"}`}>
+                                        {rec.variance > 0 ? "+" : ""}{rec.variance.toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                                            rec.status === "Balanced" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                                            rec.status === "Unaccounted Funds" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" :
+                                            "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                                        }`}>
+                                            {rec.status === "Balanced" ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                                            {rec.status}
+                                        </div>
+                                        {rec.status !== "Balanced" && (
+                                            <div className="text-xs text-muted-foreground mt-2 flex items-start gap-1">
+                                                <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                                                <span className="max-w-[200px] leading-snug">{rec.resolution}</span>
+                                            </div>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                            {auditReport.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                                        No ARFs found for the selected criteria.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};
