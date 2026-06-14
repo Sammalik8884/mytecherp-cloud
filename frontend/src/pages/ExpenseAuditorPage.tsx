@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 import { officeApi } from "../api/officeApi";
@@ -351,8 +352,8 @@ export const ExpenseAuditorPage = () => {
             </div>
 
             {/* Detail Modal */}
-            {selectedRecord && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+            {selectedRecord && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
                     <div className="bg-card w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-xl border border-border/50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-border/50 bg-muted/20">
@@ -462,7 +463,7 @@ export const ExpenseAuditorPage = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            , document.body)}
         </div>
     );
 };
