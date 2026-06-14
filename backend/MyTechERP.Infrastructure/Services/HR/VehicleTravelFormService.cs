@@ -47,7 +47,7 @@ namespace MyTechERP.Infrastructure.Services.HR
             {
                 foreach (var file in dto.Attachments)
                 {
-                    var fileUrl = await _blobService.UploadFileAsync(file, "vehicle-travel-forms");
+                    var fileUrl = await _blobService.UploadAsync(file, "vehicle-travel-forms/" + Guid.NewGuid() + "_" + file.FileName);
                     entity.Attachments.Add(new VehicleTravelFormAttachment
                     {
                         FileName = file.FileName,
