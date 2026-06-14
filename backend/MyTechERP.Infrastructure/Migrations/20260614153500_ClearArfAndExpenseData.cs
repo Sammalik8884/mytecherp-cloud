@@ -12,15 +12,7 @@ namespace MyTechERP.Infrastructure.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Delete dependent records first to avoid foreign key constraint violations
-            migrationBuilder.Sql("DELETE FROM ExpenseItems;");
-            migrationBuilder.Sql("DELETE FROM AmountRequestPayments;");
-            
-            // Expenses depends on AmountRequestForms
-            migrationBuilder.Sql("DELETE FROM Expenses;");
-            
-            // Finally delete AmountRequestForms
-            migrationBuilder.Sql("DELETE FROM AmountRequestForms;");
+            // Data has already been cleared. This script has been emptied to ensure no future data is accidentally deleted.
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
