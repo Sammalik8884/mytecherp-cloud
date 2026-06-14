@@ -192,7 +192,7 @@ export const VehicleTravelFormsPage: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500">Date</p>
-                                                <p className="mt-1 text-base text-gray-900">{new Date(selectedForm.currentDate).toLocaleDateString()}</p>
+                                                <p className="mt-1 text-base text-gray-900">{selectedForm.currentDate ? new Date(selectedForm.currentDate).toLocaleDateString() : 'N/A'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500">Vehicle</p>
@@ -209,15 +209,15 @@ export const VehicleTravelFormsPage: React.FC = () => {
                                             <div className="grid grid-cols-3 gap-4 text-center">
                                                 <div className="bg-white p-4 rounded-lg shadow-sm border border-indigo-50">
                                                     <p className="text-xs font-medium text-gray-500 mb-1">Start Reading</p>
-                                                    <p className="text-lg font-mono font-semibold text-gray-900">{selectedForm.startReading.toLocaleString()}</p>
+                                                    <p className="text-lg font-mono font-semibold text-gray-900">{selectedForm.startReading?.toLocaleString() ?? '0'}</p>
                                                 </div>
                                                 <div className="bg-white p-4 rounded-lg shadow-sm border border-indigo-50">
                                                     <p className="text-xs font-medium text-gray-500 mb-1">End Reading</p>
-                                                    <p className="text-lg font-mono font-semibold text-gray-900">{selectedForm.endReading.toLocaleString()}</p>
+                                                    <p className="text-lg font-mono font-semibold text-gray-900">{selectedForm.endReading?.toLocaleString() ?? '0'}</p>
                                                 </div>
                                                 <div className="bg-indigo-600 p-4 rounded-lg shadow-sm">
                                                     <p className="text-xs font-medium text-indigo-100 mb-1">Distance (km)</p>
-                                                    <p className="text-lg font-bold text-white">{(selectedForm.endReading - selectedForm.startReading).toFixed(2)}</p>
+                                                    <p className="text-lg font-bold text-white">{((selectedForm.endReading || 0) - (selectedForm.startReading || 0)).toFixed(2)}</p>
                                                 </div>
                                             </div>
                                         </div>
