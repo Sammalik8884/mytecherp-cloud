@@ -4,6 +4,9 @@ import { Download, Wallet, XCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { officeApi } from "../api/officeApi";
+import { siteService } from "../services/siteService";
+import { authService } from "../services/authService";
 
 const AccountsArfDashboardPage = () => {
     const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
@@ -19,6 +22,11 @@ const AccountsArfDashboardPage = () => {
     const [selectedEntity, setSelectedEntity] = useState<string>("");
     const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
 
+    // Entity Lists
+    const [allOffices, setAllOffices] = useState<string[]>([]);
+    const [allSites, setAllSites] = useState<string[]>([]);
+    const [allEmployees, setAllEmployees] = useState<string[]>([]);
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -26,12 +34,18 @@ const AccountsArfDashboardPage = () => {
     const fetchData = async () => {
         try {
             setIsLoading(true);
-            const [pendingRes, historyRes] = await Promise.all([
+            const [pendingRes, historyRes, officesRes, sitesRes, usersRes] = await Promise.all([
                 amountRequestApi.getPendingForAccounts(),
-                amountRequestApi.getHistoryForAccounts()
+                amountRequestApi.getHistoryForAccounts(),
+                officeApi.getAll(),
+                siteService.getAll(),
+                authService.getUsers()
             ]);
             setPendingForms(pendingRes.data);
             setHistoryForms(historyRes.data);
+            setAllOffices(officesRes.map(o => o.name));
+            setAllSites(sitesRes.map(s => s.name));
+            setAllEmployees(usersRes.map(u => u.fullName || u.email));
         } catch (error) {
             console.error("Error fetching ARFs for accounts", error);
             toast.error("Failed to load data");
@@ -93,14 +107,11 @@ const AccountsArfDashboardPage = () => {
     // Filter History
     const getUniqueEntities = () => {
         if (historySection === "offices") {
-            const offices = historyForms.map(f => f.officeName).filter(Boolean) as string[];
-            return Array.from(new Set(offices));
+            return allOffices;
         } else if (historySection === "sites") {
-            const sites = historyForms.map(f => f.siteName || f.customSiteName).filter(Boolean) as string[];
-            return Array.from(new Set(sites));
+            return allSites;
         } else {
-            const employees = historyForms.map(f => f.employeeName).filter(Boolean) as string[];
-            return Array.from(new Set(employees));
+            return allEmployees;
         }
     };
 
@@ -274,20 +285,17 @@ const AccountsArfDashboardPage = () => {
                                 </div>
                                 
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Search & Select {historySection.charAt(0).toUpperCase() + historySection.slice(1).slice(0, -1)}</label>
-                                    <input 
-                                        list="entities-list"
-                                        placeholder={`Search ${historySection}...`}
+                                    <label className="block text-sm font-medium mb-2">Select {historySection.charAt(0).toUpperCase() + historySection.slice(1).slice(0, -1)}</label>
+                                    <select 
                                         value={selectedEntity} 
                                         onChange={(e) => setSelectedEntity(e.target.value)}
                                         className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none"
-                                    />
-                                    <datalist id="entities-list">
+                                    >
                                         <option value="">All</option>
                                         {getUniqueEntities().map(ent => (
                                             <option key={ent} value={ent}>{ent}</option>
                                         ))}
-                                    </datalist>
+                                    </select>
                                 </div>
                             </div>
                             <div className="flex-1 space-y-4">
