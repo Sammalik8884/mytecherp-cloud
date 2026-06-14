@@ -42,6 +42,7 @@ import { SubscriptionPlansPage } from "./pages/SubscriptionPlansPage";
 import { SubscriptionSuccessPage } from "./pages/SubscriptionSuccessPage";
 import { SubscriptionCancelPage } from "./pages/SubscriptionCancelPage";
 import AmountRequestFormPage from "./pages/AmountRequestFormPage";
+import AccountsArfDashboardPage from "./pages/AccountsArfDashboardPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ProjectDetailsPage } from "./pages/ProjectDetailsPage";
 import { OfficesListPage } from "./pages/OfficesListPage";
@@ -151,6 +152,9 @@ function App() {
                             </Route>
 
                             <Route path="/amount-request" element={<AmountRequestFormPage />} />
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Accounts Head"]} />}>
+                                <Route path="/accounts/arf-dashboard" element={<AccountsArfDashboardPage />} />
+                            </Route>
                             
                             <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Salesman", "Estimation", "Accounts Head", "Technician", "Worker"]} />}>
                                 <Route path="/projects" element={<ProjectsPage />} />

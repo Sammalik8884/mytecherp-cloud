@@ -42,6 +42,8 @@ export interface AmountRequestFormDto {
 
 export const amountRequestApi = {
   getAll: () => api.get<AmountRequestFormDto[]>("/AmountRequestForms"),
+  getPendingForAccounts: () => api.get<AmountRequestFormDto[]>("/AmountRequestForms/accounts/pending"),
+  getHistoryForAccounts: () => api.get<AmountRequestFormDto[]>("/AmountRequestForms/accounts/history"),
   getById: (id: number) => api.get<AmountRequestFormDto>(`/AmountRequestForms/${id}`),
   create: (data: Partial<AmountRequestFormDto>) => api.post<AmountRequestFormDto>("/AmountRequestForms", data),
   approve: (id: number, data: { approverRole: string; approverName: string; comment: string; isApproved: boolean }) =>

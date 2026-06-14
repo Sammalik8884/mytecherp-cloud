@@ -26,6 +26,22 @@ namespace MytechERP.API.Controllers
             return Ok(forms);
         }
 
+        [HttpGet("accounts/pending")]
+        [Authorize(Roles = "Admin,Accounts Head,Manager")]
+        public async Task<ActionResult<List<AmountRequestFormDto>>> GetPendingForAccounts()
+        {
+            var forms = await _service.GetPendingForAccountsAsync();
+            return Ok(forms);
+        }
+
+        [HttpGet("accounts/history")]
+        [Authorize(Roles = "Admin,Accounts Head,Manager")]
+        public async Task<ActionResult<List<AmountRequestFormDto>>> GetHistoryForAccounts()
+        {
+            var forms = await _service.GetHistoryForAccountsAsync();
+            return Ok(forms);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<AmountRequestFormDto>> GetById(int id)
         {

@@ -154,10 +154,42 @@ namespace MyTechERP.Infrastructure.Services
                 .Include(a => a.Payments)
                 .AsQueryable();
 
-            if (role != "Admin" && role != "Manager" && role != "Accounts Head" && email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com")
+            if (role != "Admin" && role != "Manager" && email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com")
             {
                 query = query.Where(a => a.EmployeeEmail.ToLower() == email);
             }
+
+            var entities = await query
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            return entities.Select(MapToDto).ToList();
+        }
+
+        public async Task<List<AmountRequestFormDto>> GetPendingForAccountsAsync()
+        {
+            var query = _context.AmountRequestForms
+                .Include(a => a.Site)
+                .Include(a => a.Office)
+                .Include(a => a.Payments)
+                .Where(a => a.Status.Contains("Approved") || (a.Status.Contains("Released") && !a.Status.Contains("Fully")))
+                .AsQueryable();
+
+            var entities = await query
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            return entities.Select(MapToDto).ToList();
+        }
+
+        public async Task<List<AmountRequestFormDto>> GetHistoryForAccountsAsync()
+        {
+            var query = _context.AmountRequestForms
+                .Include(a => a.Site)
+                .Include(a => a.Office)
+                .Include(a => a.Payments)
+                .Where(a => a.Status.Contains("Released"))
+                .AsQueryable();
 
             var entities = await query
                 .OrderByDescending(a => a.CreatedAt)
