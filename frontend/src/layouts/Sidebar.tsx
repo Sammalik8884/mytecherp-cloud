@@ -21,6 +21,7 @@ type SidebarItem = {
     icon?: any;
     paths?: string[];
     allowedRoles?: string[];
+    allowedEmails?: string[];
     isHeader?: boolean;
     requiredFeature?: PlanFeature;
     isDropdown?: boolean;
@@ -73,7 +74,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
 
     { label: "Accounts Module", isHeader: true, allowedRoles: ["Admin", "Accounts Head", "Manager"] },
     { label: "ARF Dashboard", href: "/accounts/arf-dashboard", icon: Wallet, allowedRoles: ["Admin", "Accounts Head", "Manager"] },
-    { label: "Expense Auditor", href: "/accounts/expense-auditor", icon: Calculator, allowedRoles: ["Admin", "Accounts Head", "Manager"] },
+    { label: "Expense Auditor", href: "/accounts/expense-auditor", icon: Calculator, allowedRoles: ["Admin", "Accounts Head", "Manager"], allowedEmails: ["munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"] },
 
     { label: "System", isHeader: true, allowedRoles: ["Admin", "Manager"] },
     { label: "Audit Logs", href: "/audit-logs", icon: Activity, allowedRoles: ["Admin", "Manager"], requiredFeature: PlanFeature.AuditLogs },
@@ -116,7 +117,10 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             <nav className="flex-1 px-2 py-3 space-y-0.5 relative overflow-y-auto custom-scrollbar">
 
                 {SIDEBAR_ITEMS.map((item, index) => {
-                    if (item.allowedRoles && !hasRole(item.allowedRoles)) {
+                    const isRoleAllowed = !item.allowedRoles || hasRole(item.allowedRoles);
+                    const isEmailAllowed = item.allowedEmails && user?.email && item.allowedEmails.includes(user.email.toLowerCase());
+
+                    if (!isRoleAllowed && !isEmailAllowed) {
                         return null;
                     }
 

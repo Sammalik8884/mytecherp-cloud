@@ -155,6 +155,8 @@ function App() {
                             <Route path="/amount-request" element={<AmountRequestFormPage />} />
                             <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Accounts Head"]} />}>
                                 <Route path="/accounts/arf-dashboard" element={<AccountsArfDashboardPage />} />
+                            </Route>
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Accounts Head"]} allowedEmails={["munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"]} />}>
                                 <Route path="/accounts/expense-auditor" element={<ExpenseAuditorPage />} />
                             </Route>
                             
