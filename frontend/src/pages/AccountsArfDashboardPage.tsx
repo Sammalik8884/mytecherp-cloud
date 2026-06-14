@@ -7,6 +7,7 @@ import autoTable from "jspdf-autotable";
 import { officeApi } from "../api/officeApi";
 import { siteService } from "../services/siteService";
 import { authService } from "../services/authService";
+import { SearchableSelect } from "../components/common/SearchableSelect";
 
 const AccountsArfDashboardPage = () => {
     const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
@@ -285,17 +286,13 @@ const AccountsArfDashboardPage = () => {
                                 </div>
                                 
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Select {historySection.charAt(0).toUpperCase() + historySection.slice(1).slice(0, -1)}</label>
-                                    <select 
-                                        value={selectedEntity} 
-                                        onChange={(e) => setSelectedEntity(e.target.value)}
-                                        className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none"
-                                    >
-                                        <option value="">All</option>
-                                        {getUniqueEntities().map(ent => (
-                                            <option key={ent} value={ent}>{ent}</option>
-                                        ))}
-                                    </select>
+                                    <label className="block text-sm font-medium mb-2">Search & Select {historySection.charAt(0).toUpperCase() + historySection.slice(1).slice(0, -1)}</label>
+                                    <SearchableSelect
+                                        options={getUniqueEntities()}
+                                        value={selectedEntity}
+                                        onChange={(val) => setSelectedEntity(val)}
+                                        placeholder={`Search ${historySection}...`}
+                                    />
                                 </div>
                             </div>
                             <div className="flex-1 space-y-4">
