@@ -172,7 +172,7 @@ namespace MyTechERP.Infrastructure.Services
                 .Include(a => a.Site)
                 .Include(a => a.Office)
                 .Include(a => a.Payments)
-                .Where(a => a.Status.Contains("Approved") || (a.Status.Contains("Released") && !a.Status.Contains("Fully")))
+                .Where(a => a.Status.Contains("Approved"))
                 .AsQueryable();
 
             var entities = await query

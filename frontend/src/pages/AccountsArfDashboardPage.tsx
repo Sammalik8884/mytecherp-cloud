@@ -258,14 +258,14 @@ const AccountsArfDashboardPage = () => {
                     <div className="bg-card border border-border/50 rounded-2xl shadow-sm p-6">
                         <div className="flex flex-col md:flex-row gap-6 mb-6">
                             <div className="flex-1 space-y-4">
-                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Report Type</h3>
-                                <div className="flex space-x-2">
+                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Report Type</h3>
+                                <div className="flex flex-wrap gap-2 mb-4">
                                     {["offices", "sites", "employees"].map(sec => (
                                         <button
                                             key={sec}
                                             onClick={() => { setHistorySection(sec as any); setSelectedEntity(""); }}
-                                            className={`px-4 py-2 text-sm rounded-lg border font-medium transition-colors ${
-                                                historySection === sec ? "border-primary bg-primary/10 text-primary" : "border-border/50 hover:bg-muted/30 text-foreground"
+                                            className={`px-5 py-2 text-sm rounded-lg border font-medium transition-colors ${
+                                                historySection === sec ? "border-primary bg-primary/10 text-primary shadow-sm" : "border-border/50 hover:bg-muted/30 text-foreground"
                                             }`}
                                         >
                                             {sec.charAt(0).toUpperCase() + sec.slice(1)}
@@ -274,17 +274,20 @@ const AccountsArfDashboardPage = () => {
                                 </div>
                                 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 mt-4">Select {historySection.charAt(0).toUpperCase() + historySection.slice(1).slice(0, -1)}</label>
-                                    <select 
+                                    <label className="block text-sm font-medium mb-2">Search & Select {historySection.charAt(0).toUpperCase() + historySection.slice(1).slice(0, -1)}</label>
+                                    <input 
+                                        list="entities-list"
+                                        placeholder={`Search ${historySection}...`}
                                         value={selectedEntity} 
                                         onChange={(e) => setSelectedEntity(e.target.value)}
                                         className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none"
-                                    >
+                                    />
+                                    <datalist id="entities-list">
                                         <option value="">All</option>
                                         {getUniqueEntities().map(ent => (
                                             <option key={ent} value={ent}>{ent}</option>
                                         ))}
-                                    </select>
+                                    </datalist>
                                 </div>
                             </div>
                             <div className="flex-1 space-y-4">
@@ -408,33 +411,72 @@ const AccountsArfDashboardPage = () => {
 
                                     <div className="lg:col-span-2 space-y-4">
                                         <div className="border border-border/50 rounded-xl overflow-hidden">
-                                            <div className="bg-muted/30 px-4 py-3 border-b border-border/50 font-semibold text-foreground">Released Payments Detail</div>
-                                            <div className="overflow-x-auto">
-                                                <table className="w-full text-left text-sm">
-                                                    <thead>
-                                                        <tr className="bg-muted/10 border-b border-border/50 text-muted-foreground"><th className="px-3 py-2">#</th><th className="px-3 py-2">Date</th><th className="px-3 py-2">Amount</th><th className="px-3 py-2">Received By</th><th className="px-3 py-2">Mode</th></tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {selectedForm.payments?.length === 0 ? (
-                                                            <tr><td colSpan={5} className="px-3 py-4 text-center text-muted-foreground italic">No payment details found</td></tr>
-                                                        ) : (
-                                                            selectedForm.payments?.map((p, i) => (
-                                                                <tr key={p.id} className="border-b border-border/50"><td className="px-3 py-2">{i + 1}</td><td className="px-3 py-2">{p.releasedDate ? new Date(p.releasedDate).toLocaleDateString() : '-'}</td><td className="px-3 py-2 font-medium">{p.releasedAmount.toLocaleString()}</td><td className="px-3 py-2">{p.receivedBy}</td><td className="px-3 py-2">{p.modeOfPayment}</td></tr>
-                                                            ))
-                                                        )}
-                                                    </tbody>
-                                                </table>
+                                            <div className="bg-muted/30 px-4 py-3 border-b border-border/50 font-semibold text-foreground flex justify-between items-center">
+                                                <span>Released Payments Detail</span>
+                                                <span className="text-xs font-normal text-muted-foreground">Total: {selectedForm.advanceRequested?.toLocaleString()}</span>
                                             </div>
+                                            
+                                            {/* Running Balance Summary */}
+                                            {(() => {
+                                                const totalPaid = selectedForm.payments?.reduce((sum, p) => sum + p.releasedAmount, 0) || 0;
+                                                const remaining = selectedForm.advanceRequested - totalPaid;
+                                                const progress = Math.min(100, Math.max(0, (totalPaid / selectedForm.advanceRequested) * 100)) || 0;
+                                                
+                                                return (
+                                                    <div>
+                                                        <div className="p-4 bg-muted/5 grid grid-cols-2 gap-4 border-b border-border/50 text-sm">
+                                                            <div>
+                                                                <span className="text-muted-foreground block text-xs">Total Paid So Far</span>
+                                                                <span className="font-semibold text-green-600">{totalPaid.toLocaleString()}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-muted-foreground block text-xs">Remaining Balance</span>
+                                                                <span className={`font-semibold ${remaining > 0 ? "text-amber-600" : "text-muted-foreground"}`}>{remaining.toLocaleString()}</span>
+                                                            </div>
+                                                            <div className="col-span-2">
+                                                                <div className="w-full bg-muted rounded-full h-1.5 mt-1 overflow-hidden">
+                                                                    <div className="bg-primary h-1.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="overflow-x-auto">
+                                                            <table className="w-full text-left text-sm">
+                                                                <thead>
+                                                                    <tr className="bg-muted/10 border-b border-border/50 text-muted-foreground"><th className="px-3 py-2">#</th><th className="px-3 py-2">Date</th><th className="px-3 py-2">Amount</th><th className="px-3 py-2">Received By</th><th className="px-3 py-2">Mode</th></tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {selectedForm.payments?.length === 0 ? (
+                                                                        <tr><td colSpan={5} className="px-3 py-4 text-center text-muted-foreground italic">No payment details found</td></tr>
+                                                                    ) : (
+                                                                        selectedForm.payments?.map((p, i) => (
+                                                                            <tr key={p.id} className="border-b border-border/50"><td className="px-3 py-2">{i + 1}</td><td className="px-3 py-2">{p.releasedDate ? new Date(p.releasedDate).toLocaleDateString() : '-'}</td><td className="px-3 py-2 font-medium">{p.releasedAmount.toLocaleString()}</td><td className="px-3 py-2">{p.receivedBy}</td><td className="px-3 py-2">{p.modeOfPayment}</td></tr>
+                                                                        ))
+                                                                    )}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+
+                                                        {(activeTab === "pending" || activeTab === "completed") && remaining > 0 && (
+                                                            <form onSubmit={handleAddPayment} className="border-t border-border/50 p-4 bg-muted/5 flex flex-wrap gap-4 items-end">
+                                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Date</label><input name="paymentDate" type="date" required className="w-full p-2 text-sm rounded border border-input bg-background" /></div>
+                                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Amount</label><input name="paymentAmount" type="number" max={remaining} defaultValue={remaining} required className="w-full p-2 text-sm rounded border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none" /></div>
+                                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Received By</label><input name="receivedBy" type="text" required className="w-full p-2 text-sm rounded border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none" /></div>
+                                                                <div className="flex-1 min-w-[120px]">
+                                                                    <label className="block text-xs text-muted-foreground mb-1">Mode</label>
+                                                                    <select name="modeOfPayment" required className="w-full p-2 text-sm rounded border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none">
+                                                                        <option value="Transfer">Bank Transfer</option>
+                                                                        <option value="Cash">Cash</option>
+                                                                        <option value="Check">Check</option>
+                                                                    </select>
+                                                                </div>
+                                                                <button type="submit" className="bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">Add Payment</button>
+                                                            </form>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
-                                        {activeTab === "pending" && (
-                                            <form onSubmit={handleAddPayment} className="border border-border/50 rounded-xl p-4 bg-muted/5 flex flex-wrap gap-4 items-end">
-                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Date</label><input name="paymentDate" type="date" required className="w-full p-2 text-sm rounded border border-input bg-background" /></div>
-                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Amount</label><input name="paymentAmount" type="number" required className="w-full p-2 text-sm rounded border border-input bg-background" /></div>
-                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Received By</label><input name="receivedBy" type="text" required className="w-full p-2 text-sm rounded border border-input bg-background" /></div>
-                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Mode</label><input name="modeOfPayment" type="text" required placeholder="Cash/Transfer" className="w-full p-2 text-sm rounded border border-input bg-background" /></div>
-                                                <button type="submit" className="bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">Add Payment</button>
-                                            </form>
-                                        )}
                                     </div>
                                 </div>
                             </div>
