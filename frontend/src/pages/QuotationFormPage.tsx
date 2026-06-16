@@ -13,6 +13,7 @@ import { CustomerDto } from "../types/customer";
 import { SiteDto } from "../types/site";
 import { ProductDto } from "../types/product";
 import { ProductSelectionModal } from "../components/common/ProductSelectionModal";
+import { AutoResizeTextarea } from "../components/common/AutoResizeTextarea";
 import { TermsAndConditionsSection } from "../components/TermsAndConditionsSection";
 
 /* ─── Unit options ─── */
@@ -637,7 +638,7 @@ export const QuotationFormPage = () => {
         
         if (isEditing) {
             return (
-                <textarea 
+                <AutoResizeTextarea 
                     rows={2}
                     className={inputCls + " resize-y"}
                     value={item.serviceName !== undefined ? item.serviceName : (item.product ? item.product.name : "")}
@@ -671,7 +672,7 @@ export const QuotationFormPage = () => {
     const renderImportedCard = (item: UiItem, idx: number) => (
         <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
             <div className="flex items-center w-full gap-1.5">
-                <textarea 
+                <AutoResizeTextarea 
                     rows={2}
                     className={inputCls + " flex-1 min-w-0 resize-y"} 
                     placeholder="Custom product name..."
@@ -772,7 +773,7 @@ export const QuotationFormPage = () => {
     const renderLocalCard = (item: UiItem, idx: number) => (
         <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
             <div className="flex items-center w-full gap-1.5">
-                <textarea 
+                <AutoResizeTextarea 
                     rows={2}
                     className={inputCls + " flex-1 min-w-0 resize-y"} 
                     placeholder="Custom product name..."
@@ -964,7 +965,7 @@ export const QuotationFormPage = () => {
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
                                               <div className="flex items-center w-full gap-1.5">
-                                                  <textarea 
+                                                  <AutoResizeTextarea 
                                                       rows={2}
                                                       data-row-index={idx}
                                                       className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm resize-y"} 
@@ -1103,7 +1104,7 @@ export const QuotationFormPage = () => {
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
                                               <div className="flex items-center w-full gap-1.5">
-                                                  <textarea 
+                                                  <AutoResizeTextarea 
                                                       rows={2}
                                                        data-row-index={idx}
                                                       className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm resize-y"} 
