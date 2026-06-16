@@ -556,6 +556,7 @@ namespace MyTechERP.Infrastructure.Services
                 ValidUntil = q.ValidUntil,
                 Status = q.Status.ToString(),
                 CreatedAt = q.CreatedAt,
+                UpdatedAt = q.UpdatedAt,
                 QuoteMode = q.QuoteMode,
                 SupplyColumnMode = q.SupplyColumnMode,
                 TermsAndConditionsJson = q.TermsAndConditionsJson,

@@ -162,7 +162,7 @@ namespace MyTechERP.Infrastructure.Services
                         }
 
                         MetaRow("Quotation #", quote.QuoteNumber, true);
-                        MetaRow("Date", quote.CreatedAt.ToString("dd-MMM-yyyy"));
+                        MetaRow("Date", quote.UpdatedAt.ToString("dd-MMM-yyyy"));
                         if (quote.RevisionNumber > 0)
                             MetaRow("Revision", $"R{quote.RevisionNumber}");
                     });

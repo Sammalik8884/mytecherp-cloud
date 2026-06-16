@@ -12,6 +12,7 @@ namespace MytechERP.Application.DTOs.Quotations
         public DateTime ValidUntil { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
         public string QuoteMode { get; set; } = "Local";
         public string SupplyColumnMode { get; set; } = "Both";
 
