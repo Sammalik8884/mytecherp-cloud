@@ -153,8 +153,8 @@ export const QuotationFormPage = () => {
                 // Reuse existing service row at same index if it exists
                 const existing = prev[i];
                 if (existing) {
-                    // Only overwrite serviceName if the service row is still blank
-                    return existing.serviceName ? existing : { ...existing, serviceName: name, quantity: item.quantity };
+                    // Always sync serviceName and quantity from the parent row
+                    return { ...existing, serviceName: name, quantity: item.quantity };
                 }
                 return { ...makeEmptyRow('ImportedService'), serviceName: name, quantity: item.quantity };
             });
@@ -171,7 +171,7 @@ export const QuotationFormPage = () => {
                     : item.product ? `${item.product.name}${item.product.itemCode ? ` (${item.product.itemCode})` : ''}` : '';
                 const existing = prev[i];
                 if (existing) {
-                    return existing.serviceName ? existing : { ...existing, serviceName: name, quantity: item.quantity };
+                    return { ...existing, serviceName: name, quantity: item.quantity };
                 }
                 return { ...makeEmptyRow('LocalService'), serviceName: name, quantity: item.quantity };
             });
