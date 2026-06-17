@@ -539,7 +539,7 @@ namespace MyTechERP.Infrastructure.Services
                 });
 
                 // Signature row
-                col.Item().EnsureSpace().ExtendVertical().AlignBottom().PaddingTop(30).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
+                col.Item().EnsureSpace().PaddingTop(30).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
                 {
                     void SigBlock(string role, string name, string title, string phone, string email)
                     {
