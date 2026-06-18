@@ -29,6 +29,7 @@ type SidebarItem = {
 };
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
+    { label: "Employee Info Form", href: "/hr/employees", paths: ["/hr/employees", "/hr/employees/new", "/hr/employees/edit"], icon: Users },
     { label: "Dashboard", href: "/dashboard", icon: Home },
     { label: "Amount Request Form", href: "/amount-request", icon: DollarSign },
     { label: "Expenses", href: "/expenses", icon: Receipt },
@@ -38,7 +39,8 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
         label: "Project Documents", 
         href: "/project-documents",
         icon: FileSignature, 
-        allowedRoles: ["Admin", "Manager"]
+        allowedRoles: ["Admin", "Manager"],
+        requiredFeature: PlanFeature.ProjectDocuments
     },
 
     { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
@@ -51,7 +53,6 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Users & Roles", href: "/users", icon: ShieldAlert, allowedRoles: ["Admin", "Manager"] },
     { label: "Application Forms", href: "/application-forms", paths: ["/application-forms", "/application-forms/new"], icon: FileText },
     { label: "Vehicle Travel Forms", href: "/vehicle-travel-forms", paths: ["/vehicle-travel-forms", "/vehicle-travel-forms/new"], icon: Car },
-    { label: "Employee Info", href: "/hr/employees", paths: ["/hr/employees", "/hr/employees/new", "/hr/employees/edit"], icon: Users },
 
     { label: "CRM & Assets", isHeader: true, allowedRoles: ["Admin", "Manager"] },
     { label: "Clients (CRM)", href: "/customers", icon: Users, paths: ["/customers", "/sites"], allowedRoles: ["Admin", "Manager"] },
