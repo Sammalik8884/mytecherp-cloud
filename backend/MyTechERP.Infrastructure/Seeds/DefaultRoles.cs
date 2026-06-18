@@ -26,6 +26,34 @@ namespace MyTechERP.Infrastructure.Seeds
             {
                 await roleManager.CreateAsync(new IdentityRole(Roles.AccountsHead));
             }
+            if (!await roleManager.RoleExistsAsync(Roles.ProcurementHead))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.ProcurementHead));
+            }
+            if (!await roleManager.RoleExistsAsync(Roles.ProcurementExecutive))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.ProcurementExecutive));
+            }
+            if (!await roleManager.RoleExistsAsync(Roles.SiteSupervisor))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.SiteSupervisor));
+            }
+            if (!await roleManager.RoleExistsAsync(Roles.TemporaryEmployee))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.TemporaryEmployee));
+            }
+            if (!await roleManager.RoleExistsAsync(Roles.PermanentEmployee))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.PermanentEmployee));
+            }
+            if (!await roleManager.RoleExistsAsync(Roles.AccountsAssistant))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.AccountsAssistant));
+            }
+            if (!await roleManager.RoleExistsAsync(Roles.DocumentController))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.DocumentController));
+            }
             var adminRole = await roleManager.FindByNameAsync(Roles.Admin);
             await SeedClaimsForSuperAdmin(roleManager, adminRole);
         }

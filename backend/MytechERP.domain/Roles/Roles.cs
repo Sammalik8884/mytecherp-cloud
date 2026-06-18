@@ -20,6 +20,14 @@ namespace MytechERP.domain.Roles
         public const string AccountsHead = "Accounts Head";
         public const string SoftwareDeveloper = "Software Developer";
 
-        public const string AllInternal = Admin + "," + Manager + "," + Engineer + "," + Estimation + "," + Technician + "," + Salesman + "," + Worker + "," + AccountsHead + "," + SoftwareDeveloper;
+        public const string ProcurementHead = "Procurement Head";
+        public const string ProcurementExecutive = "Procurement Executive";
+        public const string SiteSupervisor = "Site Supervisor";
+        public const string TemporaryEmployee = "Temporary Employee";
+        public const string PermanentEmployee = "Permanent Employee";
+        public const string AccountsAssistant = "Accounts Assistant";
+        public const string DocumentController = "Document Controller";
+
+        public const string AllInternal = Admin + "," + Manager + "," + Engineer + "," + Estimation + "," + Technician + "," + Salesman + "," + Worker + "," + AccountsHead + "," + SoftwareDeveloper + "," + ProcurementHead + "," + ProcurementExecutive + "," + SiteSupervisor + "," + TemporaryEmployee + "," + PermanentEmployee + "," + AccountsAssistant + "," + DocumentController;
     }
 }
