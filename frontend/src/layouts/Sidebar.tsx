@@ -39,8 +39,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
         label: "Project Documents", 
         href: "/project-documents",
         icon: FileSignature, 
-        allowedRoles: ["Admin", "Manager"],
-        requiredFeature: PlanFeature.ProjectDocuments
+        allowedRoles: ["Admin", "Manager"]
     },
 
     { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
