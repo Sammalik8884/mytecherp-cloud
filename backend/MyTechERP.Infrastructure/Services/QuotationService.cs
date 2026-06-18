@@ -498,10 +498,19 @@ namespace MyTechERP.Infrastructure.Services
                         else // Local
                         {
                             decimal costInQuoteCurrency = originalPrice;
-                            decimal appliedCommission = itemDto.ManualCommissionPct ?? quote.GlobalCommissionPct;
-                            decimal marginAmount = costInQuoteCurrency * (appliedCommission / 100m);
-                            finalSellingPrice = costInQuoteCurrency + marginAmount;
+                            decimal transportationCharge = costInQuoteCurrency * (transportationPct / 100m);
+                            decimal profitCharge = costInQuoteCurrency * (profitPct / 100m);
+                            finalSellingPrice = costInQuoteCurrency + transportationCharge + profitCharge;
                             unitCost = costInQuoteCurrency;
+
+                            calcBreakdown = System.Text.Json.JsonSerializer.Serialize(new {
+                                originalPrice = originalPrice,
+                                transportationPct = transportationPct,
+                                transportationCharge = transportationCharge,
+                                profitPct = profitPct,
+                                profitCharge = profitCharge,
+                                finalPrice = finalSellingPrice
+                            });
                         }
                     }
 

@@ -367,6 +367,13 @@ export const QuotationFormPage = () => {
         }
     }, [formData.costFactorPct, formData.importationPct, formData.transportationPct, formData.profitPct, formData.exchangeRate]);
 
+    // Recalculate local items when config changes
+    useEffect(() => {
+        if (localItems.length > 0) {
+            setLocalItems(prev => prev.map(item => calculateLocalItem(item, formData)));
+        }
+    }, [formData.transportationPct, formData.profitPct]);
+
     /* ─── Calculation pipeline (matches Excel & Backend exactly) ─── */
     // basePrice param allows edit-mode to force a saved original price instead of reading from product catalog
     const calculateImportedItem = (item: UiItem, config: Omit<CreateQuotationDto, 'items'>, forcedBasePrice?: number): UiItem => {
@@ -668,6 +675,40 @@ export const QuotationFormPage = () => {
             </div>
         );
     };
+
+    const calculateLocalItem = (item: UiItem, config: Omit<CreateQuotationDto, 'items'>, forcedBasePrice?: number): UiItem => {
+        if (item.isManualFinalPrice) {
+            return {
+                ...item,
+                unitPrice: item.finalPriceOverride || 0,
+                lineTotal: (item.finalPriceOverride || 0) * item.quantity,
+                originalPrice: forcedBasePrice ?? item.originalPrice ?? (item.product?.price ?? 0)
+            };
+        }
+
+        const basePrice = forcedBasePrice ?? item.originalPrice ?? (item.product?.price ?? 0);
+        if (!basePrice || basePrice === 0) return item;
+
+        const transCharge = basePrice * (config.transportationPct! / 100);
+        const profCharge = basePrice * (config.profitPct! / 100);
+        const finalPrice = basePrice + transCharge + profCharge;
+
+        return {
+            ...item,
+            originalPrice: basePrice,
+            unitPrice: finalPrice,
+            lineTotal: finalPrice * item.quantity,
+            calculationBreakdown: JSON.stringify({
+                originalPrice: basePrice,
+                transportationPct: config.transportationPct,
+                transportationCharge: transCharge,
+                profitPct: config.profitPct,
+                profitCharge: profCharge,
+                finalPrice: finalPrice
+            })
+        };
+    };
+
     /* ─── Mobile card renderer for items ─── */
     const renderImportedCard = (item: UiItem, idx: number) => (
         <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
@@ -823,27 +864,30 @@ export const QuotationFormPage = () => {
                     <label className="text-xs text-muted-foreground">Qty</label>
                     <input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => {
                         const newArr = [...localItems];
-                        newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].unitPrice * (1 - (newArr[idx].manualCommissionPct||0)/100) };
-                        setLocalItems(newArr);
+                        newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value) };
+                        setLocalItems(newArr.map(x => calculateLocalItem(x, formData)));
                     }}/>
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <label className="text-xs text-muted-foreground">Price (PKR)</label>
-                    <input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.unitPrice||0} onChange={e => {
+                    <label className="text-xs text-muted-foreground">Base Price (PKR)</label>
+                    <input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.originalPrice||0} onChange={e => {
                         const newArr = [...localItems];
-                        newArr[idx] = { ...newArr[idx], unitPrice: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].quantity * (1 - (newArr[idx].manualCommissionPct||0)/100) };
-                        setLocalItems(newArr);
+                        newArr[idx] = { ...newArr[idx], originalPrice: Number(e.target.value) };
+                        setLocalItems(newArr.map(x => calculateLocalItem(x, formData)));
                     }}/>
                 </div>
                 <div>
-                    <label className="text-xs text-muted-foreground">Disc%</label>
-                    <input type="number" step="any" className={inputCls + " !py-1.5"} min="0" max="100" value={item.manualCommissionPct||""} placeholder="0" onChange={e => {
-                        const newArr = [...localItems];
-                        newArr[idx] = { ...newArr[idx], manualCommissionPct: Number(e.target.value), lineTotal: newArr[idx].quantity * newArr[idx].unitPrice * (1 - Number(e.target.value)/100) };
-                        setLocalItems(newArr);
-                    }}/>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="text-xs text-muted-foreground">Final Unit</label>
+                        {item.calculationBreakdown && (
+                            <button type="button" onClick={() => setModalBreakdown(JSON.parse(item.calculationBreakdown!))} className="text-emerald-500 hover:text-emerald-600 transition-colors">
+                                <Calculator className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                    </div>
+                    <div className="text-sm font-medium py-1">{item.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
                 </div>
             </div>
             <div className="flex items-center justify-between">
@@ -1095,10 +1139,15 @@ export const QuotationFormPage = () => {
                                 </button>
                             </div>
                          </div>
+                         {/* Config bar for Local */}
+                         <div className="flex gap-3 md:gap-4 mb-4 text-xs bg-primary/5 border border-border p-3 rounded-xl ml-3 flex-wrap">
+                             <div className="flex items-center gap-1 text-muted-foreground">Transport %: <input type="number" step="any" className={tinyInputCls} value={formData.transportationPct} onChange={e=>setFormData({...formData, transportationPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Profit %: <input type="number" step="any" className={tinyInputCls} value={formData.profitPct} onChange={e=>setFormData({...formData, profitPct: Number(e.target.value)})} /></div>
+                         </div>
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Price (PKR)</th><th className="w-20 text-center">Disc%</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (PKR)</th><th className="w-36 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody data-section="local">
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -1154,23 +1203,28 @@ export const QuotationFormPage = () => {
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
                                                   const newArr = [...localItems];
-                                                  newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].unitPrice * (1 - (newArr[idx].manualCommissionPct||0)/100) };
-                                                  setLocalItems(newArr);
+                                                  newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value) };
+                                                  setLocalItems(newArr.map(x => calculateLocalItem(x, formData)));
                                               }}/>
                                          </td>
-                                         <td className="px-1">
-                                              <input type="number" step="any" className={inputCls + " !px-2 !py-1.5 text-right"} min="0" value={item.unitPrice||0} onChange={e => {
+                                         <td className="px-1 relative">
+                                              {item.calculationBreakdown && (
+                                                  <button
+                                                      type="button"
+                                                      onClick={() => setModalBreakdown(JSON.parse(item.calculationBreakdown!))}
+                                                      className="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded z-10"
+                                                  >
+                                                      <Calculator className="w-4 h-4" />
+                                                  </button>
+                                              )}
+                                              <input type="number" step="any" className={inputCls + " !px-2 !py-1.5 text-right pl-8"} min="0" value={item.originalPrice||0} onChange={e => {
                                                   const newArr = [...localItems];
-                                                  newArr[idx] = { ...newArr[idx], unitPrice: Number(e.target.value), lineTotal: Number(e.target.value) * newArr[idx].quantity * (1 - (newArr[idx].manualCommissionPct||0)/100) };
-                                                  setLocalItems(newArr);
+                                                  newArr[idx] = { ...newArr[idx], originalPrice: Number(e.target.value) };
+                                                  setLocalItems(newArr.map(x => calculateLocalItem(x, formData)));
                                               }}/>
                                          </td>
-                                         <td className="px-1">
-                                              <input type="number" step="any" className={inputCls + " !px-2 !py-1.5 text-center"} min="0" max="100" value={item.manualCommissionPct||""} placeholder="0" onChange={e => {
-                                                  const newArr = [...localItems];
-                                                  newArr[idx] = { ...newArr[idx], manualCommissionPct: Number(e.target.value), lineTotal: newArr[idx].quantity * newArr[idx].unitPrice * (1 - Number(e.target.value)/100) };
-                                                  setLocalItems(newArr);
-                                              }}/>
+                                         <td className="text-right font-medium text-foreground">
+                                             {item.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                                          </td>
                                          <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
                                          <td className="text-center">
@@ -1602,7 +1656,19 @@ export const QuotationFormPage = () => {
                     } else if (productModalTarget?.list === "local") {
                         const newArr = [...localItems];
                         const quantity = newArr[productModalTarget.index].quantity || 1;
-                        newArr[productModalTarget.index] = { ...newArr[productModalTarget.index], productId: p.id, product: p, serviceName: p.name, unitPrice: p.price, lineTotal: quantity * p.price * (1 - (newArr[productModalTarget.index].manualCommissionPct||0)/100) };
+                        const listBasePrice = p.price ?? 0;
+                        const cleanItem = {
+                            ...newArr[productModalTarget.index],
+                            originalPrice: undefined,
+                            calcBreakdown: undefined,
+                            unitPrice: 0,
+                            lineTotal: 0,
+                            productId: p.id,
+                            product: p,
+                            serviceName: p.name,
+                            quantity: quantity
+                        };
+                        newArr[productModalTarget.index] = calculateLocalItem(cleanItem, formData, listBasePrice);
                         setLocalItems(newArr);
                         
                         setShowLocalServices(true);
