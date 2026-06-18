@@ -42,6 +42,11 @@ namespace MytechERP.Application.DTOs.Quotations
         public string? ContactPersonName { get; set; }
         public string? TermsAndConditionsJson { get; set; }
 
+        public string? PreparedByName { get; set; }
+        public string? PreparedByEmail { get; set; }
+        public string? PreparedByPhone { get; set; }
+        public string? PreparedByDesignation { get; set; }
+
         public List<QuotationItemDto> Items { get; set; } = new List<QuotationItemDto>();
     }
 }

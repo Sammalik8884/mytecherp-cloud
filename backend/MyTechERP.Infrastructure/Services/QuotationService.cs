@@ -294,6 +294,18 @@ namespace MyTechERP.Infrastructure.Services
             if (quote == null) return null;
             
             var dto = MapToDto(quote);
+
+            if (!string.IsNullOrEmpty(quote.CreatedByUserId))
+            {
+                var user = await _userManager.FindByIdAsync(quote.CreatedByUserId);
+                if (user != null)
+                {
+                    dto.PreparedByName = user.FullName;
+                    dto.PreparedByEmail = user.Email;
+                    dto.PreparedByPhone = user.PhoneNumber;
+                    dto.PreparedByDesignation = user.Designation;
+                }
+            }
             
             // Calculate Invoiced quantities
             var invoicedQuantities = await _context.Invoices

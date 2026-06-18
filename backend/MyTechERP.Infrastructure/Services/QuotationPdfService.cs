@@ -554,13 +554,17 @@ namespace MyTechERP.Infrastructure.Services
                         });
                     }
 
-                    SigBlock("Approved By:", "Mr. Munawar Hasan", "Director Sales & Projects",
-                        "+92-300-9233273", "munawar.hasan@mytecheng.com");
+                    SigBlock("Approved By:", "Engr. Muhammad Huzefa", "Estimation & Design Engineer",
+                        "+92-306-7666644", "m.huzefa@mytecheng.com");
 
                     row.ConstantItem(30);
 
-                    SigBlock("Prepared By:", "Engr. Muhammad Huzefa", "Estimation & Design Engineer",
-                        "+92-306-7666644", "m.huzefa@mytecheng.com");
+                    var prepName = string.IsNullOrWhiteSpace(quote.PreparedByName) ? "System Generated" : quote.PreparedByName;
+                    var prepTitle = string.IsNullOrWhiteSpace(quote.PreparedByDesignation) ? "" : quote.PreparedByDesignation;
+                    var prepPhone = string.IsNullOrWhiteSpace(quote.PreparedByPhone) ? "" : quote.PreparedByPhone;
+                    var prepEmail = string.IsNullOrWhiteSpace(quote.PreparedByEmail) ? "" : quote.PreparedByEmail;
+
+                    SigBlock("Prepared By:", prepName, prepTitle, prepPhone, prepEmail);
                 });
             });
         }
