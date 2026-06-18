@@ -51,6 +51,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Users & Roles", href: "/users", icon: ShieldAlert, allowedRoles: ["Admin", "Manager"] },
     { label: "Application Forms", href: "/application-forms", paths: ["/application-forms", "/application-forms/new"], icon: FileText },
     { label: "Vehicle Travel Forms", href: "/vehicle-travel-forms", paths: ["/vehicle-travel-forms", "/vehicle-travel-forms/new"], icon: Car },
+    { label: "Employee Info", href: "/hr/employees", paths: ["/hr/employees", "/hr/employees/new", "/hr/employees/edit"], icon: Users },
 
     { label: "CRM & Assets", isHeader: true, allowedRoles: ["Admin", "Manager"] },
     { label: "Clients (CRM)", href: "/customers", icon: Users, paths: ["/customers", "/sites"], allowedRoles: ["Admin", "Manager"] },

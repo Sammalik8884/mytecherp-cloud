@@ -139,6 +139,8 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<VehicleTravelForm> VehicleTravelForms { get; set; }
         public DbSet<VehicleTravelFormAttachment> VehicleTravelFormAttachments { get; set; }
 
+        public DbSet<MytechERP.domain.Entities.HR.EmployeeInfo> EmployeeInfos { get; set; }
+
 
         // ─── SaaS Subscription ─────────────────────────────────────────
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
