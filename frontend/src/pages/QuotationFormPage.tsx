@@ -698,7 +698,7 @@ export const QuotationFormPage = () => {
             originalPrice: basePrice,
             unitPrice: finalPrice,
             lineTotal: finalPrice * item.quantity,
-            calculationBreakdown: JSON.stringify({
+            calcBreakdown: JSON.stringify({
                 originalPrice: basePrice,
                 transportationPct: config.transportationPct,
                 transportationCharge: transCharge,
@@ -881,8 +881,8 @@ export const QuotationFormPage = () => {
                 <div>
                     <div className="flex justify-between items-center mb-1">
                         <label className="text-xs text-muted-foreground">Final Unit</label>
-                        {item.calculationBreakdown && (
-                            <button type="button" onClick={() => setModalBreakdown(JSON.parse(item.calculationBreakdown!))} className="text-emerald-500 hover:text-emerald-600 transition-colors">
+                        {item.calcBreakdown && (
+                            <button type="button" onClick={() => setModalBreakdown(JSON.parse(item.calcBreakdown!))} className="text-emerald-500 hover:text-emerald-600 transition-colors">
                                 <Calculator className="w-3.5 h-3.5" />
                             </button>
                         )}
@@ -1208,10 +1208,10 @@ export const QuotationFormPage = () => {
                                               }}/>
                                          </td>
                                          <td className="px-1 relative">
-                                              {item.calculationBreakdown && (
+                                              {item.calcBreakdown && (
                                                   <button
                                                       type="button"
-                                                      onClick={() => setModalBreakdown(JSON.parse(item.calculationBreakdown!))}
+                                                      onClick={() => setModalBreakdown(JSON.parse(item.calcBreakdown!))}
                                                       className="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded z-10"
                                                   >
                                                       <Calculator className="w-4 h-4" />
