@@ -549,8 +549,14 @@ namespace MyTechERP.Infrastructure.Services
                             c.Item().PaddingTop(18).LineHorizontal(0.5f).LineColor(BorderGrey);
                             c.Item().PaddingTop(3).Text(name).SemiBold().FontSize(8.5f);
                             c.Item().Text(title).FontSize(7.5f).FontColor(TextMuted);
-                            c.Item().Text(phone).FontSize(7.5f).FontColor(TextMuted);
-                            c.Item().Text(email).FontSize(7f).FontColor(BrandAccent);
+                            if (!string.IsNullOrWhiteSpace(phone))
+                            {
+                                c.Item().Text(phone).FontSize(7.5f).FontColor(TextMuted);
+                            }
+                            if (!string.IsNullOrWhiteSpace(email))
+                            {
+                                c.Item().Text(email).FontSize(7f).FontColor(BrandAccent);
+                            }
                         });
                     }
 
@@ -561,10 +567,9 @@ namespace MyTechERP.Infrastructure.Services
 
                     var prepName = string.IsNullOrWhiteSpace(quote.PreparedByName) ? "System Generated" : quote.PreparedByName;
                     var prepTitle = string.IsNullOrWhiteSpace(quote.PreparedByDesignation) ? "" : quote.PreparedByDesignation;
-                    var prepPhone = string.IsNullOrWhiteSpace(quote.PreparedByPhone) ? "" : quote.PreparedByPhone;
                     var prepEmail = string.IsNullOrWhiteSpace(quote.PreparedByEmail) ? "" : quote.PreparedByEmail;
 
-                    SigBlock("Prepared By:", prepName, prepTitle, prepPhone, prepEmail);
+                    SigBlock("Prepared By:", prepName, prepTitle, "", prepEmail);
                 });
             });
         }
