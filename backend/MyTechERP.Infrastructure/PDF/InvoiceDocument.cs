@@ -38,7 +38,7 @@ namespace MyTechERP.Infrastructure.PDF
         public void Compose(IDocumentContainer container)
         {
             var headerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image2.png");
-            var footerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image3.jpeg");
+            var footerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image3.png");
 
             container
                 .Page(page =>

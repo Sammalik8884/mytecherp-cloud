@@ -27,7 +27,7 @@ namespace MyTechERP.Infrastructure.Services
             QuestPDF.Settings.EnableDebugging = true; // Temporary: enable debugging to expose exact element causing conflict
 
             var headerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image2.png");
-            var footerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image3.jpeg");
+            var footerImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "image3.png");
 
             var document = Document.Create(container =>
             {
