@@ -57,6 +57,12 @@ import { NewVehicleTravelFormPage } from "./pages/NewVehicleTravelFormPage";
 import { DprPrintView } from "./pages/DprPrintView";
 import EmployeeInfoListPage from "./pages/hr/EmployeeInfoListPage";
 import EmployeeInfoFormPage from "./pages/hr/EmployeeInfoFormPage";
+import ProcurementDashboardPage from "./pages/procurementFlow/ProcurementDashboardPage";
+import CreateProcurementPage from "./pages/procurementFlow/CreateProcurementPage";
+import PendingApprovalsPage from "./pages/procurementFlow/PendingApprovalsPage";
+import ProcurementApprovedPage from "./pages/procurementFlow/ProcurementApprovedPage";
+import PendingProcurementsPage from "./pages/procurementFlow/PendingProcurementsPage";
+import ProcurementDetailsPage from "./pages/procurementFlow/ProcurementDetailsPage";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./auth/AuthContext";
 import { SyncProvider } from "./contexts/SyncContext";
@@ -177,6 +183,14 @@ function App() {
                                 <Route path="/hr/employees" element={<EmployeeInfoListPage />} />
                                 <Route path="/hr/employees/new" element={<EmployeeInfoFormPage />} />
                                 <Route path="/hr/employees/:id/edit" element={<EmployeeInfoFormPage />} />
+                                
+                                {/* Procurement Flow */}
+                                <Route path="/procurement-flow/dashboard" element={<ProcurementDashboardPage />} />
+                                <Route path="/procurement-flow/create" element={<CreateProcurementPage />} />
+                                <Route path="/procurement-flow/pending-approvals" element={<PendingApprovalsPage />} />
+                                <Route path="/procurement-flow/approved" element={<ProcurementApprovedPage />} />
+                                <Route path="/procurement-flow/pending-procurements" element={<PendingProcurementsPage />} />
+                                <Route path="/procurement-flow/:id" element={<ProcurementDetailsPage />} />
                             </Route>
                             {/* Future Iterations will add more routes here */}
                         </Route>

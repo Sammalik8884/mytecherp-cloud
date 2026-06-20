@@ -61,6 +61,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Catalog (Items)", href: "/products", icon: Package, paths: ["/products", "/categories"], allowedRoles: ["Admin", "Manager", "Engineer"] },
     { label: "Procurement (POs)", href: "/procurement", icon: ShoppingCart, allowedRoles: ["Admin", "Manager"] },
     { label: "Inventory", href: "/inventory", icon: FolderTree, allowedRoles: ["Admin", "Manager"] },
+    
+    { label: "Procurement Requirements", isHeader: true },
+    { label: "Dashboard", href: "/procurement-flow/dashboard", icon: ClipboardList },
+    { label: "Pending Approvals", href: "/procurement-flow/pending-approvals", icon: ShieldAlert, allowedRoles: ["Admin", "Manager", "Project Director"] },
+    { label: "Approved Procurements", href: "/procurement-flow/approved", icon: ShoppingCart, allowedRoles: ["Admin", "Manager", "Procurement Head"] },
+    { label: "Pending Procurements", href: "/procurement-flow/pending-procurements", icon: Activity, allowedRoles: ["Admin", "Manager", "Procurement Executive"] },
 
     { label: "Operations & Jobs", isHeader: true, allowedRoles: ["Admin", "Manager", "Engineer", "Worker", "Technician", "Estimation"] },
     { label: "Sales & Quotes", href: "/quotations", icon: FileText, paths: ["/quotations", "/quotations/new", "/quotations/edit"], allowedRoles: ["Admin", "Manager", "Engineer", "Estimation"] },

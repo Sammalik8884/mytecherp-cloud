@@ -140,6 +140,9 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<VehicleTravelFormAttachment> VehicleTravelFormAttachments { get; set; }
 
         public DbSet<MytechERP.domain.Entities.HR.EmployeeInfo> EmployeeInfos { get; set; }
+        
+        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementRequest> ProcurementRequests { get; set; }
+        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementRequestItem> ProcurementRequestItems { get; set; }
 
 
         // ─── SaaS Subscription ─────────────────────────────────────────
@@ -149,6 +152,10 @@ namespace MytechERP.Infrastructure.Persistance
         {
 
             base.OnModelCreating(builder);
+
+            builder.Entity<MytechERP.domain.Entities.Procurement.ProcurementRequestItem>()
+                .Property(p => p.Quantity)
+                .HasPrecision(18, 4);
             builder.Entity<Tenant>(entity =>
             {
                 entity.HasKey(e => e.Id);
