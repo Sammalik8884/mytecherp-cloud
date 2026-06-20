@@ -586,7 +586,7 @@ namespace MyTechERP.Infrastructure.Services
 
                 if (File.Exists(footerImagePath))
                 {
-                    col.Item().PaddingTop(2).Height(60).AlignCenter().Image(footerImagePath).FitHeight();
+                    col.Item().PaddingTop(2).Image(footerImagePath).FitWidth();
                 }
                 else
                 {
