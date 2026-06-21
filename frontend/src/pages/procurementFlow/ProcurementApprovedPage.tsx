@@ -41,7 +41,7 @@ const ProcurementApprovedPage: React.FC = () => {
 
     const handleGenerateArf = (p: ProcurementRequestDto) => {
         const purpose = encodeURIComponent(`Procurement for Request ${p.procurementNumber}`);
-        navigate(`/amount-requests?action=generateFromProcurement&procurementId=${p.id}&siteId=${p.siteId}&purpose=${purpose}`);
+        navigate(`/amount-request?action=generateFromProcurement&procurementId=${p.id}&siteId=${p.siteId}&purpose=${purpose}`);
     };
 
     const openAssignModal = (id: number) => {
