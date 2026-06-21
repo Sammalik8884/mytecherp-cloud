@@ -27,7 +27,7 @@ namespace MytechERP.API.Controllers.Procurement
 
         // Get role implies looking up from claims or db. In real app, you might have ClaimTypes.Role
         private string CurrentUserRole => User.FindFirst(ClaimTypes.Role)?.Value ?? "SiteSupervisor"; 
-        private string CurrentUserName => User.FindFirst(ClaimTypes.Name)?.Value ?? CurrentUserEmail;
+        private string CurrentUserName => User.FindFirst("FullName")?.Value ?? CurrentUserEmail;
 
         [HttpGet]
         public async Task<IActionResult> GetAll()

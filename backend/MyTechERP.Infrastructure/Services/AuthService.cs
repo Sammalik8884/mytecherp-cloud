@@ -250,7 +250,8 @@ namespace MyTechERP.Infrastructure.Services
                 new Claim(ClaimTypes.NameIdentifier, user.Id ?? ""),
                 new Claim(ClaimTypes.Email, user.Email ?? ""),
                 new Claim("TenantId", user.TenantId.ToString()),
-                new Claim("FullName", user.FullName ?? "")
+                new Claim("FullName", user.FullName ?? ""),
+                new Claim(ClaimTypes.Name, user.FullName ?? "")
             };
 
             var userRoles = await _userManager.GetRolesAsync(user);

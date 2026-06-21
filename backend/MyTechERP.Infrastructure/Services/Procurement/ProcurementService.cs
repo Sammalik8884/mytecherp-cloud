@@ -55,6 +55,24 @@ namespace MytechERP.Infrastructure.Services.Procurement
             };
         }
 
+        private async Task<List<ProcurementRequestDto>> MapToDtoListAsync(List<ProcurementRequest> requests)
+        {
+            var dtos = requests.Select(MapToDto).ToList();
+            var emailsToLookup = dtos.Where(d => d.SupervisorName != null && d.SupervisorName.Contains("@")).Select(d => d.SupervisorName).Distinct().ToList();
+            if (emailsToLookup.Any())
+            {
+                var users = await _context.Users.Where(u => emailsToLookup.Contains(u.Email)).ToDictionaryAsync(u => u.Email, u => u.FullName);
+                foreach (var dto in dtos)
+                {
+                    if (dto.SupervisorName != null && dto.SupervisorName.Contains("@") && users.ContainsKey(dto.SupervisorName) && !string.IsNullOrEmpty(users[dto.SupervisorName]))
+                    {
+                        dto.SupervisorName = users[dto.SupervisorName];
+                    }
+                }
+            }
+            return dtos;
+        }
+
         public async Task<List<ProcurementRequestDto>> GetAllProcurementsAsync(string userId, string role)
         {
             var query = _context.ProcurementRequests.Include(p => p.Items).AsQueryable();
@@ -66,7 +84,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
             // Add other role-based filters if necessary
 
             var requests = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
-            return requests.Select(MapToDto).ToList();
+            return await MapToDtoListAsync(requests);
         }
 
         public async Task<List<ProcurementRequestDto>> GetPendingPdApprovalsAsync()
@@ -77,7 +95,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            return requests.Select(MapToDto).ToList();
+            return await MapToDtoListAsync(requests);
         }
 
         public async Task<List<ProcurementRequestDto>> GetApprovedRequestsAsync()
@@ -88,7 +106,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            return requests.Select(MapToDto).ToList();
+            return await MapToDtoListAsync(requests);
         }
 
         public async Task<List<ProcurementRequestDto>> GetPendingProcurementsForExecutiveAsync(string executiveEmail)
@@ -99,7 +117,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 .OrderByDescending(p => p.AssignedDate)
                 .ToListAsync();
 
-            return requests.Select(MapToDto).ToList();
+            return await MapToDtoListAsync(requests);
         }
 
         public async Task<ProcurementRequestDto> GetByIdAsync(int id)
@@ -110,7 +128,8 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
             if (request == null) throw new Exception("Procurement request not found");
 
-            return MapToDto(request);
+            var dtoList = await MapToDtoListAsync(new List<ProcurementRequest> { request });
+            return dtoList.First();
         }
 
         public async Task<ProcurementRequestDto> CreateRequestAsync(CreateProcurementRequestDto dto, string supervisorName, string supervisorEmail)
