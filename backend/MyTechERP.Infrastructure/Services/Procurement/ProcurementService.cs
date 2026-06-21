@@ -161,7 +161,12 @@ namespace MytechERP.Infrastructure.Services.Procurement
             await _context.SaveChangesAsync();
 
             // Notify PD
-            await NotifyUsersByRoleAsync("Project Director", "New Procurement Request", $"A new procurement request ({procNum}) has been submitted by {supervisorName} and is awaiting your approval.", "/procurement-flow/pending-approvals");
+            var title = "New Procurement Request";
+            var msg = $"A new procurement request ({procNum}) has been submitted by {supervisorName} and is awaiting your approval.";
+            var link = "/procurement-flow/pending-approvals";
+            await NotifyUsersByRoleAsync("Project Director", title, msg, link);
+            await NotifyUsersByRoleAsync("Manager", title, msg, link);
+            await NotifyUserByEmailAsync("shahbaz.ali@mytecheng.com", title, msg, link);
 
             return MapToDto(request);
         }
