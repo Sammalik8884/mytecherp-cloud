@@ -1,16 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { procurementFlowService } from '../../services/procurementFlowService';
+import { siteService } from '../../services/siteService';
 import { CreateProcurementRequestDto, CreateProcurementItemDto } from '../../types/procurementFlow';
+import { SiteDto } from '../../types/site';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const CreateProcurementPage: React.FC = () => {
     const [siteId, setSiteId] = useState<string>('');
+    const [sites, setSites] = useState<SiteDto[]>([]);
+    const [saveDefaultSite, setSaveDefaultSite] = useState<boolean>(false);
     const [items, setItems] = useState<CreateProcurementItemDto[]>([
         { itemName: '', quantity: 1, reason: '' }
     ]);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const loadSites = async () => {
+            try {
+                const data = await siteService.getAll();
+                setSites(data);
+            } catch (error) {
+                console.error("Failed to load sites", error);
+            }
+        };
+        loadSites();
+
+        const savedSiteId = localStorage.getItem('defaultProcurementSiteId');
+        if (savedSiteId) {
+            setSiteId(savedSiteId);
+            setSaveDefaultSite(true);
+        }
+    }, []);
 
     const handleItemChange = (index: number, field: keyof CreateProcurementItemDto, value: any) => {
         const newItems = [...items];
@@ -37,6 +59,13 @@ const CreateProcurementPage: React.FC = () => {
                 items
             };
             await procurementFlowService.create(dto);
+            
+            if (saveDefaultSite && siteId) {
+                localStorage.setItem('defaultProcurementSiteId', siteId);
+            } else {
+                localStorage.removeItem('defaultProcurementSiteId');
+            }
+
             toast.success('Procurement request created successfully');
             navigate('/procurement-flow/dashboard');
         } catch (error) {
@@ -54,15 +83,33 @@ const CreateProcurementPage: React.FC = () => {
 
             <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="max-w-xs">
-                        <label className="block text-sm font-medium text-foreground mb-1">Site ID (Optional)</label>
-                        <input
-                            type="number"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    <div className="max-w-md">
+                        <label className="block text-sm font-medium text-foreground mb-1">Site (Optional)</label>
+                        <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             value={siteId}
                             onChange={(e) => setSiteId(e.target.value)}
-                            placeholder="Enter Site ID"
-                        />
+                        >
+                            <option value="">Select a Site...</option>
+                            {sites.map(site => (
+                                <option key={site.id} value={site.id}>
+                                    {site.name} {site.city ? `(${site.city})` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="mt-2 flex items-center space-x-2">
+                            <input 
+                                type="checkbox" 
+                                id="saveDefaultSite" 
+                                checked={saveDefaultSite}
+                                onChange={(e) => setSaveDefaultSite(e.target.checked)}
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <label htmlFor="saveDefaultSite" className="text-sm text-muted-foreground flex items-center">
+                                <Save className="h-3.5 w-3.5 mr-1" />
+                                Save as default site for future requests
+                            </label>
+                        </div>
                     </div>
 
                     <div>
