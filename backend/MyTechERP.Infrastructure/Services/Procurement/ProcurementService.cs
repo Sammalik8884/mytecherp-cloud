@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MytechERP.Application.DTOs.Procurement;
 using MytechERP.Application.Interfaces;
+using MytechERP.domain.Entities;
 using MytechERP.domain.Entities.Finance;
 using MytechERP.domain.Entities.Procurement;
 using MytechERP.Infrastructure.Persistance;
@@ -15,11 +17,13 @@ namespace MytechERP.Infrastructure.Services.Procurement
     {
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notificationService;
+        private readonly UserManager<AppUser> _userManager;
 
-        public ProcurementService(ApplicationDbContext context, INotificationService notificationService)
+        public ProcurementService(ApplicationDbContext context, INotificationService notificationService, UserManager<AppUser> userManager)
         {
             _context = context;
             _notificationService = notificationService;
+            _userManager = userManager;
         }
 
         private ProcurementRequestDto MapToDto(ProcurementRequest entity)
@@ -266,23 +270,19 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
         private async Task NotifyUsersByRoleAsync(string roleName, string title, string message, string type)
         {
-            var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
-            if (role != null)
+            var usersInRole = await _userManager.GetUsersInRoleAsync(roleName);
+            foreach (var user in usersInRole)
             {
-                var userIds = await _context.UserRoles.Where(ur => ur.RoleId == role.Id).Select(ur => ur.UserId).ToListAsync();
-                foreach (var userId in userIds)
-                {
-                    await _notificationService.CreateNotificationAsync(userId, title, message, type);
-                }
+                await _notificationService.CreateNotificationAsync(user.Id, title, message, type);
             }
         }
 
         private async Task NotifyUserByEmailAsync(string email, string title, string message, string type)
         {
-            var userId = await _context.Users.Where(u => u.Email == email).Select(u => u.Id).FirstOrDefaultAsync();
-            if (userId != null)
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null)
             {
-                await _notificationService.CreateNotificationAsync(userId, title, message, type);
+                await _notificationService.CreateNotificationAsync(user.Id, title, message, type);
             }
         }
     }
