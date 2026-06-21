@@ -94,8 +94,23 @@ namespace MytechERP.API.Controllers.Procurement
         }
 
         [HttpPost("{id}/complete")]
-        public async Task<IActionResult> Complete(int id, [FromBody] CompleteProcurementDto dto)
+        public async Task<IActionResult> Complete(int id, [FromForm] string? deliveryNoteText, [FromForm] List<Microsoft.AspNetCore.Http.IFormFile>? deliveryNoteDocuments, [FromServices] IBlobService blobService)
         {
+            var urls = new System.Collections.Generic.List<string>();
+            if (deliveryNoteDocuments != null && deliveryNoteDocuments.Count > 0)
+            {
+                foreach (var file in deliveryNoteDocuments)
+                {
+                    var url = await blobService.UploadAsync(file, file.FileName);
+                    urls.Add(url);
+                }
+            }
+
+            var dto = new CompleteProcurementDto 
+            { 
+                DeliveryNoteText = deliveryNoteText, 
+                DeliveryNoteDocuments = urls 
+            };
             var data = await _procurementService.CompleteProcurementAsync(id, dto);
             return Ok(data);
         }

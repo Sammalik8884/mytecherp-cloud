@@ -3,8 +3,7 @@ import {
   ProcurementRequestDto,
   CreateProcurementRequestDto,
   PdReviewProcurementDto,
-  AssignProcurementExecutiveDto,
-  CompleteProcurementDto
+  AssignProcurementExecutiveDto
 } from '../types/procurementFlow';
 
 const BASE_URL = '/Procurement';
@@ -55,8 +54,17 @@ export const procurementFlowService = {
     return response.data;
   },
 
-  complete: async (id: number, data: CompleteProcurementDto): Promise<ProcurementRequestDto> => {
-    const response = await apiClient.post<ProcurementRequestDto>(`${BASE_URL}/${id}/complete`, data);
+  complete: async (id: number, text: string, files: File[]): Promise<ProcurementRequestDto> => {
+    const formData = new FormData();
+    if (text) {
+      formData.append('deliveryNoteText', text);
+    }
+    if (files && files.length > 0) {
+      files.forEach(f => formData.append('deliveryNoteDocuments', f));
+    }
+    const response = await apiClient.post<ProcurementRequestDto>(`${BASE_URL}/${id}/complete`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   }
 };

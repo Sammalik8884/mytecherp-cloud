@@ -11,6 +11,7 @@ const PendingProcurementsPage: React.FC = () => {
     const [completeModalOpen, setCompleteModalOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<ProcurementRequestDto | null>(null);
     const [deliveryNoteText, setDeliveryNoteText] = useState('');
+    const [deliveryNoteFiles, setDeliveryNoteFiles] = useState<File[]>([]);
 
     useEffect(() => {
         loadData();
@@ -35,10 +36,11 @@ const PendingProcurementsPage: React.FC = () => {
     const handleComplete = async () => {
         if (!selectedRequest) return;
         try {
-            await procurementFlowService.complete(selectedRequest.id, { deliveryNoteText, deliveryNoteDocuments: [] });
+            await procurementFlowService.complete(selectedRequest.id, deliveryNoteText, deliveryNoteFiles);
             toast.success('Procurement completed successfully');
             setCompleteModalOpen(false);
             setDeliveryNoteText('');
+            setDeliveryNoteFiles([]);
             loadData();
         } catch (error) {
             console.error('Failed to complete procurement', error);
@@ -73,7 +75,13 @@ const PendingProcurementsPage: React.FC = () => {
                                 <td className="px-6 py-4">{format(new Date(p.assignedDate || p.createdAt), 'dd MMM yyyy')}</td>
                                 <td className="px-6 py-4">{p.supervisorName}</td>
                                 <td className="px-6 py-4">{p.items.length}</td>
-                                <td className="px-6 py-4 text-right">
+                                <td className="px-6 py-4 text-right space-x-2">
+                                    <button 
+                                        onClick={() => window.location.href = `/procurement-flow/${p.id}`}
+                                        className="inline-flex items-center space-x-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground px-3 py-1.5 rounded-md transition-colors text-sm font-medium"
+                                    >
+                                        <span>View</span>
+                                    </button>
                                     <button 
                                         onClick={() => openCompleteModal(p)}
                                         className="inline-flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md transition-colors text-sm font-medium"
@@ -126,8 +134,18 @@ const PendingProcurementsPage: React.FC = () => {
                                     onChange={(e) => setDeliveryNoteText(e.target.value)}
                                     placeholder="Enter details of delivered items, DO numbers, or remarks..."
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-foreground mb-1">Delivery Note Documents</label>
+                                <input 
+                                    type="file" 
+                                    multiple 
+                                    onChange={(e) => setDeliveryNoteFiles(e.target.files ? Array.from(e.target.files) : [])}
+                                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium"
+                                />
                                 <p className="text-xs text-muted-foreground mt-2">
-                                    * Document upload feature will be integrated via FileService in future updates.
+                                    Select one or more documents to upload as delivery notes.
                                 </p>
                             </div>
                         </div>
