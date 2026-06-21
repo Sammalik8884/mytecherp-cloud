@@ -117,10 +117,18 @@ const CreateProcurementPage: React.FC = () => {
                     </div>
 
                     <div>
-                        <h2 className="text-lg font-semibold text-foreground mb-4">Requirements</h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-foreground">Requirements</h2>
+                            <button
+                                type="button"
+                                onClick={addItem}
+                                className="text-sm flex items-center text-primary hover:text-primary/80"
+                            >
+                                <Plus className="w-4 h-4 mr-1" /> Add Item
+                            </button>
+                        </div>
                         <div className="space-y-4">
                             {items.map((item, index) => (
-                                <div key={index} className="flex flex-wrap md:flex-nowrap items-start gap-4 p-4 border border-border rounded-lg bg-background">
                                 <div key={index} className="flex items-start gap-4 p-4 border border-border rounded-md bg-secondary/20">
                                     <div className="flex-1 space-y-4">
                                         <div className="flex gap-4">

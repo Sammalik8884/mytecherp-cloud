@@ -63,7 +63,7 @@ const ProcurementDashboardPage: React.FC = () => {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">{p.supervisorName}</td>
-                                <td className="px-6 py-4">{p.assignedExecutiveEmail || 'N/A'}</td>
+                                <td className="px-6 py-4">{p.supervisorName}</td>
                                 <td className="px-6 py-4 text-right">
                                     <button 
                                         onClick={() => navigate(`/procurement-flow/${p.id}`)}
