@@ -2,14 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { procurementFlowService } from '../../services/procurementFlowService';
 import { ProcurementRequestDto } from '../../types/procurementFlow';
 import { format } from 'date-fns';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const PendingApprovalsPage: React.FC = () => {
     const [procurements, setProcurements] = useState<ProcurementRequestDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState<ProcurementRequestDto | null>(null);
     const [remarks, setRemarks] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         loadData();
@@ -67,7 +69,14 @@ const PendingApprovalsPage: React.FC = () => {
                                 <td className="px-6 py-4">{format(new Date(p.createdAt), 'dd MMM yyyy')}</td>
                                 <td className="px-6 py-4">{p.supervisorName}</td>
                                 <td className="px-6 py-4">{p.items.length}</td>
-                                <td className="px-6 py-4 text-right">
+                                <td className="px-6 py-4 text-right space-x-2">
+                                    <button 
+                                        onClick={() => navigate(`/procurement-flow/${p.id}`)}
+                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-border bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3 transition-colors"
+                                    >
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        View
+                                    </button>
                                     <button 
                                         onClick={() => setSelectedRequest(p)}
                                         className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors h-8 px-3"
