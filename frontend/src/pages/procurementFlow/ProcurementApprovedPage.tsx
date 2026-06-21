@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { procurementFlowService } from '../../services/procurementFlowService';
+import { authService } from '../../services/authService';
 import { ProcurementRequestDto } from '../../types/procurementFlow';
 import { format } from 'date-fns';
 import { FileText, UserPlus, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const ProcurementApprovedPage: React.FC = () => {
     const [procurements, setProcurements] = useState<ProcurementRequestDto[]>([]);
+    const [executives, setExecutives] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [executiveEmail, setExecutiveEmail] = useState('');
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         loadData();
@@ -20,36 +25,39 @@ const ProcurementApprovedPage: React.FC = () => {
         try {
             const data = await procurementFlowService.getApproved();
             setProcurements(data);
+            
+            const users = await authService.getUsers();
+            const execs = users.filter((u: any) => u.roles && u.roles.includes('Procurement Executive'));
+            setExecutives(execs);
+            if (execs.length > 0) {
+                setExecutiveEmail(execs[0].email);
+            }
         } catch (error) {
-            console.error('Failed to load approved procurements', error);
+            console.error('Failed to load approved procurements or users', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleGenerateArf = async (id: number) => {
-        try {
-            await procurementFlowService.generateArf(id);
-            toast.success('ARF generated successfully');
-            loadData();
-        } catch (error) {
-            console.error('Failed to generate ARF', error);
-            toast.error('Failed to generate ARF');
-        }
+    const handleGenerateArf = (p: ProcurementRequestDto) => {
+        const purpose = encodeURIComponent(`Procurement for Request ${p.procurementNumber}`);
+        navigate(`/amount-requests?action=generateFromProcurement&procurementId=${p.id}&siteId=${p.siteId}&purpose=${purpose}`);
     };
 
     const openAssignModal = (id: number) => {
         setSelectedId(id);
         setAssignModalOpen(true);
+        if (executives.length > 0) {
+            setExecutiveEmail(executives[0].email);
+        }
     };
 
     const handleAssign = async () => {
-        if (!selectedId) return;
+        if (!selectedId || !executiveEmail) return;
         try {
             await procurementFlowService.assign(selectedId, { executiveEmail });
             toast.success('Executive assigned successfully');
             setAssignModalOpen(false);
-            setExecutiveEmail('');
             loadData();
         } catch (error) {
             console.error('Failed to assign executive', error);
@@ -91,7 +99,7 @@ const ProcurementApprovedPage: React.FC = () => {
                                 <td className="px-6 py-4 text-right">
                                     {p.status === 'ApprovedByPD' && (
                                         <button 
-                                            onClick={() => handleGenerateArf(p.id)}
+                                            onClick={() => handleGenerateArf(p)}
                                             className="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md transition-colors text-sm"
                                         >
                                             <FileText className="h-4 w-4" />
@@ -133,14 +141,17 @@ const ProcurementApprovedPage: React.FC = () => {
                         
                         <div className="p-6">
                             <label className="block text-sm font-medium text-foreground mb-1">Executive Email *</label>
-                            <input
-                                type="email"
+                            <select
                                 required
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 value={executiveEmail}
                                 onChange={(e) => setExecutiveEmail(e.target.value)}
-                                placeholder="executive@mytecheng.com"
-                            />
+                            >
+                                <option value="" disabled>Select an Executive</option>
+                                {executives.map(e => (
+                                    <option key={e.email} value={e.email}>{e.fullName} ({e.email})</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div className="px-6 py-4 border-t border-border flex justify-end space-x-3 bg-muted/30">

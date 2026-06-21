@@ -233,6 +233,20 @@ namespace MyTechERP.Infrastructure.Services
             _context.AmountRequestForms.Add(entity);
             await _context.SaveChangesAsync();
 
+            if (dto.ProcurementId.HasValue)
+            {
+                var proc = await _context.ProcurementRequests.FindAsync(dto.ProcurementId.Value);
+                if (proc != null)
+                {
+                    proc.AmountRequestFormId = entity.Id;
+                    proc.Status = "ARFCreated";
+                    proc.UpdatedAt = DateTime.UtcNow;
+                    // If the logged in user is creating it, it's the Procurement Head
+                    proc.ProcurementHeadEmail = entity.EmployeeEmail;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             if (!isManager)
             {
                 // Send Email to Director

@@ -38,6 +38,7 @@ export interface AmountRequestFormDto {
   accountsRemarks?: string;
   payments: AmountRequestPayment[];
   attachments?: string[];
+  procurementId?: number;
 }
 
 export const amountRequestApi = {

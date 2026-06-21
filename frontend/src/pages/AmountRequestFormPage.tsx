@@ -72,6 +72,20 @@ const AmountRequestFormPage = () => {
             } else if (managedFromArf) {
                 setPurposeOfAdvance(`Excess amount of Rs ${amount} from ${managedFromArf} for ${siteName}`);
             }
+        } else if (action === 'generateFromProcurement') {
+            setIsFormOpen(true);
+            const siteIdParam = searchParams.get('siteId');
+            const purposeParam = searchParams.get('purpose');
+            
+            if (siteIdParam) {
+                setLocationType('site');
+                setSiteId(Number(siteIdParam));
+            }
+            if (purposeParam) {
+                setPurposeOfAdvance(purposeParam);
+            }
+            // Optional: you can store procurementId in a state to send back
+            // but we can just read it from searchParams during submit
         }
     }, [searchParams]);
 
@@ -120,6 +134,7 @@ const AmountRequestFormPage = () => {
         e.preventDefault();
         try {
             const finalPurpose = hiddenExpenseId ? `${purposeOfAdvance} [ExpenseId:${hiddenExpenseId}]` : purposeOfAdvance;
+            const procIdParam = searchParams.get('procurementId');
             
             await amountRequestApi.create({
                 employeeName,
@@ -131,7 +146,8 @@ const AmountRequestFormPage = () => {
                 officeId: locationType === 'office' && officeId !== "" ? Number(officeId) : undefined,
                 customSiteName: locationType === 'site' && siteId === "custom" ? customSiteName : "",
                 clientName,
-                purposeOfAdvance: finalPurpose
+                purposeOfAdvance: finalPurpose,
+                procurementId: procIdParam ? Number(procIdParam) : undefined
             });
             toast.success("Request submitted successfully");
             setIsFormOpen(false);

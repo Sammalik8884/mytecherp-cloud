@@ -54,6 +54,7 @@ namespace MytechERP.Application.DTOs.Finance
         public string CustomSiteName { get; set; } = string.Empty;
         public string ClientName { get; set; } = string.Empty;
         public string PurposeOfAdvance { get; set; } = string.Empty;
+        public int? ProcurementId { get; set; }
     }
 
     public class AmountRequestPaymentDto
