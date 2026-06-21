@@ -184,7 +184,11 @@ function App() {
                                 <Route path="/hr/employees/new" element={<EmployeeInfoFormPage />} />
                                 <Route path="/hr/employees/:id/edit" element={<EmployeeInfoFormPage />} />
                                 
-                                {/* Procurement Flow */}
+                                {/* End of previous RoleProtectedRoute routes */}
+                            </Route>
+
+                            {/* Procurement Flow */}
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"]} />}>
                                 <Route path="/procurement-flow/dashboard" element={<ProcurementDashboardPage />} />
                                 <Route path="/procurement-flow/create" element={<CreateProcurementPage />} />
                                 <Route path="/procurement-flow/pending-approvals" element={<PendingApprovalsPage />} />
