@@ -57,6 +57,13 @@ namespace MytechERP.API.Controllers.Procurement
             return Ok(data);
         }
 
+        [HttpGet("completed-executive")]
+        public async Task<IActionResult> GetCompletedExecutive()
+        {
+            var data = await _procurementService.GetCompletedProcurementsForExecutiveAsync(CurrentUserEmail);
+            return Ok(data);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {

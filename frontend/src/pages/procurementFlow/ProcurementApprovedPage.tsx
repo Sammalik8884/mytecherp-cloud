@@ -107,13 +107,21 @@ const ProcurementApprovedPage: React.FC = () => {
                                         </button>
                                     )}
                                     {(p.status === 'ARFCreated' || p.status === 'ARFApproved') && (
-                                        <button 
-                                            onClick={() => openAssignModal(p.id)}
-                                            className="inline-flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md transition-colors text-sm"
-                                        >
-                                            <UserPlus className="h-4 w-4" />
-                                            <span>Assign Executive</span>
-                                        </button>
+                                        <>
+                                            {p.isArfApproved ? (
+                                                <button 
+                                                    onClick={() => openAssignModal(p.id)}
+                                                    className="inline-flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md transition-colors text-sm"
+                                                >
+                                                    <UserPlus className="h-4 w-4" />
+                                                    <span>Assign Executive</span>
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground italic flex items-center justify-end h-9 px-3">
+                                                    Waiting for ARF approval
+                                                </span>
+                                            )}
+                                        </>
                                     )}
                                 </td>
                             </tr>

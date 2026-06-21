@@ -16,8 +16,9 @@ export interface ProcurementRequestDto {
     assignedDate?: string;
     completedDate?: string;
     deliveryNoteText?: string;
-    deliveryNoteDocuments: string[];
+    deliveryNoteDocuments?: string[];
     items: ProcurementRequestItemDto[];
+    isArfApproved?: boolean;
 }
 
 export interface ProcurementRequestItemDto {

@@ -4,7 +4,7 @@ import {
     Home, Users, MapPin, Briefcase, LogOut, FileText, FolderTree, Package, Receipt,
     Building2,
     ShieldAlert, X, Box, Wrench, DollarSign, FileSignature, ShoppingCart, ClipboardList,
-    Activity, RefreshCw, CreditCard, Lock, Target, Car, Wallet, Calculator
+    Activity, RefreshCw, CreditCard, Lock, Target, Car, Wallet, Calculator, CheckSquare
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { PlanFeature } from "../types/auth";
@@ -65,8 +65,9 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Procurement Requirements", isHeader: true, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"] },
     { label: "Dashboard", href: "/procurement-flow/dashboard", icon: ClipboardList, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"] },
     { label: "Pending Approvals", href: "/procurement-flow/pending-approvals", icon: ShieldAlert, allowedRoles: ["Admin", "Manager", "Project Director"] },
-    { label: "Approved Procurements", href: "/procurement-flow/approved", icon: ShoppingCart, allowedRoles: ["Procurement Head"] },
+    { label: "Approved (PD)", href: "/procurement-flow/approved", icon: CheckSquare, allowedRoles: ["Procurement Head"] },
     { label: "Pending Procurements", href: "/procurement-flow/pending-procurements", icon: Activity, allowedRoles: ["Procurement Executive"] },
+    { label: "Completed Procurements", href: "/procurement-flow/completed-procurements", icon: CheckSquare, allowedRoles: ["Procurement Executive"] },
 
     { label: "Operations & Jobs", isHeader: true, allowedRoles: ["Admin", "Manager", "Engineer", "Worker", "Technician", "Estimation"] },
     { label: "Sales & Quotes", href: "/quotations", icon: FileText, paths: ["/quotations", "/quotations/new", "/quotations/edit"], allowedRoles: ["Admin", "Manager", "Engineer", "Estimation"] },

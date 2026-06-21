@@ -62,6 +62,24 @@ namespace MytechERP.Infrastructure.Services.Procurement
         private async Task<List<ProcurementRequestDto>> MapToDtoListAsync(List<ProcurementRequest> requests)
         {
             var dtos = requests.Select(MapToDto).ToList();
+            
+            // Map ARF Statuses
+            var arfIds = dtos.Where(d => d.AmountRequestFormId.HasValue).Select(d => d.AmountRequestFormId!.Value).Distinct().ToList();
+            if (arfIds.Any())
+            {
+                var arfStatuses = await _context.AmountRequestForms
+                    .Where(a => arfIds.Contains(a.Id))
+                    .ToDictionaryAsync(a => a.Id, a => a.Status);
+
+                foreach (var dto in dtos)
+                {
+                    if (dto.AmountRequestFormId.HasValue && arfStatuses.ContainsKey(dto.AmountRequestFormId.Value))
+                    {
+                        dto.IsArfApproved = arfStatuses[dto.AmountRequestFormId.Value] == "Released";
+                    }
+                }
+            }
+
             var emailsToLookup = dtos.Where(d => d.SupervisorName != null && d.SupervisorName.Contains("@")).Select(d => d.SupervisorName).Distinct().ToList();
             if (emailsToLookup.Any())
             {
@@ -119,6 +137,17 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 .Include(p => p.Items)
                 .Where(p => p.AssignedExecutiveEmail == executiveEmail && p.Status == "AssignedToExecutive")
                 .OrderByDescending(p => p.AssignedDate)
+                .ToListAsync();
+
+            return await MapToDtoListAsync(requests);
+        }
+
+        public async Task<List<ProcurementRequestDto>> GetCompletedProcurementsForExecutiveAsync(string executiveEmail)
+        {
+            var requests = await _context.ProcurementRequests
+                .Include(p => p.Items)
+                .Where(p => p.AssignedExecutiveEmail == executiveEmail && p.Status == "Completed")
+                .OrderByDescending(p => p.CompletedDate)
                 .ToListAsync();
 
             return await MapToDtoListAsync(requests);

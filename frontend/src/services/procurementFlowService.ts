@@ -29,6 +29,11 @@ export const procurementFlowService = {
     return response.data;
   },
 
+  getCompletedExecutive: async (): Promise<ProcurementRequestDto[]> => {
+    const response = await apiClient.get<ProcurementRequestDto[]>(`${BASE_URL}/completed-executive`);
+    return response.data;
+  },
+
   getById: async (id: number): Promise<ProcurementRequestDto> => {
     const response = await apiClient.get<ProcurementRequestDto>(`${BASE_URL}/${id}`);
     return response.data;

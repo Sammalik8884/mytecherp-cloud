@@ -10,6 +10,7 @@ namespace MytechERP.Application.Interfaces
         Task<List<ProcurementRequestDto>> GetPendingPdApprovalsAsync();
         Task<List<ProcurementRequestDto>> GetApprovedRequestsAsync();
         Task<List<ProcurementRequestDto>> GetPendingProcurementsForExecutiveAsync(string executiveEmail);
+        Task<List<ProcurementRequestDto>> GetCompletedProcurementsForExecutiveAsync(string executiveEmail);
         
         Task<ProcurementRequestDto> GetByIdAsync(int id);
         

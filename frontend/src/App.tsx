@@ -62,6 +62,7 @@ import CreateProcurementPage from "./pages/procurementFlow/CreateProcurementPage
 import PendingApprovalsPage from "./pages/procurementFlow/PendingApprovalsPage";
 import ProcurementApprovedPage from "./pages/procurementFlow/ProcurementApprovedPage";
 import PendingProcurementsPage from "./pages/procurementFlow/PendingProcurementsPage";
+import CompletedProcurementsPage from "./pages/procurementFlow/CompletedProcurementsPage";
 import ProcurementDetailsPage from "./pages/procurementFlow/ProcurementDetailsPage";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./auth/AuthContext";
@@ -202,6 +203,7 @@ function App() {
                                 </Route>
                                 <Route element={<RoleProtectedRoute allowedRoles={["Procurement Executive"]} />}>
                                     <Route path="/procurement-flow/pending-procurements" element={<PendingProcurementsPage />} />
+                                    <Route path="/procurement-flow/completed-procurements" element={<CompletedProcurementsPage />} />
                                 </Route>
                             </Route>
                             {/* Future Iterations will add more routes here */}

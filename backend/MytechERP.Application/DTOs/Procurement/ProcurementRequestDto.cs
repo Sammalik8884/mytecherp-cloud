@@ -24,6 +24,7 @@ namespace MytechERP.Application.DTOs.Procurement
         public string? DeliveryNoteText { get; set; }
         public List<string> DeliveryNoteDocuments { get; set; } = new List<string>();
         public List<ProcurementRequestItemDto> Items { get; set; } = new List<ProcurementRequestItemDto>();
+        public bool IsArfApproved { get; set; }
     }
 
     public class ProcurementRequestItemDto
