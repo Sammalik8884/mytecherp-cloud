@@ -4,11 +4,13 @@ import { ProcurementRequestDto } from '../../types/procurementFlow';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Eye } from 'lucide-react';
+import { useAuth } from '../../auth/AuthContext';
 
 const ProcurementDashboardPage: React.FC = () => {
     const [procurements, setProcurements] = useState<ProcurementRequestDto[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const { hasRole } = useAuth();
 
     useEffect(() => {
         loadData();
@@ -31,13 +33,15 @@ const ProcurementDashboardPage: React.FC = () => {
         <div className="p-6 max-w-7xl mx-auto space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">Procurement Dashboard</h1>
-                <button 
-                    onClick={() => navigate('/procurement-flow/create')}
-                    className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-                >
-                    <Plus className="h-4 w-4" />
-                    <span>Initiate Request</span>
-                </button>
+                {hasRole(['Site Supervisor']) && (
+                    <button 
+                        onClick={() => navigate('/procurement-flow/create')}
+                        className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+                    >
+                        <Plus className="h-4 w-4" />
+                        <span>Initiate Request</span>
+                    </button>
+                )}
             </div>
 
             <div className="bg-card border border-border rounded-lg overflow-hidden">
