@@ -138,12 +138,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
             await _context.SaveChangesAsync();
 
             // Notify PD
-            await _notificationService.CreateNotificationAsync(
-                "ProjectDirector", // Assume role-based notification or fetch PD users
-                "New Procurement Request",
-                $"A new procurement request ({procNum}) has been submitted by {supervisorName} and is awaiting your approval.",
-                $"/procurement/pending-approvals"
-            );
+            await NotifyUsersByRoleAsync("Project Director", "New Procurement Request", $"A new procurement request ({procNum}) has been submitted by {supervisorName} and is awaiting your approval.", "/procurement-flow/pending-approvals");
 
             return MapToDto(request);
         }
@@ -162,23 +157,13 @@ namespace MytechERP.Infrastructure.Services.Procurement
             {
                 request.Status = "ApprovedByPD";
                 
-                await _notificationService.CreateNotificationAsync(
-                    "ProcurementHead", // Target role
-                    "Procurement Request Approved",
-                    $"Procurement request {request.ProcurementNumber} has been approved by PD and is ready for ARF generation.",
-                    $"/procurement/approved"
-                );
+                await NotifyUsersByRoleAsync("Procurement Head", "Procurement Request Approved", $"Procurement request {request.ProcurementNumber} has been approved by PD and is ready for ARF generation.", "/procurement-flow/approved");
             }
             else
             {
                 request.Status = "RejectedByPD";
                 
-                await _notificationService.CreateNotificationAsync(
-                    request.SupervisorEmail, // Target user
-                    "Procurement Request Rejected",
-                    $"Your procurement request {request.ProcurementNumber} was rejected by the Project Director. Remarks: {dto.Remarks}",
-                    $"/procurement/dashboard"
-                );
+                await NotifyUserByEmailAsync(request.SupervisorEmail, "Procurement Request Rejected", $"Your procurement request {request.ProcurementNumber} was rejected by the Project Director. Remarks: {dto.Remarks}", "/procurement-flow/dashboard");
             }
 
             await _context.SaveChangesAsync();
@@ -226,20 +211,8 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
             await _context.SaveChangesAsync();
 
-            await _notificationService.CreateNotificationAsync(
-                request.AssignedExecutiveEmail,
-                "New Procurement Assigned",
-                $"You have been assigned procurement {request.ProcurementNumber}.",
-                $"/procurement/pending-procurements"
-            );
-            
-            // Also notify supervisor and proc head
-            await _notificationService.CreateNotificationAsync(
-                request.SupervisorEmail,
-                "Procurement Assigned",
-                $"Your procurement {request.ProcurementNumber} has been assigned to {dto.ExecutiveEmail}.",
-                $"/procurement/dashboard"
-            );
+            await NotifyUserByEmailAsync(request.AssignedExecutiveEmail, "New Procurement Assigned", $"You have been assigned procurement {request.ProcurementNumber}.", "/procurement-flow/pending-procurements");
+            await NotifyUserByEmailAsync(request.SupervisorEmail, "Procurement Assigned", $"Your procurement {request.ProcurementNumber} has been assigned to {dto.ExecutiveEmail}.", "/procurement-flow/dashboard");
 
             return MapToDto(request);
         }
@@ -262,24 +235,36 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
             await _context.SaveChangesAsync();
 
-            await _notificationService.CreateNotificationAsync(
-                request.SupervisorEmail,
-                "Procurement Completed",
-                $"Procurement {request.ProcurementNumber} has been completed and delivery notes attached.",
-                $"/procurement/dashboard"
-            );
+            await NotifyUserByEmailAsync(request.SupervisorEmail, "Procurement Completed", $"Procurement {request.ProcurementNumber} has been completed and delivery notes attached.", "/procurement-flow/dashboard");
 
             if (!string.IsNullOrEmpty(request.ProcurementHeadEmail))
             {
-                await _notificationService.CreateNotificationAsync(
-                    request.ProcurementHeadEmail,
-                    "Procurement Completed",
-                    $"Procurement {request.ProcurementNumber} has been completed by {request.AssignedExecutiveEmail}.",
-                    $"/procurement/dashboard"
-                );
+                await NotifyUserByEmailAsync(request.ProcurementHeadEmail, "Procurement Completed", $"Procurement {request.ProcurementNumber} has been completed by {request.AssignedExecutiveEmail}.", "/procurement-flow/dashboard");
             }
 
             return MapToDto(request);
+        }
+
+        private async Task NotifyUsersByRoleAsync(string roleName, string title, string message, string type)
+        {
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+            if (role != null)
+            {
+                var userIds = await _context.UserRoles.Where(ur => ur.RoleId == role.Id).Select(ur => ur.UserId).ToListAsync();
+                foreach (var userId in userIds)
+                {
+                    await _notificationService.CreateNotificationAsync(userId, title, message, type);
+                }
+            }
+        }
+
+        private async Task NotifyUserByEmailAsync(string email, string title, string message, string type)
+        {
+            var userId = await _context.Users.Where(u => u.Email == email).Select(u => u.Id).FirstOrDefaultAsync();
+            if (userId != null)
+            {
+                await _notificationService.CreateNotificationAsync(userId, title, message, type);
+            }
         }
     }
 }

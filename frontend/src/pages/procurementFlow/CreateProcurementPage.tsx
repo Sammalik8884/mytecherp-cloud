@@ -14,6 +14,7 @@ const CreateProcurementPage: React.FC = () => {
     const [items, setItems] = useState<CreateProcurementItemDto[]>([
         { itemName: '', quantity: 1, reason: '' }
     ]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -53,6 +54,7 @@ const CreateProcurementPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             const dto: CreateProcurementRequestDto = {
                 siteId: siteId ? Number(siteId) : undefined,
@@ -71,6 +73,8 @@ const CreateProcurementPage: React.FC = () => {
         } catch (error) {
             console.error('Failed to create procurement', error);
             toast.error('Failed to create procurement request');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -117,74 +121,82 @@ const CreateProcurementPage: React.FC = () => {
                         <div className="space-y-4">
                             {items.map((item, index) => (
                                 <div key={index} className="flex flex-wrap md:flex-nowrap items-start gap-4 p-4 border border-border rounded-lg bg-background">
-                                    <div className="flex-1 min-w-[200px]">
-                                        <label className="block text-xs font-medium text-muted-foreground mb-1">Item Name *</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={item.itemName}
-                                            onChange={(e) => handleItemChange(index, 'itemName', e.target.value)}
-                                        />
+                                <div key={index} className="flex items-start gap-4 p-4 border border-border rounded-md bg-secondary/20">
+                                    <div className="flex-1 space-y-4">
+                                        <div className="flex gap-4">
+                                            <div className="flex-1">
+                                                <label className="block text-xs font-medium text-muted-foreground mb-1">Item Name</label>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                    value={item.itemName}
+                                                    onChange={(e) => handleItemChange(index, 'itemName', e.target.value)}
+                                                    placeholder="e.g. Cement Bags"
+                                                />
+                                            </div>
+                                            <div className="w-24">
+                                                <label className="block text-xs font-medium text-muted-foreground mb-1">Qty</label>
+                                                <input
+                                                    type="number"
+                                                    required
+                                                    min="1"
+                                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                    value={item.quantity}
+                                                    onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-muted-foreground mb-1">Reason / Notes</label>
+                                            <input
+                                                type="text"
+                                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                value={item.reason}
+                                                onChange={(e) => handleItemChange(index, 'reason', e.target.value)}
+                                                placeholder="Optional reasoning..."
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="w-full md:w-32">
-                                        <label className="block text-xs font-medium text-muted-foreground mb-1">Quantity *</label>
-                                        <input
-                                            required
-                                            type="number"
-                                            min="0.01"
-                                            step="0.01"
-                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={item.quantity}
-                                            onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))}
-                                        />
-                                    </div>
-                                    <div className="flex-1 min-w-[200px]">
-                                        <label className="block text-xs font-medium text-muted-foreground mb-1">Reason (Optional)</label>
-                                        <input
-                                            type="text"
-                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={item.reason}
-                                            onChange={(e) => handleItemChange(index, 'reason', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="pt-6">
+                                    {items.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeItem(index)}
-                                            disabled={items.length === 1}
-                                            className="p-2 text-destructive hover:bg-destructive/10 rounded-md disabled:opacity-50 transition-colors"
+                                            className="mt-6 text-destructive hover:text-destructive/80 p-2"
                                         >
-                                            <Trash2 className="h-5 w-5" />
+                                            <Trash2 className="w-5 h-5" />
                                         </button>
-                                    </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={addItem}
-                            className="mt-4 flex items-center space-x-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                        >
-                            <Plus className="h-4 w-4" />
-                            <span>Add Row</span>
-                        </button>
                     </div>
 
                     <div className="pt-4 border-t border-border flex justify-end">
                         <button
                             type="button"
                             onClick={() => navigate('/procurement-flow/dashboard')}
-                            className="px-4 py-2 text-sm font-medium border border-border bg-background hover:bg-accent hover:text-accent-foreground rounded-md mr-4 transition-colors"
+                            className="mr-4 px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
+                            disabled={isSubmitting}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors"
+                            disabled={isSubmitting || items.length === 0}
+                            className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-md shadow transition-colors disabled:opacity-50 flex items-center"
                         >
-                            Submit Request
+                            {isSubmitting ? (
+                                <>
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Submitting...
+                                </>
+                            ) : (
+                                "Submit Request"
+                            )}
                         </button>
                     </div>
                 </form>
