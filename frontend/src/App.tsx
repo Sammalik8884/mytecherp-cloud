@@ -192,9 +192,14 @@ function App() {
                                 <Route path="/procurement-flow/dashboard" element={<ProcurementDashboardPage />} />
                                 <Route path="/procurement-flow/create" element={<CreateProcurementPage />} />
                                 <Route path="/procurement-flow/pending-approvals" element={<PendingApprovalsPage />} />
-                                <Route path="/procurement-flow/approved" element={<ProcurementApprovedPage />} />
-                                <Route path="/procurement-flow/pending-procurements" element={<PendingProcurementsPage />} />
                                 <Route path="/procurement-flow/:id" element={<ProcurementDetailsPage />} />
+                                
+                                <Route element={<RoleProtectedRoute allowedRoles={["Procurement Head"]} />}>
+                                    <Route path="/procurement-flow/approved" element={<ProcurementApprovedPage />} />
+                                </Route>
+                                <Route element={<RoleProtectedRoute allowedRoles={["Procurement Executive"]} />}>
+                                    <Route path="/procurement-flow/pending-procurements" element={<PendingProcurementsPage />} />
+                                </Route>
                             </Route>
                             {/* Future Iterations will add more routes here */}
                         </Route>
