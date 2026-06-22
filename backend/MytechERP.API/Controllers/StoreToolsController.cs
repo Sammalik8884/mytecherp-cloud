@@ -61,11 +61,17 @@ namespace MytechERP.API.Controllers
         [Authorize(Roles = "Admin,Procurement Executive")]
         public async Task<IActionResult> Create([FromBody] CreateStoreToolDto dto)
         {
+            // Prevent duplicate descriptions
+            var allTools = await _repository.GetAllAsync();
+            var exists = allTools.Any(t => t.Description.Trim().ToLower() == dto.Description.Trim().ToLower());
+            if (exists)
+                return Conflict($"A tool with the description '{dto.Description}' already exists. Please update the existing tool instead.");
+
             var tool = new StoreTool
             {
-                Description = dto.Description,
+                Description = dto.Description.Trim(),
                 TotalQuantity = dto.TotalQuantity,
-                CurrentQuantity = dto.TotalQuantity // newly created tools have full inventory
+                CurrentQuantity = dto.TotalQuantity
             };
 
             await _repository.AddAsync(tool);
