@@ -15,31 +15,41 @@ namespace MytechERP.API.Controllers
     public class SitesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        public SitesController(ApplicationDbContext context)
+        private readonly MytechERP.Application.Interfaces.ICurrentUserService _currentUserService;
+
+        public SitesController(ApplicationDbContext context, MytechERP.Application.Interfaces.ICurrentUserService currentUserService)
         { 
            _context = context;
+           _currentUserService = currentUserService;
         }
+
         [Authorize(Roles = Roles.AllInternal)]
         [HttpGet]
         public async Task<ActionResult<List<SiteDto>>> GetAll()
         {
-            var sites = await _context.Sites
-                   .Include(x => x.Customer)
+            var query = _context.Sites.Include(x => x.Customer).AsQueryable();
+
+            if (_currentUserService.Role == Roles.ProcurementExecutive)
+            {
+                var user = await _context.Users.FindAsync(_currentUserService.UserId);
+                if (user != null && user.SiteId.HasValue)
+                {
+                    query = query.Where(s => s.Id == user.SiteId.Value);
+                }
+            }
+
+            var sites = await query
                    .OrderByDescending(s => s.Id)
                    .Select(s => new SiteDto
                    {
-
                        Id = s.Id,
                        Name = s.Name,
                        Address = s.Address,
                        City = s.City,
                        CustomerId = s.CustomerId,
                        CustomerName = s.Customer.Name
-
-
                    }).ToListAsync();
             return Ok(sites);
-
         }
       
         [HttpPost]

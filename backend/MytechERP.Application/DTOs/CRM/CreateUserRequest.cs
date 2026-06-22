@@ -14,5 +14,6 @@ namespace MytechERP.Application.DTOs.CRM
         public string Password { get; set; }
         public string Role { get; set; }
         public string? Designation { get; set; }
+        public int? SiteId { get; set; }
     }
 }

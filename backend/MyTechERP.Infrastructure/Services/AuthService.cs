@@ -129,7 +129,8 @@ namespace MyTechERP.Infrastructure.Services
                 FullName = request.FullName,
                 Designation = request.Designation ?? string.Empty,
                 TenantId = tenantId,
-                IsActive = true
+                IsActive = true,
+                SiteId = request.SiteId
             };
 
             var result = await _userManager.CreateAsync(newUser, request.Password);

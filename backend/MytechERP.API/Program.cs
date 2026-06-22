@@ -428,6 +428,23 @@ using (var scope = app.Services.CreateScope())
                                    MytechERP.domain.Enums.PlanFeature.OfflineSync;
             }
             
+            
+            // Add SiteId to AspNetUsers for isolation
+            try
+            {
+                var alterUsersSql = @"
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = N'SiteId' AND Object_ID = Object_ID(N'AspNetUsers'))
+                    BEGIN
+                        ALTER TABLE AspNetUsers ADD SiteId INT NULL;
+                        ALTER TABLE AspNetUsers ADD CONSTRAINT FK_AspNetUsers_Sites_SiteId FOREIGN KEY (SiteId) REFERENCES Sites(Id);
+                    END";
+                await context.Database.ExecuteSqlRawAsync(alterUsersSql);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SiteId alter table warning: {ex.Message}");
+            }
+
             await context.SaveChangesAsync();
         }
         else

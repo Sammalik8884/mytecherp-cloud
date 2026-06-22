@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 export const UsersPage = () => {
     const [users, setUsers] = useState<any[]>([]);
     const [roles, setRoles] = useState<string[]>([]);
+    const [sites, setSites] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Modal State
@@ -16,17 +17,20 @@ export const UsersPage = () => {
         email: "",
         password: "",
         role: "",
-        designation: ""
+        designation: "",
+        siteId: ""
     });
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [usersData, rolesData] = await Promise.all([
+            const [usersData, rolesData, sitesData] = await Promise.all([
                 authService.getUsers(),
-                authService.getRoles()
+                authService.getRoles(),
+                import("../services/apiClient").then(m => m.apiClient.get('/Sites').then(r => r.data).catch(() => []))
             ]);
             setUsers(usersData);
+            setSites(sitesData);
             // Only show the official backend roles — filter out stale DB entries like Worker, Client, Customers
             const validRoles = ["Manager", "Engineer", "Technician", "Customer", "Salesman", "Estimation", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller"];
             const filteredRoles = rolesData.filter((r: string) => validRoles.includes(r));
@@ -60,7 +64,11 @@ export const UsersPage = () => {
         e.preventDefault();
         setFormLoading(true);
         try {
-            const res = await authService.createUser(formData);
+            const payload = {
+                ...formData,
+                siteId: formData.siteId ? parseInt(formData.siteId) : null
+            };
+            const res = await authService.createUser(payload);
             toast.success(res.message || "User created successfully");
             setIsModalOpen(false);
             fetchData();
@@ -247,6 +255,22 @@ export const UsersPage = () => {
                                         ))}
                                     </select>
                                 </div>
+                                {formData.role === "Procurement Executive" && (
+                                    <div>
+                                        <label className="text-xs font-semibold text-muted-foreground mb-1 block">Assign Site *</label>
+                                        <select
+                                            required
+                                            value={formData.siteId}
+                                            onChange={e => setFormData({ ...formData, siteId: e.target.value })}
+                                            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                        >
+                                            <option value="" disabled>Select a site...</option>
+                                            {sites.map(site => (
+                                                <option key={site.id} value={site.id}>{site.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
 
                                 <div className="flex justify-end space-x-3 pt-4 mt-6 border-t border-border/50">
                                     <button

@@ -16,5 +16,7 @@ namespace MytechERP.domain.Entities
         public bool IsActive { get; set; } = true;
         public int? CustomerId{ get; set; }
         public Customer? Customer { get; set; }
+        public int? SiteId { get; set; }
+        public Site? Site { get; set; }
     }
 }
