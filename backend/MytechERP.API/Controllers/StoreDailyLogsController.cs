@@ -19,22 +19,34 @@ namespace MytechERP.API.Controllers
     {
         private readonly IGenericRepository<StoreDailyLog> _repository;
         private readonly ApplicationDbContext _context;
+        private readonly ICurrentUserService _currentUserService;
 
-        public StoreDailyLogsController(IGenericRepository<StoreDailyLog> repository, ApplicationDbContext context)
+        public StoreDailyLogsController(IGenericRepository<StoreDailyLog> repository, ApplicationDbContext context, ICurrentUserService currentUserService)
         {
             _repository = repository;
             _context = context;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var logs = await _context.StoreDailyLogs
+            var query = _context.StoreDailyLogs
                 .Include(l => l.Site)
                 .Include(l => l.Items)
                 .ThenInclude(i => i.StoreTool)
-                .OrderByDescending(l => l.Date)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (_currentUserService.Role == "Procurement Executive")
+            {
+                var userSiteId = _context.Users.Where(u => u.Id == _currentUserService.UserId).Select(u => EF.Property<int?>(u, "SiteId")).FirstOrDefault();
+                if (userSiteId.HasValue)
+                {
+                    query = query.Where(l => l.SiteId == userSiteId.Value);
+                }
+            }
+
+            var logs = await query.OrderByDescending(l => l.Date).ToListAsync();
 
             var dtos = logs.Select(l => new StoreDailyLogDto
             {

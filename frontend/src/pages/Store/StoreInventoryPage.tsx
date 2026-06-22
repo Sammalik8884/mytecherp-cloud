@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, Warehouse, Save, Search } from "lucide-react";
+import { CheckCircle, Warehouse, Save, Search, PackagePlus, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
 
@@ -25,6 +25,15 @@ export function StoreInventoryPage() {
     const [search, setSearch] = useState("");
     const [savingAll, setSavingAll] = useState(false);
     const [savedAllMsg, setSavedAllMsg] = useState("");
+    
+    // Add stock modal state
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [searchGlobal, setSearchGlobal] = useState("");
+    const [globalTools, setGlobalTools] = useState<any[]>([]);
+    const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
+    const [selectedGlobalTool, setSelectedGlobalTool] = useState<any>(null);
+    const [addQuantity, setAddQuantity] = useState(1);
+    const [isAddingStock, setIsAddingStock] = useState(false);
 
     useEffect(() => { fetchSites(); }, []);
 
@@ -124,6 +133,50 @@ export function StoreInventoryPage() {
 
     const dirtyCount = rows.filter(r => r.dirty).length;
 
+    const handleSearchGlobal = async (q: string) => {
+        setSearchGlobal(q);
+        if (q.length < 2) {
+            setGlobalTools([]);
+            return;
+        }
+        setIsSearchingGlobal(true);
+        try {
+            const res = await apiClient.get(`/StoreTools/search?q=${encodeURIComponent(q)}`);
+            // Filter out tools that are already in the site's inventory
+            const existingToolIds = new Set(rows.map(r => r.storeToolId));
+            setGlobalTools((res.data || []).filter((t: any) => !existingToolIds.has(t.id)));
+        } catch (error) {
+            console.error("Error searching global tools", error);
+        } finally {
+            setIsSearchingGlobal(false);
+        }
+    };
+
+    const handleReceiveStock = async () => {
+        if (!siteId || !selectedGlobalTool) return;
+        setIsAddingStock(true);
+        try {
+            await apiClient.post('/SiteToolStocks/receive', {
+                siteId: parseInt(siteId),
+                items: [{
+                    storeToolId: selectedGlobalTool.id,
+                    quantity: addQuantity
+                }]
+            });
+            setShowAddModal(false);
+            setSelectedGlobalTool(null);
+            setAddQuantity(1);
+            setSearchGlobal("");
+            setSavedAllMsg(`Successfully received ${addQuantity} of ${selectedGlobalTool.description}`);
+            fetchStock(parseInt(siteId));
+            setTimeout(() => setSavedAllMsg(""), 3000);
+        } catch (error: any) {
+            alert(`Error receiving stock: ${error.response?.data || error.message}`);
+        } finally {
+            setIsAddingStock(false);
+        }
+    };
+
 
     return (
         <div className="space-y-4">
@@ -133,15 +186,26 @@ export function StoreInventoryPage() {
                     <Warehouse className="w-6 h-6 text-blue-600" />
                     Site Inventory
                 </h1>
-                {dirtyCount > 0 && (
-                    <button
-                        onClick={saveAll}
-                        disabled={savingAll}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:opacity-60"
-                    >
-                        <Save className="w-4 h-4" />
-                        {savingAll ? "Saving..." : `Save All (${dirtyCount} changes)`}
-                    </button>
+                {siteId && (
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 font-medium transition-colors border border-blue-200"
+                        >
+                            <PackagePlus className="w-4 h-4" />
+                            Receive Stock
+                        </button>
+                        {dirtyCount > 0 && (
+                            <button
+                                onClick={saveAll}
+                                disabled={savingAll}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:opacity-60 transition-colors"
+                            >
+                                <Save className="w-4 h-4" />
+                                {savingAll ? "Saving..." : `Save All (${dirtyCount})`}
+                            </button>
+                        )}
+                    </div>
                 )}
             </div>
 
@@ -259,6 +323,95 @@ export function StoreInventoryPage() {
                     <Warehouse className="w-14 h-14 mx-auto mb-3 opacity-20" />
                     <p className="font-medium">Select a site to manage its tool inventory</p>
                     <p className="text-sm mt-1">You can update quantities directly in the table</p>
+                </div>
+            )}
+
+            {/* Receive Stock Modal */}
+            {showAddModal && siteId && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <PackagePlus className="w-5 h-5 text-blue-600" />
+                                Receive New Stock
+                            </h2>
+                            <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {!selectedGlobalTool ? (
+                                <div className="space-y-4">
+                                    <label className="block text-sm font-medium text-gray-700">Search Global Tools</label>
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                        <input
+                                            type="text"
+                                            autoFocus
+                                            placeholder="Type tool name..."
+                                            value={searchGlobal}
+                                            onChange={(e) => handleSearchGlobal(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div className="max-h-60 overflow-y-auto rounded-lg border border-gray-100">
+                                        {isSearchingGlobal ? (
+                                            <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
+                                        ) : globalTools.length > 0 ? (
+                                            globalTools.map(tool => (
+                                                <div
+                                                    key={tool.id}
+                                                    onClick={() => setSelectedGlobalTool(tool)}
+                                                    className="p-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0"
+                                                >
+                                                    <span className="font-medium text-gray-900">{tool.description}</span>
+                                                    <span className="text-sm text-gray-500">Global Qty: {tool.totalQuantity}</span>
+                                                </div>
+                                            ))
+                                        ) : searchGlobal.length >= 2 ? (
+                                            <div className="p-4 text-center text-sm text-gray-500">
+                                                No matching tools found. (Tools already in your inventory are hidden)
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="bg-blue-50 p-4 rounded-lg flex justify-between items-center border border-blue-100">
+                                        <div>
+                                            <div className="text-sm text-blue-600 font-medium mb-1">Selected Tool</div>
+                                            <div className="font-bold text-gray-900">{selectedGlobalTool.description}</div>
+                                        </div>
+                                        <button
+                                            onClick={() => setSelectedGlobalTool(null)}
+                                            className="text-sm text-blue-600 hover:text-blue-800"
+                                        >
+                                            Change
+                                        </button>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Initial Quantity Received</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={addQuantity}
+                                            onChange={(e) => setAddQuantity(parseInt(e.target.value) || 0)}
+                                            className="w-full px-4 py-3 text-lg rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 text-center font-bold"
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={handleReceiveStock}
+                                        disabled={isAddingStock || addQuantity < 1}
+                                        className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                        {isAddingStock ? "Receiving..." : "Confirm & Receive Stock"}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
