@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle, Warehouse, Save, Search } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
@@ -123,7 +123,7 @@ export function StoreInventoryPage() {
     };
 
     const dirtyCount = rows.filter(r => r.dirty).length;
-    const selectedSiteName = sites.find(s => s.id?.toString() === siteId)?.name || "";
+
 
     return (
         <div className="space-y-4">

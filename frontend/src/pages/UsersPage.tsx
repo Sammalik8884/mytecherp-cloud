@@ -55,7 +55,8 @@ export const UsersPage = () => {
             email: "",
             password: "",
             role: roles.length > 0 ? roles[0] : "",
-            designation: ""
+            designation: "",
+            siteId: ""
         });
         setIsModalOpen(true);
     };
