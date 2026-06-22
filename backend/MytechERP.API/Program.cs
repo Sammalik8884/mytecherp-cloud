@@ -292,6 +292,14 @@ using (var scope = app.Services.CreateScope())
                     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogItems') AND name = N'UpdatedAt')
                         ALTER TABLE StoreDailyLogItems ADD UpdatedAt datetime2 NOT NULL DEFAULT '2000-01-01';
 
+                    -- Clean up duplicates from StoreTools keeping only the lowest ID
+                    DELETE FROM StoreTools 
+                    WHERE Id NOT IN (
+                        SELECT MIN(Id) 
+                        FROM StoreTools 
+                        GROUP BY Description
+                    );
+
                     -- Fix existing records that got TenantId = 0 (assign them to Tenant 3 = MytechEngineering)
                     UPDATE StoreTools SET TenantId = 3 WHERE TenantId = 0;
                     UPDATE StoreDailyLogs SET TenantId = 3 WHERE TenantId = 0;

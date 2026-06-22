@@ -61,6 +61,12 @@ namespace MytechERP.API.Controllers
         [Authorize(Roles = "Admin,Procurement Executive")]
         public async Task<IActionResult> Create([FromBody] CreateStoreToolDto dto)
         {
+            var existingTools = await _repository.GetAllAsync();
+            if (existingTools.Any(t => t.Description.ToLower() == dto.Description.ToLower() && !t.IsDeleted))
+            {
+                return BadRequest($"A tool with description '{dto.Description}' already exists.");
+            }
+
             var tool = new StoreTool
             {
                 Description = dto.Description,
