@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Package, Plus, Edit, Trash2, Loader2, Search, ImageIcon, UploadCloud, AlertTriangle } from "lucide-react";
+import { useAuth } from "../auth/AuthContext";
 import { StatCard } from "../components/dashboard/StatCard";
 import { apiClient } from "../services/apiClient";
 import { productService } from "../services/productService";
@@ -19,6 +20,8 @@ const getImageUrl = (url: string | null | undefined) => {
 };
 
 export const ProductsPage = () => {
+    const { hasRole } = useAuth();
+    const canManageProducts = hasRole(["Admin", "Manager", "Engineer"]);
     const [products, setProducts] = useState<ProductDto[]>([]);
     const [categories, setCategories] = useState<CategoryDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -202,20 +205,24 @@ export const ProductsPage = () => {
                         )}
                     </div>
 
-                    <button
-                        onClick={() => setIsImportModalOpen(true)}
-                        className="bg-secondary text-secondary-foreground border border-border px-4 py-2 rounded-lg font-medium hover:bg-secondary/50 transition-all shadow-sm flex items-center space-x-2"
-                    >
-                        <UploadCloud className="h-5 w-5" />
-                        <span>Import Excel</span>
-                    </button>
-                    <button
-                        onClick={() => handleOpenModal()}
-                        className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:-translate-y-0.5 transition-all shadow-lg hover:shadow-primary/25 flex items-center space-x-2"
-                    >
-                        <Plus className="h-5 w-5" />
-                        <span>Add Item</span>
-                    </button>
+                    {canManageProducts && (
+                        <>
+                            <button
+                                onClick={() => setIsImportModalOpen(true)}
+                                className="bg-secondary text-secondary-foreground border border-border px-4 py-2 rounded-lg font-medium hover:bg-secondary/50 transition-all shadow-sm flex items-center space-x-2"
+                            >
+                                <UploadCloud className="h-5 w-5" />
+                                <span>Import Excel</span>
+                            </button>
+                            <button
+                                onClick={() => handleOpenModal()}
+                                className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:-translate-y-0.5 transition-all shadow-lg hover:shadow-primary/25 flex items-center space-x-2"
+                            >
+                                <Plus className="h-5 w-5" />
+                                <span>Add Item</span>
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -262,7 +269,7 @@ export const ProductsPage = () => {
                                 <th className="px-6 py-4 font-medium">Category</th>
                                 <th className="px-6 py-4 font-medium">Brand</th>
                                 <th className="px-6 py-4 font-medium text-right">Price</th>
-                                <th className="px-6 py-4 font-medium text-right">Actions</th>
+                                {canManageProducts && <th className="px-6 py-4 font-medium text-right">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
@@ -305,24 +312,26 @@ export const ProductsPage = () => {
                                         <td className="px-6 py-4 text-right font-medium text-primary">
                                             ${item.price.toFixed(2)}
                                         </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end space-x-2">
-                                                <button
-                                                    onClick={() => handleOpenModal(item)}
-                                                    className="p-2 border border-primary/30 text-primary hover:bg-primary/20 hover:text-primary rounded-lg transition-colors flex items-center space-x-1 font-medium bg-primary/10"
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                    <span className="text-xs">Edit</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(item.id)}
-                                                    className="p-2 border border-destructive/30 text-destructive hover:bg-destructive/20 hover:text-destructive rounded-lg transition-colors flex items-center space-x-1 font-medium bg-destructive/10"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                    <span className="text-xs">Delete</span>
-                                                </button>
-                                            </div>
-                                        </td>
+                                        {canManageProducts && (
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end space-x-2">
+                                                    <button
+                                                        onClick={() => handleOpenModal(item)}
+                                                        className="p-2 border border-primary/30 text-primary hover:bg-primary/20 hover:text-primary rounded-lg transition-colors flex items-center space-x-1 font-medium bg-primary/10"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                        <span className="text-xs">Edit</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(item.id)}
+                                                        className="p-2 border border-destructive/30 text-destructive hover:bg-destructive/20 hover:text-destructive rounded-lg transition-colors flex items-center space-x-1 font-medium bg-destructive/10"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                        <span className="text-xs">Delete</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}

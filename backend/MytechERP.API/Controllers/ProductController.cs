@@ -68,7 +68,7 @@ namespace MytechERP.API.Controllers
 
 
         [HttpPost("create-manual")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer +","+ Roles.Estimation)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
         public async Task<IActionResult> Create([FromForm] CreateProductDto request)
         {
             var category = await _context.Categories
@@ -107,7 +107,7 @@ namespace MytechERP.API.Controllers
         [HttpPost("import-excel")]
         [DisableRequestSizeLimit]
         [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
         public async Task<IActionResult> ImportExcel(IFormFile file, [FromQuery] string brand = "LIFECO")
         {
             if (file == null || file.Length == 0) return BadRequest(new { error = "File is empty" });
@@ -143,7 +143,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -171,8 +171,7 @@ namespace MytechERP.API.Controllers
 
         
         [HttpPut("{id}")]
-
-        [Authorize(Roles = Roles.Admin +","+Roles.Manager + "," + Roles.Estimation)]
+        [Authorize(Roles = Roles.Admin +","+Roles.Manager)]
         public async Task<IActionResult> Update(int id, [FromForm] CreateProductDto request)
         {
             var existingProduct = await _genericRepository.GetByIdAsync(id);
