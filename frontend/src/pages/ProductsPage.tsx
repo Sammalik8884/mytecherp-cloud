@@ -205,23 +205,21 @@ export const ProductsPage = () => {
                         )}
                     </div>
 
+                    <button
+                        onClick={() => setIsImportModalOpen(true)}
+                        className="bg-secondary text-secondary-foreground border border-border px-4 py-2 rounded-lg font-medium hover:bg-secondary/50 transition-all shadow-sm flex items-center space-x-2"
+                    >
+                        <UploadCloud className="h-5 w-5" />
+                        <span>Import Excel</span>
+                    </button>
                     {canManageProducts && (
-                        <>
-                            <button
-                                onClick={() => setIsImportModalOpen(true)}
-                                className="bg-secondary text-secondary-foreground border border-border px-4 py-2 rounded-lg font-medium hover:bg-secondary/50 transition-all shadow-sm flex items-center space-x-2"
-                            >
-                                <UploadCloud className="h-5 w-5" />
-                                <span>Import Excel</span>
-                            </button>
-                            <button
-                                onClick={() => handleOpenModal()}
-                                className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:-translate-y-0.5 transition-all shadow-lg hover:shadow-primary/25 flex items-center space-x-2"
-                            >
-                                <Plus className="h-5 w-5" />
-                                <span>Add Item</span>
-                            </button>
-                        </>
+                        <button
+                            onClick={() => handleOpenModal()}
+                            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:-translate-y-0.5 transition-all shadow-lg hover:shadow-primary/25 flex items-center space-x-2"
+                        >
+                            <Plus className="h-5 w-5" />
+                            <span>Add Item</span>
+                        </button>
                     )}
                 </div>
             </div>

@@ -107,7 +107,7 @@ namespace MytechERP.API.Controllers
         [HttpPost("import-excel")]
         [DisableRequestSizeLimit]
         [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation)]
         public async Task<IActionResult> ImportExcel(IFormFile file, [FromQuery] string brand = "LIFECO")
         {
             if (file == null || file.Length == 0) return BadRequest(new { error = "File is empty" });
