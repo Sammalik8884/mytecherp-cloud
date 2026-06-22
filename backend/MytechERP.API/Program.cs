@@ -255,9 +255,49 @@ using (var scope = app.Services.CreateScope())
         
         if (!string.IsNullOrEmpty(dbConnection) && dbConnection != "CONFIGURE_IN_AZURE_APP_SERVICE")
         {
-            if (context.Database.GetPendingMigrations().Any())
+            try
             {
-                context.Database.Migrate();
+                if (context.Database.GetPendingMigrations().Any())
+                {
+                    context.Database.Migrate();
+                }
+            }
+            catch (Exception migEx)
+            {
+                Console.WriteLine($"Migration warning (non-fatal): {migEx.Message}");
+            }
+
+            // Ensure Store entity sync columns exist (safe to run even if already present)
+            try
+            {
+                var ensureColumnsSql = @"
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreTools') AND name = N'TenantId')
+                        ALTER TABLE StoreTools ADD TenantId int NOT NULL DEFAULT 0;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreTools') AND name = N'IsDeleted')
+                        ALTER TABLE StoreTools ADD IsDeleted bit NOT NULL DEFAULT 0;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreTools') AND name = N'UpdatedAt')
+                        ALTER TABLE StoreTools ADD UpdatedAt datetime2 NOT NULL DEFAULT '2000-01-01';
+
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogs') AND name = N'TenantId')
+                        ALTER TABLE StoreDailyLogs ADD TenantId int NOT NULL DEFAULT 0;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogs') AND name = N'IsDeleted')
+                        ALTER TABLE StoreDailyLogs ADD IsDeleted bit NOT NULL DEFAULT 0;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogs') AND name = N'UpdatedAt')
+                        ALTER TABLE StoreDailyLogs ADD UpdatedAt datetime2 NOT NULL DEFAULT '2000-01-01';
+
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogItems') AND name = N'TenantId')
+                        ALTER TABLE StoreDailyLogItems ADD TenantId int NOT NULL DEFAULT 0;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogItems') AND name = N'IsDeleted')
+                        ALTER TABLE StoreDailyLogItems ADD IsDeleted bit NOT NULL DEFAULT 0;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogItems') AND name = N'UpdatedAt')
+                        ALTER TABLE StoreDailyLogItems ADD UpdatedAt datetime2 NOT NULL DEFAULT '2000-01-01';
+                ";
+                await context.Database.ExecuteSqlRawAsync(ensureColumnsSql);
+                Console.WriteLine("Store entity columns verified/created successfully.");
+            }
+            catch (Exception colEx)
+            {
+                Console.WriteLine($"Store column ensure warning: {colEx.Message}");
             }
 
             var userManager = services.GetRequiredService<UserManager<AppUser>>();
@@ -331,6 +371,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine($" Error seeding database: {ex.Message}");
     }
 }
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
