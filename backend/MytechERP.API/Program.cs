@@ -381,6 +381,33 @@ using (var scope = app.Services.CreateScope())
     try
     {
         dbContext.Database.Migrate();
+        
+        if (!dbContext.StoreTools.Any())
+        {
+            try 
+            {
+                var seedFile = Path.Combine(AppContext.BaseDirectory, "seed_tools.json");
+                if (!File.Exists(seedFile)) 
+                {
+                    seedFile = "seed_tools.json"; // fallback to current dir
+                }
+                
+                if (File.Exists(seedFile))
+                {
+                    var json = File.ReadAllText(seedFile);
+                    var tools = System.Text.Json.JsonSerializer.Deserialize<List<MytechERP.domain.Entities.StoreTool>>(json);
+                    if (tools != null && tools.Any())
+                    {
+                        dbContext.StoreTools.AddRange(tools);
+                        dbContext.SaveChanges();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while seeding the store tools: {ex.Message}");
+            }
+        }
 
         if (!dbContext.Offices.Any())
         {

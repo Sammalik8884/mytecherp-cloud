@@ -15,7 +15,6 @@ namespace MytechERP.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class SeederController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
@@ -114,7 +113,31 @@ namespace MytechERP.API.Controllers
                 }
 
                 await _db.SaveChangesAsync();
-                return Ok(new { message = "Dummy data seeded successfully!" });
+
+                // Seed Store Tools from seed_tools.json if StoreTools table is empty
+                if (!_db.StoreTools.Any())
+                {
+                    try
+                    {
+                        var seedFilePath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "seed_tools.json");
+                        if (System.IO.File.Exists(seedFilePath))
+                        {
+                            var jsonData = await System.IO.File.ReadAllTextAsync(seedFilePath);
+                            var toolsList = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<StoreTool>>(jsonData);
+                            if (toolsList != null && toolsList.Any())
+                            {
+                                await _db.StoreTools.AddRangeAsync(toolsList);
+                                await _db.SaveChangesAsync();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error seeding tools: {ex.Message}");
+                    }
+                }
+
+                return Ok(new { message = "Dummy data and tools seeded successfully!" });
             }
             catch (Exception ex)
             {

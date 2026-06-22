@@ -42,6 +42,10 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
         allowedRoles: ["Admin", "Manager"]
     },
 
+    { label: "Store Management", isHeader: true, allowedRoles: ["Admin", "Procurement Executive"] },
+    { label: "Tools Inventory", href: "/store/tools", paths: ["/store/tools"], icon: Package, allowedRoles: ["Admin", "Procurement Executive"] },
+    { label: "Daily Store Logs", href: "/store/logs", paths: ["/store/logs", "/store/logs/new"], icon: ClipboardList, allowedRoles: ["Admin", "Procurement Executive"] },
+
     { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
     { label: "Sales Management", href: "/sales/leads", icon: Target, allowedRoles: ["Admin", "Manager", "Salesman", "Engineer", "Worker", "Technician"] },
     { label: "BOQ / Drawings Portal", href: "/sales/boq-portal", icon: FileText, allowedRoles: ["Admin", "Manager", "Estimation"] },

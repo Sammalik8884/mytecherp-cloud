@@ -23,6 +23,10 @@ import { AssetsPage } from "./pages/AssetsPage";
 import { WorkOrdersPage } from "./pages/WorkOrdersPage";
 import { MyJobsPage } from "./pages/MyJobsPage";
 import { JobExecutionPage } from "./pages/JobExecutionPage";
+import { StoreToolsPage } from "./pages/Store/StoreToolsPage";
+import { DailyLogsPage } from "./pages/Store/DailyLogsPage";
+import { DailyLogFormPage } from "./pages/Store/DailyLogFormPage";
+import { DailyLogCheckInPage } from "./pages/Store/DailyLogCheckInPage";
 import { InvoicesPage } from "./pages/InvoicesPage";
 import { InventoryPage } from "./pages/InventoryPage";
 import { PayrollPage } from "./pages/PayrollPage";
@@ -211,6 +215,15 @@ function App() {
                                     <Route path="/procurement-flow/completed-procurements" element={<CompletedProcurementsPage />} />
                                 </Route>
                             </Route>
+
+                            {/* Store Management Flow */}
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Procurement Executive"]} />}>
+                                <Route path="/store/tools" element={<StoreToolsPage />} />
+                                <Route path="/store/logs" element={<DailyLogsPage />} />
+                                <Route path="/store/logs/new" element={<DailyLogFormPage />} />
+                                <Route path="/store/logs/checkin" element={<DailyLogCheckInPage />} />
+                            </Route>
+
                             {/* Future Iterations will add more routes here */}
                         </Route>
 

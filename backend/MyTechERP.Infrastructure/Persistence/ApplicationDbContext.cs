@@ -64,6 +64,10 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<WorkOrder> WorkOrders { get; set; }
         public DbSet<JobEvidence> JobEvidences { get; set; }
         public DbSet<InspectionQuestion> InspectionQuestions { get; set; }
+        
+        public DbSet<StoreTool> StoreTools { get; set; }
+        public DbSet<StoreDailyLog> StoreDailyLogs { get; set; }
+        public DbSet<StoreDailyLogItem> StoreDailyLogItems { get; set; }
         public DbSet<ContractItem> ContractItems { get; set; }
         public DbSet<ChecklistQuestion> ChecklistQuestions { get; set; }
         public DbSet<WorkOrderChecklistResult> WorkOrderChecklistResults { get; set; }

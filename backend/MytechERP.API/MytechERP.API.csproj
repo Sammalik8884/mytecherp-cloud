@@ -41,4 +41,10 @@
     <Folder Include="wwwroot\products\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="seed_tools.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
