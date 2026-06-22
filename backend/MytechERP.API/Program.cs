@@ -305,98 +305,69 @@ using (var scope = app.Services.CreateScope())
                 Console.WriteLine($"Store column ensure warning: {colEx.Message}");
             }
 
-            // Ensure SiteToolStocks table exists and has no duplicates
+            // Step 1: Create SiteToolStocks table if missing
             try
             {
-                var siteStockSql = @"
+                await context.Database.ExecuteSqlRawAsync(@"
                     IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = N'SiteToolStocks')
-                    BEGIN
-                        CREATE TABLE SiteToolStocks (
-                            Id          int IDENTITY(1,1) NOT NULL PRIMARY KEY,
-                            SiteId      int NOT NULL,
-                            StoreToolId int NOT NULL,
-                            AvailableQuantity int NOT NULL DEFAULT 0,
-                            CONSTRAINT UQ_SiteToolStocks_Site_Tool UNIQUE (SiteId, StoreToolId),
-                            CONSTRAINT FK_SiteToolStocks_Sites      FOREIGN KEY (SiteId)      REFERENCES Sites(Id),
-                            CONSTRAINT FK_SiteToolStocks_StoreTools FOREIGN KEY (StoreToolId) REFERENCES StoreTools(Id)
+                    CREATE TABLE SiteToolStocks (
+                        Id                int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                        SiteId            int NOT NULL REFERENCES Sites(Id),
+                        StoreToolId       int NOT NULL REFERENCES StoreTools(Id),
+                        AvailableQuantity int NOT NULL DEFAULT 0
+                    );
+                ");
+                Console.WriteLine("SiteToolStocks: table OK.");
+            }
+            catch (Exception ex) { Console.WriteLine($"SiteToolStocks create: {ex.Message}"); }
+
+            // Step 2: Remove duplicate (SiteId, StoreToolId) rows — keep highest quantity row
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(@"
+                    DELETE a
+                    FROM SiteToolStocks a
+                    INNER JOIN SiteToolStocks b
+                        ON  a.SiteId      = b.SiteId
+                        AND a.StoreToolId = b.StoreToolId
+                        AND (
+                            a.AvailableQuantity < b.AvailableQuantity
+                            OR (a.AvailableQuantity = b.AvailableQuantity AND a.Id > b.Id)
                         );
-                    END
+                ");
+                Console.WriteLine("SiteToolStocks: duplicates removed.");
+            }
+            catch (Exception ex) { Console.WriteLine($"SiteToolStocks dedup: {ex.Message}"); }
 
-                    -- Remove duplicate (SiteId, StoreToolId) rows, keeping the one with the highest AvailableQuantity
-                    WITH CTE AS (
-                        SELECT Id,
-                               ROW_NUMBER() OVER (
-                                   PARTITION BY SiteId, StoreToolId
-                                   ORDER BY AvailableQuantity DESC, Id ASC
-                               ) AS rn
-                        FROM SiteToolStocks
-                    )
-                    DELETE FROM SiteToolStocks WHERE Id IN (SELECT Id FROM CTE WHERE rn > 1);
-
-                    -- Ensure unique constraint exists after dedup
+            // Step 3: Ensure unique constraint exists (only possible after dedup)
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(@"
                     IF NOT EXISTS (
                         SELECT 1 FROM sys.indexes
                         WHERE name = N'UQ_SiteToolStocks_Site_Tool'
                           AND object_id = OBJECT_ID(N'SiteToolStocks')
                     )
-                    BEGIN
-                        ALTER TABLE SiteToolStocks
-                        ADD CONSTRAINT UQ_SiteToolStocks_Site_Tool UNIQUE (SiteId, StoreToolId);
-                    END
-                ";
-                await context.Database.ExecuteSqlRawAsync(siteStockSql);
-                Console.WriteLine("SiteToolStocks table verified/deduplicated successfully.");
+                    ALTER TABLE SiteToolStocks
+                    ADD CONSTRAINT UQ_SiteToolStocks_Site_Tool UNIQUE (SiteId, StoreToolId);
+                ");
+                Console.WriteLine("SiteToolStocks: unique constraint OK.");
             }
-            catch (Exception stsEx)
-            {
-                Console.WriteLine($"SiteToolStocks table ensure warning: {stsEx.Message}");
-            }
+            catch (Exception ex) { Console.WriteLine($"SiteToolStocks constraint: {ex.Message}"); }
 
-            // Ensure unique index on StoreTools Description to block duplicates at DB level
+            // Step 4: Fix any tools still with TenantId=0
             try
             {
-                var uniqueIdxSql = @"
-                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreTools') AND name = N'DescriptionKey')
-                        ALTER TABLE StoreTools ADD DescriptionKey AS CAST(Description AS NVARCHAR(450));
+                await context.Database.ExecuteSqlRawAsync(
+                    "UPDATE StoreTools SET TenantId = 3 WHERE TenantId = 0;");
+                Console.WriteLine("StoreTools: TenantId fixed.");
+            }
+            catch (Exception ex) { Console.WriteLine($"StoreTools TenantId fix: {ex.Message}"); }
 
-                    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UQ_StoreTools_Desc_Tenant' AND object_id = OBJECT_ID(N'StoreTools'))
-                        CREATE UNIQUE INDEX UQ_StoreTools_Desc_Tenant ON StoreTools(DescriptionKey, TenantId) WHERE IsDeleted = 0;
-                ";
-                await context.Database.ExecuteSqlRawAsync(uniqueIdxSql);
-                Console.WriteLine("StoreTools unique index verified/created successfully.");
-            }
-            catch (Exception idxEx)
-            {
-                Console.WriteLine($"StoreTools unique index warning: {idxEx.Message}");
-            }
+            // NOTE: Auto-seeding of (Site x Tool) pairs is intentionally NOT done here.
+            // It is handled by SitesController.Create and StoreToolsController.Create.
+            // Running an INSERT here on every startup was causing duplicate rows.
 
-            // Auto-seed: ensure every tool exists in every site with AvailableQuantity=0
-            // This runs on every startup — safe because of the INSERT WHERE NOT EXISTS guard
-            try
-            {
-                var autoSeedSql = @"
-                    -- Fix any remaining tools with TenantId=0
-                    UPDATE StoreTools SET TenantId = 3 WHERE TenantId = 0;
-
-                    -- Insert missing (Site, Tool) pairs with AvailableQuantity = 0
-                    -- so users don't have to manually add tools to their site
-                    INSERT INTO SiteToolStocks (SiteId, StoreToolId, AvailableQuantity)
-                    SELECT s.Id, t.Id, 0
-                    FROM Sites s
-                    CROSS JOIN StoreTools t
-                    WHERE t.IsDeleted = 0
-                      AND NOT EXISTS (
-                          SELECT 1 FROM SiteToolStocks sts
-                          WHERE sts.SiteId = s.Id AND sts.StoreToolId = t.Id
-                      );
-                ";
-                await context.Database.ExecuteSqlRawAsync(autoSeedSql);
-                Console.WriteLine("SiteToolStocks auto-seed completed successfully.");
-            }
-            catch (Exception seedEx)
-            {
-                Console.WriteLine($"SiteToolStocks auto-seed warning: {seedEx.Message}");
-            }
 
             var userManager = services.GetRequiredService<UserManager<AppUser>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
