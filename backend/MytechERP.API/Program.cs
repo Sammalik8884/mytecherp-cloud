@@ -292,14 +292,10 @@ using (var scope = app.Services.CreateScope())
                     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogItems') AND name = N'UpdatedAt')
                         ALTER TABLE StoreDailyLogItems ADD UpdatedAt datetime2 NOT NULL DEFAULT '2000-01-01';
 
-                    -- Fix existing records that got TenantId = 0 (assign them to the first real tenant)
-                    DECLARE @FirstTenantId int = (SELECT TOP 1 Id FROM Tenants ORDER BY Id);
-                    IF @FirstTenantId IS NOT NULL
-                    BEGIN
-                        UPDATE StoreTools SET TenantId = @FirstTenantId WHERE TenantId = 0;
-                        UPDATE StoreDailyLogs SET TenantId = @FirstTenantId WHERE TenantId = 0;
-                        UPDATE StoreDailyLogItems SET TenantId = @FirstTenantId WHERE TenantId = 0;
-                    END
+                    -- Fix existing records that got TenantId = 0 (assign them to Tenant 3 = MytechEngineering)
+                    UPDATE StoreTools SET TenantId = 3 WHERE TenantId = 0;
+                    UPDATE StoreDailyLogs SET TenantId = 3 WHERE TenantId = 0;
+                    UPDATE StoreDailyLogItems SET TenantId = 3 WHERE TenantId = 0;
                 ";
                 await context.Database.ExecuteSqlRawAsync(ensureColumnsSql);
                 Console.WriteLine("Store entity columns verified/created successfully.");
