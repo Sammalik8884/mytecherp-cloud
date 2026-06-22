@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, CheckCircle, AlertTriangle } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { apiClient } from "../../services/apiClient";
 
 export function DailyLogCheckInPage() {
     const navigate = useNavigate();
@@ -39,31 +40,20 @@ export function DailyLogCheckInPage() {
             const [hours, minutes] = timeIn.split(':').map(Number);
             logDate.setHours(hours, minutes, 0, 0);
 
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/StoreDailyLogs/checkin/${log.id}`, {
-                method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    timeIn: logDate.toISOString(),
-                    items: items.map(i => ({
-                        id: i.id, // ID of the StoreDailyLogItem
-                        quantityIn: i.quantityIn
-                    }))
-                })
+            const res = await apiClient.post(`/StoreDailyLogs/checkin/${log.id}`, {
+                timeIn: logDate.toISOString(),
+                items: items.map(i => ({
+                    id: i.id, // ID of the StoreDailyLogItem
+                    quantityIn: i.quantityIn
+                }))
             });
 
-            if (res.ok) {
+            if (res.status === 200 || res.status === 204) {
                 navigate('/store/logs');
-            } else {
-                const errorText = await res.text();
-                alert(`Error: ${errorText}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("An error occurred while saving check-in.");
+            alert(`Error: ${error.response?.data || error.message}`);
         }
     };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Search, AlertCircle, Package } from "lucide-react";
+import { apiClient } from "../../services/apiClient";
 
 interface StoreTool {
     id: number;
@@ -23,13 +24,9 @@ export function StoreToolsPage() {
     const fetchTools = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/StoreTools', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setTools(data);
+            const res = await apiClient.get('/StoreTools');
+            if (res.data) {
+                setTools(res.data);
             }
         } catch (error) {
             console.error(error);
@@ -46,13 +43,9 @@ export function StoreToolsPage() {
         
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/StoreTools/search?q=${encodeURIComponent(searchQuery)}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setTools(data);
+            const res = await apiClient.get(`/StoreTools/search?q=${encodeURIComponent(searchQuery)}`);
+            if (res.data) {
+                setTools(res.data);
             }
         } catch (error) {
             console.error(error);
@@ -64,16 +57,8 @@ export function StoreToolsPage() {
     const handleAddTool = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/StoreTools', {
-                method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newTool)
-            });
-            if (res.ok) {
+            const res = await apiClient.post('/StoreTools', newTool);
+            if (res.status === 200 || res.status === 201) {
                 setShowAddForm(false);
                 setNewTool({ description: "", totalQuantity: 1 });
                 fetchTools();

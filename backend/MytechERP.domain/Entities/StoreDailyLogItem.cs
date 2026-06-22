@@ -1,9 +1,10 @@
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using MytechERP.domain.Interfaces;
 
 namespace MytechERP.domain.Entities
 {
-    public class StoreDailyLogItem
+    public class StoreDailyLogItem : ISyncableEntity
     {
         public int Id { get; set; }
         
@@ -17,5 +18,9 @@ namespace MytechERP.domain.Entities
         
         public int QuantityOut { get; set; }
         public int? QuantityIn { get; set; }
+
+        public int TenantId { get; set; }
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsDeleted { get; set; } = false;
     }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, Save, Search, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiClient } from "../../services/apiClient";
 
 export function DailyLogFormPage() {
     const navigate = useNavigate();
@@ -22,13 +23,9 @@ export function DailyLogFormPage() {
 
     const fetchSites = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/Sites', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setSites(data);
+            const res = await apiClient.get('/Sites');
+            if (res.data) {
+                setSites(res.data);
             }
         } catch (error) {
             console.error(error);
@@ -45,14 +42,10 @@ export function DailyLogFormPage() {
 
         setIsSearching(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/StoreTools/search?q=${encodeURIComponent(query)}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
+            const res = await apiClient.get(`/StoreTools/search?q=${encodeURIComponent(query)}`);
+            if (res.data) {
                 // Filter out tools with 0 current quantity
-                setToolSearchResults(data.filter((t: any) => t.currentQuantity > 0));
+                setToolSearchResults(res.data.filter((t: any) => t.currentQuantity > 0));
             }
         } catch (error) {
             console.error(error);
@@ -127,34 +120,23 @@ export function DailyLogFormPage() {
         }
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/StoreDailyLogs/checkout', {
-                method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    siteId: parseInt(siteId),
-                    date: selectedDate.toISOString(),
-                    timeOut: selectedDate.toISOString(),
-                    items: items.map(i => ({
-                        storeToolId: i.storeToolId,
-                        customDescription: i.customDescription || null,
-                        quantityOut: i.quantityOut
-                    }))
-                })
+            const res = await apiClient.post('/StoreDailyLogs/checkout', {
+                siteId: parseInt(siteId),
+                date: selectedDate.toISOString(),
+                timeOut: selectedDate.toISOString(),
+                items: items.map(i => ({
+                    storeToolId: i.storeToolId,
+                    customDescription: i.customDescription || null,
+                    quantityOut: i.quantityOut
+                }))
             });
 
-            if (res.ok) {
+            if (res.status === 200 || res.status === 201) {
                 navigate('/store/logs');
-            } else {
-                const errorText = await res.text();
-                alert(`Error: ${errorText}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("An error occurred while saving.");
+            alert(`Error: ${error.response?.data || error.message || "An error occurred while saving."}`);
         }
     };
 

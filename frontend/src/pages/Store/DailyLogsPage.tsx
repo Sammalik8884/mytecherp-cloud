@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ClipboardList, Plus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiClient } from "../../services/apiClient";
 
 interface DailyLog {
     id: number;
@@ -24,13 +25,9 @@ export function DailyLogsPage() {
     const fetchLogs = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/StoreDailyLogs', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setLogs(data);
+            const res = await apiClient.get('/StoreDailyLogs');
+            if (res.data) {
+                setLogs(res.data);
             }
         } catch (error) {
             console.error(error);

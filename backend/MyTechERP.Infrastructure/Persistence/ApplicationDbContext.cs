@@ -271,6 +271,9 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<MaterialReceivingForm>().HasQueryFilter(mrf => mrf.TenantId == _currentUserService.TenantId && !mrf.IsDeleted);
             builder.Entity<ApplicationForm>().HasQueryFilter(af => af.TenantId == _currentUserService.TenantId && !af.IsDeleted);
             builder.Entity<VehicleTravelForm>().HasQueryFilter(vtf => vtf.TenantId == _currentUserService.TenantId && !vtf.IsDeleted);
+            builder.Entity<StoreTool>().HasQueryFilter(st => st.TenantId == _currentUserService.TenantId && !st.IsDeleted);
+            builder.Entity<StoreDailyLog>().HasQueryFilter(sdl => sdl.TenantId == _currentUserService.TenantId && !sdl.IsDeleted);
+            builder.Entity<StoreDailyLogItem>().HasQueryFilter(sdli => sdli.TenantId == _currentUserService.TenantId && !sdli.IsDeleted);
 
             builder.Entity<ApplicationFormAttachment>()
                 .HasOne(a => a.ApplicationForm)
