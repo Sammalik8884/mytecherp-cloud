@@ -29,7 +29,7 @@ type SidebarItem = {
 };
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
-    { label: "Employee Info Form", href: "/hr/employees", paths: ["/hr/employees", "/hr/employees/new", "/hr/employees/edit"], icon: Users },
+    { label: "Employee Info Form", href: "/hr/employees", paths: ["/hr/employees", "/hr/employees/new", "/hr/employees/edit"], icon: Users, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Accounts Head"] },
     { label: "Dashboard", href: "/dashboard", icon: Home },
     { label: "Amount Request Form", href: "/amount-request", icon: DollarSign },
     { label: "Expenses", href: "/expenses", icon: Receipt },

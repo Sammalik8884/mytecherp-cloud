@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MytechERP.API.Controllers.HR
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,Manager,Site Supervisor,Accounts Head")]
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeeInfoController : ControllerBase

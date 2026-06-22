@@ -181,11 +181,14 @@ function App() {
                                 <Route path="/application-forms/new" element={<NewApplicationFormPage />} />
                                 <Route path="/vehicle-travel-forms" element={<VehicleTravelFormsPage />} />
                                 <Route path="/vehicle-travel-forms/new" element={<NewVehicleTravelFormPage />} />
+                                
+                                {/* End of previous RoleProtectedRoute routes */}
+                            </Route>
+
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Site Supervisor", "Accounts Head"]} />}>
                                 <Route path="/hr/employees" element={<EmployeeInfoListPage />} />
                                 <Route path="/hr/employees/new" element={<EmployeeInfoFormPage />} />
                                 <Route path="/hr/employees/:id/edit" element={<EmployeeInfoFormPage />} />
-                                
-                                {/* End of previous RoleProtectedRoute routes */}
                             </Route>
 
                             {/* Procurement Flow */}
