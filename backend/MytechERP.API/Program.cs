@@ -349,6 +349,34 @@ using (var scope = app.Services.CreateScope())
                 Console.WriteLine($"StoreTools unique index warning: {idxEx.Message}");
             }
 
+            // Auto-seed: ensure every tool exists in every site with AvailableQuantity=0
+            // This runs on every startup — safe because of the INSERT WHERE NOT EXISTS guard
+            try
+            {
+                var autoSeedSql = @"
+                    -- Fix any remaining tools with TenantId=0
+                    UPDATE StoreTools SET TenantId = 3 WHERE TenantId = 0;
+
+                    -- Insert missing (Site, Tool) pairs with AvailableQuantity = 0
+                    -- so users don't have to manually add tools to their site
+                    INSERT INTO SiteToolStocks (SiteId, StoreToolId, AvailableQuantity)
+                    SELECT s.Id, t.Id, 0
+                    FROM Sites s
+                    CROSS JOIN StoreTools t
+                    WHERE t.IsDeleted = 0
+                      AND NOT EXISTS (
+                          SELECT 1 FROM SiteToolStocks sts
+                          WHERE sts.SiteId = s.Id AND sts.StoreToolId = t.Id
+                      );
+                ";
+                await context.Database.ExecuteSqlRawAsync(autoSeedSql);
+                Console.WriteLine("SiteToolStocks auto-seed completed successfully.");
+            }
+            catch (Exception seedEx)
+            {
+                Console.WriteLine($"SiteToolStocks auto-seed warning: {seedEx.Message}");
+            }
+
             var userManager = services.GetRequiredService<UserManager<AppUser>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 

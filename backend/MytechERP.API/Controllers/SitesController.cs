@@ -65,6 +65,23 @@ namespace MytechERP.API.Controllers
             _context.Sites.Add(site);
             await _context.SaveChangesAsync();
 
+            // Auto-seed all active tools into this new site with AvailableQuantity = 0
+            var allTools = await _context.StoreTools
+                .Where(t => !t.IsDeleted)
+                .Select(t => t.Id)
+                .ToListAsync();
+
+            foreach (var toolId in allTools)
+            {
+                _context.SiteToolStocks.Add(new MytechERP.domain.Entities.SiteToolStock
+                {
+                    SiteId = site.Id,
+                    StoreToolId = toolId,
+                    AvailableQuantity = 0
+                });
+            }
+            await _context.SaveChangesAsync();
+
             return Ok(new { Message = "Site Created Successfully", Id = site.Id });
         }
         [Authorize(Roles = Roles.AllInternal)]

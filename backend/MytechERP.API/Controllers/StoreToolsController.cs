@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MytechERP.Application.DTOs.Store;
 using MytechERP.Application.Interfaces;
 using MytechERP.domain.Entities;
+using MytechERP.Infrastructure.Persistance;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,10 +16,12 @@ namespace MytechERP.API.Controllers
     public class StoreToolsController : ControllerBase
     {
         private readonly IGenericRepository<StoreTool> _repository;
+        private readonly ApplicationDbContext _context;
 
-        public StoreToolsController(IGenericRepository<StoreTool> repository)
+        public StoreToolsController(IGenericRepository<StoreTool> repository, ApplicationDbContext context)
         {
             _repository = repository;
+            _context = context;
         }
 
         [HttpGet]
@@ -75,6 +78,22 @@ namespace MytechERP.API.Controllers
             };
 
             await _repository.AddAsync(tool);
+
+            // Auto-seed this new tool into ALL existing sites with AvailableQuantity = 0
+            var allSiteIds = await _context.Sites
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            foreach (var siteId in allSiteIds)
+            {
+                _context.SiteToolStocks.Add(new SiteToolStock
+                {
+                    SiteId = siteId,
+                    StoreToolId = tool.Id,
+                    AvailableQuantity = 0
+                });
+            }
+            await _context.SaveChangesAsync();
 
             var createdDto = new StoreToolDto
             {
