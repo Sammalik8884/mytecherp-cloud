@@ -331,6 +331,24 @@ using (var scope = app.Services.CreateScope())
                 Console.WriteLine($"SiteToolStocks table ensure warning: {stsEx.Message}");
             }
 
+            // Ensure unique index on StoreTools Description to block duplicates at DB level
+            try
+            {
+                var uniqueIdxSql = @"
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreTools') AND name = N'DescriptionKey')
+                        ALTER TABLE StoreTools ADD DescriptionKey AS CAST(Description AS NVARCHAR(450));
+
+                    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UQ_StoreTools_Desc_Tenant' AND object_id = OBJECT_ID(N'StoreTools'))
+                        CREATE UNIQUE INDEX UQ_StoreTools_Desc_Tenant ON StoreTools(DescriptionKey, TenantId) WHERE IsDeleted = 0;
+                ";
+                await context.Database.ExecuteSqlRawAsync(uniqueIdxSql);
+                Console.WriteLine("StoreTools unique index verified/created successfully.");
+            }
+            catch (Exception idxEx)
+            {
+                Console.WriteLine($"StoreTools unique index warning: {idxEx.Message}");
+            }
+
             var userManager = services.GetRequiredService<UserManager<AppUser>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
