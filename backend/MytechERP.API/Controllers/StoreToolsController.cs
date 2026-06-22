@@ -79,16 +79,12 @@ namespace MytechERP.API.Controllers
 
             await _repository.AddAsync(tool);
 
-            // Auto-seed this new tool into ALL existing sites with AvailableQuantity = 0
-            var allSiteIds = await _context.Sites
-                .Select(s => s.Id)
-                .ToListAsync();
-
-            foreach (var siteId in allSiteIds)
+            // Seed this new tool into the specific site if requested
+            if (dto.SiteId.HasValue && dto.SiteId.Value > 0)
             {
                 _context.SiteToolStocks.Add(new SiteToolStock
                 {
-                    SiteId = siteId,
+                    SiteId = dto.SiteId.Value,
                     StoreToolId = tool.Id,
                     AvailableQuantity = 0
                 });

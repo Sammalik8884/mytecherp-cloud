@@ -117,7 +117,7 @@ namespace MytechERP.API.Controllers
 
         /// <summary>Manually set (override) the stock quantity for a site+tool.</summary>
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Procurement Executive")]
         public async Task<IActionResult> SetQuantity(int id, [FromBody] SetQuantityDto dto)
         {
             var stock = await _context.SiteToolStocks.FindAsync(id);

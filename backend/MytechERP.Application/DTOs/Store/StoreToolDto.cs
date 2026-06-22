@@ -14,5 +14,6 @@ namespace MytechERP.Application.DTOs.Store
     {
         public string Description { get; set; } = string.Empty;
         public int TotalQuantity { get; set; }
+        public int? SiteId { get; set; }
     }
 }

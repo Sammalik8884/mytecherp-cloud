@@ -11,14 +11,16 @@ interface StoreTool {
 
 export function StoreToolsPage() {
     const [tools, setTools] = useState<StoreTool[]>([]);
+    const [sites, setSites] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [showAddForm, setShowAddForm] = useState(false);
     
-    const [newTool, setNewTool] = useState({ description: "", totalQuantity: 1 });
+    const [newTool, setNewTool] = useState({ description: "", totalQuantity: 1, siteId: "" });
 
     useEffect(() => {
         fetchTools();
+        fetchSites();
     }, []);
 
     const fetchTools = async () => {
@@ -32,6 +34,17 @@ export function StoreToolsPage() {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchSites = async () => {
+        try {
+            const res = await apiClient.get('/Sites');
+            if (res.data) {
+                setSites(res.data);
+            }
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -57,24 +70,31 @@ export function StoreToolsPage() {
     const handleAddTool = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await apiClient.post('/StoreTools', newTool);
+            const payload = {
+                description: newTool.description,
+                totalQuantity: newTool.totalQuantity,
+                siteId: newTool.siteId ? parseInt(newTool.siteId) : null
+            };
+            const res = await apiClient.post('/StoreTools', payload);
             if (res.status === 200 || res.status === 201) {
                 setShowAddForm(false);
-                setNewTool({ description: "", totalQuantity: 1 });
+                setNewTool({ description: "", totalQuantity: 1, siteId: "" });
                 fetchTools();
+                alert("Tool added successfully! If you selected a site, it was seeded into that site's inventory with quantity 0.");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
+            alert(`Error adding tool: ${error.response?.data || error.message}`);
         }
     };
 
-    const filteredTools = tools; // We already search on backend
+    const filteredTools = tools;
 
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <Package className="w-6 h-6" /> Tools Inventory
+                    <Package className="w-6 h-6" /> Tools Catalog
                 </h1>
                 <button
                     onClick={() => setShowAddForm(true)}
@@ -87,8 +107,8 @@ export function StoreToolsPage() {
             {showAddForm && (
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
                     <h2 className="text-lg font-semibold mb-4">Add New Tool</h2>
-                    <form onSubmit={handleAddTool} className="flex gap-4 items-end">
-                        <div className="flex-1">
+                    <form onSubmit={handleAddTool} className="flex gap-4 items-end flex-wrap">
+                        <div className="flex-1 min-w-[200px]">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                             <input
                                 type="text"
@@ -99,7 +119,7 @@ export function StoreToolsPage() {
                             />
                         </div>
                         <div className="w-32">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Total Quantity</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Total Qty</label>
                             <input
                                 type="number"
                                 required
@@ -109,7 +129,20 @@ export function StoreToolsPage() {
                                 className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
-                        <div className="flex gap-2">
+                        <div className="w-64">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Seed to Site (Optional)</label>
+                            <select
+                                value={newTool.siteId}
+                                onChange={e => setNewTool({ ...newTool, siteId: e.target.value })}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">— Don't seed to any site —</option>
+                                {sites.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex gap-2 w-full mt-2 justify-end">
                             <button
                                 type="button"
                                 onClick={() => setShowAddForm(false)}
@@ -121,7 +154,7 @@ export function StoreToolsPage() {
                                 type="submit"
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
-                                Save
+                                Save Tool
                             </button>
                         </div>
                     </form>
@@ -133,7 +166,7 @@ export function StoreToolsPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
                         type="text"
-                        placeholder="Search tools... (Press Enter to search)"
+                        placeholder="Search global catalog... (Press Enter to search)"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -142,7 +175,7 @@ export function StoreToolsPage() {
                 </div>
                 <button
                     onClick={handleSearch}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                    className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors"
                 >
                     Search
                 </button>
@@ -150,54 +183,33 @@ export function StoreToolsPage() {
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-gray-500">Loading tools...</div>
+                    <div className="p-8 text-center text-gray-500">Loading catalog...</div>
+                ) : filteredTools.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500 flex flex-col items-center">
+                        <AlertCircle className="w-12 h-12 text-gray-300 mb-2" />
+                        <p>No tools found in the catalog.</p>
+                    </div>
                 ) : (
-                    <table className="w-full text-left">
+                    <table className="w-full text-left text-sm">
                         <thead className="bg-gray-50 border-b border-gray-100">
                             <tr>
                                 <th className="px-6 py-4 font-medium text-gray-600">ID</th>
                                 <th className="px-6 py-4 font-medium text-gray-600">Description</th>
-                                <th className="px-6 py-4 font-medium text-gray-600 text-right">Total Quantity</th>
-                                <th className="px-6 py-4 font-medium text-gray-600 text-right">Current Available</th>
-                                <th className="px-6 py-4 font-medium text-gray-600">Status</th>
+                                <th className="px-6 py-4 font-medium text-gray-600">Total Global Qty</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {filteredTools.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                                        No tools found.
+                        <tbody className="divide-y divide-gray-50">
+                            {filteredTools.map((tool) => (
+                                <tr key={tool.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-6 py-4 font-medium text-gray-900">#{tool.id}</td>
+                                    <td className="px-6 py-4 text-gray-600 font-medium">{tool.description}</td>
+                                    <td className="px-6 py-4">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            {tool.totalQuantity} items
+                                        </span>
                                     </td>
                                 </tr>
-                            ) : (
-                                filteredTools.map(tool => (
-                                    <tr key={tool.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-6 py-4 text-gray-500">#{tool.id}</td>
-                                        <td className="px-6 py-4 font-medium text-gray-900">{tool.description}</td>
-                                        <td className="px-6 py-4 text-right text-gray-600">{tool.totalQuantity}</td>
-                                        <td className="px-6 py-4 text-right font-medium">
-                                            <span className={tool.currentQuantity === 0 ? "text-red-600" : tool.currentQuantity < tool.totalQuantity ? "text-orange-600" : "text-green-600"}>
-                                                {tool.currentQuantity}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {tool.currentQuantity === 0 ? (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                                                    <AlertCircle className="w-3 h-3" /> Out of Stock
-                                                </span>
-                                            ) : tool.currentQuantity < tool.totalQuantity ? (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                                                    In Use
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                                    Available
-                                                </span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
+                            ))}
                         </tbody>
                     </table>
                 )}
