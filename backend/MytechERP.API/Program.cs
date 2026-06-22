@@ -305,18 +305,28 @@ using (var scope = app.Services.CreateScope())
                     UPDATE StoreDailyLogs SET TenantId = 3 WHERE TenantId = 0;
                     UPDATE StoreDailyLogItems SET TenantId = 3 WHERE TenantId = 0;
 
-                    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='SiteToolStocks' and xtype='U')
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogs') AND name = N'UserId')
+                        ALTER TABLE StoreDailyLogs ADD UserId nvarchar(450) NULL;
+
+                    -- Drop SiteToolStocks if exists
+                    IF EXISTS (SELECT * FROM sysobjects WHERE name='SiteToolStocks' and xtype='U')
                     BEGIN
-                        CREATE TABLE SiteToolStocks (
+                        DROP TABLE SiteToolStocks;
+                    END
+
+                    -- Create UserToolStocks
+                    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='UserToolStocks' and xtype='U')
+                    BEGIN
+                        CREATE TABLE UserToolStocks (
                             Id int IDENTITY(1,1) PRIMARY KEY,
-                            SiteId int NOT NULL,
+                            UserId nvarchar(450) NOT NULL,
                             StoreToolId int NOT NULL,
                             AvailableQuantity int NOT NULL DEFAULT 0,
                             TenantId int NOT NULL DEFAULT 3,
                             IsDeleted bit NOT NULL DEFAULT 0,
                             UpdatedAt datetime2 NOT NULL DEFAULT '2000-01-01',
-                            CONSTRAINT FK_SiteToolStocks_Sites FOREIGN KEY (SiteId) REFERENCES Sites(Id) ON DELETE NO ACTION,
-                            CONSTRAINT FK_SiteToolStocks_StoreTools FOREIGN KEY (StoreToolId) REFERENCES StoreTools(Id) ON DELETE NO ACTION
+                            CONSTRAINT FK_UserToolStocks_Users FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE NO ACTION,
+                            CONSTRAINT FK_UserToolStocks_StoreTools FOREIGN KEY (StoreToolId) REFERENCES StoreTools(Id) ON DELETE NO ACTION
                         );
                     END
                 ";
