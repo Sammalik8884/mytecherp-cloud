@@ -19,32 +19,22 @@ namespace MytechERP.API.Controllers
     {
         private readonly IGenericRepository<StoreDailyLog> _repository;
         private readonly ApplicationDbContext _context;
-        private readonly ICurrentUserService _currentUserService;
 
-        public StoreDailyLogsController(IGenericRepository<StoreDailyLog> repository, ApplicationDbContext context, ICurrentUserService currentUserService)
+        public StoreDailyLogsController(IGenericRepository<StoreDailyLog> repository, ApplicationDbContext context)
         {
             _repository = repository;
             _context = context;
-            _currentUserService = currentUserService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var query = _context.StoreDailyLogs
+            var logs = await _context.StoreDailyLogs
                 .Include(l => l.Site)
                 .Include(l => l.Items)
                 .ThenInclude(i => i.StoreTool)
-                .AsQueryable();
-
-            // Isolate logs by user (unless Admin)
-            if (!User.IsInRole("Admin"))
-            {
-                var userId = _currentUserService.UserId;
-                query = query.Where(l => l.UserId == userId);
-            }
-
-            var logs = await query.OrderByDescending(l => l.Date).ToListAsync();
+                .OrderByDescending(l => l.Date)
+                .ToListAsync();
 
             var dtos = logs.Select(l => new StoreDailyLogDto
             {
@@ -71,19 +61,11 @@ namespace MytechERP.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var query = _context.StoreDailyLogs
+            var log = await _context.StoreDailyLogs
                 .Include(l => l.Site)
                 .Include(l => l.Items)
                 .ThenInclude(i => i.StoreTool)
-                .AsQueryable();
-
-            if (!User.IsInRole("Admin"))
-            {
-                var userId = _currentUserService.UserId;
-                query = query.Where(l => l.UserId == userId);
-            }
-
-            var log = await query.FirstOrDefaultAsync(l => l.Id == id);
+                .FirstOrDefaultAsync(l => l.Id == id);
 
             if (log == null) return NotFound();
 
@@ -113,13 +95,9 @@ namespace MytechERP.API.Controllers
         [Authorize(Roles = "Admin,Procurement Executive")]
         public async Task<IActionResult> Checkout([FromBody] CreateStoreDailyLogDto dto)
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
-
             var log = new StoreDailyLog
             {
                 SiteId = dto.SiteId,
-                UserId = userId,
                 Date = dto.Date,
                 TimeOut = dto.TimeOut,
                 TimeIn = null
@@ -127,19 +105,19 @@ namespace MytechERP.API.Controllers
 
             foreach (var itemDto in dto.Items)
             {
-                // Use per-user personal stock (UserToolStock)
-                var userStock = await _context.UserToolStocks
+                // Use per-site stock instead of global StoreTool.CurrentQuantity
+                var siteStock = await _context.SiteToolStocks
                     .Include(s => s.StoreTool)
-                    .FirstOrDefaultAsync(s => s.UserId == userId && s.StoreToolId == itemDto.StoreToolId);
+                    .FirstOrDefaultAsync(s => s.SiteId == dto.SiteId && s.StoreToolId == itemDto.StoreToolId);
 
-                if (userStock == null || userStock.AvailableQuantity < itemDto.QuantityOut)
+                if (siteStock == null || siteStock.AvailableQuantity < itemDto.QuantityOut)
                 {
-                    var toolName = userStock?.StoreTool?.Description ?? $"Tool #{itemDto.StoreToolId}";
-                    var available = userStock?.AvailableQuantity ?? 0;
-                    return BadRequest($"Not enough stock for '{toolName}' in your personal inventory. Available: {available}, Requested: {itemDto.QuantityOut}");
+                    var toolName = siteStock?.StoreTool?.Description ?? $"Tool #{itemDto.StoreToolId}";
+                    var available = siteStock?.AvailableQuantity ?? 0;
+                    return BadRequest($"Not enough stock for '{toolName}' at this site. Available: {available}, Requested: {itemDto.QuantityOut}");
                 }
 
-                userStock.AvailableQuantity -= itemDto.QuantityOut;
+                siteStock.AvailableQuantity -= itemDto.QuantityOut;
 
                 log.Items.Add(new StoreDailyLogItem
                 {
@@ -165,7 +143,6 @@ namespace MytechERP.API.Controllers
                 .FirstOrDefaultAsync(l => l.Id == id);
 
             if (log == null) return NotFound();
-            if (!User.IsInRole("Admin") && log.UserId != _currentUserService.UserId) return Forbid();
             if (log.TimeIn.HasValue) return BadRequest("This log has already been checked in.");
 
             log.TimeIn = dto.TimeIn;
@@ -177,13 +154,13 @@ namespace MytechERP.API.Controllers
                 {
                     logItem.QuantityIn = itemDto.QuantityIn;
 
-                    // Restore user-specific stock
-                    var userStock = await _context.UserToolStocks
-                        .FirstOrDefaultAsync(s => s.UserId == log.UserId && s.StoreToolId == logItem.StoreToolId);
+                    // Restore site-specific stock
+                    var siteStock = await _context.SiteToolStocks
+                        .FirstOrDefaultAsync(s => s.SiteId == log.SiteId && s.StoreToolId == logItem.StoreToolId);
 
-                    if (userStock != null)
+                    if (siteStock != null)
                     {
-                        userStock.AvailableQuantity += itemDto.QuantityIn;
+                        siteStock.AvailableQuantity += itemDto.QuantityIn;
                     }
                 }
             }

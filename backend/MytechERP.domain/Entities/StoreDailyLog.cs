@@ -13,9 +13,6 @@ namespace MytechERP.domain.Entities
         public int SiteId { get; set; }
         public Site Site { get; set; } = null!;
 
-        public string UserId { get; set; } = string.Empty;
-        public AppUser User { get; set; } = null!;
-
         public DateTime Date { get; set; }
         public DateTime TimeOut { get; set; }
         public DateTime? TimeIn { get; set; }

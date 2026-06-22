@@ -4,7 +4,7 @@ import {
     Home, Users, MapPin, Briefcase, LogOut, FileText, FolderTree, Package, Receipt,
     Building2,
     ShieldAlert, X, Box, Wrench, DollarSign, FileSignature, ShoppingCart, ClipboardList,
-    Activity, RefreshCw, CreditCard, Lock, Target, Car, Wallet, Calculator, CheckSquare
+    Activity, RefreshCw, CreditCard, Lock, Target, Car, Wallet, Calculator, CheckSquare, Warehouse
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { PlanFeature } from "../types/auth";
@@ -43,7 +43,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     },
 
     { label: "Store Management", isHeader: true, allowedRoles: ["Admin", "Procurement Executive"] },
-    { label: "Tools Catalog", href: "/store/tools", paths: ["/store/tools"], icon: Package, allowedRoles: ["Admin", "Procurement Executive"] },
+    { label: "Tools Inventory", href: "/store/tools", paths: ["/store/tools"], icon: Package, allowedRoles: ["Admin", "Procurement Executive"] },
     { label: "Site Inventory", href: "/store/inventory", paths: ["/store/inventory"], icon: Warehouse, allowedRoles: ["Admin", "Procurement Executive"] },
     { label: "Daily Store Logs", href: "/store/logs", paths: ["/store/logs", "/store/logs/new"], icon: ClipboardList, allowedRoles: ["Admin", "Procurement Executive"] },
 

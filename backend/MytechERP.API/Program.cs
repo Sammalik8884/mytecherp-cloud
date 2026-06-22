@@ -292,43 +292,10 @@ using (var scope = app.Services.CreateScope())
                     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogItems') AND name = N'UpdatedAt')
                         ALTER TABLE StoreDailyLogItems ADD UpdatedAt datetime2 NOT NULL DEFAULT '2000-01-01';
 
-                    -- Clean up duplicates from StoreTools keeping only the lowest ID
-                    DELETE FROM StoreTools 
-                    WHERE Id NOT IN (
-                        SELECT MIN(Id) 
-                        FROM StoreTools 
-                        GROUP BY Description
-                    );
-
                     -- Fix existing records that got TenantId = 0 (assign them to Tenant 3 = MytechEngineering)
                     UPDATE StoreTools SET TenantId = 3 WHERE TenantId = 0;
                     UPDATE StoreDailyLogs SET TenantId = 3 WHERE TenantId = 0;
                     UPDATE StoreDailyLogItems SET TenantId = 3 WHERE TenantId = 0;
-
-                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'StoreDailyLogs') AND name = N'UserId')
-                        ALTER TABLE StoreDailyLogs ADD UserId nvarchar(450) NULL;
-
-                    -- Drop SiteToolStocks if exists
-                    IF EXISTS (SELECT * FROM sysobjects WHERE name='SiteToolStocks' and xtype='U')
-                    BEGIN
-                        DROP TABLE SiteToolStocks;
-                    END
-
-                    -- Create UserToolStocks
-                    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='UserToolStocks' and xtype='U')
-                    BEGIN
-                        CREATE TABLE UserToolStocks (
-                            Id int IDENTITY(1,1) PRIMARY KEY,
-                            UserId nvarchar(450) NOT NULL,
-                            StoreToolId int NOT NULL,
-                            AvailableQuantity int NOT NULL DEFAULT 0,
-                            TenantId int NOT NULL DEFAULT 3,
-                            IsDeleted bit NOT NULL DEFAULT 0,
-                            UpdatedAt datetime2 NOT NULL DEFAULT '2000-01-01',
-                            CONSTRAINT FK_UserToolStocks_Users FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE NO ACTION,
-                            CONSTRAINT FK_UserToolStocks_StoreTools FOREIGN KEY (StoreToolId) REFERENCES StoreTools(Id) ON DELETE NO ACTION
-                        );
-                    END
                 ";
                 await context.Database.ExecuteSqlRawAsync(ensureColumnsSql);
                 Console.WriteLine("Store entity columns verified/created successfully.");
@@ -336,6 +303,32 @@ using (var scope = app.Services.CreateScope())
             catch (Exception colEx)
             {
                 Console.WriteLine($"Store column ensure warning: {colEx.Message}");
+            }
+
+            // Ensure SiteToolStocks table exists (per-site inventory)
+            try
+            {
+                var siteStockSql = @"
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = N'SiteToolStocks')
+                    BEGIN
+                        CREATE TABLE SiteToolStocks (
+                            Id          int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            SiteId      int NOT NULL,
+                            StoreToolId int NOT NULL,
+                            AvailableQuantity int NOT NULL DEFAULT 0,
+                            CONSTRAINT UQ_SiteToolStocks_Site_Tool UNIQUE (SiteId, StoreToolId),
+                            CONSTRAINT FK_SiteToolStocks_Sites     FOREIGN KEY (SiteId)      REFERENCES Sites(Id),
+                            CONSTRAINT FK_SiteToolStocks_StoreTools FOREIGN KEY (StoreToolId) REFERENCES StoreTools(Id)
+                        );
+                        PRINT 'SiteToolStocks table created.';
+                    END
+                ";
+                await context.Database.ExecuteSqlRawAsync(siteStockSql);
+                Console.WriteLine("SiteToolStocks table verified/created successfully.");
+            }
+            catch (Exception stsEx)
+            {
+                Console.WriteLine($"SiteToolStocks table ensure warning: {stsEx.Message}");
             }
 
             var userManager = services.GetRequiredService<UserManager<AppUser>>();

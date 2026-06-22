@@ -68,7 +68,7 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<StoreTool> StoreTools { get; set; }
         public DbSet<StoreDailyLog> StoreDailyLogs { get; set; }
         public DbSet<StoreDailyLogItem> StoreDailyLogItems { get; set; }
-        public DbSet<UserToolStock> UserToolStocks { get; set; }
+        public DbSet<SiteToolStock> SiteToolStocks { get; set; }
         public DbSet<ContractItem> ContractItems { get; set; }
         public DbSet<ChecklistQuestion> ChecklistQuestions { get; set; }
         public DbSet<WorkOrderChecklistResult> WorkOrderChecklistResults { get; set; }
@@ -274,27 +274,20 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<StoreTool>().HasQueryFilter(st => st.TenantId == _currentUserService.TenantId && !st.IsDeleted);
             builder.Entity<StoreDailyLog>().HasQueryFilter(sdl => sdl.TenantId == _currentUserService.TenantId && !sdl.IsDeleted);
             builder.Entity<StoreDailyLogItem>().HasQueryFilter(sdli => sdli.TenantId == _currentUserService.TenantId && !sdli.IsDeleted);
-            builder.Entity<UserToolStock>().HasQueryFilter(uts => uts.TenantId == _currentUserService.TenantId && !uts.IsDeleted);
 
-            builder.Entity<StoreDailyLog>()
-                .HasOne(sdl => sdl.User)
+            // SiteToolStock: per-site inventory
+            builder.Entity<SiteToolStock>()
+                .HasOne(s => s.Site)
                 .WithMany()
-                .HasForeignKey(sdl => sdl.UserId)
+                .HasForeignKey(s => s.SiteId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // UserToolStock: per-user inventory
-            builder.Entity<UserToolStock>()
-                .HasOne(s => s.User)
-                .WithMany()
-                .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-            builder.Entity<UserToolStock>()
+            builder.Entity<SiteToolStock>()
                 .HasOne(s => s.StoreTool)
                 .WithMany()
                 .HasForeignKey(s => s.StoreToolId)
                 .OnDelete(DeleteBehavior.Restrict);
-            builder.Entity<UserToolStock>()
-                .HasIndex(s => new { s.UserId, s.StoreToolId })
+            builder.Entity<SiteToolStock>()
+                .HasIndex(s => new { s.SiteId, s.StoreToolId })
                 .IsUnique();
             builder.Entity<VehicleTravelForm>().HasQueryFilter(vtf => vtf.TenantId == _currentUserService.TenantId && !vtf.IsDeleted);
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Save, Search, Trash2, PackagePlus, AlertCircle } from "lucide-react";
+import { ArrowLeft, Save, Search, Trash2, PackagePlus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
 
@@ -7,47 +7,69 @@ export function DailyLogFormPage() {
     const navigate = useNavigate();
     const [sites, setSites] = useState<any[]>([]);
     const [siteId, setSiteId] = useState("");
-    const [selectedDate, setSelectedDate] = useState(new Date());
-
-    const [toolSearchQuery, setToolSearchQuery] = useState("");
-    const [toolSearchResults, setToolSearchResults] = useState<any[]>([]);
-    const [isSearchingTool, setIsSearchingTool] = useState(false);
-
-    const [items, setItems] = useState<any[]>([]);
-    const [saving, setSaving] = useState(false);
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [timeOut, setTimeOut] = useState(new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }));
     
-    // Custom error state
-    const [errorMsg, setErrorMsg] = useState("");
-
+    const [items, setItems] = useState<any[]>([]);
+    
+    // Tool Search State
+    const [searchQuery, setSearchQuery] = useState("");
+    const [toolSearchResults, setToolSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    
     useEffect(() => {
-        apiClient.get('/Sites').then(res => setSites(res.data)).catch(console.error);
+        fetchSites();
     }, []);
 
+    const fetchSites = async () => {
+        try {
+            const res = await apiClient.get('/Sites');
+            if (res.data) setSites(res.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // When site changes, clear items (stock is site-specific)
+    const handleSiteChange = (newSiteId: string) => {
+        setSiteId(newSiteId);
+        setItems([]);
+        setSearchQuery("");
+        setToolSearchResults([]);
+    };
+
+    // Search tools with site-specific availability
     const handleSearchTool = async (query: string) => {
-        setToolSearchQuery(query);
+        setSearchQuery(query);
         if (query.length < 2) {
             setToolSearchResults([]);
             return;
         }
-        setIsSearchingTool(true);
+        if (!siteId) {
+            alert("Please select a site first to see available stock.");
+            return;
+        }
+
+        setIsSearching(true);
         try {
-            // Search from the user's personal stock
-            const res = await apiClient.get(`/UserToolStocks/search?q=${encodeURIComponent(query)}`);
-            // Only show tools they actually have in their stock
-            setToolSearchResults(res.data.filter((t: any) => t.currentQuantity > 0));
+            const res = await apiClient.get(`/SiteToolStocks/search?q=${encodeURIComponent(query)}&siteId=${siteId}`);
+            if (res.data) {
+                // Only show tools with available stock at this site
+                setToolSearchResults(res.data.filter((t: any) => t.currentQuantity > 0));
+            }
         } catch (error) {
-            console.error("Error searching tools", error);
+            console.error(error);
         } finally {
-            setIsSearchingTool(false);
+            setIsSearching(false);
         }
     };
 
     const addTool = (tool: any) => {
         if (items.some(i => i.storeToolId === tool.id)) {
-            setErrorMsg("This tool is already added to the list below. You can increase its quantity there.");
-            setTimeout(() => setErrorMsg(""), 4000);
+            alert("Tool already added. Please update the quantity instead.");
             return;
         }
+
         setItems([
             ...items,
             {
@@ -58,48 +80,53 @@ export function DailyLogFormPage() {
                 maxAvailable: tool.currentQuantity
             }
         ]);
-        setToolSearchQuery("");
+        setSearchQuery("");
         setToolSearchResults([]);
     };
 
     const removeItem = (index: number) => {
-        setItems(items.filter((_, i) => i !== index));
+        const newItems = [...items];
+        newItems.splice(index, 1);
+        setItems(newItems);
     };
 
     const updateItem = (index: number, field: string, value: any) => {
         const newItems = [...items];
-        if (field === "quantityOut") {
-            const val = parseInt(value) || 1;
-            const max = newItems[index].maxAvailable;
-            if (val > max) {
-                setErrorMsg(`You only have ${max} of '${newItems[index].description}' in your inventory.`);
-                setTimeout(() => setErrorMsg(""), 4000);
-                newItems[index][field] = max;
-            } else {
-                newItems[index][field] = val;
-            }
-        } else {
-            newItems[index][field] = value;
-        }
+        newItems[index] = { ...newItems[index], [field]: value };
         setItems(newItems);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setErrorMsg("");
+        
+        const now = new Date();
+        const selectedDate = new Date(date);
+        const [hours, minutes] = timeOut.split(':').map(Number);
+        selectedDate.setHours(hours, minutes, 0, 0);
 
-        if (!siteId) {
-            setErrorMsg("Please select a destination site.");
+        if (selectedDate > now) {
+            alert("Checkout time cannot be in the future.");
             return;
         }
+
         if (items.length === 0) {
-            setErrorMsg("Please add at least one tool.");
+            alert("Please add at least one tool.");
             return;
         }
 
-        setSaving(true);
+        for (const item of items) {
+            if (item.quantityOut < 1) {
+                alert(`Invalid quantity for ${item.description}`);
+                return;
+            }
+            if (item.quantityOut > item.maxAvailable) {
+                alert(`Requested quantity for ${item.description} exceeds available stock at this site (${item.maxAvailable}).`);
+                return;
+            }
+        }
+
         try {
-            await apiClient.post('/StoreDailyLogs/checkout', {
+            const res = await apiClient.post('/StoreDailyLogs/checkout', {
                 siteId: parseInt(siteId),
                 date: selectedDate.toISOString(),
                 timeOut: selectedDate.toISOString(),
@@ -109,159 +136,166 @@ export function DailyLogFormPage() {
                     quantityOut: i.quantityOut
                 }))
             });
-            navigate('/store/logs');
+
+            if (res.status === 200 || res.status === 201) {
+                navigate('/store/logs');
+            }
         } catch (error: any) {
             console.error(error);
-            setErrorMsg(`Checkout Failed: ${error.response?.data?.detail || error.response?.data || error.message}`);
-        } finally {
-            setSaving(false);
+            alert(`Error: ${error.response?.data || error.message}`);
         }
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex items-center gap-4 mb-8">
+        <div className="max-w-4xl mx-auto space-y-6 pb-24">
+            <div className="flex items-center gap-4">
                 <Link to="/store/logs" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                     <ArrowLeft className="w-6 h-6 text-gray-600" />
                 </Link>
                 <h1 className="text-2xl font-bold text-gray-900">New Tool Checkout</h1>
             </div>
 
-            {errorMsg && (
-                <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-red-200">
-                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                    <span className="font-medium text-sm">{errorMsg}</span>
-                </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-6">
-                    <h2 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">General Information</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Destination Site</label>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Checkout Details</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="md:col-span-3">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Site <span className="text-red-500">*</span></label>
                             <select
                                 required
                                 value={siteId}
-                                onChange={e => setSiteId(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 text-sm"
+                                onChange={(e) => handleSiteChange(e.target.value)}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                                <option value="">Select a site...</option>
-                                {sites.map(site => (
-                                    <option key={site.id} value={site.id}>{site.name}</option>
+                                <option value="">— Select Site —</option>
+                                {sites.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
                                 ))}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                             <input
                                 type="date"
                                 required
-                                value={selectedDate.toISOString().split('T')[0]}
-                                onChange={e => {
-                                    const newDate = new Date(e.target.value);
-                                    newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
-                                    setSelectedDate(newDate);
-                                }}
-                                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 text-sm"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Time Out</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Time Out</label>
                             <input
                                 type="time"
                                 required
-                                value={selectedDate.toTimeString().slice(0, 5)}
-                                onChange={e => {
-                                    const [hours, minutes] = e.target.value.split(':');
-                                    const newDate = new Date(selectedDate);
-                                    newDate.setHours(parseInt(hours), parseInt(minutes));
-                                    setSelectedDate(newDate);
-                                }}
-                                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 text-sm"
+                                value={timeOut}
+                                onChange={(e) => setTimeOut(e.target.value)}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
                     </div>
                 </div>
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-6">
-                    <h2 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">Add Tools from Van Stock</h2>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-lg font-semibold text-gray-900">Add Tools</h2>
+                        {siteId && (
+                            <Link
+                                to={`/store/inventory?siteId=${siteId}`}
+                                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                target="_blank"
+                            >
+                                <PackagePlus className="w-4 h-4" /> Add Stock for this Site
+                            </Link>
+                        )}
+                    </div>
+                    
+                    {!siteId && (
+                        <p className="text-sm text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
+                            ⚠️ Select a site first to search tools with site-specific stock.
+                        </p>
+                    )}
 
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                            type="text"
-                            placeholder="Search your van stock (e.g. pipe, wrench)..."
-                            value={toolSearchQuery}
-                            onChange={(e) => handleSearchTool(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 text-sm"
-                        />
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder={siteId ? "Search tool by name (e.g. pipe, wrench)..." : "Select a site first..."}
+                                value={searchQuery}
+                                disabled={!siteId}
+                                onChange={(e) => handleSearchTool(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-400"
+                            />
+                        </div>
+                        
                         {toolSearchResults.length > 0 && (
                             <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 max-h-60 overflow-y-auto">
-                                {toolSearchResults.map(tool => (
-                                    <div
+                                {toolSearchResults.map((tool) => (
+                                    <div 
                                         key={tool.id}
                                         onClick={() => addTool(tool)}
                                         className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0"
                                     >
-                                        <div>
-                                            <div className="font-medium text-sm text-gray-900">{tool.description}</div>
-                                            <div className="text-xs text-gray-500">Available in van: {tool.currentQuantity}</div>
-                                        </div>
-                                        <PackagePlus className="w-4 h-4 text-blue-600" />
+                                        <span className="font-medium text-gray-900">{tool.description}</span>
+                                        <span className="text-sm text-green-600 font-medium">Available at site: {tool.currentQuantity}</span>
                                     </div>
                                 ))}
                             </div>
                         )}
-                        {toolSearchQuery.length > 1 && toolSearchResults.length === 0 && !isSearchingTool && (
-                            <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 p-4 text-center text-gray-500 text-sm">
-                                You don't have this tool in your van stock. <Link to="/store/inventory" className="text-blue-600 hover:underline">Receive stock first</Link>
+                        {searchQuery.length > 1 && toolSearchResults.length === 0 && !isSearching && siteId && (
+                            <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 p-4 text-center text-gray-500">
+                                No tools with available stock at this site.
+                                <Link to={`/store/inventory?siteId=${siteId}`} className="block mt-1 text-blue-600 text-sm hover:underline">
+                                    + Receive stock for this site
+                                </Link>
                             </div>
                         )}
                     </div>
 
                     {items.length > 0 && (
-                        <div className="overflow-x-auto rounded-lg border border-gray-100">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-50 border-b border-gray-100">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50 border-y border-gray-100">
                                     <tr>
                                         <th className="px-4 py-3 font-medium text-gray-600">Tool</th>
-                                        <th className="px-4 py-3 font-medium text-gray-600 w-1/3">Custom Details (Optional)</th>
-                                        <th className="px-4 py-3 font-medium text-gray-600 w-24">Qty Out</th>
-                                        <th className="px-4 py-3 w-12"></th>
+                                        <th className="px-4 py-3 font-medium text-gray-600">Custom Details (Optional)</th>
+                                        <th className="px-4 py-3 font-medium text-gray-600 w-32">Qty Out</th>
+                                        <th className="px-4 py-3 w-16"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {items.map((item, index) => (
-                                        <tr key={index} className="hover:bg-gray-50/50">
+                                        <tr key={index}>
                                             <td className="px-4 py-3">
                                                 <div className="font-medium text-gray-900">{item.description}</div>
-                                                <div className="text-xs text-gray-500 mt-0.5">Available: {item.maxAvailable}</div>
+                                                <div className="text-xs text-gray-500">Site stock: {item.maxAvailable}</div>
                                             </td>
                                             <td className="px-4 py-3">
                                                 <input
                                                     type="text"
                                                     placeholder="e.g. Serial # or note"
                                                     value={item.customDescription}
-                                                    onChange={e => updateItem(index, 'customDescription', e.target.value)}
-                                                    className="w-full px-3 py-1.5 rounded border border-gray-200 text-sm focus:ring-2 focus:ring-blue-500"
+                                                    onChange={(e) => updateItem(index, 'customDescription', e.target.value)}
+                                                    className="w-full px-3 py-1.5 rounded border border-gray-200 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                 />
                                             </td>
                                             <td className="px-4 py-3">
                                                 <input
                                                     type="number"
+                                                    required
                                                     min="1"
                                                     max={item.maxAvailable}
                                                     value={item.quantityOut}
-                                                    onChange={e => updateItem(index, 'quantityOut', e.target.value)}
-                                                    className="w-full px-3 py-1.5 rounded border border-gray-200 text-sm focus:ring-2 focus:ring-blue-500 text-center"
+                                                    onChange={(e) => updateItem(index, 'quantityOut', parseInt(e.target.value))}
+                                                    className="w-full px-3 py-1.5 rounded border border-gray-200 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                 />
                                             </td>
                                             <td className="px-4 py-3 text-right">
                                                 <button
                                                     type="button"
                                                     onClick={() => removeItem(index)}
-                                                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -274,21 +308,19 @@ export function DailyLogFormPage() {
                     )}
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/store/logs')}
-                        className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                <div className="flex justify-end gap-4">
+                    <Link
+                        to="/store/logs"
+                        className="px-6 py-2.5 text-gray-700 font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                         Cancel
-                    </button>
+                    </Link>
                     <button
                         type="submit"
-                        disabled={saving}
-                        className="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                        className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
                     >
-                        <Save className="w-4 h-4" />
-                        {saving ? "Saving..." : "Save Checkout Log"}
+                        <Save className="w-5 h-5" />
+                        Save Checkout Log
                     </button>
                 </div>
             </form>
