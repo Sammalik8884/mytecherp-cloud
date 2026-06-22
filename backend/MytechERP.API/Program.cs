@@ -311,6 +311,64 @@ using (var scope = app.Services.CreateScope())
                     UPDATE StoreTools SET TenantId = 3 WHERE TenantId = 0;
                     UPDATE StoreDailyLogs SET TenantId = 3 WHERE TenantId = 0;
                     UPDATE StoreDailyLogItems SET TenantId = 3 WHERE TenantId = 0;
+                    
+                    -- Deduplicate StoreTools
+                    IF OBJECT_ID('tempdb..#ToolMapping') IS NOT NULL DROP TABLE #ToolMapping;
+                    
+                    SELECT dt.KeepId, st.Id AS OldId
+                    INTO #ToolMapping
+                    FROM StoreTools st
+                    JOIN (
+                        SELECT Description, MIN(Id) as KeepId
+                        FROM StoreTools
+                        GROUP BY Description
+                        HAVING COUNT(*) > 1
+                    ) dt ON st.Description = dt.Description AND st.Id <> dt.KeepId;
+
+                    IF EXISTS (SELECT 1 FROM #ToolMapping)
+                    BEGIN
+                        -- Update StoreDailyLogItems
+                        UPDATE dli
+                        SET ToolId = tm.KeepId
+                        FROM StoreDailyLogItems dli
+                        JOIN #ToolMapping tm ON dli.ToolId = tm.OldId;
+
+                        -- Merge SiteToolStocks quantities
+                        UPDATE keepSts
+                        SET AvailableQuantity = keepSts.AvailableQuantity + oldSts.AvailableQuantity
+                        FROM SiteToolStocks keepSts
+                        JOIN SiteToolStocks oldSts ON keepSts.SiteId = oldSts.SiteId
+                        JOIN #ToolMapping tm ON oldSts.StoreToolId = tm.OldId AND keepSts.StoreToolId = tm.KeepId;
+
+                        DELETE oldSts
+                        FROM SiteToolStocks oldSts
+                        JOIN SiteToolStocks keepSts ON keepSts.SiteId = oldSts.SiteId
+                        JOIN #ToolMapping tm ON oldSts.StoreToolId = tm.OldId AND keepSts.StoreToolId = tm.KeepId;
+
+                        -- For remaining oldSts, just update StoreToolId
+                        UPDATE oldSts
+                        SET StoreToolId = tm.KeepId
+                        FROM SiteToolStocks oldSts
+                        JOIN #ToolMapping tm ON oldSts.StoreToolId = tm.OldId;
+
+                        -- Sum StoreTools Global Quantities
+                        UPDATE keepSt
+                        SET TotalQuantity = keepSt.TotalQuantity + agg.TotalQ,
+                            CurrentQuantity = keepSt.CurrentQuantity + agg.CurrentQ
+                        FROM StoreTools keepSt
+                        JOIN (
+                            SELECT tm.KeepId, SUM(oldSt.TotalQuantity) as TotalQ, SUM(oldSt.CurrentQuantity) as CurrentQ
+                            FROM #ToolMapping tm
+                            JOIN StoreTools oldSt ON tm.OldId = oldSt.Id
+                            GROUP BY tm.KeepId
+                        ) agg ON keepSt.Id = agg.KeepId;
+
+                        -- Delete duplicates
+                        DELETE st
+                        FROM StoreTools st
+                        JOIN #ToolMapping tm ON st.Id = tm.OldId;
+                    END
+                    DROP TABLE #ToolMapping;
                 ";
                 await context.Database.ExecuteSqlRawAsync(ensureColumnsSql);
                 Console.WriteLine("Store entity columns verified/created successfully.");
