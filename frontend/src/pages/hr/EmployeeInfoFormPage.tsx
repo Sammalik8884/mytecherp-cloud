@@ -4,14 +4,17 @@ import { employeeInfoService } from "../../services/hr/employeeInfoService";
 import { CreateEmployeeInfo } from "../../types/hr/employeeInfo";
 import { toast } from "react-hot-toast";
 import { ArrowLeft, UserCheck, UserPlus, Save, List } from "lucide-react";
+import { useAuth } from "../../auth/AuthContext";
 
 export default function EmployeeInfoFormPage() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { hasRole } = useAuth();
     const isEditing = !!id;
 
     const [isLoading, setIsLoading] = useState(isEditing);
     const [isSaving, setIsSaving] = useState(false);
+    const isSiteSupervisorOnly = hasRole(["Site Supervisor"]) && !hasRole(["Admin", "Manager", "Accounts Head"]);
     
     // Form State
     const [formData, setFormData] = useState<CreateEmployeeInfo>({
@@ -52,7 +55,11 @@ export default function EmployeeInfoFormPage() {
                 await employeeInfoService.create(formData);
                 toast.success("Employee record created!");
             }
-            navigate("/hr/employees");
+            if (isSiteSupervisorOnly) {
+                navigate("/dashboard");
+            } else {
+                navigate("/hr/employees");
+            }
         } catch (error) {
             toast.error("Failed to save record.");
         } finally {
@@ -95,11 +102,13 @@ export default function EmployeeInfoFormPage() {
                     </button>
                 </div>
 
-                <div className="mt-12 text-center">
-                    <Link to="/hr/employees" className="text-primary hover:underline flex items-center justify-center gap-2">
-                        <List size={16} /> View Employee Details / Directory
-                    </Link>
-                </div>
+                {!isSiteSupervisorOnly && (
+                    <div className="mt-12 text-center">
+                        <Link to="/hr/employees" className="text-primary hover:underline flex items-center justify-center gap-2">
+                            <List size={16} /> View Employee Details / Directory
+                        </Link>
+                    </div>
+                )}
             </div>
         );
     }

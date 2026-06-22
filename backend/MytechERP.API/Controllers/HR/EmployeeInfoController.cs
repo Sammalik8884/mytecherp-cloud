@@ -20,6 +20,7 @@ namespace MytechERP.API.Controllers.HR
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Manager,Accounts Head")]
         public async Task<IActionResult> GetAll([FromQuery] string? search)
         {
             var result = await _service.GetAllAsync(search);
@@ -27,6 +28,7 @@ namespace MytechERP.API.Controllers.HR
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin,Manager,Accounts Head")]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -49,6 +51,7 @@ namespace MytechERP.API.Controllers.HR
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Manager,Accounts Head")]
         public async Task<IActionResult> Update(int id, [FromBody] CreateEmployeeInfoDto dto)
         {
             try
@@ -63,6 +66,7 @@ namespace MytechERP.API.Controllers.HR
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,Manager,Accounts Head")]
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _service.DeleteAsync(id);

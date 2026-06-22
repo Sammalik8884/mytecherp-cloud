@@ -140,7 +140,10 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                         );
                     }
 
-                    const href = item.href as string;
+                    let href = item.href as string;
+                    if (item.label === "Employee Info Form" && hasRole(["Site Supervisor"]) && !hasRole(["Admin", "Manager", "Accounts Head"])) {
+                        href = "/hr/employees/new";
+                    }
                     const isActive = location.pathname === href || item.paths?.includes(location.pathname);
                     const isLocked = item.requiredFeature ? !hasFeature(item.requiredFeature) : false;
 

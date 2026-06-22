@@ -185,10 +185,12 @@ function App() {
                                 {/* End of previous RoleProtectedRoute routes */}
                             </Route>
 
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Site Supervisor", "Accounts Head"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Accounts Head"]} />}>
                                 <Route path="/hr/employees" element={<EmployeeInfoListPage />} />
-                                <Route path="/hr/employees/new" element={<EmployeeInfoFormPage />} />
                                 <Route path="/hr/employees/:id/edit" element={<EmployeeInfoFormPage />} />
+                            </Route>
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Site Supervisor", "Accounts Head"]} />}>
+                                <Route path="/hr/employees/new" element={<EmployeeInfoFormPage />} />
                             </Route>
 
                             {/* Procurement Flow */}
