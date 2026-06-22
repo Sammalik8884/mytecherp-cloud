@@ -305,7 +305,7 @@ using (var scope = app.Services.CreateScope())
                 Console.WriteLine($"Store column ensure warning: {colEx.Message}");
             }
 
-            // Ensure SiteToolStocks table exists (per-site inventory)
+            // Ensure SiteToolStocks table exists and has no duplicates
             try
             {
                 var siteStockSql = @"
@@ -317,14 +317,35 @@ using (var scope = app.Services.CreateScope())
                             StoreToolId int NOT NULL,
                             AvailableQuantity int NOT NULL DEFAULT 0,
                             CONSTRAINT UQ_SiteToolStocks_Site_Tool UNIQUE (SiteId, StoreToolId),
-                            CONSTRAINT FK_SiteToolStocks_Sites     FOREIGN KEY (SiteId)      REFERENCES Sites(Id),
+                            CONSTRAINT FK_SiteToolStocks_Sites      FOREIGN KEY (SiteId)      REFERENCES Sites(Id),
                             CONSTRAINT FK_SiteToolStocks_StoreTools FOREIGN KEY (StoreToolId) REFERENCES StoreTools(Id)
                         );
-                        PRINT 'SiteToolStocks table created.';
+                    END
+
+                    -- Remove duplicate (SiteId, StoreToolId) rows, keeping the one with the highest AvailableQuantity
+                    WITH CTE AS (
+                        SELECT Id,
+                               ROW_NUMBER() OVER (
+                                   PARTITION BY SiteId, StoreToolId
+                                   ORDER BY AvailableQuantity DESC, Id ASC
+                               ) AS rn
+                        FROM SiteToolStocks
+                    )
+                    DELETE FROM SiteToolStocks WHERE Id IN (SELECT Id FROM CTE WHERE rn > 1);
+
+                    -- Ensure unique constraint exists after dedup
+                    IF NOT EXISTS (
+                        SELECT 1 FROM sys.indexes
+                        WHERE name = N'UQ_SiteToolStocks_Site_Tool'
+                          AND object_id = OBJECT_ID(N'SiteToolStocks')
+                    )
+                    BEGIN
+                        ALTER TABLE SiteToolStocks
+                        ADD CONSTRAINT UQ_SiteToolStocks_Site_Tool UNIQUE (SiteId, StoreToolId);
                     END
                 ";
                 await context.Database.ExecuteSqlRawAsync(siteStockSql);
-                Console.WriteLine("SiteToolStocks table verified/created successfully.");
+                Console.WriteLine("SiteToolStocks table verified/deduplicated successfully.");
             }
             catch (Exception stsEx)
             {

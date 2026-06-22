@@ -1,271 +1,264 @@
-import React, { useState, useEffect } from "react";
-import { PackagePlus, Search, Trash2, CheckCircle, ArrowLeft, Warehouse } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { CheckCircle, Warehouse, Save, Search } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
+
+interface StockRow {
+    id: number;
+    storeToolId: number;
+    description: string;
+    totalQuantity: number;
+    availableQuantity: number;
+    editValue: number;
+    dirty: boolean;
+    saving: boolean;
+    saved: boolean;
+}
 
 export function StoreInventoryPage() {
     const [searchParams] = useSearchParams();
-
     const [sites, setSites] = useState<any[]>([]);
     const [siteId, setSiteId] = useState(searchParams.get('siteId') || "");
-    const [siteStock, setSiteStock] = useState<any[]>([]);
-    const [loadingStock, setLoadingStock] = useState(false);
+    const [rows, setRows] = useState<StockRow[]>([]);
+    const [filteredRows, setFilteredRows] = useState<StockRow[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [search, setSearch] = useState("");
+    const [savingAll, setSavingAll] = useState(false);
+    const [savedAllMsg, setSavedAllMsg] = useState("");
 
-    // Receive stock form state
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState<any[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
-    const [receiveItems, setReceiveItems] = useState<any[]>([]);
-    const [saving, setSaving] = useState(false);
-    const [successMsg, setSuccessMsg] = useState("");
+    useEffect(() => { fetchSites(); }, []);
 
     useEffect(() => {
-        fetchSites();
-    }, []);
-
-    useEffect(() => {
-        if (siteId) fetchSiteStock(parseInt(siteId));
-        else setSiteStock([]);
+        if (siteId) fetchStock(parseInt(siteId));
+        else { setRows([]); setFilteredRows([]); }
     }, [siteId]);
+
+    useEffect(() => {
+        if (!search.trim()) {
+            setFilteredRows(rows);
+        } else {
+            const q = search.toLowerCase();
+            setFilteredRows(rows.filter(r => r.description.toLowerCase().includes(q)));
+        }
+    }, [search, rows]);
 
     const fetchSites = async () => {
         try {
             const res = await apiClient.get('/Sites');
-            if (res.data) setSites(res.data);
+            setSites(res.data || []);
         } catch (e) { console.error(e); }
     };
 
-    const fetchSiteStock = async (id: number) => {
-        setLoadingStock(true);
+    const fetchStock = async (id: number) => {
+        setLoading(true);
+        setSearch("");
         try {
             const res = await apiClient.get(`/SiteToolStocks/site/${id}`);
-            setSiteStock(res.data || []);
+            const data: StockRow[] = (res.data || []).map((s: any) => ({
+                id: s.id,
+                storeToolId: s.storeToolId,
+                description: s.description,
+                totalQuantity: s.totalQuantity,
+                availableQuantity: s.availableQuantity,
+                editValue: s.availableQuantity,
+                dirty: false,
+                saving: false,
+                saved: false,
+            }));
+            setRows(data);
+            setFilteredRows(data);
         } catch (e) {
             console.error(e);
-            setSiteStock([]);
         } finally {
-            setLoadingStock(false);
+            setLoading(false);
         }
     };
 
-    const handleSearch = async (query: string) => {
-        setSearchQuery(query);
-        if (query.length < 2) { setSearchResults([]); return; }
-        setIsSearching(true);
-        try {
-            // Search global tools list (not site-specific)
-            const res = await apiClient.get(`/StoreTools/search?q=${encodeURIComponent(query)}`);
-            setSearchResults(res.data || []);
-        } catch (e) { console.error(e); }
-        finally { setIsSearching(false); }
+    const handleChange = (id: number, val: string) => {
+        const num = parseInt(val) || 0;
+        setRows(prev => prev.map(r =>
+            r.id === id ? { ...r, editValue: num < 0 ? 0 : num, dirty: true, saved: false } : r
+        ));
     };
 
-    const addToReceiveList = (tool: any) => {
-        if (receiveItems.some(i => i.storeToolId === tool.id)) {
-            alert("Already added. Adjust quantity below.");
-            return;
+    const saveRow = async (row: StockRow) => {
+        setRows(prev => prev.map(r => r.id === row.id ? { ...r, saving: true } : r));
+        try {
+            await apiClient.put(`/SiteToolStocks/${row.id}`, { quantity: row.editValue });
+            setRows(prev => prev.map(r =>
+                r.id === row.id
+                    ? { ...r, availableQuantity: r.editValue, saving: false, dirty: false, saved: true }
+                    : r
+            ));
+            setTimeout(() => {
+                setRows(prev => prev.map(r => r.id === row.id ? { ...r, saved: false } : r));
+            }, 2000);
+        } catch (e: any) {
+            alert(`Error saving: ${e.response?.data || e.message}`);
+            setRows(prev => prev.map(r => r.id === row.id ? { ...r, saving: false } : r));
         }
-        setReceiveItems([...receiveItems, {
-            storeToolId: tool.id,
-            description: tool.description,
-            quantity: 1
-        }]);
-        setSearchQuery("");
-        setSearchResults([]);
     };
 
-    const removeReceiveItem = (index: number) => {
-        setReceiveItems(receiveItems.filter((_, i) => i !== index));
-    };
-
-    const updateQuantity = (index: number, qty: number) => {
-        const updated = [...receiveItems];
-        updated[index].quantity = qty;
-        setReceiveItems(updated);
-    };
-
-    const handleReceiveSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!siteId) { alert("Select a site first."); return; }
-        if (receiveItems.length === 0) { alert("Add at least one tool."); return; }
-
-        setSaving(true);
+    const saveAll = async () => {
+        const dirtyRows = rows.filter(r => r.dirty);
+        if (dirtyRows.length === 0) return;
+        setSavingAll(true);
         try {
-            await apiClient.post('/SiteToolStocks/receive', {
-                siteId: parseInt(siteId),
-                items: receiveItems.map(i => ({
-                    storeToolId: i.storeToolId,
-                    quantity: i.quantity
-                }))
-            });
-            setSuccessMsg(`✅ Stock added successfully for ${sites.find(s => s.id.toString() === siteId)?.name || 'site'}!`);
-            setReceiveItems([]);
-            fetchSiteStock(parseInt(siteId)); // refresh
-            setTimeout(() => setSuccessMsg(""), 4000);
-        } catch (error: any) {
-            alert(`Error: ${error.response?.data?.detail || error.message}`);
+            await Promise.all(dirtyRows.map(row =>
+                apiClient.put(`/SiteToolStocks/${row.id}`, { quantity: row.editValue })
+            ));
+            setRows(prev => prev.map(r =>
+                r.dirty ? { ...r, availableQuantity: r.editValue, dirty: false, saved: true } : r
+            ));
+            setSavedAllMsg(`✅ ${dirtyRows.length} item(s) updated successfully!`);
+            setTimeout(() => {
+                setSavedAllMsg("");
+                setRows(prev => prev.map(r => ({ ...r, saved: false })));
+            }, 3000);
+        } catch (e: any) {
+            alert(`Error: ${e.response?.data || e.message}`);
         } finally {
-            setSaving(false);
+            setSavingAll(false);
         }
     };
 
-    const selectedSiteName = sites.find(s => s.id.toString() === siteId)?.name || "";
+    const dirtyCount = rows.filter(r => r.dirty).length;
+    const selectedSiteName = sites.find(s => s.id?.toString() === siteId)?.name || "";
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Header */}
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <Warehouse className="w-6 h-6 text-blue-600" />
-                    Site Inventory Management
+                    Site Inventory
                 </h1>
-                <Link to="/store/tools" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
-                    <ArrowLeft className="w-4 h-4" /> Back to Tools
-                </Link>
+                {dirtyCount > 0 && (
+                    <button
+                        onClick={saveAll}
+                        disabled={savingAll}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:opacity-60"
+                    >
+                        <Save className="w-4 h-4" />
+                        {savingAll ? "Saving..." : `Save All (${dirtyCount} changes)`}
+                    </button>
+                )}
             </div>
+
+            {savedAllMsg && (
+                <div className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-3 rounded-lg font-medium">
+                    <CheckCircle className="w-4 h-4" /> {savedAllMsg}
+                </div>
+            )}
 
             {/* Site Selector */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Site</label>
-                <select
-                    value={siteId}
-                    onChange={(e) => { setSiteId(e.target.value); setReceiveItems([]); }}
-                    className="w-full max-w-xs px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500"
-                >
-                    <option value="">— Choose a site —</option>
-                    {sites.map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                </select>
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Site</label>
+                    <select
+                        value={siteId}
+                        onChange={(e) => { setSiteId(e.target.value); setRows([]); }}
+                        className="px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 min-w-[220px]"
+                    >
+                        <option value="">— Choose a site —</option>
+                        {sites.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {siteId && rows.length > 0 && (
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Search Tools</label>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="text"
+                                placeholder="Filter by tool name..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-9 pr-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 w-full text-sm"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {siteId && (
+                    <div className="text-sm text-gray-500 mt-4">
+                        {rows.length} tools · {rows.filter(r => r.availableQuantity > 0).length} with stock
+                    </div>
+                )}
             </div>
 
+            {/* Inventory Table */}
             {siteId && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* LEFT: Receive Stock Form */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
-                        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <PackagePlus className="w-5 h-5 text-green-600" />
-                            Receive Stock — {selectedSiteName}
-                        </h2>
-                        <p className="text-sm text-gray-500">
-                            Search tools and enter quantities received (from procurement or manual stock-in).
-                        </p>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    {loading ? (
+                        <div className="p-10 text-center text-gray-400">Loading inventory...</div>
+                    ) : filteredRows.length === 0 ? (
+                        <div className="p-10 text-center text-gray-400">
+                            <Warehouse className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                            {search ? "No tools match your search." : "No tools found for this site."}
+                        </div>
+                    ) : (
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-gray-50 border-b border-gray-100 sticky top-0">
+                                <tr>
+                                    <th className="px-4 py-3 font-medium text-gray-600">Tool Description</th>
+                                    <th className="px-4 py-3 font-medium text-gray-600 text-center w-32">Total (Global)</th>
+                                    <th className="px-4 py-3 font-medium text-gray-600 text-center w-40">Available at Site</th>
+                                    <th className="px-4 py-3 w-24"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {filteredRows.map((row) => (
+                                    <tr key={row.id} className={`hover:bg-gray-50 transition-colors ${row.dirty ? 'bg-amber-50/60' : ''}`}>
+                                        <td className="px-4 py-2.5 font-medium text-gray-900">{row.description}</td>
+                                        <td className="px-4 py-2.5 text-center text-gray-400">{row.totalQuantity}</td>
+                                        <td className="px-4 py-2.5 text-center">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={row.editValue}
+                                                onChange={(e) => handleChange(row.id, e.target.value)}
+                                                className={`w-24 px-3 py-1.5 text-center text-sm rounded-lg border font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors
+                                                    ${row.dirty
+                                                        ? 'border-amber-400 bg-amber-50 text-amber-800'
+                                                        : row.availableQuantity > 0
+                                                            ? 'border-green-200 bg-green-50 text-green-700'
+                                                            : 'border-gray-200 text-gray-500'
+                                                    }`}
+                                            />
+                                        </td>
+                                        <td className="px-4 py-2.5 text-right">
+                                            {row.saving ? (
+                                                <span className="text-xs text-gray-400">Saving...</span>
+                                            ) : row.saved ? (
+                                                <span className="text-xs text-green-600 flex items-center gap-1 justify-end">
+                                                    <CheckCircle className="w-3 h-3" /> Saved
+                                                </span>
+                                            ) : row.dirty ? (
+                                                <button
+                                                    onClick={() => saveRow(row)}
+                                                    className="text-xs px-2.5 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                                                >
+                                                    Save
+                                                </button>
+                                            ) : null}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            )}
 
-                        {successMsg && (
-                            <div className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-3 rounded-lg text-sm font-medium">
-                                <CheckCircle className="w-4 h-4" /> {successMsg}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleReceiveSubmit} className="space-y-4">
-                            {/* Tool search */}
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    placeholder="Search tool to add (e.g. drill, wrench)..."
-                                    value={searchQuery}
-                                    onChange={(e) => handleSearch(e.target.value)}
-                                    className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-blue-500"
-                                />
-                                {searchResults.length > 0 && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 max-h-48 overflow-y-auto">
-                                        {searchResults.map(tool => (
-                                            <div
-                                                key={tool.id}
-                                                onClick={() => addToReceiveList(tool)}
-                                                className="px-4 py-2.5 hover:bg-blue-50 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0"
-                                            >
-                                                <span className="font-medium text-sm text-gray-900">{tool.description}</span>
-                                                <span className="text-xs text-gray-400">Total qty: {tool.totalQuantity}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {searchQuery.length > 1 && searchResults.length === 0 && !isSearching && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 p-3 text-center text-gray-500 text-sm">
-                                        No tools found. <Link to="/store/tools" className="text-blue-600 hover:underline">Add a new tool</Link>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Items to receive */}
-                            {receiveItems.length > 0 && (
-                                <div className="space-y-2">
-                                    {receiveItems.map((item, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 bg-gray-50 px-3 py-2 rounded-lg">
-                                            <span className="flex-1 text-sm font-medium text-gray-900">{item.description}</span>
-                                            <div className="flex items-center gap-2">
-                                                <label className="text-xs text-gray-500">Qty:</label>
-                                                <input
-                                                    type="number"
-                                                    min="1"
-                                                    value={item.quantity}
-                                                    onChange={(e) => updateQuantity(idx, parseInt(e.target.value) || 1)}
-                                                    className="w-20 px-2 py-1 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-blue-500"
-                                                />
-                                            </div>
-                                            <button type="button" onClick={() => removeReceiveItem(idx)}
-                                                className="text-red-400 hover:text-red-600 p-1">
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            <button
-                                type="submit"
-                                disabled={receiveItems.length === 0 || saving}
-                                className="w-full py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                            >
-                                <PackagePlus className="w-4 h-4" />
-                                {saving ? "Saving..." : "Add Stock to Site"}
-                            </button>
-                        </form>
-                    </div>
-
-                    {/* RIGHT: Current Site Stock */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                            Current Stock — {selectedSiteName}
-                        </h2>
-
-                        {loadingStock ? (
-                            <div className="text-center py-8 text-gray-400">Loading stock...</div>
-                        ) : siteStock.length === 0 ? (
-                            <div className="text-center py-8 text-gray-400">
-                                <Warehouse className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                                <p>No stock received for this site yet.</p>
-                                <p className="text-sm mt-1">Use the form on the left to add stock.</p>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-gray-50 border-y border-gray-100">
-                                        <tr>
-                                            <th className="px-3 py-2 font-medium text-gray-600">Tool</th>
-                                            <th className="px-3 py-2 font-medium text-gray-600 text-center">Available</th>
-                                            <th className="px-3 py-2 font-medium text-gray-600 text-center">Total (Global)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {siteStock.map(stock => (
-                                            <tr key={stock.id} className="hover:bg-gray-50">
-                                                <td className="px-3 py-2 font-medium text-gray-900">{stock.description}</td>
-                                                <td className="px-3 py-2 text-center">
-                                                    <span className={`font-semibold ${stock.availableQuantity === 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                                        {stock.availableQuantity}
-                                                    </span>
-                                                </td>
-                                                <td className="px-3 py-2 text-center text-gray-400">{stock.totalQuantity}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
+            {!siteId && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
+                    <Warehouse className="w-14 h-14 mx-auto mb-3 opacity-20" />
+                    <p className="font-medium">Select a site to manage its tool inventory</p>
+                    <p className="text-sm mt-1">You can update quantities directly in the table</p>
                 </div>
             )}
         </div>
