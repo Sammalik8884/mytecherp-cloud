@@ -100,7 +100,16 @@ export function DailyLogsPage() {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <button 
-                                                onClick={() => navigate(`/store/logs/checkin`, { state: { log } })}
+                                                onClick={async () => {
+                                                    try {
+                                                        // Fetch the full log with nested items + storeTool before navigating
+                                                        const res = await apiClient.get(`/StoreDailyLogs/${log.id}`);
+                                                        navigate(`/store/logs/checkin`, { state: { log: res.data } });
+                                                    } catch {
+                                                        // fallback: use the list data as-is
+                                                        navigate(`/store/logs/checkin`, { state: { log } });
+                                                    }
+                                                }}
                                                 className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                                             >
                                                 {log.timeIn ? 'View Details' : 'Process Check-in'}

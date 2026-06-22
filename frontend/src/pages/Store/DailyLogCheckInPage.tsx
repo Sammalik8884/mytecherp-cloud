@@ -40,10 +40,10 @@ export function DailyLogCheckInPage() {
             const [hours, minutes] = timeIn.split(':').map(Number);
             logDate.setHours(hours, minutes, 0, 0);
 
-            const res = await apiClient.post(`/StoreDailyLogs/checkin/${log.id}`, {
+            const res = await apiClient.post(`/StoreDailyLogs/${log.id}/checkin`, {
                 timeIn: logDate.toISOString(),
                 items: items.map(i => ({
-                    id: i.id, // ID of the StoreDailyLogItem
+                    storeDailyLogItemId: i.id, // matches CheckInStoreDailyLogItemDto
                     quantityIn: i.quantityIn
                 }))
             });
@@ -116,7 +116,7 @@ export function DailyLogCheckInPage() {
                                     return (
                                         <tr key={index}>
                                             <td className="px-4 py-4 font-medium text-gray-900">
-                                                {item.storeTool.description}
+                                                {item.toolDescription ?? item.storeTool?.description ?? 'Unknown'}
                                             </td>
                                             <td className="px-4 py-4 text-gray-500 text-sm">
                                                 {item.customDescription || '-'}

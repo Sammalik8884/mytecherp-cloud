@@ -58,6 +58,39 @@ namespace MytechERP.API.Controllers
             return Ok(dtos);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var log = await _context.StoreDailyLogs
+                .Include(l => l.Site)
+                .Include(l => l.Items)
+                .ThenInclude(i => i.StoreTool)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (log == null) return NotFound();
+
+            var dto = new StoreDailyLogDto
+            {
+                Id = log.Id,
+                SiteId = log.SiteId,
+                SiteName = log.Site?.Name ?? "Unknown",
+                Date = log.Date,
+                TimeOut = log.TimeOut,
+                TimeIn = log.TimeIn,
+                Items = log.Items.Select(i => new StoreDailyLogItemDto
+                {
+                    Id = i.Id,
+                    StoreToolId = i.StoreToolId,
+                    ToolDescription = i.StoreTool?.Description ?? "Unknown",
+                    CustomDescription = i.CustomDescription,
+                    QuantityOut = i.QuantityOut,
+                    QuantityIn = i.QuantityIn
+                }).ToList()
+            };
+
+            return Ok(dto);
+        }
+
         [HttpPost("checkout")]
         [Authorize(Roles = "Admin,Procurement Executive")]
         public async Task<IActionResult> Checkout([FromBody] CreateStoreDailyLogDto dto)
