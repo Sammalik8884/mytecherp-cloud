@@ -6,7 +6,7 @@ using MytechERP.domain.Interfaces;
 
 namespace MytechERP.domain.Entities
 {
-    public class StoreDailyLog
+    public class StoreDailyLog : ISyncableEntity
     {
         public int Id { get; set; }
         
@@ -18,5 +18,9 @@ namespace MytechERP.domain.Entities
         public DateTime? TimeIn { get; set; }
 
         public ICollection<StoreDailyLogItem> Items { get; set; } = new List<StoreDailyLogItem>();
+
+        public int TenantId { get; set; }
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsDeleted { get; set; } = false;
     }
 }
