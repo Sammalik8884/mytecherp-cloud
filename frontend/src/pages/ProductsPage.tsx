@@ -45,6 +45,7 @@ export const ProductsPage = () => {
     const [importFile, setImportFile] = useState<File | null>(null);
     const [importBrand, setImportBrand] = useState("LIFECO");
     const [importLoading, setImportLoading] = useState(false);
+    const [showFormatDropdown, setShowFormatDropdown] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -182,6 +183,25 @@ export const ProductsPage = () => {
                     <p className="text-muted-foreground mt-1 text-sm">Manage your catalog of items and services.</p>
                 </div>
                 <div className="flex space-x-3">
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowFormatDropdown(!showFormatDropdown)}
+                            className="bg-secondary text-secondary-foreground border border-border px-4 py-2 rounded-lg font-medium hover:bg-secondary/50 transition-all shadow-sm flex items-center space-x-2"
+                        >
+                            <span>Example Format</span>
+                        </button>
+                        {showFormatDropdown && (
+                            <div className="absolute top-full mt-2 left-0 w-48 bg-card border border-border rounded-md shadow-lg z-50 flex flex-col p-1 animate-in fade-in zoom-in-95">
+                                <a href="/files/Fike.xlsx" download="Fike.xlsx" onClick={() => setShowFormatDropdown(false)} className="px-3 py-2 text-sm hover:bg-secondary rounded-md text-left text-foreground">
+                                    Fike
+                                </a>
+                                <a href="/files/LIFECO.xlsx" download="1 - LIFECO GP List - 2025 - V15.09032025.xlsx" onClick={() => setShowFormatDropdown(false)} className="px-3 py-2 text-sm hover:bg-secondary rounded-md text-left text-foreground">
+                                    LIFECO
+                                </a>
+                            </div>
+                        )}
+                    </div>
+
                     <button
                         onClick={() => setIsImportModalOpen(true)}
                         className="bg-secondary text-secondary-foreground border border-border px-4 py-2 rounded-lg font-medium hover:bg-secondary/50 transition-all shadow-sm flex items-center space-x-2"
