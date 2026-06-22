@@ -43,7 +43,8 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     },
 
     { label: "Store Management", isHeader: true, allowedRoles: ["Admin", "Procurement Executive"] },
-    { label: "Tools Inventory", href: "/store/tools", paths: ["/store/tools"], icon: Package, allowedRoles: ["Admin", "Procurement Executive"] },
+    { label: "Tools Catalog", href: "/store/tools", paths: ["/store/tools"], icon: Package, allowedRoles: ["Admin", "Procurement Executive"] },
+    { label: "Site Inventory", href: "/store/inventory", paths: ["/store/inventory"], icon: Warehouse, allowedRoles: ["Admin", "Procurement Executive"] },
     { label: "Daily Store Logs", href: "/store/logs", paths: ["/store/logs", "/store/logs/new"], icon: ClipboardList, allowedRoles: ["Admin", "Procurement Executive"] },
 
     { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },

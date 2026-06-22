@@ -27,6 +27,7 @@ import { StoreToolsPage } from "./pages/Store/StoreToolsPage";
 import { DailyLogsPage } from "./pages/Store/DailyLogsPage";
 import { DailyLogFormPage } from "./pages/Store/DailyLogFormPage";
 import { DailyLogCheckInPage } from "./pages/Store/DailyLogCheckInPage";
+import { StoreInventoryPage } from "./pages/Store/StoreInventoryPage";
 import { InvoicesPage } from "./pages/InvoicesPage";
 import { InventoryPage } from "./pages/InventoryPage";
 import { PayrollPage } from "./pages/PayrollPage";
@@ -222,6 +223,7 @@ function App() {
                                 <Route path="/store/logs" element={<DailyLogsPage />} />
                                 <Route path="/store/logs/new" element={<DailyLogFormPage />} />
                                 <Route path="/store/logs/checkin" element={<DailyLogCheckInPage />} />
+                                <Route path="/store/inventory" element={<StoreInventoryPage />} />
                             </Route>
 
                             {/* Future Iterations will add more routes here */}

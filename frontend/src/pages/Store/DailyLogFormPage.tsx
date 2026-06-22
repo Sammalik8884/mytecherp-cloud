@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Save, Search, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Search, Trash2, PackagePlus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
 
@@ -24,27 +24,37 @@ export function DailyLogFormPage() {
     const fetchSites = async () => {
         try {
             const res = await apiClient.get('/Sites');
-            if (res.data) {
-                setSites(res.data);
-            }
+            if (res.data) setSites(res.data);
         } catch (error) {
             console.error(error);
         }
     };
 
-    // Intelligent Search implemented via API
+    // When site changes, clear items (stock is site-specific)
+    const handleSiteChange = (newSiteId: string) => {
+        setSiteId(newSiteId);
+        setItems([]);
+        setSearchQuery("");
+        setToolSearchResults([]);
+    };
+
+    // Search tools with site-specific availability
     const handleSearchTool = async (query: string) => {
         setSearchQuery(query);
         if (query.length < 2) {
             setToolSearchResults([]);
             return;
         }
+        if (!siteId) {
+            alert("Please select a site first to see available stock.");
+            return;
+        }
 
         setIsSearching(true);
         try {
-            const res = await apiClient.get(`/StoreTools/search?q=${encodeURIComponent(query)}`);
+            const res = await apiClient.get(`/SiteToolStocks/search?q=${encodeURIComponent(query)}&siteId=${siteId}`);
             if (res.data) {
-                // Filter out tools with 0 current quantity
+                // Only show tools with available stock at this site
                 setToolSearchResults(res.data.filter((t: any) => t.currentQuantity > 0));
             }
         } catch (error) {
@@ -55,7 +65,6 @@ export function DailyLogFormPage() {
     };
 
     const addTool = (tool: any) => {
-        // Prevent adding same tool multiple times, unless custom description differs (for simplicity, just add)
         if (items.some(i => i.storeToolId === tool.id)) {
             alert("Tool already added. Please update the quantity instead.");
             return;
@@ -90,7 +99,6 @@ export function DailyLogFormPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        // Time validation (cannot be before current time) -> "Time Out"
         const now = new Date();
         const selectedDate = new Date(date);
         const [hours, minutes] = timeOut.split(':').map(Number);
@@ -101,20 +109,18 @@ export function DailyLogFormPage() {
             return;
         }
 
-        // Must have items
         if (items.length === 0) {
             alert("Please add at least one tool.");
             return;
         }
 
-        // Validate quantities
         for (const item of items) {
             if (item.quantityOut < 1) {
                 alert(`Invalid quantity for ${item.description}`);
                 return;
             }
             if (item.quantityOut > item.maxAvailable) {
-                alert(`Requested quantity for ${item.description} exceeds available stock (${item.maxAvailable}).`);
+                alert(`Requested quantity for ${item.description} exceeds available stock at this site (${item.maxAvailable}).`);
                 return;
             }
         }
@@ -136,7 +142,7 @@ export function DailyLogFormPage() {
             }
         } catch (error: any) {
             console.error(error);
-            alert(`Error: ${error.response?.data || error.message || "An error occurred while saving."}`);
+            alert(`Error: ${error.response?.data || error.message}`);
         }
     };
 
@@ -146,66 +152,80 @@ export function DailyLogFormPage() {
                 <Link to="/store/logs" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                     <ArrowLeft className="w-6 h-6 text-gray-600" />
                 </Link>
-                <h1 className="text-2xl font-bold text-gray-900">New Tool Checkout (Time Out)</h1>
+                <h1 className="text-2xl font-bold text-gray-900">New Tool Checkout</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-6">
-                    <h2 className="text-lg font-semibold text-gray-900">General Information</h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Site</label>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Checkout Details</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="md:col-span-3">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Site <span className="text-red-500">*</span></label>
                             <select
                                 required
                                 value={siteId}
-                                onChange={(e) => setSiteId(e.target.value)}
+                                onChange={(e) => handleSiteChange(e.target.value)}
                                 className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                                <option value="">Select a Site</option>
-                                {sites.map((site) => (
-                                    <option key={site.id} value={site.id}>{site.name}</option>
+                                <option value="">— Select Site —</option>
+                                {sites.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
                                 ))}
                             </select>
                         </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                                <input
-                                    type="date"
-                                    required
-                                    value={date}
-                                    onChange={(e) => setDate(e.target.value)}
-                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Time Out</label>
-                                <input
-                                    type="time"
-                                    required
-                                    value={timeOut}
-                                    onChange={(e) => setTimeOut(e.target.value)}
-                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input
+                                type="date"
+                                required
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Time Out</label>
+                            <input
+                                type="time"
+                                required
+                                value={timeOut}
+                                onChange={(e) => setTimeOut(e.target.value)}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
                         </div>
                     </div>
                 </div>
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-6">
-                    <h2 className="text-lg font-semibold text-gray-900">Add Tools</h2>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-lg font-semibold text-gray-900">Add Tools</h2>
+                        {siteId && (
+                            <Link
+                                to={`/store/inventory?siteId=${siteId}`}
+                                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                target="_blank"
+                            >
+                                <PackagePlus className="w-4 h-4" /> Add Stock for this Site
+                            </Link>
+                        )}
+                    </div>
                     
+                    {!siteId && (
+                        <p className="text-sm text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
+                            ⚠️ Select a site first to search tools with site-specific stock.
+                        </p>
+                    )}
+
                     <div className="relative">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
                                 type="text"
-                                placeholder="Search tool by name (e.g. pipe, wrench)..."
+                                placeholder={siteId ? "Search tool by name (e.g. pipe, wrench)..." : "Select a site first..."}
                                 value={searchQuery}
+                                disabled={!siteId}
                                 onChange={(e) => handleSearchTool(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-400"
                             />
                         </div>
                         
@@ -218,14 +238,17 @@ export function DailyLogFormPage() {
                                         className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0"
                                     >
                                         <span className="font-medium text-gray-900">{tool.description}</span>
-                                        <span className="text-sm text-gray-500">Available: {tool.currentQuantity}</span>
+                                        <span className="text-sm text-green-600 font-medium">Available at site: {tool.currentQuantity}</span>
                                     </div>
                                 ))}
                             </div>
                         )}
-                        {searchQuery.length > 1 && toolSearchResults.length === 0 && !isSearching && (
+                        {searchQuery.length > 1 && toolSearchResults.length === 0 && !isSearching && siteId && (
                             <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 p-4 text-center text-gray-500">
-                                No tools found with available stock.
+                                No tools with available stock at this site.
+                                <Link to={`/store/inventory?siteId=${siteId}`} className="block mt-1 text-blue-600 text-sm hover:underline">
+                                    + Receive stock for this site
+                                </Link>
                             </div>
                         )}
                     </div>
@@ -246,7 +269,7 @@ export function DailyLogFormPage() {
                                         <tr key={index}>
                                             <td className="px-4 py-3">
                                                 <div className="font-medium text-gray-900">{item.description}</div>
-                                                <div className="text-xs text-gray-500">Available: {item.maxAvailable}</div>
+                                                <div className="text-xs text-gray-500">Site stock: {item.maxAvailable}</div>
                                             </td>
                                             <td className="px-4 py-3">
                                                 <input

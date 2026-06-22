@@ -68,6 +68,7 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<StoreTool> StoreTools { get; set; }
         public DbSet<StoreDailyLog> StoreDailyLogs { get; set; }
         public DbSet<StoreDailyLogItem> StoreDailyLogItems { get; set; }
+        public DbSet<SiteToolStock> SiteToolStocks { get; set; }
         public DbSet<ContractItem> ContractItems { get; set; }
         public DbSet<ChecklistQuestion> ChecklistQuestions { get; set; }
         public DbSet<WorkOrderChecklistResult> WorkOrderChecklistResults { get; set; }
@@ -273,6 +274,22 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<StoreTool>().HasQueryFilter(st => st.TenantId == _currentUserService.TenantId && !st.IsDeleted);
             builder.Entity<StoreDailyLog>().HasQueryFilter(sdl => sdl.TenantId == _currentUserService.TenantId && !sdl.IsDeleted);
             builder.Entity<StoreDailyLogItem>().HasQueryFilter(sdli => sdli.TenantId == _currentUserService.TenantId && !sdli.IsDeleted);
+            builder.Entity<SiteToolStock>().HasQueryFilter(sts => sts.TenantId == _currentUserService.TenantId && !sts.IsDeleted);
+
+            // SiteToolStock: per-site inventory
+            builder.Entity<SiteToolStock>()
+                .HasOne(s => s.Site)
+                .WithMany()
+                .HasForeignKey(s => s.SiteId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<SiteToolStock>()
+                .HasOne(s => s.StoreTool)
+                .WithMany()
+                .HasForeignKey(s => s.StoreToolId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<SiteToolStock>()
+                .HasIndex(s => new { s.SiteId, s.StoreToolId })
+                .IsUnique();
             builder.Entity<VehicleTravelForm>().HasQueryFilter(vtf => vtf.TenantId == _currentUserService.TenantId && !vtf.IsDeleted);
 
 

@@ -296,6 +296,21 @@ using (var scope = app.Services.CreateScope())
                     UPDATE StoreTools SET TenantId = 3 WHERE TenantId = 0;
                     UPDATE StoreDailyLogs SET TenantId = 3 WHERE TenantId = 0;
                     UPDATE StoreDailyLogItems SET TenantId = 3 WHERE TenantId = 0;
+
+                    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='SiteToolStocks' and xtype='U')
+                    BEGIN
+                        CREATE TABLE SiteToolStocks (
+                            Id int IDENTITY(1,1) PRIMARY KEY,
+                            SiteId int NOT NULL,
+                            StoreToolId int NOT NULL,
+                            AvailableQuantity int NOT NULL DEFAULT 0,
+                            TenantId int NOT NULL DEFAULT 3,
+                            IsDeleted bit NOT NULL DEFAULT 0,
+                            UpdatedAt datetime2 NOT NULL DEFAULT '2000-01-01',
+                            CONSTRAINT FK_SiteToolStocks_Sites FOREIGN KEY (SiteId) REFERENCES Sites(Id) ON DELETE NO ACTION,
+                            CONSTRAINT FK_SiteToolStocks_StoreTools FOREIGN KEY (StoreToolId) REFERENCES StoreTools(Id) ON DELETE NO ACTION
+                        );
+                    END
                 ";
                 await context.Database.ExecuteSqlRawAsync(ensureColumnsSql);
                 Console.WriteLine("Store entity columns verified/created successfully.");

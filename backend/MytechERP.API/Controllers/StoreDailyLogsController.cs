@@ -105,14 +105,19 @@ namespace MytechERP.API.Controllers
 
             foreach (var itemDto in dto.Items)
             {
-                var tool = await _context.StoreTools.FindAsync(itemDto.StoreToolId);
-                if (tool == null)
-                    return BadRequest($"Tool with ID {itemDto.StoreToolId} not found.");
+                // Use per-site stock instead of global StoreTool.CurrentQuantity
+                var siteStock = await _context.SiteToolStocks
+                    .Include(s => s.StoreTool)
+                    .FirstOrDefaultAsync(s => s.SiteId == dto.SiteId && s.StoreToolId == itemDto.StoreToolId);
 
-                if (tool.CurrentQuantity < itemDto.QuantityOut)
-                    return BadRequest($"Not enough quantity for tool '{tool.Description}'. Available: {tool.CurrentQuantity}, Requested: {itemDto.QuantityOut}");
+                if (siteStock == null || siteStock.AvailableQuantity < itemDto.QuantityOut)
+                {
+                    var toolName = siteStock?.StoreTool?.Description ?? $"Tool #{itemDto.StoreToolId}";
+                    var available = siteStock?.AvailableQuantity ?? 0;
+                    return BadRequest($"Not enough stock for '{toolName}' at this site. Available: {available}, Requested: {itemDto.QuantityOut}");
+                }
 
-                tool.CurrentQuantity -= itemDto.QuantityOut;
+                siteStock.AvailableQuantity -= itemDto.QuantityOut;
 
                 log.Items.Add(new StoreDailyLogItem
                 {
@@ -137,11 +142,8 @@ namespace MytechERP.API.Controllers
                 .ThenInclude(i => i.StoreTool)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
-            if (log == null)
-                return NotFound();
-
-            if (log.TimeIn.HasValue)
-                return BadRequest("This log has already been checked in.");
+            if (log == null) return NotFound();
+            if (log.TimeIn.HasValue) return BadRequest("This log has already been checked in.");
 
             log.TimeIn = dto.TimeIn;
 
@@ -152,17 +154,18 @@ namespace MytechERP.API.Controllers
                 {
                     logItem.QuantityIn = itemDto.QuantityIn;
 
-                    // Update tool current quantity
-                    var tool = logItem.StoreTool;
-                    if (tool != null)
+                    // Restore site-specific stock
+                    var siteStock = await _context.SiteToolStocks
+                        .FirstOrDefaultAsync(s => s.SiteId == log.SiteId && s.StoreToolId == logItem.StoreToolId);
+
+                    if (siteStock != null)
                     {
-                        tool.CurrentQuantity += itemDto.QuantityIn;
+                        siteStock.AvailableQuantity += itemDto.QuantityIn;
                     }
                 }
             }
 
             await _context.SaveChangesAsync();
-
             return Ok(new { log.Id });
         }
     }
