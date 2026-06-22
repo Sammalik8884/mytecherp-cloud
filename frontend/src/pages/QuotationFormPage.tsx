@@ -573,7 +573,8 @@ export const QuotationFormPage = () => {
                  itemType: "Local",
                  serviceName: i.serviceName || undefined,
                  manualCommissionPct: i.manualCommissionPct,
-                 overridePrice: i.unitPrice,
+                 overridePrice: i.originalPrice,
+                 finalPriceOverride: i.isManualFinalPrice ? i.unitPrice : undefined,
                  unit: resolveUnit(i),
                  unitQty: i.unitQty || 0
              })));
