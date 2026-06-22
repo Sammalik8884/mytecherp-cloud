@@ -255,6 +255,21 @@ using (var scope = app.Services.CreateScope())
         
         if (!string.IsNullOrEmpty(dbConnection) && dbConnection != "CONFIGURE_IN_AZURE_APP_SERVICE")
         {
+            // Add SiteId to AspNetUsers for isolation BEFORE any EF operations
+            try
+            {
+                var alterUsersSql = @"
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = N'SiteId' AND Object_ID = Object_ID(N'AspNetUsers'))
+                    BEGIN
+                        ALTER TABLE AspNetUsers ADD SiteId INT NULL;
+                        ALTER TABLE AspNetUsers ADD CONSTRAINT FK_AspNetUsers_Sites_SiteId FOREIGN KEY (SiteId) REFERENCES Sites(Id);
+                    END";
+                await context.Database.ExecuteSqlRawAsync(alterUsersSql);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SiteId alter table warning: {ex.Message}");
+            }
             try
             {
                 if (context.Database.GetPendingMigrations().Any())
@@ -428,23 +443,6 @@ using (var scope = app.Services.CreateScope())
                                    MytechERP.domain.Enums.PlanFeature.OfflineSync;
             }
             
-            
-            // Add SiteId to AspNetUsers for isolation
-            try
-            {
-                var alterUsersSql = @"
-                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = N'SiteId' AND Object_ID = Object_ID(N'AspNetUsers'))
-                    BEGIN
-                        ALTER TABLE AspNetUsers ADD SiteId INT NULL;
-                        ALTER TABLE AspNetUsers ADD CONSTRAINT FK_AspNetUsers_Sites_SiteId FOREIGN KEY (SiteId) REFERENCES Sites(Id);
-                    END";
-                await context.Database.ExecuteSqlRawAsync(alterUsersSql);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"SiteId alter table warning: {ex.Message}");
-            }
-
             await context.SaveChangesAsync();
         }
         else
