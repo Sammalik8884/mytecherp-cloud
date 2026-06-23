@@ -269,7 +269,12 @@ export const AddExpensePage = () => {
             if (isEditMode && id) {
                 await expenseApi.update(Number(id), payload);
                 toast.success("Expense updated successfully");
-                navigate("/expenses");
+                
+                if (isAmountAbove) {
+                    setExcessSaved(true);
+                } else {
+                    navigate("/expenses");
+                }
             } else {
                 await expenseApi.create(payload);
                 toast.success("Expense uploaded successfully");

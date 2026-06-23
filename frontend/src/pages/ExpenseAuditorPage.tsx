@@ -142,6 +142,24 @@ export const ExpenseAuditorPage = () => {
             let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id).map(e => ({...e}));
             let totalExpenseAmount = connectedExpenses.reduce((sum, e) => sum + e.totalExpenseAmount, 0);
 
+            // Add unallocated excess to this ARF's total (any excess that hasn't been claimed by an Excess ARF yet)
+            connectedExpenses.forEach(e => {
+                let unallocatedExcess = 0;
+                if (remainingExcessByExpense[e.id] !== undefined) {
+                    unallocatedExcess = remainingExcessByExpense[e.id];
+                } else {
+                    unallocatedExcess = e.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
+                }
+                
+                if (unallocatedExcess > 0) {
+                    e.totalExpenseAmount += unallocatedExcess; // Reflect full amount in the UI
+                    totalExpenseAmount += unallocatedExcess;
+                    
+                    // Deduct it so we don't double-count
+                    remainingExcessByExpense[e.id] = 0;
+                }
+            });
+
             // Link excess ARFs to their corresponding expenses
             const expenseIdMatch = arf.purposeOfAdvance?.match(/\[ExpenseId:(\d+)\]/);
             if (expenseIdMatch) {
