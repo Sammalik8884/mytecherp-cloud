@@ -550,7 +550,7 @@ export const ExpenseAuditorPage = () => {
                                                         <p className="font-semibold text-sm mb-1 flex items-center">
                                                             {isExpanded ? <ChevronUp className="h-4 w-4 mr-2 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />}
                                                             Expense ID: {expense.id}
-                                                            {(expense as any).isExcessConnection && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Excess Portion</span>}
+                                                            {((expense as any).isExcessConnection || expense.items?.some((i: any) => i.isExcess)) && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Contains Excess Items</span>}
                                                         </p>
                                                         <p className="text-xs text-muted-foreground ml-6">
                                                             Created by: {expense.createdByEmail} • 
