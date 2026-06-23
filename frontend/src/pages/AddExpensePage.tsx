@@ -235,11 +235,27 @@ export const AddExpensePage = () => {
         try {
             setSubmitting(true);
             
-            // Mark items as excess if their index is in excessItemIndices
-            const itemsToSubmit = validRows.map((r, i) => ({
-                ...r,
-                isExcessItem: excessItemIndices.includes(i)
-            }));
+            let currentExcessToSplit = excessAmount;
+            const itemsToSubmit: any[] = [];
+            
+            validRows.forEach((r, i) => {
+                if (excessItemIndices.includes(i)) {
+                    const amount = Number(r.amount) || 0;
+                    if (currentExcessToSplit >= amount) {
+                        itemsToSubmit.push({ ...r, isExcessItem: true });
+                        currentExcessToSplit -= amount;
+                    } else if (currentExcessToSplit > 0) {
+                        // Split the item into excess and normal portions
+                        itemsToSubmit.push({ ...r, amount: currentExcessToSplit, isExcessItem: true });
+                        itemsToSubmit.push({ ...r, amount: amount - currentExcessToSplit, isExcessItem: false });
+                        currentExcessToSplit = 0;
+                    } else {
+                        itemsToSubmit.push({ ...r, isExcessItem: false });
+                    }
+                } else {
+                    itemsToSubmit.push({ ...r, isExcessItem: false });
+                }
+            });
 
             const payload: CreateExpenseDto = {
                 siteId: locationType === 'site' ? Number(selectedSiteId) : null,
