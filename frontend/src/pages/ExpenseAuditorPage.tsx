@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
@@ -17,6 +17,7 @@ interface AuditRecord {
     variance: number;
     status: "Balanced" | "Unaccounted Funds" | "Overspent";
     resolution: string;
+    childRecords?: AuditRecord[];
 }
 
 export const ExpenseAuditorPage = () => {
@@ -203,15 +204,46 @@ export const ExpenseAuditorPage = () => {
                 expenses: connectedExpenses,
                 variance,
                 status,
-                resolution
+                resolution,
+                childRecords: []
             };
         });
 
-        return records;
+        // Group excess ARFs under their original ARFs
+        const topLevelRecords: AuditRecord[] = [];
+        const recordsById = new Map<number, AuditRecord>();
+
+        records.forEach(r => {
+            recordsById.set(r.arf.id, r);
+        });
+
+        records.forEach(r => {
+            const originalArfMatch = r.arf.purposeOfAdvance?.match(/\[OriginalArfId:(\d+)\]/);
+            if (originalArfMatch) {
+                const originalArfId = Number(originalArfMatch[1]);
+                const parentRecord = recordsById.get(originalArfId);
+                if (parentRecord) {
+                    parentRecord.childRecords!.push(r);
+                } else {
+                    topLevelRecords.push(r);
+                }
+            } else {
+                topLevelRecords.push(r);
+            }
+        });
+
+        return topLevelRecords;
     }, [allArfs, allExpenses, section, selectedEntity, dateRange]);
 
-    const overallTotalReleased = auditReport.reduce((sum, rec) => sum + (rec.arf.accountsReleasedAmount || rec.arf.advanceRequested || 0), 0);
-    const overallTotalExpense = auditReport.reduce((sum, rec) => sum + rec.expenses.reduce((s, e) => s + e.totalExpenseAmount, 0), 0);
+    const sumReleased = (records: AuditRecord[]): number => {
+        return records.reduce((sum, rec) => sum + (rec.arf.accountsReleasedAmount || rec.arf.advanceRequested || 0) + sumReleased(rec.childRecords || []), 0);
+    };
+    const sumExpense = (records: AuditRecord[]): number => {
+        return records.reduce((sum, rec) => sum + rec.expenses.reduce((s, e) => s + e.totalExpenseAmount, 0) + sumExpense(rec.childRecords || []), 0);
+    };
+
+    const overallTotalReleased = sumReleased(auditReport);
+    const overallTotalExpense = sumExpense(auditReport);
     const overallVariance = overallTotalReleased - overallTotalExpense;
 
     const generatePDF = () => {
@@ -383,45 +415,56 @@ export const ExpenseAuditorPage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/50">
-                            {auditReport.map((rec, idx) => (
-                                <tr 
-                                    key={idx} 
-                                    className="hover:bg-muted/20 transition-colors group cursor-pointer"
-                                    onClick={() => setSelectedRecord(rec)}
-                                >
-                                    <td className="px-6 py-4">
-                                        <div className="font-medium text-foreground">{rec.arf.arfNumber || "Pending Ref"}</div>
-                                        <div className="text-xs text-muted-foreground mt-1">
-                                            {rec.arf.siteName || rec.arf.customSiteName || rec.arf.officeName || "N/A"}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right font-medium text-blue-600">
-                                        {(rec.arf.accountsReleasedAmount || rec.arf.advanceRequested || 0).toLocaleString()}
-                                    </td>
-                                    <td className="px-6 py-4 text-right font-medium text-purple-600">
-                                        {rec.expenses.reduce((s, e) => s + e.totalExpenseAmount, 0).toLocaleString()}
-                                    </td>
-                                    <td className={`px-6 py-4 text-right font-bold ${rec.variance > 0 ? "text-amber-500" : rec.variance < 0 ? "text-rose-500" : "text-emerald-500"}`}>
-                                        {rec.variance > 0 ? "+" : ""}{rec.variance.toLocaleString()}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-                                            rec.status === "Balanced" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
-                                            rec.status === "Unaccounted Funds" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" :
-                                            "bg-rose-500/10 text-rose-600 border-rose-500/20"
-                                        }`}>
-                                            {rec.status === "Balanced" ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
-                                            {rec.status}
-                                        </div>
-                                        {rec.status !== "Balanced" && (
-                                            <div className="text-xs text-muted-foreground mt-2 flex items-start gap-1">
-                                                <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                                                <span className="max-w-[200px] leading-snug">{rec.resolution}</span>
-                                            </div>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
+                            {auditReport.map((rec, idx) => {
+                                const renderRecord = (record: AuditRecord, isChild: boolean = false, index: number) => {
+                                    return (
+                                        <Fragment key={`${record.arf.id}-${index}`}>
+                                            <tr 
+                                                className={`hover:bg-muted/20 transition-colors group cursor-pointer ${isChild ? 'bg-muted/10' : ''}`}
+                                                onClick={() => setSelectedRecord(record)}
+                                            >
+                                                <td className={`px-6 py-4 ${isChild ? 'pl-12' : ''}`}>
+                                                    <div className="font-medium text-foreground flex items-center gap-2">
+                                                        {isChild && <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />}
+                                                        {record.arf.arfNumber || "Pending Ref"}
+                                                        {isChild && <span className="text-[10px] uppercase tracking-wider font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Excess</span>}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground mt-1">
+                                                        {record.arf.siteName || record.arf.customSiteName || record.arf.officeName || "N/A"}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-right font-medium text-blue-600">
+                                                    {(record.arf.accountsReleasedAmount || record.arf.advanceRequested || 0).toLocaleString()}
+                                                </td>
+                                                <td className="px-6 py-4 text-right font-medium text-purple-600">
+                                                    {record.expenses.reduce((s, e) => s + e.totalExpenseAmount, 0).toLocaleString()}
+                                                </td>
+                                                <td className={`px-6 py-4 text-right font-bold ${record.variance > 0 ? "text-amber-500" : record.variance < 0 ? "text-rose-500" : "text-emerald-500"}`}>
+                                                    {record.variance > 0 ? "+" : ""}{record.variance.toLocaleString()}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                                                        record.status === "Balanced" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                                                        record.status === "Unaccounted Funds" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" :
+                                                        "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                                                    }`}>
+                                                        {record.status === "Balanced" ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                                                        {record.status}
+                                                    </div>
+                                                    {record.status !== "Balanced" && !isChild && (
+                                                        <div className="text-xs text-muted-foreground mt-2 flex items-start gap-1">
+                                                            <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                                                            <span className="max-w-[200px] leading-snug">{record.resolution}</span>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                            {record.childRecords?.map((child, cIdx) => renderRecord(child, true, cIdx))}
+                                        </Fragment>
+                                    );
+                                };
+                                return renderRecord(rec, false, idx);
+                            })}
                             {auditReport.length === 0 && (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
