@@ -39,7 +39,7 @@ export const AddExpensePage = () => {
     // State for the rows
     const [rows, setRows] = useState<ExpenseItemDto[]>(
         Array.from({ length: 5 }, () => ({
-            expenseDate: "",
+            expenseDate: dayjs().format("YYYY-MM-DD"),
             employeeName: user?.fullName || "",
             employeeDesignation: user?.designation || "",
             expenseType: "",
@@ -104,7 +104,7 @@ export const AddExpensePage = () => {
                     }));
                     if (mappedRows.length < 5) {
                         const emptyRows = Array.from({ length: 5 - mappedRows.length }, () => ({
-                            expenseDate: "", employeeName: "", employeeDesignation: "", expenseType: "", descriptionItems: "", amount: 0, remarks: "", fileUrl: ""
+                            expenseDate: dayjs().format("YYYY-MM-DD"), employeeName: "", employeeDesignation: "", expenseType: "", descriptionItems: "", amount: 0, remarks: "", fileUrl: ""
                         }));
                         setRows([...mappedRows, ...emptyRows]);
                     } else {
@@ -177,7 +177,7 @@ export const AddExpensePage = () => {
 
     const addRow = () => {
         setRows([...rows, {
-            expenseDate: "",
+            expenseDate: dayjs().format("YYYY-MM-DD"),
             employeeName: user?.fullName || "",
             employeeDesignation: user?.designation || "",
             expenseType: "",
@@ -218,9 +218,10 @@ export const AddExpensePage = () => {
         if (!selectedArfId) return toast.error("Please select an ARF.");
         
         // Filter out completely empty rows
-        const validRows = rows.filter((r: any) => r.expenseDate || r.descriptionItems || r.amount > 0);
+        const validRows = rows.filter((r: any) => r.descriptionItems || r.amount > 0);
         
         if (validRows.length === 0) return toast.error("Please enter at least one expense item.");
+        if (validRows.some((r: any) => !r.expenseDate)) return toast.error("Expense Date is required for all items.");
 
         if (isAmountAbove && !showExcessModal) {
             setShowExcessModal(true);
