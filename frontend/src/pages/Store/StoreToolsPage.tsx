@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Search, AlertCircle, Package, Edit, Trash2, X } from "lucide-react";
+import { Plus, Search, AlertCircle, Package, Edit, Trash2 } from "lucide-react";
 import { apiClient } from "../../services/apiClient";
 
 interface StoreTool {
