@@ -32,8 +32,9 @@ export function StoreInventoryPage() {
     const [globalTools, setGlobalTools] = useState<any[]>([]);
     const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
     const [selectedGlobalTool, setSelectedGlobalTool] = useState<any>(null);
-    const [addQuantity, setAddQuantity] = useState(1);
+    const [addQuantity, setAddQuantity] = useState<number>(1);
     const [isAddingStock, setIsAddingStock] = useState(false);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
     useEffect(() => { fetchSites(); }, []);
 
@@ -130,14 +131,22 @@ export function StoreInventoryPage() {
             setSavingAll(false);
         }
     };
+    
+    const handleDeleteClick = (id: number) => {
+        setDeleteConfirmId(id);
+    };
 
-    const handleDeleteRow = async (id: number) => {
-        if (!confirm("Are you sure you want to remove this tool from the site inventory?")) return;
+    const confirmDelete = async () => {
+        if (!deleteConfirmId) return;
         try {
-            await apiClient.delete(`/SiteToolStocks/${id}`);
-            setRows(prev => prev.filter(r => r.id !== id));
+            await apiClient.delete(`/SiteToolStocks/${deleteConfirmId}`);
+            setRows(prev => prev.filter(r => r.id !== deleteConfirmId));
+            setSavedAllMsg("Tool removed from site inventory.");
+            setTimeout(() => setSavedAllMsg(""), 3000);
         } catch (e: any) {
             alert(`Error deleting row: ${e.response?.data || e.message}`);
+        } finally {
+            setDeleteConfirmId(null);
         }
     };
 
@@ -320,7 +329,7 @@ export function StoreInventoryPage() {
                                                     </button>
                                                 ) : null}
                                                 <button
-                                                    onClick={() => handleDeleteRow(row.id)}
+                                                    onClick={() => handleDeleteClick(row.id)}
                                                     className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                     title="Remove from Site Inventory"
                                                 >
@@ -443,6 +452,33 @@ export function StoreInventoryPage() {
                                     </button>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmId && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                        <div className="flex items-center gap-3 mb-4 text-red-600">
+                            <Warehouse className="w-6 h-6" />
+                            <h3 className="text-lg font-bold text-gray-900">Remove from Inventory</h3>
+                        </div>
+                        <p className="text-gray-600 mb-6">Are you sure you want to remove this tool from the site inventory? This action cannot be undone.</p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setDeleteConfirmId(null)}
+                                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                                Remove Tool
+                            </button>
                         </div>
                     </div>
                 </div>

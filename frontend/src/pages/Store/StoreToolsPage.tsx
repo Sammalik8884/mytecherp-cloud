@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Search, AlertCircle, Package, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, AlertCircle, Package, Edit, Trash2, CheckCircle } from "lucide-react";
 import { apiClient } from "../../services/apiClient";
 
 interface StoreTool {
@@ -18,6 +18,8 @@ export function StoreToolsPage() {
     
     const [newTool, setNewTool] = useState({ description: "", totalQuantity: 1, siteId: "" });
     const [editingToolId, setEditingToolId] = useState<number | null>(null);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+    const [modalMessage, setModalMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     useEffect(() => {
         fetchTools();
@@ -83,7 +85,7 @@ export function StoreToolsPage() {
                     setNewTool({ description: "", totalQuantity: 1, siteId: "" });
                     setEditingToolId(null);
                     fetchTools();
-                    alert("Tool updated successfully!");
+                    setModalMessage({ type: 'success', text: "Tool updated successfully!" });
                 }
             } else {
                 const res = await apiClient.post('/StoreTools', payload);
@@ -91,12 +93,12 @@ export function StoreToolsPage() {
                     setShowAddForm(false);
                     setNewTool({ description: "", totalQuantity: 1, siteId: "" });
                     fetchTools();
-                    alert("Tool added successfully! If you selected a site, it was seeded into that site's inventory with quantity 0.");
+                    setModalMessage({ type: 'success', text: "Tool added successfully! If you selected a site, it was seeded into that site's inventory with quantity 0." });
                 }
             }
         } catch (error: any) {
             console.error(error);
-            alert(`Error saving tool: ${error.response?.data || error.message}`);
+            setModalMessage({ type: 'error', text: `Error saving tool: ${error.response?.data || error.message}` });
         }
     };
 
@@ -110,14 +112,21 @@ export function StoreToolsPage() {
         setShowAddForm(true);
     };
 
-    const handleDeleteClick = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this tool from the catalog?")) return;
+    const handleDeleteClick = (id: number) => {
+        setDeleteConfirmId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirmId) return;
         try {
-            await apiClient.delete(`/StoreTools/${id}`);
+            await apiClient.delete(`/StoreTools/${deleteConfirmId}`);
             fetchTools();
+            setModalMessage({ type: 'success', text: "Tool deleted successfully!" });
         } catch (error: any) {
             console.error(error);
-            alert(`Error deleting tool: ${error.response?.data || error.message}`);
+            setModalMessage({ type: 'error', text: `Error deleting tool: ${error.response?.data || error.message}` });
+        } finally {
+            setDeleteConfirmId(null);
         }
     };
 
@@ -268,6 +277,51 @@ export function StoreToolsPage() {
                     </table>
                 )}
             </div>
+
+            {/* Custom Modals */}
+            {deleteConfirmId && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                        <div className="flex items-center gap-3 mb-4 text-red-600">
+                            <AlertCircle className="w-6 h-6" />
+                            <h3 className="text-lg font-bold text-gray-900">Confirm Deletion</h3>
+                        </div>
+                        <p className="text-gray-600 mb-6">Are you sure you want to delete this tool from the global catalog? This action cannot be undone.</p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setDeleteConfirmId(null)}
+                                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                                Delete Tool
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {modalMessage && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
+                        <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 ${modalMessage.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                            {modalMessage.type === 'success' ? <CheckCircle className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">{modalMessage.type === 'success' ? 'Success' : 'Error'}</h3>
+                        <p className="text-gray-600 mb-6">{modalMessage.text}</p>
+                        <button
+                            onClick={() => setModalMessage(null)}
+                            className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
