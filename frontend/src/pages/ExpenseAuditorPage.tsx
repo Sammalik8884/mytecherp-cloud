@@ -94,6 +94,33 @@ export const ExpenseAuditorPage = () => {
             filteredArfs = filteredArfs.filter(f => new Date(f.createdAt) <= endDate);
         }
 
+        // Pre-calculate excess allocation sequentially
+        const excessAllocations: Record<number, Record<number, number>> = {}; // expenseId -> arfId -> allocatedAmount
+        const remainingExcessByExpense: Record<number, number> = {};
+        const sortedArfs = [...allArfs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+        sortedArfs.forEach(arf => {
+            const expenseIdMatch = arf.purposeOfAdvance?.match(/\[ExpenseId:(\d+)\]/);
+            if (expenseIdMatch) {
+                const excessExpenseId = Number(expenseIdMatch[1]);
+                
+                if (remainingExcessByExpense[excessExpenseId] === undefined) {
+                    const excessExpense = allExpenses.find(e => e.id === excessExpenseId);
+                    remainingExcessByExpense[excessExpenseId] = excessExpense?.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
+                }
+
+                const availableExcess = remainingExcessByExpense[excessExpenseId];
+                const releasedAmount = arf.accountsReleasedAmount || arf.advanceRequested || 0;
+                const allocation = Math.min(releasedAmount, availableExcess);
+                
+                if (allocation > 0) {
+                    if (!excessAllocations[excessExpenseId]) excessAllocations[excessExpenseId] = {};
+                    excessAllocations[excessExpenseId][arf.id] = allocation;
+                    remainingExcessByExpense[excessExpenseId] -= allocation;
+                }
+            }
+        });
+
         // 2. Map ARFs to Expenses
         const records: AuditRecord[] = filteredArfs.map(arf => {
             let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id).map(e => ({...e}));
@@ -105,16 +132,19 @@ export const ExpenseAuditorPage = () => {
                 const excessExpenseId = Number(expenseIdMatch[1]);
                 const excessExpense = allExpenses.find(e => e.id === excessExpenseId);
                 if (excessExpense) {
-                    const excessAmount = excessExpense.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
-                    totalExpenseAmount += excessAmount;
+                    // Use the pre-allocated amount for this specific ARF, instead of the full excess amount
+                    const allocatedAmount = excessAllocations[excessExpenseId]?.[arf.id] || 0;
+                    totalExpenseAmount += allocatedAmount;
                     
-                    const excessExpenseClone = {
-                        ...excessExpense,
-                        totalExpenseAmount: excessAmount,
-                        isExcessConnection: true
-                    } as any;
-                    
-                    connectedExpenses = [...connectedExpenses, excessExpenseClone];
+                    if (allocatedAmount > 0) {
+                        const excessExpenseClone = {
+                            ...excessExpense,
+                            totalExpenseAmount: allocatedAmount,
+                            isExcessConnection: true
+                        } as any;
+                        
+                        connectedExpenses = [...connectedExpenses, excessExpenseClone];
+                    }
                 }
             }
             
