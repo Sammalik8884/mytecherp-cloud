@@ -559,9 +559,21 @@ export const AddExpensePage = () => {
                                             Total Entered: Rs {totalAmount.toLocaleString()}
                                         </span>
                                         {isAmountAbove && (
-                                            <span className="text-red-600 font-bold block mt-0.5">
-                                                Exceeds by: Rs {excessAmount.toLocaleString()}
-                                            </span>
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-red-600 font-bold mt-0.5">
+                                                    Exceeds by: Rs {excessAmount.toLocaleString()}
+                                                </span>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => {
+                                                        const siteName = sites.find(s => s.id === selectedSiteId)?.name || '';
+                                                        navigate(`/amount-requests?action=generateExcess&amount=${excessAmount}&expenseId=${id || ''}&siteId=${locationType === 'site' ? selectedSiteId : ''}&officeId=${locationType === 'office' ? selectedOfficeId : ''}&siteName=${encodeURIComponent(siteName)}&managedFromArf=${selectedArf?.arfNumber || ''}`);
+                                                    }}
+                                                    className="text-xs text-emerald-600 hover:text-emerald-700 underline mt-1 font-medium bg-emerald-50 px-2 py-0.5 rounded"
+                                                >
+                                                    Generate ARF for Excess
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
