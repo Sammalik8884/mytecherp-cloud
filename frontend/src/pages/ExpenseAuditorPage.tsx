@@ -6,7 +6,7 @@ import { officeApi } from "../api/officeApi";
 import { siteService } from "../services/siteService";
 import { authService } from "../services/authService";
 import { SearchableSelect } from "../components/common/SearchableSelect";
-import { Download, Calculator, AlertTriangle, CheckCircle2, Info, Wallet, X } from "lucide-react";
+import { Download, Calculator, AlertTriangle, CheckCircle2, Info, Wallet, X, ChevronDown, ChevronUp } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "react-hot-toast";
@@ -30,6 +30,13 @@ export const ExpenseAuditorPage = () => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [selectedRecord, setSelectedRecord] = useState<AuditRecord | null>(null);
+    const [expandedExpenseIds, setExpandedExpenseIds] = useState<number[]>([]);
+
+    const toggleExpenseDetails = (expenseId: number) => {
+        setExpandedExpenseIds(prev => 
+            prev.includes(expenseId) ? prev.filter(id => id !== expenseId) : [...prev, expenseId]
+        );
+    };
 
     // Filters
     const [section, setSection] = useState<"offices" | "sites" | "employees">("offices");
@@ -461,23 +468,52 @@ export const ExpenseAuditorPage = () => {
                                 
                                 {selectedRecord.expenses.length > 0 ? (
                                     <div className="grid grid-cols-1 gap-4">
-                                        {selectedRecord.expenses.map((expense, idx) => (
-                                            <div key={idx} className="bg-muted/10 p-4 rounded-xl border border-border/50 flex flex-col md:flex-row justify-between gap-4">
-                                                <div>
-                                                    <p className="font-semibold text-sm mb-1">
-                                                        Expense ID: {expense.id}
-                                                        {(expense as any).isExcessConnection && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Excess Portion</span>}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">Created by: {expense.createdByEmail}</p>
+                                        {selectedRecord.expenses.map((expense, idx) => {
+                                            const isExpanded = expandedExpenseIds.includes(expense.id);
+                                            return (
+                                            <div key={idx} className="bg-muted/10 rounded-xl border border-border/50 overflow-hidden">
+                                                <div 
+                                                    className="p-4 flex flex-col md:flex-row justify-between gap-4 cursor-pointer hover:bg-muted/20 transition-colors"
+                                                    onClick={() => toggleExpenseDetails(expense.id)}
+                                                >
+                                                    <div>
+                                                        <p className="font-semibold text-sm mb-1 flex items-center">
+                                                            {isExpanded ? <ChevronUp className="h-4 w-4 mr-2 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />}
+                                                            Expense ID: {expense.id}
+                                                            {(expense as any).isExcessConnection && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Excess Portion</span>}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground ml-6">Created by: {expense.createdByEmail}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-xs text-muted-foreground mb-1">Total Expense</p>
+                                                        <p className="font-bold text-foreground text-base">
+                                                            {expense.totalExpenseAmount.toLocaleString()}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-xs text-muted-foreground mb-1">Total Expense</p>
-                                                    <p className="font-bold text-foreground text-base">
-                                                        {expense.totalExpenseAmount.toLocaleString()}
-                                                    </p>
-                                                </div>
+                                                {isExpanded && expense.items && expense.items.length > 0 && (
+                                                    <div className="border-t border-border/50 bg-background/50 p-4">
+                                                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Expense Items</h4>
+                                                        <div className="space-y-3">
+                                                            {expense.items.map((item, itemIdx) => (
+                                                                <div key={itemIdx} className="flex justify-between items-start text-sm border-b border-border/50 pb-3 last:border-0 last:pb-0">
+                                                                    <div className="flex-1 pr-4">
+                                                                        <p className="font-medium">{item.expenseType || "N/A"}</p>
+                                                                        <p className="text-xs text-muted-foreground mt-0.5">{item.descriptionItems}</p>
+                                                                        {item.remarks && <p className="text-xs text-muted-foreground mt-1 italic">Note: {item.remarks}</p>}
+                                                                    </div>
+                                                                    <div className="text-right flex flex-col items-end">
+                                                                        <p className="font-semibold">Rs {item.amount.toLocaleString()}</p>
+                                                                        {item.isExcessItem && <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full mt-1 inline-block">Excess Item</span>}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <div className="text-center py-8 bg-muted/10 rounded-xl border border-border/50 border-dashed">
