@@ -552,7 +552,10 @@ export const ExpenseAuditorPage = () => {
                                                             Expense ID: {expense.id}
                                                             {(expense as any).isExcessConnection && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Excess Portion</span>}
                                                         </p>
-                                                        <p className="text-xs text-muted-foreground ml-6">Created by: {expense.createdByEmail}</p>
+                                                        <p className="text-xs text-muted-foreground ml-6">
+                                                            Created by: {expense.createdByEmail} • 
+                                                            <span className="ml-1 font-medium">{expense.siteName || expense.officeName || "N/A"}</span>
+                                                        </p>
                                                     </div>
                                                     <div className="text-right">
                                                         <p className="text-xs text-muted-foreground mb-1">Total Expense</p>
