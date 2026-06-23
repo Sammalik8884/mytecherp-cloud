@@ -103,6 +103,10 @@ namespace MytechERP.Infrastructure.Services.Procurement
             {
                 query = query.Where(p => p.SupervisorEmail == userId);
             }
+            else if (role == "Procurement Executive")
+            {
+                query = query.Where(p => p.AssignedExecutiveEmail == userId);
+            }
             // Add other role-based filters if necessary
 
             var requests = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
