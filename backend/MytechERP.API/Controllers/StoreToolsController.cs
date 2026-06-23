@@ -132,9 +132,17 @@ namespace MytechERP.API.Controllers
                 return NotFound();
 
             // Check if it's used in site inventories (with non-zero quantity)
-            var hasStock = await _context.SiteToolStocks.AnyAsync(s => s.StoreToolId == id && s.AvailableQuantity > 0);
-            if (hasStock)
-                return Conflict("Cannot delete this tool because it is currently assigned to one or more site inventories with a non-zero quantity.");
+            var activeSites = await _context.SiteToolStocks
+                .Include(s => s.Site)
+                .Where(s => s.StoreToolId == id && s.AvailableQuantity > 0)
+                .Select(s => s.Site.Name)
+                .ToListAsync();
+
+            if (activeSites.Any())
+            {
+                var siteNames = string.Join(", ", activeSites);
+                return Conflict($"Cannot delete this tool because it is currently assigned to the following site inventory with a non-zero quantity: {siteNames}");
+            }
 
             // Optionally, we could just soft delete. For now we will soft delete if we have an IsDeleted flag, otherwise remove
             if (tool.GetType().GetProperty("IsDeleted") != null)
