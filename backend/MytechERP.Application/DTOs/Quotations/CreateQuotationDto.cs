@@ -35,6 +35,10 @@ namespace MytechERP.Application.DTOs.Quotations
         public decimal ImportationPct { get; set; } = 13.75m;
         public decimal TransportationPct { get; set; } = 2m;
         public decimal ProfitPct { get; set; } = 15m;
+        
+        public decimal LocalTransportationPct { get; set; } = 2m;
+        public decimal LocalProfitPct { get; set; } = 15m;
+        
         public string ProjectCode { get; set; } = "FPS";
         public string? QuoteHeadline { get; set; }
 

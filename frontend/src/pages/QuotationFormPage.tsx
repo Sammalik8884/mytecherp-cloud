@@ -85,6 +85,8 @@ export const QuotationFormPage = () => {
         importationPct: 13.75,
         transportationPct: 2,
         profitPct: 15,
+        localTransportationPct: 2,
+        localProfitPct: 15,
         projectCode: "FPS",
         quoteHeadline: "",
         termsAndConditionsJson: ""
@@ -231,6 +233,16 @@ export const QuotationFormPage = () => {
                         } catch {}
                     }
 
+                    const firstLocal = quote.items.find(i => i.itemType === "Local" && i.calculationBreakdown);
+                    let savedLocalTransPct = 2, savedLocalProfitPct = 15;
+                    if (firstLocal?.calculationBreakdown) {
+                        try {
+                            const bd = JSON.parse(firstLocal.calculationBreakdown);
+                            if (bd.transportationPct) savedLocalTransPct = bd.transportationPct;
+                            if (bd.profitPct) savedLocalProfitPct = bd.profitPct;
+                        } catch {}
+                    }
+
                     setFormData(prev => ({
                         ...prev,
                         customerId: quote.customerId,
@@ -251,6 +263,8 @@ export const QuotationFormPage = () => {
                         importationPct: savedImportPct,
                         transportationPct: savedTransPct,
                         profitPct: savedProfitPct,
+                        localTransportationPct: savedLocalTransPct,
+                        localProfitPct: savedLocalProfitPct,
                     }));
 
                     setShowImported(quote.items.some(i => i.itemType === "Imported"));
@@ -372,7 +386,7 @@ export const QuotationFormPage = () => {
         if (localItems.length > 0) {
             setLocalItems(prev => prev.map(item => calculateLocalItem(item, formData)));
         }
-    }, [formData.transportationPct, formData.profitPct]);
+    }, [formData.localTransportationPct, formData.localProfitPct]);
 
     /* ─── Calculation pipeline (matches Excel & Backend exactly) ─── */
     // basePrice param allows edit-mode to force a saved original price instead of reading from product catalog
@@ -690,8 +704,8 @@ export const QuotationFormPage = () => {
         const basePrice = forcedBasePrice ?? item.originalPrice ?? (item.product?.price ?? 0);
         if (!basePrice || basePrice === 0) return item;
 
-        const transCharge = basePrice * (config.transportationPct! / 100);
-        const profCharge = basePrice * (config.profitPct! / 100);
+        const transCharge = basePrice * (config.localTransportationPct! / 100);
+        const profCharge = basePrice * (config.localProfitPct! / 100);
         const finalPrice = basePrice + transCharge + profCharge;
 
         return {
@@ -701,9 +715,9 @@ export const QuotationFormPage = () => {
             lineTotal: finalPrice * item.quantity,
             calcBreakdown: JSON.stringify({
                 originalPrice: basePrice,
-                transportationPct: config.transportationPct,
+                transportationPct: config.localTransportationPct,
                 transportationCharge: transCharge,
-                profitPct: config.profitPct,
+                profitPct: config.localProfitPct,
                 profitCharge: profCharge,
                 finalPrice: finalPrice
             })
@@ -1142,8 +1156,8 @@ export const QuotationFormPage = () => {
                          </div>
                          {/* Config bar for Local */}
                          <div className="flex gap-3 md:gap-4 mb-4 text-xs bg-primary/5 border border-border p-3 rounded-xl ml-3 flex-wrap">
-                             <div className="flex items-center gap-1 text-muted-foreground">Transport %: <input type="number" step="any" className={tinyInputCls} value={formData.transportationPct} onChange={e=>setFormData({...formData, transportationPct: Number(e.target.value)})} /></div>
-                             <div className="flex items-center gap-1 text-muted-foreground">Profit %: <input type="number" step="any" className={tinyInputCls} value={formData.profitPct} onChange={e=>setFormData({...formData, profitPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Transport %: <input type="number" step="any" className={tinyInputCls} value={formData.localTransportationPct} onChange={e=>setFormData({...formData, localTransportationPct: Number(e.target.value)})} /></div>
+                             <div className="flex items-center gap-1 text-muted-foreground">Profit %: <input type="number" step="any" className={tinyInputCls} value={formData.localProfitPct} onChange={e=>setFormData({...formData, localProfitPct: Number(e.target.value)})} /></div>
                          </div>
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">

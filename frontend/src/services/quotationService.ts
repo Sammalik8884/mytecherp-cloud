@@ -80,6 +80,8 @@ export interface CreateQuotationDto {
     importationPct?: number;
     transportationPct?: number;
     profitPct?: number;
+    localTransportationPct?: number;
+    localProfitPct?: number;
     projectCode?: string;
     quoteHeadline?: string;
     termsAndConditionsJson?: string;
