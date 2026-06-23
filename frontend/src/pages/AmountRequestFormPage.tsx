@@ -78,7 +78,7 @@ const AmountRequestFormPage = () => {
             
             if (expenseId) {
                 setHiddenExpenseId(expenseId);
-                setPurposeOfAdvance(`This expense has been done at ${siteName} with amount Rs ${amount} [ExpenseId:${expenseId}]`);
+                setPurposeOfAdvance(`This expense has been done at ${siteName} with amount Rs ${amount} [ExpenseId:${expenseId}]${managedFromArf ? ` [From ARF:${managedFromArf}]` : ""}`);
             } else if (managedFromArf) {
                 setPurposeOfAdvance(`Excess amount of Rs ${amount} from ${managedFromArf} for ${siteName}`);
             }
