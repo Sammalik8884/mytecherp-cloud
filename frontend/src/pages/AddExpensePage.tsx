@@ -568,7 +568,7 @@ export const AddExpensePage = () => {
                                                     type="button" 
                                                     onClick={() => {
                                                         const siteName = sites.find(s => s.id === selectedSiteId)?.name || '';
-                                                        navigate(`/amount-requests?action=generateExcess&amount=${excessAmount}&expenseId=${id || ''}&siteId=${locationType === 'site' ? selectedSiteId : ''}&officeId=${locationType === 'office' ? selectedOfficeId : ''}&siteName=${encodeURIComponent(siteName)}&managedFromArf=${selectedArf?.arfNumber || ''}`);
+                                                        navigate(`/amount-request?action=generateExcess&amount=${excessAmount}&expenseId=${id || ''}&siteId=${locationType === 'site' ? selectedSiteId : ''}&officeId=${locationType === 'office' ? selectedOfficeId : ''}&siteName=${encodeURIComponent(siteName)}&managedFromArf=${selectedArf?.arfNumber || ''}`);
                                                     }}
                                                     className="text-xs text-emerald-600 hover:text-emerald-700 underline mt-1 font-medium bg-emerald-50 px-2 py-0.5 rounded"
                                                 >
