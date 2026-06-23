@@ -222,6 +222,8 @@ export const AddExpensePage = () => {
         
         if (validRows.length === 0) return toast.error("Please enter at least one expense item.");
         if (validRows.some((r: any) => !r.expenseDate)) return toast.error("Expense Date is required for all items.");
+        if (validRows.some((r: any) => !r.expenseType?.trim())) return toast.error("Expense Type is required for all items.");
+        if (validRows.some((r: any) => !r.descriptionItems?.trim())) return toast.error("Description is required for all items.");
 
         if (isAmountAbove && !showExcessModal) {
             setShowExcessModal(true);

@@ -507,8 +507,12 @@ export const ExpenseAuditorPage = () => {
                                                             {expense.items.map((item, itemIdx) => (
                                                                 <div key={itemIdx} className="flex justify-between items-start text-sm border-b border-border/50 pb-3 last:border-0 last:pb-0">
                                                                     <div className="flex-1 pr-4">
-                                                                        <p className="font-medium">{item.expenseType || "N/A"}</p>
-                                                                        <p className="text-xs text-muted-foreground mt-0.5">{item.descriptionItems}</p>
+                                                                        <p className="font-medium">{item.expenseType || "Unspecified Expense"}</p>
+                                                                        {item.descriptionItems ? (
+                                                                            <p className="text-xs text-muted-foreground mt-0.5">{item.descriptionItems}</p>
+                                                                        ) : (
+                                                                            <p className="text-xs text-muted-foreground mt-0.5 italic">No description provided</p>
+                                                                        )}
                                                                         {item.remarks && <p className="text-xs text-muted-foreground mt-1 italic">Note: {item.remarks}</p>}
                                                                     </div>
                                                                     <div className="text-right flex flex-col items-end">
