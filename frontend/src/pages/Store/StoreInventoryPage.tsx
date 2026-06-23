@@ -294,7 +294,7 @@ export function StoreInventoryPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {filteredRows.map((row) => (
-                                    <tr key={row.id} className={`hover:bg-gray-50 transition-colors ${row.dirty ? 'bg-amber-50/60' : ''}`}>
+                                    <tr key={row.id} className={`transition-colors ${row.dirty ? 'bg-amber-50/60' : row.availableQuantity === 0 ? 'bg-red-50 hover:bg-red-100/50' : 'hover:bg-gray-50'}`}>
                                         <td className="px-4 py-2.5 font-medium text-gray-900">{row.description}</td>
                                         <td className="px-4 py-2.5 text-center text-gray-400">{row.totalQuantity}</td>
                                         <td className="px-4 py-2.5 text-center">
