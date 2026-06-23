@@ -24,19 +24,20 @@ const AmountRequestFormPage = () => {
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
 
     // Form State
-    const [employeeName, setEmployeeName] = useState(() => {
-        const saved = localStorage.getItem('arfDefaults');
-        return saved ? JSON.parse(saved).employeeName || user?.fullName || "" : user?.fullName || "";
-    });
-    const [employeeEmail, setEmployeeEmail] = useState(() => {
-        const saved = localStorage.getItem('arfDefaults');
-        return saved ? JSON.parse(saved).employeeEmail || user?.email || "" : user?.email || "";
-    });
+    const getSavedDefault = (key: string) => {
+        try {
+            const saved = localStorage.getItem('arfDefaults');
+            if (saved) return JSON.parse(saved)[key];
+        } catch (e) {
+            console.error("Failed to parse arfDefaults", e);
+        }
+        return undefined;
+    };
+
+    const [employeeName, setEmployeeName] = useState(() => getSavedDefault('employeeName') || user?.fullName || "");
+    const [employeeEmail, setEmployeeEmail] = useState(() => getSavedDefault('employeeEmail') || user?.email || "");
     const [advanceRequested, setAdvanceRequested] = useState<number | "">("");
-    const [accountDetail, setAccountDetail] = useState(() => {
-        const saved = localStorage.getItem('arfDefaults');
-        return saved ? JSON.parse(saved).accountDetail || "" : "";
-    });
+    const [accountDetail, setAccountDetail] = useState(() => getSavedDefault('accountDetail') || "");
     const [dateOfFundRequired, setDateOfFundRequired] = useState("");
     
     const [locationType, setLocationType] = useState<'site' | 'office'>('site');
@@ -168,8 +169,13 @@ const AmountRequestFormPage = () => {
     };
 
     const resetForm = () => {
-        const saved = localStorage.getItem('arfDefaults');
-        const parsed = saved ? JSON.parse(saved) : null;
+        let parsed: any = null;
+        try {
+            const saved = localStorage.getItem('arfDefaults');
+            if (saved) parsed = JSON.parse(saved);
+        } catch (e) {
+            console.error("Failed to parse arfDefaults in reset", e);
+        }
         setEmployeeName(parsed?.employeeName || user?.fullName || "");
         setEmployeeEmail(parsed?.employeeEmail || user?.email || "");
         setAdvanceRequested("");
