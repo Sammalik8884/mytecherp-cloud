@@ -168,10 +168,12 @@ const AmountRequestFormPage = () => {
     };
 
     const resetForm = () => {
-        setEmployeeName(user?.fullName || "");
-        setEmployeeEmail(user?.email || "");
+        const saved = localStorage.getItem('arfDefaults');
+        const parsed = saved ? JSON.parse(saved) : null;
+        setEmployeeName(parsed?.employeeName || user?.fullName || "");
+        setEmployeeEmail(parsed?.employeeEmail || user?.email || "");
         setAdvanceRequested("");
-        setAccountDetail("");
+        setAccountDetail(parsed?.accountDetail || "");
         setDateOfFundRequired("");
         setLocationType("site");
         setSiteId("");
