@@ -329,9 +329,9 @@ using (var scope = app.Services.CreateScope())
                     BEGIN
                         -- Update StoreDailyLogItems
                         UPDATE dli
-                        SET ToolId = tm.KeepId
+                        SET StoreToolId = tm.KeepId
                         FROM StoreDailyLogItems dli
-                        JOIN #ToolMapping tm ON dli.ToolId = tm.OldId;
+                        JOIN #ToolMapping tm ON dli.StoreToolId = tm.OldId;
 
                         -- Merge SiteToolStocks quantities
                         UPDATE keepSts
@@ -351,24 +351,24 @@ using (var scope = app.Services.CreateScope())
                         FROM SiteToolStocks oldSts
                         JOIN #ToolMapping tm ON oldSts.StoreToolId = tm.OldId;
 
-                        -- Sum StoreTools Global Quantities
-                        UPDATE keepSt
-                        SET TotalQuantity = keepSt.TotalQuantity + agg.TotalQ,
-                            CurrentQuantity = keepSt.CurrentQuantity + agg.CurrentQ
-                        FROM StoreTools keepSt
-                        JOIN (
-                            SELECT tm.KeepId, SUM(oldSt.TotalQuantity) as TotalQ, SUM(oldSt.CurrentQuantity) as CurrentQ
-                            FROM #ToolMapping tm
-                            JOIN StoreTools oldSt ON tm.OldId = oldSt.Id
-                            GROUP BY tm.KeepId
-                        ) agg ON keepSt.Id = agg.KeepId;
-
-                        -- Delete duplicates
+                        -- Delete duplicates first, so they don't keep adding up
                         DELETE st
                         FROM StoreTools st
                         JOIN #ToolMapping tm ON st.Id = tm.OldId;
                     END
                     DROP TABLE #ToolMapping;
+
+                    -- Recalculate inflated TotalQuantity based on SiteToolStocks to fix the exponential growth bug
+                    UPDATE st
+                    SET TotalQuantity = ISNULL(sts.TotalStock, 0),
+                        CurrentQuantity = ISNULL(sts.TotalStock, 0)
+                    FROM StoreTools st
+                    LEFT JOIN (
+                        SELECT StoreToolId, SUM(AvailableQuantity) as TotalStock
+                        FROM SiteToolStocks
+                        GROUP BY StoreToolId
+                    ) sts ON st.Id = sts.StoreToolId
+                    WHERE st.TotalQuantity > ISNULL(sts.TotalStock, 0) + 100; -- Only fix massively inflated ones to be safe
                 ";
                 await context.Database.ExecuteSqlRawAsync(ensureColumnsSql);
                 Console.WriteLine("Store entity columns verified/created successfully.");
