@@ -142,9 +142,8 @@ export function StoreInventoryPage() {
         setIsSearchingGlobal(true);
         try {
             const res = await apiClient.get(`/StoreTools/search?q=${encodeURIComponent(q)}`);
-            // Filter out tools that are already in the site's inventory
-            const existingToolIds = new Set(rows.map(r => r.storeToolId));
-            setGlobalTools((res.data || []).filter((t: any) => !existingToolIds.has(t.id)));
+            // User requested to see tools even if they are in inventory to add more stock
+            setGlobalTools(res.data || []);
         } catch (error) {
             console.error("Error searching global tools", error);
         } finally {
@@ -358,19 +357,29 @@ export function StoreInventoryPage() {
                                         {isSearchingGlobal ? (
                                             <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
                                         ) : globalTools.length > 0 ? (
-                                            globalTools.map(tool => (
-                                                <div
-                                                    key={tool.id}
-                                                    onClick={() => setSelectedGlobalTool(tool)}
-                                                    className="p-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0"
-                                                >
-                                                    <span className="font-medium text-gray-900">{tool.description}</span>
-                                                    <span className="text-sm text-gray-500">Global Qty: {tool.totalQuantity}</span>
-                                                </div>
-                                            ))
+                                            globalTools.map(tool => {
+                                                const existingStock = rows.find(r => r.storeToolId === tool.id);
+                                                return (
+                                                    <div
+                                                        key={tool.id}
+                                                        onClick={() => setSelectedGlobalTool(tool)}
+                                                        className="p-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0"
+                                                    >
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium text-gray-900">{tool.description}</span>
+                                                            {existingStock && (
+                                                                <span className="text-xs text-blue-600 font-semibold bg-blue-100 w-fit px-2 py-0.5 rounded-full mt-1">
+                                                                    Already in Inventory: {existingStock.availableQuantity}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-sm text-gray-500 whitespace-nowrap ml-4">Global Qty: {tool.totalQuantity}</span>
+                                                    </div>
+                                                );
+                                            })
                                         ) : searchGlobal.length >= 2 ? (
                                             <div className="p-4 text-center text-sm text-gray-500">
-                                                No matching tools found. (Tools already in your inventory are hidden)
+                                                No matching tools found.
                                             </div>
                                         ) : null}
                                     </div>
@@ -381,10 +390,15 @@ export function StoreInventoryPage() {
                                         <div>
                                             <div className="text-sm text-blue-600 font-medium mb-1">Selected Tool</div>
                                             <div className="font-bold text-gray-900">{selectedGlobalTool.description}</div>
+                                            {rows.find(r => r.storeToolId === selectedGlobalTool.id) && (
+                                                <div className="text-xs text-blue-700 mt-1">
+                                                    Note: This will add to your existing inventory of {rows.find(r => r.storeToolId === selectedGlobalTool.id)?.availableQuantity}.
+                                                </div>
+                                            )}
                                         </div>
                                         <button
                                             onClick={() => setSelectedGlobalTool(null)}
-                                            className="text-sm text-blue-600 hover:text-blue-800"
+                                            className="text-sm text-blue-600 hover:text-blue-800 shrink-0 ml-4"
                                         >
                                             Change
                                         </button>
