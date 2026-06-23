@@ -280,7 +280,7 @@ export function StoreToolsPage() {
 
             {/* Custom Modals */}
             {deleteConfirmId && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
                         <div className="flex items-center gap-3 mb-4 text-red-600">
                             <AlertCircle className="w-6 h-6" />
@@ -306,7 +306,7 @@ export function StoreToolsPage() {
             )}
 
             {modalMessage && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
                         <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 ${modalMessage.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
                             {modalMessage.type === 'success' ? <CheckCircle className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}

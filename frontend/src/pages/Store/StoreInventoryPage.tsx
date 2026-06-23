@@ -355,7 +355,7 @@ export function StoreInventoryPage() {
 
             {/* Receive Stock Modal */}
             {showAddModal && siteId && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl shadow-xl max-w-lg w-full overflow-hidden">
                         <div className="flex justify-between items-center p-6 border-b border-gray-100">
                             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -459,7 +459,7 @@ export function StoreInventoryPage() {
 
             {/* Delete Confirmation Modal */}
             {deleteConfirmId && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
                         <div className="flex items-center gap-3 mb-4 text-red-600">
                             <Warehouse className="w-6 h-6" />
