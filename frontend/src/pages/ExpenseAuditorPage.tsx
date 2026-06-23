@@ -84,11 +84,20 @@ export const ExpenseAuditorPage = () => {
 
         if (selectedEntity) {
             if (section === "offices") {
-                filteredArfs = filteredArfs.filter(f => f.officeName === selectedEntity);
+                filteredArfs = filteredArfs.filter(f => 
+                    f.officeName === selectedEntity || 
+                    allExpenses.some(e => e.amountRequestFormId === f.id && e.officeName === selectedEntity)
+                );
             } else if (section === "sites") {
-                filteredArfs = filteredArfs.filter(f => (f.siteName || f.customSiteName) === selectedEntity);
+                filteredArfs = filteredArfs.filter(f => 
+                    (f.siteName || f.customSiteName) === selectedEntity ||
+                    allExpenses.some(e => e.amountRequestFormId === f.id && e.siteName === selectedEntity)
+                );
             } else if (section === "employees") {
-                filteredArfs = filteredArfs.filter(f => f.employeeName === selectedEntity);
+                filteredArfs = filteredArfs.filter(f => 
+                    f.employeeName === selectedEntity ||
+                    allExpenses.some(e => e.amountRequestFormId === f.id && e.createdByEmail === selectedEntity)
+                );
             }
         }
 
