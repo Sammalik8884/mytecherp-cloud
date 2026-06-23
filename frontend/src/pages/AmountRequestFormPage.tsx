@@ -24,10 +24,19 @@ const AmountRequestFormPage = () => {
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
 
     // Form State
-    const [employeeName, setEmployeeName] = useState(user?.fullName || "");
-    const [employeeEmail, setEmployeeEmail] = useState(user?.email || "");
+    const [employeeName, setEmployeeName] = useState(() => {
+        const saved = localStorage.getItem('arfDefaults');
+        return saved ? JSON.parse(saved).employeeName || user?.fullName || "" : user?.fullName || "";
+    });
+    const [employeeEmail, setEmployeeEmail] = useState(() => {
+        const saved = localStorage.getItem('arfDefaults');
+        return saved ? JSON.parse(saved).employeeEmail || user?.email || "" : user?.email || "";
+    });
     const [advanceRequested, setAdvanceRequested] = useState<number | "">("");
-    const [accountDetail, setAccountDetail] = useState("");
+    const [accountDetail, setAccountDetail] = useState(() => {
+        const saved = localStorage.getItem('arfDefaults');
+        return saved ? JSON.parse(saved).accountDetail || "" : "";
+    });
     const [dateOfFundRequired, setDateOfFundRequired] = useState("");
     
     const [locationType, setLocationType] = useState<'site' | 'office'>('site');
@@ -375,9 +384,21 @@ const AmountRequestFormPage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Employee Section */}
                             <div className="space-y-4">
-                                <h3 className="text-lg font-semibold border-b border-border/50 pb-2 flex items-center gap-2">
-                                    <User className="h-5 w-5 text-primary" /> Employee
-                                </h3>
+                                <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                                        <User className="h-5 w-5 text-primary" /> Employee
+                                    </h3>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => {
+                                            localStorage.setItem('arfDefaults', JSON.stringify({ employeeName, employeeEmail, accountDetail }));
+                                            toast.success("Employee info saved for next time!");
+                                        }}
+                                        className="text-xs text-primary hover:underline"
+                                    >
+                                        Save Info
+                                    </button>
+                                </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-foreground">Employee Name</label>
                                     <input required value={employeeName} onChange={e => setEmployeeName(e.target.value)} type="text" className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
