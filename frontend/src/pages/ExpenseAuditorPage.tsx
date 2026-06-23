@@ -96,8 +96,27 @@ export const ExpenseAuditorPage = () => {
 
         // 2. Map ARFs to Expenses
         const records: AuditRecord[] = filteredArfs.map(arf => {
-            const connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id);
-            const totalExpenseAmount = connectedExpenses.reduce((sum, e) => sum + e.totalExpenseAmount, 0);
+            let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id).map(e => ({...e}));
+            let totalExpenseAmount = connectedExpenses.reduce((sum, e) => sum + e.totalExpenseAmount, 0);
+
+            // Link excess ARFs to their corresponding expenses
+            const expenseIdMatch = arf.purposeOfAdvance?.match(/\[ExpenseId:(\d+)\]/);
+            if (expenseIdMatch) {
+                const excessExpenseId = Number(expenseIdMatch[1]);
+                const excessExpense = allExpenses.find(e => e.id === excessExpenseId);
+                if (excessExpense) {
+                    const excessAmount = excessExpense.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
+                    totalExpenseAmount += excessAmount;
+                    
+                    const excessExpenseClone = {
+                        ...excessExpense,
+                        totalExpenseAmount: excessAmount,
+                        isExcessConnection: true
+                    } as any;
+                    
+                    connectedExpenses = [...connectedExpenses, excessExpenseClone];
+                }
+            }
             
             // Use the released amount by default, fallback to requested if not released yet
             const releasedAmount = arf.accountsReleasedAmount || arf.advanceRequested || 0;
@@ -415,7 +434,10 @@ export const ExpenseAuditorPage = () => {
                                         {selectedRecord.expenses.map((expense, idx) => (
                                             <div key={idx} className="bg-muted/10 p-4 rounded-xl border border-border/50 flex flex-col md:flex-row justify-between gap-4">
                                                 <div>
-                                                    <p className="font-semibold text-sm mb-1">Expense ID: {expense.id}</p>
+                                                    <p className="font-semibold text-sm mb-1">
+                                                        Expense ID: {expense.id}
+                                                        {(expense as any).isExcessConnection && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Excess Portion</span>}
+                                                    </p>
                                                     <p className="text-xs text-muted-foreground">Created by: {expense.createdByEmail}</p>
                                                 </div>
                                                 <div className="text-right">
