@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Search, AlertCircle, Package } from "lucide-react";
+import { Plus, Search, AlertCircle, Package, Edit, Trash2, X } from "lucide-react";
 import { apiClient } from "../../services/apiClient";
 
 interface StoreTool {
@@ -17,6 +17,7 @@ export function StoreToolsPage() {
     const [showAddForm, setShowAddForm] = useState(false);
     
     const [newTool, setNewTool] = useState({ description: "", totalQuantity: 1, siteId: "" });
+    const [editingToolId, setEditingToolId] = useState<number | null>(null);
 
     useEffect(() => {
         fetchTools();
@@ -75,16 +76,48 @@ export function StoreToolsPage() {
                 totalQuantity: newTool.totalQuantity,
                 siteId: newTool.siteId ? parseInt(newTool.siteId) : null
             };
-            const res = await apiClient.post('/StoreTools', payload);
-            if (res.status === 200 || res.status === 201) {
-                setShowAddForm(false);
-                setNewTool({ description: "", totalQuantity: 1, siteId: "" });
-                fetchTools();
-                alert("Tool added successfully! If you selected a site, it was seeded into that site's inventory with quantity 0.");
+            if (editingToolId) {
+                const res = await apiClient.put(`/StoreTools/${editingToolId}`, payload);
+                if (res.status === 200 || res.status === 201) {
+                    setShowAddForm(false);
+                    setNewTool({ description: "", totalQuantity: 1, siteId: "" });
+                    setEditingToolId(null);
+                    fetchTools();
+                    alert("Tool updated successfully!");
+                }
+            } else {
+                const res = await apiClient.post('/StoreTools', payload);
+                if (res.status === 200 || res.status === 201) {
+                    setShowAddForm(false);
+                    setNewTool({ description: "", totalQuantity: 1, siteId: "" });
+                    fetchTools();
+                    alert("Tool added successfully! If you selected a site, it was seeded into that site's inventory with quantity 0.");
+                }
             }
         } catch (error: any) {
             console.error(error);
-            alert(`Error adding tool: ${error.response?.data || error.message}`);
+            alert(`Error saving tool: ${error.response?.data || error.message}`);
+        }
+    };
+
+    const handleEditClick = (tool: any) => {
+        setEditingToolId(tool.id);
+        setNewTool({
+            description: tool.description,
+            totalQuantity: tool.totalQuantity,
+            siteId: "" // Not relevant for update
+        });
+        setShowAddForm(true);
+    };
+
+    const handleDeleteClick = async (id: number) => {
+        if (!confirm("Are you sure you want to delete this tool from the catalog?")) return;
+        try {
+            await apiClient.delete(`/StoreTools/${id}`);
+            fetchTools();
+        } catch (error: any) {
+            console.error(error);
+            alert(`Error deleting tool: ${error.response?.data || error.message}`);
         }
     };
 
@@ -97,18 +130,22 @@ export function StoreToolsPage() {
                     <Package className="w-6 h-6" /> Tools Catalog
                 </h1>
                 <button
-                    onClick={() => setShowAddForm(true)}
+                    onClick={() => {
+                        setEditingToolId(null);
+                        setNewTool({ description: "", totalQuantity: 1, siteId: "" });
+                        setShowAddForm(true);
+                    }}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
                 >
-                    <Plus className="w-5 h-5" /> Add Tool
+                    <Plus className="w-5 h-5" /> New Global Tool
                 </button>
             </div>
 
             {showAddForm && (
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
-                    <h2 className="text-lg font-semibold mb-4">Add New Tool</h2>
-                    <form onSubmit={handleAddTool} className="flex gap-4 items-end flex-wrap">
-                        <div className="flex-1 min-w-[200px]">
+                    <h2 className="text-xl font-bold mb-4">{editingToolId ? "Edit Tool" : "Add New Global Tool"}</h2>
+                    <form onSubmit={handleAddTool} className="space-y-4">
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                             <input
                                 type="text"
@@ -118,34 +155,40 @@ export function StoreToolsPage() {
                                 className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
-                        <div className="w-32">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Total Qty</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Total Global Quantity</label>
                             <input
                                 type="number"
                                 required
-                                min="1"
+                                min="0"
                                 value={newTool.totalQuantity}
-                                onChange={e => setNewTool({ ...newTool, totalQuantity: parseInt(e.target.value) })}
+                                onChange={e => setNewTool({ ...newTool, totalQuantity: parseInt(e.target.value) || 0 })}
                                 className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
-                        <div className="w-64">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Seed to Site (Optional)</label>
-                            <select
-                                value={newTool.siteId}
-                                onChange={e => setNewTool({ ...newTool, siteId: e.target.value })}
-                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value="">— Don't seed to any site —</option>
-                                {sites.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="flex gap-2 w-full mt-2 justify-end">
+                        {!editingToolId && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Seed to Site (Optional)</label>
+                                <select
+                                    value={newTool.siteId}
+                                    onChange={e => setNewTool({ ...newTool, siteId: e.target.value })}
+                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">None</option>
+                                    {sites.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        <div className="flex justify-end gap-3 mt-6">
                             <button
                                 type="button"
-                                onClick={() => setShowAddForm(false)}
+                                onClick={() => {
+                                    setShowAddForm(false);
+                                    setEditingToolId(null);
+                                    setNewTool({ description: "", totalQuantity: 1, siteId: "" });
+                                }}
                                 className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                             >
                                 Cancel
@@ -154,7 +197,7 @@ export function StoreToolsPage() {
                                 type="submit"
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
-                                Save Tool
+                                {editingToolId ? "Save Changes" : "Create Tool"}
                             </button>
                         </div>
                     </form>
@@ -196,6 +239,7 @@ export function StoreToolsPage() {
                                 <th className="px-6 py-4 font-medium text-gray-600">ID</th>
                                 <th className="px-6 py-4 font-medium text-gray-600">Description</th>
                                 <th className="px-6 py-4 font-medium text-gray-600">Total Global Qty</th>
+                                <th className="px-6 py-4 font-medium text-gray-600 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -207,6 +251,16 @@ export function StoreToolsPage() {
                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                             {tool.totalQuantity} items
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <button onClick={() => handleEditClick(tool)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Edit">
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => handleDeleteClick(tool.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Delete">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

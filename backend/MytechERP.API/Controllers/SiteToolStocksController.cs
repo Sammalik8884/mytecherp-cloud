@@ -127,6 +127,18 @@ namespace MytechERP.API.Controllers
             await _context.SaveChangesAsync();
             return Ok(stock);
         }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,Procurement Executive")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var stock = await _context.SiteToolStocks.FindAsync(id);
+            if (stock == null) return NotFound();
+
+            _context.SiteToolStocks.Remove(stock);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
     }
 
     public class ReceiveStockDto

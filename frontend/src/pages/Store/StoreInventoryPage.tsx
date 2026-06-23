@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, Warehouse, Save, Search, PackagePlus, X } from "lucide-react";
+import { CheckCircle, Warehouse, Save, Search, PackagePlus, X, Trash2 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
 
@@ -128,6 +128,16 @@ export function StoreInventoryPage() {
             alert(`Error: ${e.response?.data || e.message}`);
         } finally {
             setSavingAll(false);
+        }
+    };
+
+    const handleDeleteRow = async (id: number) => {
+        if (!confirm("Are you sure you want to remove this tool from the site inventory?")) return;
+        try {
+            await apiClient.delete(`/SiteToolStocks/${id}`);
+            setRows(prev => prev.filter(r => r.id !== id));
+        } catch (e: any) {
+            alert(`Error deleting row: ${e.response?.data || e.message}`);
         }
     };
 
@@ -294,20 +304,29 @@ export function StoreInventoryPage() {
                                             />
                                         </td>
                                         <td className="px-4 py-2.5 text-right">
-                                            {row.saving ? (
-                                                <span className="text-xs text-gray-400">Saving...</span>
-                                            ) : row.saved ? (
-                                                <span className="text-xs text-green-600 flex items-center gap-1 justify-end">
-                                                    <CheckCircle className="w-3 h-3" /> Saved
-                                                </span>
-                                            ) : row.dirty ? (
+                                            <div className="flex items-center justify-end gap-2">
+                                                {row.saving ? (
+                                                    <span className="text-xs text-gray-400">Saving...</span>
+                                                ) : row.saved ? (
+                                                    <span className="text-xs text-green-600 flex items-center gap-1">
+                                                        <CheckCircle className="w-3 h-3" /> Saved
+                                                    </span>
+                                                ) : row.dirty ? (
+                                                    <button
+                                                        onClick={() => saveRow(row)}
+                                                        className="text-xs px-2.5 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                                                    >
+                                                        Save
+                                                    </button>
+                                                ) : null}
                                                 <button
-                                                    onClick={() => saveRow(row)}
-                                                    className="text-xs px-2.5 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                                                    onClick={() => handleDeleteRow(row.id)}
+                                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Remove from Site Inventory"
                                                 >
-                                                    Save
+                                                    <Trash2 className="w-4 h-4" />
                                                 </button>
-                                            ) : null}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

@@ -101,5 +101,53 @@ namespace MytechERP.API.Controllers
 
             return Ok(createdDto);
         }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Procurement Executive")]
+        public async Task<IActionResult> Update(int id, [FromBody] CreateStoreToolDto dto)
+        {
+            var tool = await _repository.GetByIdAsync(id);
+            if (tool == null)
+                return NotFound();
+
+            // Check for duplicate descriptions, excluding the current tool
+            var allTools = await _repository.GetAllAsync();
+            var exists = allTools.Any(t => t.Id != id && t.Description.Trim().ToLower() == dto.Description.Trim().ToLower());
+            if (exists)
+                return Conflict($"A tool with the description '{dto.Description}' already exists.");
+
+            tool.Description = dto.Description.Trim();
+            tool.TotalQuantity = dto.TotalQuantity;
+            
+            await _repository.UpdateAsync(tool);
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,Procurement Executive")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var tool = await _repository.GetByIdAsync(id);
+            if (tool == null)
+                return NotFound();
+
+            // Check if it's used in site inventories (with non-zero quantity)
+            var hasStock = await _context.SiteToolStocks.AnyAsync(s => s.StoreToolId == id && s.AvailableQuantity > 0);
+            if (hasStock)
+                return Conflict("Cannot delete this tool because it is currently assigned to one or more site inventories with a non-zero quantity.");
+
+            // Optionally, we could just soft delete. For now we will soft delete if we have an IsDeleted flag, otherwise remove
+            if (tool.GetType().GetProperty("IsDeleted") != null)
+            {
+                tool.IsDeleted = true;
+                await _repository.UpdateAsync(tool);
+            }
+            else
+            {
+                await _repository.DeleteAsync(tool);
+            }
+
+            return Ok();
+        }
     }
 }
