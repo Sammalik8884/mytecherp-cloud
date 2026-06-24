@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2, ArrowLeft, Loader2, Search, Calculator, Pencil, X } from "lucide-react";
 import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -143,11 +143,7 @@ export const QuotationFormPage = () => {
         customUnit: "",
     });
 
-    // Sync service rows 1-to-1 with their parent product rows
-    // This replaces the onBlur approach which caused duplicates
-    const prevImportedItems = useRef<UiItem[]>([]);
-    const prevLocalItems = useRef<UiItem[]>([]);
-
+    // Sync service rows quantities 1-to-1 with their parent product rows
     useEffect(() => {
         if (!showImportedServices) return;
         setImportedServiceItems(prev => {
@@ -157,23 +153,11 @@ export const QuotationFormPage = () => {
             importedItems.forEach((item, i) => {
                 const defaultName = item.serviceName !== undefined
                     ? item.serviceName
-                    : item.product ? `${item.product.name}${item.product.itemCode ? ` (${item.product.itemCode})` : ''}` : '';
-                
-                const prevItem = prevImportedItems.current[i];
-                const prevDefaultName = prevItem 
-                    ? (prevItem.serviceName !== undefined ? prevItem.serviceName : (prevItem.product ? `${prevItem.product.name}${prevItem.product.itemCode ? ` (${prevItem.product.itemCode})` : ''}` : ''))
-                    : '';
+                    : item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ''}` : '';
                 
                 if (next[i]) {
                     if (next[i].quantity !== item.quantity) {
                         next[i] = { ...next[i], quantity: item.quantity };
-                        changed = true;
-                    }
-                    if (defaultName !== prevDefaultName && next[i].serviceName === prevDefaultName) {
-                        next[i] = { ...next[i], serviceName: defaultName };
-                        changed = true;
-                    } else if (!next[i].serviceName && defaultName) {
-                        next[i] = { ...next[i], serviceName: defaultName };
                         changed = true;
                     }
                 } else {
@@ -184,7 +168,6 @@ export const QuotationFormPage = () => {
             
             return changed ? next : prev;
         });
-        prevImportedItems.current = importedItems;
     }, [importedItems, showImportedServices]);
 
     useEffect(() => {
@@ -196,23 +179,11 @@ export const QuotationFormPage = () => {
             localItems.forEach((item, i) => {
                 const defaultName = item.serviceName !== undefined
                     ? item.serviceName
-                    : item.product ? `${item.product.name}${item.product.itemCode ? ` (${item.product.itemCode})` : ''}` : '';
-                
-                const prevItem = prevLocalItems.current[i];
-                const prevDefaultName = prevItem 
-                    ? (prevItem.serviceName !== undefined ? prevItem.serviceName : (prevItem.product ? `${prevItem.product.name}${prevItem.product.itemCode ? ` (${prevItem.product.itemCode})` : ''}` : ''))
-                    : '';
+                    : item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ''}` : '';
                 
                 if (next[i]) {
                     if (next[i].quantity !== item.quantity) {
                         next[i] = { ...next[i], quantity: item.quantity };
-                        changed = true;
-                    }
-                    if (defaultName !== prevDefaultName && next[i].serviceName === prevDefaultName) {
-                        next[i] = { ...next[i], serviceName: defaultName };
-                        changed = true;
-                    } else if (!next[i].serviceName && defaultName) {
-                        next[i] = { ...next[i], serviceName: defaultName };
                         changed = true;
                     }
                 } else {
@@ -223,7 +194,6 @@ export const QuotationFormPage = () => {
             
             return changed ? next : prev;
         });
-        prevLocalItems.current = localItems;
     }, [localItems, showLocalServices]);
 
     // Auto-add first row when section is toggled on
@@ -488,6 +458,54 @@ export const QuotationFormPage = () => {
     
     const handleAddLocalService = () => {
         setLocalServiceItems([...localServiceItems, makeEmptyRow("LocalService")]);
+    };
+
+    const handleSupplyNameChange = (list: "imported" | "local", idx: number, newName: string) => {
+        if (list === "imported") {
+            const oldName = importedItems[idx].serviceName !== undefined 
+                ? importedItems[idx].serviceName 
+                : (importedItems[idx].product ? `${importedItems[idx].product.name} ${importedItems[idx].product.itemCode ? `(${importedItems[idx].product.itemCode})` : ""}` : "");
+            
+            const newArr = [...importedItems];
+            newArr[idx] = { ...newArr[idx], serviceName: newName };
+            setImportedItems(newArr);
+
+            if (showImportedServices) {
+                setImportedServiceItems(prev => {
+                    const next = [...prev];
+                    if (next[idx]) {
+                        const currentServiceName = next[idx].serviceName || "";
+                        if (currentServiceName === oldName || currentServiceName === "") {
+                            next[idx] = { ...next[idx], serviceName: newName };
+                            return next;
+                        }
+                    }
+                    return prev;
+                });
+            }
+        } else {
+            const oldName = localItems[idx].serviceName !== undefined 
+                ? localItems[idx].serviceName 
+                : (localItems[idx].product ? `${localItems[idx].product.name} ${localItems[idx].product.itemCode ? `(${localItems[idx].product.itemCode})` : ""}` : "");
+            
+            const newArr = [...localItems];
+            newArr[idx] = { ...newArr[idx], serviceName: newName };
+            setLocalItems(newArr);
+
+            if (showLocalServices) {
+                setLocalServiceItems(prev => {
+                    const next = [...prev];
+                    if (next[idx]) {
+                        const currentServiceName = next[idx].serviceName || "";
+                        if (currentServiceName === oldName || currentServiceName === "") {
+                            next[idx] = { ...next[idx], serviceName: newName };
+                            return next;
+                        }
+                    }
+                    return prev;
+                });
+            }
+        }
     };
 
     const handleAddCustomRow = (listType: "Imported" | "Local" | "ImportedService" | "LocalService") => {
@@ -780,12 +798,8 @@ export const QuotationFormPage = () => {
                     rows={2}
                     className={inputCls + " flex-1 min-w-0 resize-y"} 
                     placeholder="Custom product name..."
-                    value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name}` : "")}
-                    onChange={e => {
-                        const newArr = [...importedItems];
-                        newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
-                        setImportedItems(newArr);
-                    }}
+                    value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
+                    onChange={e => handleSupplyNameChange("imported", idx, e.target.value)}
                 />
                 <button
                     type="button"
@@ -881,12 +895,8 @@ export const QuotationFormPage = () => {
                     rows={2}
                     className={inputCls + " flex-1 min-w-0 resize-y"} 
                     placeholder="Custom product name..."
-                    value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name}` : "")}
-                    onChange={e => {
-                        const newArr = [...localItems];
-                        newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
-                        setLocalItems(newArr);
-                    }}
+                    value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
+                    onChange={e => handleSupplyNameChange("local", idx, e.target.value)}
                 />
                 <button
                     type="button"
@@ -1078,11 +1088,7 @@ export const QuotationFormPage = () => {
                                                       className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm resize-y"} 
                                                       placeholder="Custom product name..."
                                                       value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
-                                                      onChange={e => {
-                                                          const newArr = [...importedItems];
-                                                          newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
-                                                          setImportedItems(newArr);
-                                                      }}
+                                                      onChange={e => handleSupplyNameChange("imported", idx, e.target.value)}
                                                       onKeyDown={e => handleProductRowKeyDown(e, "imported", idx, handleAddImported)}
                                                   />
                                                   <button
@@ -1222,11 +1228,7 @@ export const QuotationFormPage = () => {
                                                       className={inputCls + " !py-1.5 flex-1 min-w-0 text-sm resize-y"} 
                                                       placeholder="Custom product name..."
                                                       value={item.serviceName !== undefined ? item.serviceName : (item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ""}` : "")}
-                                                      onChange={e => {
-                                                          const newArr = [...localItems];
-                                                          newArr[idx] = { ...newArr[idx], serviceName: e.target.value };
-                                                          setLocalItems(newArr);
-                                                      }}
+                                                      onChange={e => handleSupplyNameChange("local", idx, e.target.value)}
                                                        onKeyDown={e => handleProductRowKeyDown(e, "local", idx, handleAddLocal)}
                                                   />
                                                   <button
