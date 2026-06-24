@@ -145,6 +145,7 @@ namespace MyTechERP.Infrastructure.Services
             var quotation = new Quotation
             {
                 QuoteNumber = quoteNumber,
+                ParentQuoteId = (dto.ReviseQuoteId.HasValue && dto.ReviseQuoteId.Value > 0) ? dto.ReviseQuoteId.Value : null,
                 CustomerId = dto.CustomerId,
                 OpportunityId = (dto.OpportunityId.HasValue && dto.OpportunityId.Value > 0) ? dto.OpportunityId : null,
                 SiteId = (dto.SiteId.HasValue && dto.SiteId.Value > 0) ? dto.SiteId : null,
@@ -205,19 +206,7 @@ namespace MyTechERP.Infrastructure.Services
             var existingQuote = await _quotationRepository.GetQuoteWithItemsAsync(id);
             if (existingQuote == null) throw new Exception($"Quotation {id} not found");
 
-            if (dto.ReviseQuoteId.HasValue && dto.ReviseQuoteId.Value == id)
-            {
-                existingQuote.RevisionNumber += 1;
-                
-                string baseNumber = existingQuote.QuoteNumber;
-                int lastDashIndex = baseNumber.LastIndexOf("-R");
-                if (lastDashIndex > 0)
-                {
-                    baseNumber = baseNumber.Substring(0, lastDashIndex);
-                }
-                
-                existingQuote.QuoteNumber = $"{baseNumber}-R{existingQuote.RevisionNumber}";
-            }
+
 
             var oldGrandTotal = existingQuote.GrandTotal;
             var userId = _currentUserService.UserId ?? "System";
@@ -572,6 +561,7 @@ namespace MyTechERP.Infrastructure.Services
             {
                 Id = q.Id,
                 QuoteNumber = q.QuoteNumber,
+                ParentQuoteId = q.ParentQuoteId,
                 CustomerId = q.CustomerId,
                 CustomerName = q.Customer?.Name ?? "Unknown",
                 ContactPersonName = q.Customer?.ContactPersonName,

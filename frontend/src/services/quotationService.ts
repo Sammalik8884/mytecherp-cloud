@@ -20,6 +20,7 @@ export interface QuotationItemDto {
 export interface QuotationDto {
     id: number;
     quoteNumber: string;
+    parentQuoteId?: number;
     validUntil: string;
     status: string;
     createdAt: string;

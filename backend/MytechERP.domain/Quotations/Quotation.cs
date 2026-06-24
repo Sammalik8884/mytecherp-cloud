@@ -76,5 +76,9 @@ namespace MytechERP.domain.Quotations
         public string? QuoteHeadline { get; set; }
 
         public string? TermsAndConditionsJson { get; set; }
+
+        public int? ParentQuoteId { get; set; }
+        public Quotation? ParentQuote { get; set; }
+        public virtual ICollection<Quotation> Revisions { get; set; } = new List<Quotation>();
     }
 }

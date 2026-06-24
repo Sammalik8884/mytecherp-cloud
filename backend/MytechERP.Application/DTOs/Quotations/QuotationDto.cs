@@ -9,6 +9,7 @@ namespace MytechERP.Application.DTOs.Quotations
         
         public int Id { get; set; }
         public string QuoteNumber { get; set; }
+        public int? ParentQuoteId { get; set; }
         public DateTime ValidUntil { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }

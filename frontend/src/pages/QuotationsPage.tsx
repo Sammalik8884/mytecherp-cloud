@@ -264,68 +264,102 @@ export const QuotationsPage = () => {
                                     No {activeTab !== 'all' ? `"${TABS.find(t => t.key === activeTab)?.label}" ` : ''}quotations found.
                                 </td></tr>
                             ) : (
-                                sortedFilteredQuotations.map((quote) => (
-                                    <tr key={quote.id} className="hover:bg-secondary/50 transition-colors group">
-                                        <td className="px-6 py-4 font-medium text-foreground">
-                                            <div className="flex items-center space-x-2">
-                                                <FileText className="h-4 w-4 text-primary/70" />
-                                                <span>{quote.quoteNumber}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 font-medium text-primary">
-                                            {quote.customerName}
-                                            {quote.siteName && <span className="text-xs text-muted-foreground block font-normal">{quote.siteName}</span>}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex gap-1 flex-wrap">
-                                                {quote.quoteMode ? quote.quoteMode.split(',').map((mode, idx) => (
-                                                    <span key={idx} className="px-2 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground border border-border">{mode.trim()}</span>
-                                                )) : (
-                                                    <span className="px-2 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground border border-border">Local</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-foreground font-semibold">
-                                            {quote.grandTotal.toLocaleString()} <span className="text-xs text-muted-foreground font-normal">{quote.currency}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-muted-foreground">{new Date(quote.validUntil).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(quote.status)}`}>
-                                                {getStatusLabel(quote.status)}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end items-center space-x-1">
-                                                <button onClick={() => togglePin(quote.id)} title={pinnedQuotes.includes(quote.id) ? "Unpin" : "Pin"} className={`p-2 rounded-lg transition-colors ${pinnedQuotes.includes(quote.id) ? 'text-primary bg-primary/10 hover:bg-primary/20' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'}`}>
-                                                    <Pin className={`h-4 w-4 ${pinnedQuotes.includes(quote.id) ? 'fill-current' : ''}`} />
-                                                </button>
-                                                <button onClick={() => handleDownloadPdf(quote.id, quote.quoteNumber)} title="Download PDF" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><DownloadCloud className="h-4 w-4" /></button>
-                                                {!hasRole(["Estimation"]) && (
-                                                    <button onClick={() => handleSendEmail(quote.id)} title="Send Email" className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
-                                                )}
-                                                <button onClick={() => navigate(`/quotations/edit/${quote.id}`)} title="Edit" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
-                                                <button onClick={() => navigate(`/quotations/revise/${quote.id}`)} title="Revise" className="p-2 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-lg transition-colors"><Copy className="h-4 w-4" /></button>
-                                                {normalizeStatus(quote.status) === 'draft' && (
-                                                    <button onClick={() => handleSubmitForApproval(quote.id)} title="Submit for Approval" className="p-2 text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
-                                                )}
-                                                {normalizeStatus(quote.status) === 'pendingapproval' && isHuzefa && (
-                                                    <>
-                                                        <button onClick={() => handleApprove(quote.id)} title="Approve" className="p-2 text-muted-foreground hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"><CheckCircle className="h-4 w-4" /></button>
-                                                        <button onClick={() => handleReject(quote.id)} title="Reject" className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><XCircle className="h-4 w-4" /></button>
-                                                    </>
-                                                )}
-                                                {!['draft', 'pendingapproval', 'rejected'].includes(normalizeStatus(quote.status)) && (
-                                                    <>
-                                                        <button onClick={() => handleGenerateInvoice(quote.id)} title="Generate Invoice" className="p-2 text-muted-foreground hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"><FilePlus2 className="h-4 w-4" /></button>
-                                                        <button onClick={() => handleConvertToWorkOrder(quote.id)} title="Convert to Work Order" className="p-2 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"><Briefcase className="h-4 w-4" /></button>
-                                                        <button onClick={() => handleConvertToContract(quote.id)} title="Convert to AMC Contract" className="p-2 text-muted-foreground hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-colors"><FileSignature className="h-4 w-4" /></button>
-                                                    </>
-                                                )}
-                                                <button onClick={() => handleDeleteQuote(quote.id)} title="Delete" className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                (() => {
+                                    const renderedRows: React.ReactNode[] = [];
+                                    const processedIds = new Set<number>();
+
+                                    const renderQuoteRow = (quote: any, level: number = 0) => (
+                                        <tr key={`quote-${quote.id}`} className={`hover:bg-secondary/50 transition-colors group ${level > 0 ? 'bg-secondary/10' : ''}`}>
+                                            <td className="px-6 py-4 font-medium text-foreground">
+                                                <div className="flex items-center space-x-2" style={{ paddingLeft: `${level * 1.5}rem` }}>
+                                                    {level > 0 && <span className="text-muted-foreground">↳</span>}
+                                                    <FileText className="h-4 w-4 text-primary/70" />
+                                                    <span>{quote.quoteNumber}</span>
+                                                    {level > 0 && <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/20 text-primary uppercase tracking-wider">Revision</span>}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 font-medium text-primary">
+                                                {quote.customerName}
+                                                {quote.siteName && <span className="text-xs text-muted-foreground block font-normal">{quote.siteName}</span>}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex gap-1 flex-wrap">
+                                                    {quote.quoteMode ? quote.quoteMode.split(',').map((mode: string, idx: number) => (
+                                                        <span key={idx} className="px-2 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground border border-border">{mode.trim()}</span>
+                                                    )) : (
+                                                        <span className="px-2 py-0.5 rounded text-[10px] bg-secondary text-muted-foreground border border-border">Local</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-foreground font-semibold">
+                                                {quote.grandTotal.toLocaleString()} <span className="text-xs text-muted-foreground font-normal">{quote.currency}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-muted-foreground">{new Date(quote.validUntil).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(quote.status)}`}>
+                                                    {getStatusLabel(quote.status)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end items-center space-x-1">
+                                                    <button onClick={() => togglePin(quote.id)} title={pinnedQuotes.includes(quote.id) ? "Unpin" : "Pin"} className={`p-2 rounded-lg transition-colors ${pinnedQuotes.includes(quote.id) ? 'text-primary bg-primary/10 hover:bg-primary/20' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'}`}>
+                                                        <Pin className={`h-4 w-4 ${pinnedQuotes.includes(quote.id) ? 'fill-current' : ''}`} />
+                                                    </button>
+                                                    <button onClick={() => handleDownloadPdf(quote.id, quote.quoteNumber)} title="Download PDF" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><DownloadCloud className="h-4 w-4" /></button>
+                                                    {!hasRole(["Estimation"]) && (
+                                                        <button onClick={() => handleSendEmail(quote.id)} title="Send Email" className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
+                                                    )}
+                                                    <button onClick={() => navigate(`/quotations/edit/${quote.id}`)} title="Edit" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
+                                                    <button onClick={() => navigate(`/quotations/revise/${quote.id}`)} title="Revise" className="p-2 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-lg transition-colors"><Copy className="h-4 w-4" /></button>
+                                                    {normalizeStatus(quote.status) === 'draft' && (
+                                                        <button onClick={() => handleSubmitForApproval(quote.id)} title="Submit for Approval" className="p-2 text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
+                                                    )}
+                                                    {normalizeStatus(quote.status) === 'pendingapproval' && isHuzefa && (
+                                                        <>
+                                                            <button onClick={() => handleApprove(quote.id)} title="Approve" className="p-2 text-muted-foreground hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"><CheckCircle className="h-4 w-4" /></button>
+                                                            <button onClick={() => handleReject(quote.id)} title="Reject" className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><XCircle className="h-4 w-4" /></button>
+                                                        </>
+                                                    )}
+                                                    {!['draft', 'pendingapproval', 'rejected'].includes(normalizeStatus(quote.status)) && (
+                                                        <>
+                                                            <button onClick={() => handleGenerateInvoice(quote.id)} title="Generate Invoice" className="p-2 text-muted-foreground hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"><FilePlus2 className="h-4 w-4" /></button>
+                                                            <button onClick={() => handleConvertToWorkOrder(quote.id)} title="Convert to Work Order" className="p-2 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"><Briefcase className="h-4 w-4" /></button>
+                                                            <button onClick={() => handleConvertToContract(quote.id)} title="Convert to AMC Contract" className="p-2 text-muted-foreground hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-colors"><FileSignature className="h-4 w-4" /></button>
+                                                        </>
+                                                    )}
+                                                    <button onClick={() => handleDeleteQuote(quote.id)} title="Delete" className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+
+                                    sortedFilteredQuotations.forEach(quote => {
+                                        if (processedIds.has(quote.id)) return;
+                                        
+                                        // Skip if parent is in the same view, we'll render it as a child
+                                        if (quote.parentQuoteId) {
+                                            const parentInList = sortedFilteredQuotations.some(q => q.id === quote.parentQuoteId);
+                                            if (parentInList) return;
+                                        }
+
+                                        renderedRows.push(renderQuoteRow(quote, 0));
+                                        processedIds.add(quote.id);
+
+                                        const renderChildren = (parentId: number, currentLevel: number) => {
+                                            const children = sortedFilteredQuotations.filter(q => q.parentQuoteId === parentId);
+                                            children.sort((a,b) => a.id - b.id);
+                                            children.forEach(child => {
+                                                if (processedIds.has(child.id)) return;
+                                                renderedRows.push(renderQuoteRow(child, currentLevel + 1));
+                                                processedIds.add(child.id);
+                                                renderChildren(child.id, currentLevel + 1);
+                                            });
+                                        };
+                                        renderChildren(quote.id, 0);
+                                    });
+
+                                    return renderedRows;
+                                })()
                             )}
                         </tbody>
                     </table>

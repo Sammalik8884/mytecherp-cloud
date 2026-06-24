@@ -626,9 +626,12 @@ export const QuotationFormPage = () => {
                 payload.reviseQuoteId = Number(id);
             }
 
-            if (isEditMode || isReviseMode) {
+            if (isEditMode) {
                 await quotationService.updateQuotation(Number(id), payload);
-                toast.success(isReviseMode ? "Quotation revised successfully" : "Quotation updated successfully");
+                toast.success("Quotation updated successfully");
+            } else if (isReviseMode) {
+                await quotationService.createQuotation(payload);
+                toast.success("Quotation revised successfully");
             } else {
                 await quotationService.createQuotation(payload);
                 toast.success("Quotation created successfully");
