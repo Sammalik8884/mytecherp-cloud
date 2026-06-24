@@ -148,36 +148,60 @@ export const QuotationFormPage = () => {
     useEffect(() => {
         if (!showImportedServices) return;
         setImportedServiceItems(prev => {
-            const next = importedItems.map((item, i) => {
-                const name = item.serviceName !== undefined
+            let changed = false;
+            const next = [...prev];
+            
+            importedItems.forEach((item, i) => {
+                const defaultName = item.serviceName !== undefined
                     ? item.serviceName
                     : item.product ? `${item.product.name}${item.product.itemCode ? ` (${item.product.itemCode})` : ''}` : '';
-                // Reuse existing service row at same index if it exists
-                const existing = prev[i];
-                if (existing) {
-                    // Always sync serviceName and quantity from the parent row
-                    return { ...existing, serviceName: name, quantity: item.quantity };
+                
+                if (next[i]) {
+                    if (next[i].quantity !== item.quantity) {
+                        next[i] = { ...next[i], quantity: item.quantity };
+                        changed = true;
+                    }
+                    if (!next[i].serviceName && defaultName) {
+                        next[i] = { ...next[i], serviceName: defaultName };
+                        changed = true;
+                    }
+                } else {
+                    next[i] = { ...makeEmptyRow('ImportedService'), serviceName: defaultName, quantity: item.quantity };
+                    changed = true;
                 }
-                return { ...makeEmptyRow('ImportedService'), serviceName: name, quantity: item.quantity };
             });
-            return next;
+            
+            return changed ? next : prev;
         });
     }, [importedItems, showImportedServices]);
 
     useEffect(() => {
         if (!showLocalServices) return;
         setLocalServiceItems(prev => {
-            const next = localItems.map((item, i) => {
-                const name = item.serviceName !== undefined
+            let changed = false;
+            const next = [...prev];
+            
+            localItems.forEach((item, i) => {
+                const defaultName = item.serviceName !== undefined
                     ? item.serviceName
                     : item.product ? `${item.product.name}${item.product.itemCode ? ` (${item.product.itemCode})` : ''}` : '';
-                const existing = prev[i];
-                if (existing) {
-                    return { ...existing, serviceName: name, quantity: item.quantity };
+                
+                if (next[i]) {
+                    if (next[i].quantity !== item.quantity) {
+                        next[i] = { ...next[i], quantity: item.quantity };
+                        changed = true;
+                    }
+                    if (!next[i].serviceName && defaultName) {
+                        next[i] = { ...next[i], serviceName: defaultName };
+                        changed = true;
+                    }
+                } else {
+                    next[i] = { ...makeEmptyRow('LocalService'), serviceName: defaultName, quantity: item.quantity };
+                    changed = true;
                 }
-                return { ...makeEmptyRow('LocalService'), serviceName: name, quantity: item.quantity };
             });
-            return next;
+            
+            return changed ? next : prev;
         });
     }, [localItems, showLocalServices]);
 
