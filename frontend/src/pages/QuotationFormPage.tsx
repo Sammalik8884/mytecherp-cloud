@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus, Trash2, ArrowLeft, Loader2, Search, Calculator, Pencil, X } from "lucide-react";
 import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -145,6 +145,9 @@ export const QuotationFormPage = () => {
 
     // Sync service rows 1-to-1 with their parent product rows
     // This replaces the onBlur approach which caused duplicates
+    const prevImportedItems = useRef<UiItem[]>([]);
+    const prevLocalItems = useRef<UiItem[]>([]);
+
     useEffect(() => {
         if (!showImportedServices) return;
         setImportedServiceItems(prev => {
@@ -156,12 +159,20 @@ export const QuotationFormPage = () => {
                     ? item.serviceName
                     : item.product ? `${item.product.name}${item.product.itemCode ? ` (${item.product.itemCode})` : ''}` : '';
                 
+                const prevItem = prevImportedItems.current[i];
+                const prevDefaultName = prevItem 
+                    ? (prevItem.serviceName !== undefined ? prevItem.serviceName : (prevItem.product ? `${prevItem.product.name}${prevItem.product.itemCode ? ` (${prevItem.product.itemCode})` : ''}` : ''))
+                    : '';
+                
                 if (next[i]) {
                     if (next[i].quantity !== item.quantity) {
                         next[i] = { ...next[i], quantity: item.quantity };
                         changed = true;
                     }
-                    if (!next[i].serviceName && defaultName) {
+                    if (defaultName !== prevDefaultName && next[i].serviceName === prevDefaultName) {
+                        next[i] = { ...next[i], serviceName: defaultName };
+                        changed = true;
+                    } else if (!next[i].serviceName && defaultName) {
                         next[i] = { ...next[i], serviceName: defaultName };
                         changed = true;
                     }
@@ -173,6 +184,7 @@ export const QuotationFormPage = () => {
             
             return changed ? next : prev;
         });
+        prevImportedItems.current = importedItems;
     }, [importedItems, showImportedServices]);
 
     useEffect(() => {
@@ -186,12 +198,20 @@ export const QuotationFormPage = () => {
                     ? item.serviceName
                     : item.product ? `${item.product.name}${item.product.itemCode ? ` (${item.product.itemCode})` : ''}` : '';
                 
+                const prevItem = prevLocalItems.current[i];
+                const prevDefaultName = prevItem 
+                    ? (prevItem.serviceName !== undefined ? prevItem.serviceName : (prevItem.product ? `${prevItem.product.name}${prevItem.product.itemCode ? ` (${prevItem.product.itemCode})` : ''}` : ''))
+                    : '';
+                
                 if (next[i]) {
                     if (next[i].quantity !== item.quantity) {
                         next[i] = { ...next[i], quantity: item.quantity };
                         changed = true;
                     }
-                    if (!next[i].serviceName && defaultName) {
+                    if (defaultName !== prevDefaultName && next[i].serviceName === prevDefaultName) {
+                        next[i] = { ...next[i], serviceName: defaultName };
+                        changed = true;
+                    } else if (!next[i].serviceName && defaultName) {
                         next[i] = { ...next[i], serviceName: defaultName };
                         changed = true;
                     }
@@ -203,6 +223,7 @@ export const QuotationFormPage = () => {
             
             return changed ? next : prev;
         });
+        prevLocalItems.current = localItems;
     }, [localItems, showLocalServices]);
 
     // Auto-add first row when section is toggled on
