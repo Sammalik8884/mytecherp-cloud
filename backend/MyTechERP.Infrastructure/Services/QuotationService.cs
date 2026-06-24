@@ -509,17 +509,19 @@ namespace MyTechERP.Infrastructure.Services
                         }
                         else // Local
                         {
+                            decimal localTransPct = dto.LocalTransportationPct > 0 ? dto.LocalTransportationPct : 2m;
+                            decimal localProfPct = dto.LocalProfitPct > 0 ? dto.LocalProfitPct : 15m;
                             decimal costInQuoteCurrency = originalPrice;
-                            decimal transportationCharge = costInQuoteCurrency * (transportationPct / 100m);
-                            decimal profitCharge = costInQuoteCurrency * (profitPct / 100m);
+                            decimal transportationCharge = costInQuoteCurrency * (localTransPct / 100m);
+                            decimal profitCharge = costInQuoteCurrency * (localProfPct / 100m);
                             finalSellingPrice = costInQuoteCurrency + transportationCharge + profitCharge;
                             unitCost = costInQuoteCurrency;
 
                             calcBreakdown = System.Text.Json.JsonSerializer.Serialize(new {
                                 originalPrice = originalPrice,
-                                transportationPct = transportationPct,
+                                transportationPct = localTransPct,
                                 transportationCharge = transportationCharge,
-                                profitPct = profitPct,
+                                profitPct = localProfPct,
                                 profitCharge = profitCharge,
                                 finalPrice = finalSellingPrice
                             });
