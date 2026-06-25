@@ -1,10 +1,10 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import {
-    Home, Users, MapPin, Briefcase, LogOut, FileText, FolderTree, Package, Receipt,
+    Home, Users, MapPin, LogOut, FileText, FolderTree, Package, Receipt,
     Building2,
-    ShieldAlert, X, Box, Wrench, DollarSign, FileSignature, ShoppingCart, ClipboardList,
-    Activity, RefreshCw, CreditCard, Lock, Target, Car, Wallet, Calculator, CheckSquare, Warehouse
+    ShieldAlert, X, Box, DollarSign, FileSignature, ClipboardList,
+    Activity, Lock, Target, Car, Wallet, Calculator, CheckSquare, Warehouse
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { PlanFeature } from "../types/auth";
