@@ -268,7 +268,9 @@ export const QuotationsPage = () => {
                                     const renderedRows: React.ReactNode[] = [];
                                     const processedIds = new Set<number>();
 
-                                    const renderQuoteRow = (quote: any, level: number = 0) => (
+                                    const renderQuoteRow = (quote: any, level: number = 0) => {
+                                        const hasChildren = quotations.some(q => q.parentQuoteId === quote.id);
+                                        return (
                                         <tr key={`quote-${quote.id}`} className={`hover:bg-secondary/50 transition-colors group ${level > 0 ? 'bg-secondary/10' : ''}`}>
                                             <td className="px-6 py-4 font-medium text-foreground">
                                                 <div className="flex items-center space-x-2" style={{ paddingLeft: `${level * 1.5}rem` }}>
@@ -309,7 +311,9 @@ export const QuotationsPage = () => {
                                                     {!hasRole(["Estimation"]) && (
                                                         <button onClick={() => handleSendEmail(quote.id)} title="Send Email" className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
                                                     )}
-                                                    <button onClick={() => navigate(`/quotations/edit/${quote.id}`)} title="Edit" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
+                                                    {!hasChildren && (
+                                                        <button onClick={() => navigate(`/quotations/edit/${quote.id}`)} title="Edit" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
+                                                    )}
                                                     <button onClick={() => navigate(`/quotations/revise/${quote.id}`)} title="Revise" className="p-2 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-lg transition-colors"><Copy className="h-4 w-4" /></button>
                                                     {normalizeStatus(quote.status) === 'draft' && (
                                                         <button onClick={() => handleSubmitForApproval(quote.id)} title="Submit for Approval" className="p-2 text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
@@ -332,6 +336,7 @@ export const QuotationsPage = () => {
                                             </td>
                                         </tr>
                                     );
+                                    };
 
                                     sortedFilteredQuotations.forEach(quote => {
                                         if (processedIds.has(quote.id)) return;
