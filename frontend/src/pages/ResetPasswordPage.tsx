@@ -38,8 +38,13 @@ export const ResetPasswordPage = () => {
             return;
         }
 
-        if (newPassword.length < 6) {
-            setMessage("Password must be at least 6 characters long.");
+        const hasUpperCase = /[A-Z]/.test(newPassword);
+        const hasLowerCase = /[a-z]/.test(newPassword);
+        const hasNumbers = /\d/.test(newPassword);
+        const hasNonalphas = /[^a-zA-Z0-9]/.test(newPassword);
+
+        if (newPassword.length < 6 || !hasUpperCase || !hasLowerCase || !hasNumbers || !hasNonalphas) {
+            setMessage("Password must be at least 6 characters and contain an uppercase letter, lowercase letter, number, and special character.");
             setIsSuccess(false);
             return;
         }
@@ -122,6 +127,9 @@ export const ResetPasswordPage = () => {
                                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                     </button>
                                 </div>
+                                <p className="text-[11px] text-muted-foreground/80 mt-1 leading-tight">
+                                    Must contain at least 6 characters, including 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+                                </p>
                             </div>
 
                             <div className="space-y-2">
