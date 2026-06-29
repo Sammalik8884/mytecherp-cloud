@@ -64,7 +64,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                 <div className="relative z-10 flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                         <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">{title}</p>
-                        <p className={`font-extrabold text-foreground leading-none truncate ${String(value).length > 10 ? 'text-xl' : String(value).length > 7 ? 'text-2xl' : 'text-3xl'}`}>{value}</p>
+                        <p className={`font-extrabold text-foreground leading-tight tracking-tight ${String(value).length > 15 ? 'text-sm' : String(value).length > 12 ? 'text-base' : String(value).length > 9 ? 'text-xl' : String(value).length > 7 ? 'text-2xl' : 'text-3xl'}`}>{value}</p>
                         {subtitle && <p className="mt-1.5 text-xs text-muted-foreground truncate">{subtitle}</p>}
                         {trend && trendLabel && (
                             <div className={`mt-3 inline-flex items-center space-x-1.5 text-xs font-semibold px-2 py-1 rounded-full
@@ -74,7 +74,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                             </div>
                         )}
                     </div>
-                    <div className={`p-3 rounded-xl ${dc.iconBg} ml-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110`}>
+                    <div className={`p-3 rounded-xl ${dc.iconBg} ml-3 flex-shrink-0 transition-transform duration-300 group-hover:scale-110`}>
                         <Icon className={`h-6 w-6 ${dc.iconColor}`} />
                     </div>
                 </div>
@@ -104,7 +104,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             <div className="relative z-10 flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                     <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">{title}</p>
-                    <p className={`font-extrabold text-foreground leading-none truncate ${String(value).length > 10 ? 'text-xl' : String(value).length > 7 ? 'text-2xl' : 'text-3xl'}`}>{value}</p>
+                    <p className={`font-extrabold text-foreground leading-tight tracking-tight ${String(value).length > 15 ? 'text-sm' : String(value).length > 12 ? 'text-base' : String(value).length > 9 ? 'text-xl' : String(value).length > 7 ? 'text-2xl' : 'text-3xl'}`}>{value}</p>
                     {subtitle && <p className="mt-1.5 text-xs text-muted-foreground truncate">{subtitle}</p>}
                     {trend && trendLabel && (
                         <div className={`mt-3 inline-flex items-center space-x-1.5 text-xs font-semibold px-2 py-1 rounded-full
@@ -114,7 +114,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                         </div>
                     )}
                 </div>
-                <div className={`p-3 rounded-xl ${lc.iconBg} ml-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110`}>
+                <div className={`p-3 rounded-xl ${lc.iconBg} ml-3 flex-shrink-0 transition-transform duration-300 group-hover:scale-110`}>
                     <Icon className={`h-6 w-6 ${lc.iconColor}`} />
                 </div>
             </div>
