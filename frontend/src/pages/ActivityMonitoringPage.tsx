@@ -51,7 +51,7 @@ export const ActivityMonitoringPage = () => {
     const loadData = async () => {
         setLoading(true);
         try {
-            const dataRes = await activityService.getActivities(selectedUserId, startDate, endDate, 1, 100);
+            const dataRes = await activityService.getActivities(selectedUserId, startDate, endDate, 1, 5000);
             setActivities(dataRes.data);
             
             const statsRes = await activityService.getActivityStats(selectedUserId, startDate, endDate);
