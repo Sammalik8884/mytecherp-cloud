@@ -307,10 +307,18 @@ namespace MyTechERP.Infrastructure.Services
             var users = await _context.Users.Where(u => u.Email == dto.Email).ToListAsync();
             if(!users.Any()) return false;
             
+            string decodedToken = dto.Token;
+            try 
+            {
+                var decodedTokenBytes = Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(dto.Token);
+                decodedToken = System.Text.Encoding.UTF8.GetString(decodedTokenBytes);
+            } 
+            catch { }
+
             bool anySuccess = false;
             foreach(var user in users)
             {
-                var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+                var result = await _userManager.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
                 if(result.Succeeded) anySuccess = true;
             }
             return anySuccess;

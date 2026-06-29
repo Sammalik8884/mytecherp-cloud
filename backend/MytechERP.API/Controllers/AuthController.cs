@@ -141,7 +141,8 @@ namespace MytechERP.API.Controllers
             var token = await _authService.GeneratePasswordResetTokenAsync(dto.Email);
             if (!string.IsNullOrEmpty(token))
             {
-                var encodedToken = System.Web.HttpUtility.UrlEncode(token);
+                var tokenBytes = System.Text.Encoding.UTF8.GetBytes(token);
+                var encodedToken = Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlEncode(tokenBytes);
                 var resetLink = $"https://mytech-erp.vercel.app/reset-password?email={System.Web.HttpUtility.UrlEncode(dto.Email)}&token={encodedToken}";
                 
                 var emailBody = $@"
