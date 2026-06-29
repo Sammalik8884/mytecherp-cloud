@@ -21,7 +21,7 @@ export interface ActivityStatsDto {
 
 export const activityService = {
     getActivities: async (userId?: string, startDate?: string, endDate?: string, page = 1, pageSize = 50) => {
-        let url = `/api/Activity?page=${page}&pageSize=${pageSize}`;
+        let url = `/Activity?page=${page}&pageSize=${pageSize}`;
         if (userId) url += `&userId=${userId}`;
         if (startDate) url += `&startDate=${startDate}`;
         if (endDate) url += `&endDate=${endDate}`;
@@ -30,7 +30,7 @@ export const activityService = {
     },
 
     getActivityStats: async (userId?: string, startDate?: string, endDate?: string) => {
-        let url = `/api/Activity/stats?`;
+        let url = `/Activity/stats?`;
         if (userId) url += `&userId=${userId}`;
         if (startDate) url += `&startDate=${startDate}`;
         if (endDate) url += `&endDate=${endDate}`;

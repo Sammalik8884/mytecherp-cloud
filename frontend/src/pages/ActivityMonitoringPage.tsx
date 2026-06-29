@@ -5,8 +5,7 @@ import { authService } from "../services/authService";
 
 interface UserDto {
     id: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
 }
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { format, startOfWeek, startOfMonth, startOfYear } from "date-fns";
@@ -124,7 +123,7 @@ export const ActivityMonitoringPage = () => {
                         >
                             <option value="">All Employees</option>
                             {users.map(u => (
-                                <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                                <option key={u.id} value={u.id}>{u.fullName}</option>
                             ))}
                         </select>
                     </div>
