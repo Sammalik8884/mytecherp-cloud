@@ -180,13 +180,16 @@ namespace MytechERP.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
         {
-            var success = await _authService.ResetPasswordAsync(dto);
-            if (success)
+            var result = await _authService.ResetPasswordAsync(dto);
+            if (result.Success)
             {
                 return Ok(new { message = "Password has been successfully reset." });
             }
             
-            return BadRequest(new { error = "Invalid token or email." });
+            var errorMessage = result.Errors != null && result.Errors.Any() 
+                ? string.Join(" | ", result.Errors) 
+                : $"Failed but no errors returned. Dto token length: {dto.Token?.Length ?? 0}";
+            return BadRequest(new { error = errorMessage });
         }
     }
 

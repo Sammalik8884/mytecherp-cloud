@@ -301,11 +301,11 @@ namespace MyTechERP.Infrastructure.Services
             return await _userManager.GeneratePasswordResetTokenAsync(user);
         }
 
-        public async Task<bool> ResetPasswordAsync(ResetPasswordDto dto)
+        public async Task<(bool Success, string[] Errors)> ResetPasswordAsync(ResetPasswordDto dto)
         {
             // Reset for ALL accounts sharing this email (multi-tenant)
             var users = await _context.Users.Where(u => u.Email == dto.Email).ToListAsync();
-            if(!users.Any()) return false;
+            if(!users.Any()) return (false, new[] { "User not found." });
             
             string decodedToken = dto.Token;
             try 
@@ -313,15 +313,26 @@ namespace MyTechERP.Infrastructure.Services
                 var decodedTokenBytes = Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(dto.Token);
                 decodedToken = System.Text.Encoding.UTF8.GetString(decodedTokenBytes);
             } 
-            catch { }
+            catch (Exception ex)
+            {
+                return (false, new[] { "Token decode error: " + ex.Message });
+            }
 
             bool anySuccess = false;
+            var errors = new List<string>();
             foreach(var user in users)
             {
                 var result = await _userManager.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
-                if(result.Succeeded) anySuccess = true;
+                if(result.Succeeded) 
+                {
+                    anySuccess = true;
+                }
+                else
+                {
+                    errors.AddRange(result.Errors.Select(e => e.Description));
+                }
             }
-            return anySuccess;
+            return (anySuccess, errors.Distinct().ToArray());
         }
         
         private async Task EnsureRolesExist()
