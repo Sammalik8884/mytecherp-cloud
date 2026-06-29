@@ -15,7 +15,7 @@ namespace MytechERP.Application.Interfaces
         Task<string> CreateUserAsync(CreateUserRequest request, string currentAdminTenantId);
         Task<AuthResponse> LoginStepTwoAsync(string tempToken, int tenantId);
         Task<string> GeneratePasswordResetTokenAsync(string email);
-        Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
+        Task<(bool Success, string[] Errors)> ResetPasswordAsync(ResetPasswordDto dto);
         Task<IEnumerable<object>> GetUsersByTenantAsync(int tenantId);
         Task<IEnumerable<string>> GetRolesAsync();
     }
