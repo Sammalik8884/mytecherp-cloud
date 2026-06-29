@@ -23,10 +23,10 @@ namespace MyTechERP.Infrastructure.Services
         {
             var email = new MimeMessage();
 
-            var senderName = _config["EmailSettings:SenderName"];
-            var senderEmail = _config["EmailSettings:SenderEmail"];
+            var senderName = !string.IsNullOrWhiteSpace(_config["EmailSettings:SenderName"]) ? _config["EmailSettings:SenderName"] : "MyTech ERP System";
+            var senderEmail = !string.IsNullOrWhiteSpace(_config["EmailSettings:SenderEmail"]) ? _config["EmailSettings:SenderEmail"] : "mytechfms@gmail.com";
             email.From.Add(new MailboxAddress(senderName, senderEmail));
-            email.To.Add(MailboxAddress.Parse(toEmail));
+            email.To.Add(MailboxAddress.Parse(toEmail ?? string.Empty));
             email.Subject = subject;
 
             var builder = new BodyBuilder();
@@ -50,10 +50,10 @@ namespace MyTechERP.Infrastructure.Services
         {
             var email = new MimeMessage();
 
-            var senderName = _config["EmailSettings:SenderName"];
-            var senderEmail = _config["EmailSettings:SenderEmail"];
+            var senderName = !string.IsNullOrWhiteSpace(_config["EmailSettings:SenderName"]) ? _config["EmailSettings:SenderName"] : "MyTech ERP System";
+            var senderEmail = !string.IsNullOrWhiteSpace(_config["EmailSettings:SenderEmail"]) ? _config["EmailSettings:SenderEmail"] : "mytechfms@gmail.com";
             email.From.Add(new MailboxAddress(senderName, senderEmail));
-            email.To.Add(MailboxAddress.Parse(toEmail));
+            email.To.Add(MailboxAddress.Parse(toEmail ?? string.Empty));
             email.Subject = subject;
 
             var builder = new BodyBuilder();
@@ -76,12 +76,14 @@ namespace MyTechERP.Infrastructure.Services
             using var smtp = new SmtpClient();
             try
             {
-                var server = _config["EmailSettings:Server"];
+                var server = !string.IsNullOrWhiteSpace(_config["EmailSettings:Server"]) ? _config["EmailSettings:Server"] : "smtp.gmail.com";
                 if (!int.TryParse(_config["EmailSettings:Port"], out int port)) port = 587;
 
-                var useSsl = bool.Parse(_config["EmailSettings:EnableSsl"]);
-                var password = _config["EmailSettings:Password"];
-                var emailFrom = _config["EmailSettings:SenderEmail"];
+                var useSslStr = _config["EmailSettings:EnableSsl"];
+                var useSsl = string.IsNullOrWhiteSpace(useSslStr) ? true : bool.Parse(useSslStr);
+                
+                var password = !string.IsNullOrWhiteSpace(_config["EmailSettings:Password"]) ? _config["EmailSettings:Password"] : "mqbwygejgvhsrjfn";
+                var emailFrom = !string.IsNullOrWhiteSpace(_config["EmailSettings:SenderEmail"]) ? _config["EmailSettings:SenderEmail"] : "mytechfms@gmail.com";
 
                 await smtp.ConnectAsync(server, port, useSsl ? MailKit.Security.SecureSocketOptions.StartTls : MailKit.Security.SecureSocketOptions.Auto);
                 await smtp.AuthenticateAsync(emailFrom, password);
