@@ -54,6 +54,7 @@ builder.Services.Configure<PasswordHasherOptions>(options =>
 {
     options.IterationCount = 10000;
 });
+builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IChecklistRepository, ChecklistRepository>();
 builder.Services.AddScoped<ICheckListService, CheckListService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

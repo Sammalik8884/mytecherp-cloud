@@ -17,6 +17,7 @@ import { ProjectDocumentsPage } from "./pages/ProjectDocumentsPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { QuotationsPage } from "./pages/QuotationsPage";
+import { ActivityMonitoringPage } from "./pages/ActivityMonitoringPage";
 import { QuotationFormPage } from "./pages/QuotationFormPage";
 import { UsersPage } from "./pages/UsersPage";
 import { AssetsPage } from "./pages/AssetsPage";
@@ -108,6 +109,7 @@ function App() {
                                 <Route path="/customers" element={<CustomersPage />} />
                                 <Route path="/sites" element={<SitesPage />} />
                                 <Route path="/project-documents" element={<ProjectDocumentsPage />} />
+                                <Route path="/activity-monitoring" element={<ActivityMonitoringPage />} />
                             </Route>
 
                             {/* Catalog & Sales - Engineer/Manager/Admin Only */}

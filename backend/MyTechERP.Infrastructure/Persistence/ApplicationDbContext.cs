@@ -452,10 +452,126 @@ namespace MytechERP.Infrastructure.Persistance
                 }
             }
 
-            return await base.SaveChangesAsync(cancellationToken);
+            var auditEntries = new List<AuditEntry>();
+            var userId = _currentUserService.UserId ?? "System";
+            var tenantId = _currentUserService.TenantId ?? 0;
+
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+                    continue;
+
+                // Only audit syncable entities or entities we care about, but to be exhaustive we audit all non-audit entities.
+                var auditEntry = new AuditEntry(entry)
+                {
+                    EntityName = entry.Entity.GetType().Name,
+                    UserId = userId,
+                    Action = entry.State.ToString(),
+                    TenantId = tenantId
+                };
+                
+                auditEntries.Add(auditEntry);
+
+                foreach (var property in entry.Properties)
+                {
+                    if (property.IsTemporary)
+                    {
+                        auditEntry.TemporaryProperties.Add(property);
+                        continue;
+                    }
+
+                    string propertyName = property.Metadata.Name;
+
+                    switch (entry.State)
+                    {
+                        case EntityState.Added:
+                            auditEntry.NewValues[propertyName] = property.CurrentValue;
+                            break;
+                        case EntityState.Deleted:
+                            auditEntry.OldValues[propertyName] = property.OriginalValue;
+                            break;
+                        case EntityState.Modified:
+                            if (property.IsModified)
+                            {
+                                auditEntry.OldValues[propertyName] = property.OriginalValue;
+                                auditEntry.NewValues[propertyName] = property.CurrentValue;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            var result = await base.SaveChangesAsync(cancellationToken);
+
+            if (auditEntries.Any())
+            {
+                foreach (var auditEntry in auditEntries)
+                {
+                    foreach (var prop in auditEntry.TemporaryProperties)
+                    {
+                        if (prop.Metadata.IsPrimaryKey())
+                        {
+                            auditEntry.NewValues[prop.Metadata.Name] = prop.CurrentValue;
+                        }
+                        else
+                        {
+                            auditEntry.NewValues[prop.Metadata.Name] = prop.CurrentValue;
+                        }
+                    }
+
+                    AuditLogs.Add(auditEntry.ToAuditLog());
+                }
+                
+                await base.SaveChangesAsync(cancellationToken);
+            }
+
+            return result;
         }
 
 
 
     }
+
+    public class AuditEntry
+    {
+        public Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry Entry { get; }
+        public string EntityName { get; set; } = string.Empty;
+        public string Action { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+        public int TenantId { get; set; }
+        public Dictionary<string, object?> OldValues { get; } = new Dictionary<string, object?>();
+        public Dictionary<string, object?> NewValues { get; } = new Dictionary<string, object?>();
+        public List<Microsoft.EntityFrameworkCore.ChangeTracking.PropertyEntry> TemporaryProperties { get; } = new List<Microsoft.EntityFrameworkCore.ChangeTracking.PropertyEntry>();
+
+        public bool HasTemporaryProperties => TemporaryProperties.Any();
+
+        public AuditEntry(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry)
+        {
+            Entry = entry;
+        }
+
+        public AuditLog ToAuditLog()
+        {
+            var audit = new AuditLog
+            {
+                EntityName = EntityName,
+                Action = Action,
+                UserId = UserId,
+                TenantId = TenantId,
+                Timestamp = DateTime.UtcNow,
+                EntityId = 0
+            };
+            
+            var idProp = Entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey());
+            if (idProp != null && idProp.CurrentValue is int intId) 
+            {
+                audit.EntityId = intId;
+            }
+
+            audit.OldValue = OldValues.Count == 0 ? null : System.Text.Json.JsonSerializer.Serialize(OldValues);
+            audit.NewValue = NewValues.Count == 0 ? null : System.Text.Json.JsonSerializer.Serialize(NewValues);
+            
+            return audit;
+        }
     }
+}

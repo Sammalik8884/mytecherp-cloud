@@ -91,7 +91,8 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Expense Auditor", href: "/accounts/expense-auditor", icon: Calculator, allowedRoles: ["Admin", "Accounts Head", "Manager"], allowedEmails: ["munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"] },
 
     { label: "System", isHeader: true, allowedRoles: ["Admin", "Manager"] },
-    { label: "Audit Logs", href: "/audit-logs", icon: Activity, allowedRoles: ["Admin", "Manager"], requiredFeature: PlanFeature.AuditLogs },
+    { label: "Activity Monitoring", href: "/activity-monitoring", icon: Activity, allowedRoles: ["Admin", "Manager"] },
+    // { label: "Audit Logs", href: "/audit-logs", icon: Activity, allowedRoles: ["Admin", "Manager"], requiredFeature: PlanFeature.AuditLogs },
     // { label: "Sync Dashboard", href: "/sync-dashboard", icon: RefreshCw, allowedRoles: ["Admin", "Manager"], requiredFeature: PlanFeature.OfflineSync },
     // { label: "Billing & Plans", href: "/subscription/plans", icon: CreditCard, allowedRoles: ["Admin", "Manager"] },
 ];
