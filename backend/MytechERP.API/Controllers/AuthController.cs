@@ -143,7 +143,22 @@ namespace MytechERP.API.Controllers
             {
                 var tokenBytes = System.Text.Encoding.UTF8.GetBytes(token);
                 var encodedToken = Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlEncode(tokenBytes);
-                var resetLink = $"https://mytech-erp.vercel.app/reset-password?email={System.Web.HttpUtility.UrlEncode(dto.Email)}&token={encodedToken}";
+                
+                var origin = Request.Headers["Origin"].ToString();
+                if (string.IsNullOrEmpty(origin)) 
+                {
+                    var referer = Request.Headers["Referer"].ToString();
+                    if (!string.IsNullOrEmpty(referer))
+                    {
+                        var uri = new Uri(referer);
+                        origin = $"{uri.Scheme}://{uri.Authority}";
+                    }
+                    else
+                    {
+                        origin = "https://mytecherp.com";
+                    }
+                }
+                var resetLink = $"{origin}/reset-password?email={System.Web.HttpUtility.UrlEncode(dto.Email)}&token={encodedToken}";
                 
                 var emailBody = $@"
                     <h2>Reset Your Password</h2>
