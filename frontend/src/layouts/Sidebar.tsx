@@ -53,7 +53,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Activity (Salesmen)", href: "/sales/activity", icon: Activity, allowedRoles: ["Admin", "Manager"] },
     { label: "My Sales Dashboard", href: "/sales/my-dashboard", icon: MapPin, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation"] },
 
-    { label: "Foundation", isHeader: true, allowedRoles: ["Admin", "Manager", "Engineer", "Salesman", "Estimation", "Accounts Head", "Technician", "Worker"] },
+    { label: "Foundation", isHeader: true },
     { label: "Users & Roles", href: "/users", icon: ShieldAlert, allowedRoles: ["Admin", "Manager"] },
     { label: "Application Forms", href: "/application-forms", paths: ["/application-forms", "/application-forms/new"], icon: FileText },
     { label: "Vehicle Travel Forms", href: "/vehicle-travel-forms", paths: ["/vehicle-travel-forms", "/vehicle-travel-forms/new"], icon: Car },

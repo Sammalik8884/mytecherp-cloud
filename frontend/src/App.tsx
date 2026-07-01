@@ -169,6 +169,13 @@ function App() {
                             </Route>
 
                             <Route path="/amount-request" element={<AmountRequestFormPage />} />
+                            <Route path="/expenses" element={<ExpensesPage />} />
+                            <Route path="/expenses/new" element={<AddExpensePage />} />
+                            <Route path="/expenses/edit/:id" element={<AddExpensePage />} />
+                            <Route path="/application-forms" element={<ApplicationFormsPage />} />
+                            <Route path="/application-forms/new" element={<NewApplicationFormPage />} />
+                            <Route path="/vehicle-travel-forms" element={<VehicleTravelFormsPage />} />
+                            <Route path="/vehicle-travel-forms/new" element={<NewVehicleTravelFormPage />} />
                             <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Accounts Head"]} />}>
                                 <Route path="/accounts/arf-dashboard" element={<AccountsArfDashboardPage />} />
                             </Route>
@@ -181,13 +188,6 @@ function App() {
                                 <Route path="/projects/:id" element={<ProjectDetailsPage />} />
                                 <Route path="/offices" element={<OfficesListPage />} />
                                 <Route path="/offices/:id" element={<OfficeDetailsPage />} />
-                                <Route path="/expenses" element={<ExpensesPage />} />
-                                <Route path="/expenses/new" element={<AddExpensePage />} />
-                                <Route path="/expenses/edit/:id" element={<AddExpensePage />} />
-                                <Route path="/application-forms" element={<ApplicationFormsPage />} />
-                                <Route path="/application-forms/new" element={<NewApplicationFormPage />} />
-                                <Route path="/vehicle-travel-forms" element={<VehicleTravelFormsPage />} />
-                                <Route path="/vehicle-travel-forms/new" element={<NewVehicleTravelFormPage />} />
                                 
                                 {/* End of previous RoleProtectedRoute routes */}
                             </Route>

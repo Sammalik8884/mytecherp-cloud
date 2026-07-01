@@ -144,5 +144,21 @@ namespace MytechERP.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpDelete("wipe-procurement")]
+        public async Task<IActionResult> WipeProcurement()
+        {
+            try
+            {
+                _db.ProcurementRequestItems.RemoveRange(_db.ProcurementRequestItems);
+                _db.ProcurementRequests.RemoveRange(_db.ProcurementRequests);
+                await _db.SaveChangesAsync();
+                return Ok(new { message = "All procurement data wiped successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }
