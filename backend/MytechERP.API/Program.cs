@@ -25,7 +25,14 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 var frontendUrls = builder.Configuration.GetSection("FrontendUrls").Get<string[]>() 
-                   ?? new[] { "http://localhost:5173", "http://localhost:3000","https://mytecherp-cloud.vercel.app" };
+                   ?? new[] { "http://localhost:5173", "http://localhost:3000","https://mytecherp-cloud.vercel.app", "https://mytecherp.com", "https://www.mytecherp.com" };
+
+var extraFrontendUrlStr = builder.Configuration["FrontendUrls"];
+if (!string.IsNullOrEmpty(extraFrontendUrlStr) && frontendUrls.Length <= 3) 
+{
+    var parsed = extraFrontendUrlStr.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray();
+    if (parsed.Length > 0) frontendUrls = parsed;
+}
 
 builder.Services.AddCors(options =>
 {
@@ -518,6 +525,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.UseRouting();
+app.UseCors("AllowFrontend");
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -540,7 +550,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
