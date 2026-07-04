@@ -42,4 +42,43 @@ namespace MytechERP.Application.DTOs.Procurement
         [Required]
         public string ExecutiveEmail { get; set; } = string.Empty;
     }
+
+    public class RegionalHeadReviewDto
+    {
+        [Required]
+        public bool IsApproved { get; set; }
+        public string? Remarks { get; set; }
+        public List<UpdateQuantityDto> UpdatedQuantities { get; set; } = new List<UpdateQuantityDto>();
+    }
+
+    public class UpdateQuantityDto
+    {
+        public int ItemId { get; set; }
+        public decimal NewQuantity { get; set; }
+    }
+
+    public class SubmitVendorQuotesDto
+    {
+        [Required]
+        public List<VendorQuoteDto> Quotes { get; set; } = new List<VendorQuoteDto>();
+    }
+
+    public class VendorQuoteDto
+    {
+        [Required]
+        public string VendorName { get; set; } = string.Empty;
+        public string? CityName { get; set; }
+        public string? ContactPerson { get; set; }
+        public string? ContactNumber { get; set; }
+        public string? BankAccountName { get; set; }
+        public string? BankName { get; set; }
+        public string? AccountNumber { get; set; }
+        public List<VendorQuoteItemDto> Items { get; set; } = new List<VendorQuoteItemDto>();
+    }
+
+    public class VendorQuoteItemDto
+    {
+        public int ProcurementRequestItemId { get; set; }
+        public decimal UnitRate { get; set; }
+    }
 }

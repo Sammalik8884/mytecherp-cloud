@@ -18,7 +18,30 @@ export interface ProcurementRequestDto {
     deliveryNoteText?: string;
     deliveryNoteDocuments?: string[];
     items: ProcurementRequestItemDto[];
+    quotes: ProcurementQuoteDto[];
     isArfApproved?: boolean;
+}
+
+export interface ProcurementQuoteDto {
+    id: number;
+    vendorName: string;
+    cityName?: string;
+    contactPerson?: string;
+    contactNumber?: string;
+    bankAccountName?: string;
+    bankName?: string;
+    accountNumber?: string;
+    totalAmount: number;
+    isSelected: boolean;
+    submittedAt: string;
+    quoteItems: ProcurementQuoteItemDto[];
+}
+
+export interface ProcurementQuoteItemDto {
+    id: number;
+    procurementRequestItemId: number;
+    unitRate: number;
+    lineTotal: number;
 }
 
 export interface ProcurementRequestItemDto {

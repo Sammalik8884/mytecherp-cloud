@@ -44,13 +44,28 @@ export const procurementFlowService = {
     return response.data;
   },
 
+  rhReview: async (id: number, data: any): Promise<ProcurementRequestDto> => {
+    const response = await apiClient.post<ProcurementRequestDto>(`${BASE_URL}/${id}/rh-review`, data);
+    return response.data;
+  },
+
   pdReview: async (id: number, data: PdReviewProcurementDto): Promise<ProcurementRequestDto> => {
     const response = await apiClient.post<ProcurementRequestDto>(`${BASE_URL}/${id}/pd-review`, data);
     return response.data;
   },
 
+  submitQuotes: async (id: number, data: any): Promise<ProcurementRequestDto> => {
+    const response = await apiClient.post<ProcurementRequestDto>(`${BASE_URL}/${id}/submit-quotes`, data);
+    return response.data;
+  },
+
   generateArf: async (id: number): Promise<ProcurementRequestDto> => {
     const response = await apiClient.post<ProcurementRequestDto>(`${BASE_URL}/${id}/generate-arf`, {});
+    return response.data;
+  },
+
+  procure: async (id: number): Promise<ProcurementRequestDto> => {
+    const response = await apiClient.post<ProcurementRequestDto>(`${BASE_URL}/${id}/procure`, {});
     return response.data;
   },
 

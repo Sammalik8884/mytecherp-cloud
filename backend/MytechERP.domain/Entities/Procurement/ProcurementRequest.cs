@@ -28,10 +28,15 @@ namespace MytechERP.domain.Entities.Procurement
         public Site? Site { get; set; }
 
         // Procurement Flow Statuses:
-        // PendingPDApproval, RejectedByPD, ApprovedByPD, ARFCreated, ARFApproved, AssignedToExecutive, Completed
+        // PendingRegionalHead, RejectedByRegionalHead, PendingPDApproval, RejectedByPD, ApprovedByPD, AssignedToExecutive, PendingPEQuotes, QuotesSubmitted, ARFCreated, ARFApproved, ReadyToProcure, Completed
         [Required]
         [MaxLength(50)]
-        public string Status { get; set; } = "PendingPDApproval";
+        public string Status { get; set; } = "PendingRegionalHead";
+
+        // Regional Head Review
+        public string? RegionalHeadEmail { get; set; }
+        public string? RegionalHeadRemarks { get; set; }
+        public DateTime? RegionalHeadApprovalDate { get; set; }
 
         // Project Director Review
         public string? PdEmail { get; set; }
@@ -63,5 +68,6 @@ namespace MytechERP.domain.Entities.Procurement
         }
 
         public ICollection<ProcurementRequestItem> Items { get; set; } = new List<ProcurementRequestItem>();
+        public ICollection<ProcurementQuote> Quotes { get; set; } = new List<ProcurementQuote>();
     }
 }

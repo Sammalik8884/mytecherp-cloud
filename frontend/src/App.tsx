@@ -69,6 +69,7 @@ import PendingApprovalsPage from "./pages/procurementFlow/PendingApprovalsPage";
 import ProcurementApprovedPage from "./pages/procurementFlow/ProcurementApprovedPage";
 import PendingProcurementsPage from "./pages/procurementFlow/PendingProcurementsPage";
 import CompletedProcurementsPage from "./pages/procurementFlow/CompletedProcurementsPage";
+import RegionalHeadApprovalsPage from "./pages/procurementFlow/RegionalHeadApprovalsPage";
 import ProcurementDetailsPage from "./pages/procurementFlow/ProcurementDetailsPage";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./auth/AuthContext";
@@ -201,10 +202,14 @@ function App() {
                             </Route>
 
                             {/* Procurement Flow */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Regional Head", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"]} />}>
                                 <Route path="/procurement-flow/dashboard" element={<ProcurementDashboardPage />} />
                                 <Route path="/procurement-flow/pending-approvals" element={<PendingApprovalsPage />} />
                                 <Route path="/procurement-flow/:id" element={<ProcurementDetailsPage />} />
+                                
+                                <Route element={<RoleProtectedRoute allowedRoles={["Regional Head", "Admin", "Manager"]} />}>
+                                    <Route path="/procurement-flow/regional-approvals" element={<RegionalHeadApprovalsPage />} />
+                                </Route>
                                 
                                 <Route element={<RoleProtectedRoute allowedRoles={["Site Supervisor"]} />}>
                                     <Route path="/procurement-flow/create" element={<CreateProcurementPage />} />

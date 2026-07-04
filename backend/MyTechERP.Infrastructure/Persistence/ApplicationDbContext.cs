@@ -149,6 +149,8 @@ namespace MytechERP.Infrastructure.Persistance
         
         public DbSet<MytechERP.domain.Entities.Procurement.ProcurementRequest> ProcurementRequests { get; set; }
         public DbSet<MytechERP.domain.Entities.Procurement.ProcurementRequestItem> ProcurementRequestItems { get; set; }
+        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementQuote> ProcurementQuotes { get; set; }
+        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementQuoteItem> ProcurementQuoteItems { get; set; }
 
 
         // ─── SaaS Subscription ─────────────────────────────────────────
@@ -162,6 +164,18 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<MytechERP.domain.Entities.Procurement.ProcurementRequestItem>()
                 .Property(p => p.Quantity)
                 .HasPrecision(18, 4);
+                
+            builder.Entity<MytechERP.domain.Entities.Procurement.ProcurementQuote>()
+                .Property(p => p.TotalAmount)
+                .HasPrecision(18, 2);
+
+            builder.Entity<MytechERP.domain.Entities.Procurement.ProcurementQuoteItem>()
+                .Property(p => p.UnitRate)
+                .HasPrecision(18, 2);
+                
+            builder.Entity<MytechERP.domain.Entities.Procurement.ProcurementQuoteItem>()
+                .Property(p => p.LineTotal)
+                .HasPrecision(18, 2);
             builder.Entity<Tenant>(entity =>
             {
                 entity.HasKey(e => e.Id);

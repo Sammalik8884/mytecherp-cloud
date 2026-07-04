@@ -26,6 +26,14 @@ namespace MytechERP.Infrastructure.Services.Procurement
             _userManager = userManager;
         }
 
+        private IQueryable<ProcurementRequest> GetBaseQuery()
+        {
+            return _context.ProcurementRequests
+                .Include(p => p.Items)
+                .Include(p => p.Quotes)
+                    .ThenInclude(q => q.QuoteItems);
+        }
+
         private ProcurementRequestDto MapToDto(ProcurementRequest entity)
         {
             return new ProcurementRequestDto
@@ -38,6 +46,9 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 SupervisorEmail = entity.SupervisorEmail,
                 SiteId = entity.SiteId,
                 Status = entity.Status,
+                RegionalHeadEmail = entity.RegionalHeadEmail,
+                RegionalHeadRemarks = entity.RegionalHeadRemarks,
+                RegionalHeadApprovalDate = entity.RegionalHeadApprovalDate,
                 PdEmail = entity.PdEmail,
                 PdRemarks = entity.PdRemarks,
                 PdApprovalDate = entity.PdApprovalDate,
@@ -55,6 +66,27 @@ namespace MytechERP.Infrastructure.Services.Procurement
                     ItemName = i.ItemName,
                     Quantity = i.Quantity,
                     Reason = i.Reason
+                }).ToList(),
+                Quotes = entity.Quotes.Select(q => new ProcurementQuoteDto
+                {
+                    Id = q.Id,
+                    VendorName = q.VendorName,
+                    CityName = q.CityName,
+                    ContactPerson = q.ContactPerson,
+                    ContactNumber = q.ContactNumber,
+                    BankAccountName = q.BankAccountName,
+                    BankName = q.BankName,
+                    AccountNumber = q.AccountNumber,
+                    TotalAmount = q.TotalAmount,
+                    IsSelected = q.IsSelected,
+                    SubmittedAt = q.SubmittedAt,
+                    QuoteItems = q.QuoteItems.Select(qi => new ProcurementQuoteItemDto
+                    {
+                        Id = qi.Id,
+                        ProcurementRequestItemId = qi.ProcurementRequestItemId,
+                        UnitRate = qi.UnitRate,
+                        LineTotal = qi.LineTotal
+                    }).ToList()
                 }).ToList()
             };
         }
@@ -75,7 +107,9 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 {
                     if (dto.AmountRequestFormId.HasValue && arfStatuses.ContainsKey(dto.AmountRequestFormId.Value))
                     {
-                        dto.IsArfApproved = arfStatuses[dto.AmountRequestFormId.Value] == "Released";
+                        var status = arfStatuses[dto.AmountRequestFormId.Value];
+                        // An ARF is typically "Released" or "Approved" when it's fully done
+                        dto.IsArfApproved = (status == "Released" || status == "Approved");
                     }
                 }
             }
@@ -97,7 +131,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
         public async Task<List<ProcurementRequestDto>> GetAllProcurementsAsync(string userId, string role)
         {
-            var query = _context.ProcurementRequests.Include(p => p.Items).AsQueryable();
+            var query = GetBaseQuery();
 
             if (role == "SiteSupervisor")
             {
@@ -107,7 +141,11 @@ namespace MytechERP.Infrastructure.Services.Procurement
             {
                 query = query.Where(p => p.AssignedExecutiveEmail == userId);
             }
-            // Add other role-based filters if necessary
+            else if (role == "Regional Head")
+            {
+                // Can see pending regional head approvals or those they approved
+                query = query.Where(p => p.Status == "PendingRegionalHead" || p.RegionalHeadEmail == userId);
+            }
 
             var requests = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
             return await MapToDtoListAsync(requests);
@@ -115,8 +153,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
         public async Task<List<ProcurementRequestDto>> GetPendingPdApprovalsAsync()
         {
-            var requests = await _context.ProcurementRequests
-                .Include(p => p.Items)
+            var requests = await GetBaseQuery()
                 .Where(p => p.Status == "PendingPDApproval")
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -126,9 +163,9 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
         public async Task<List<ProcurementRequestDto>> GetApprovedRequestsAsync()
         {
-            var requests = await _context.ProcurementRequests
-                .Include(p => p.Items)
-                .Where(p => p.Status == "ApprovedByPD" || p.Status == "ARFCreated" || p.Status == "ARFApproved")
+            var validStatuses = new[] { "ApprovedByPD", "AssignedToExecutive", "QuotesSubmitted", "ARFCreated", "ReadyToProcure" };
+            var requests = await GetBaseQuery()
+                .Where(p => validStatuses.Contains(p.Status))
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
@@ -137,9 +174,9 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
         public async Task<List<ProcurementRequestDto>> GetPendingProcurementsForExecutiveAsync(string executiveEmail)
         {
-            var requests = await _context.ProcurementRequests
-                .Include(p => p.Items)
-                .Where(p => p.AssignedExecutiveEmail == executiveEmail && p.Status == "AssignedToExecutive")
+            var validStatuses = new[] { "AssignedToExecutive", "ReadyToProcure" };
+            var requests = await GetBaseQuery()
+                .Where(p => p.AssignedExecutiveEmail == executiveEmail && validStatuses.Contains(p.Status))
                 .OrderByDescending(p => p.AssignedDate)
                 .ToListAsync();
 
@@ -148,8 +185,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
         public async Task<List<ProcurementRequestDto>> GetCompletedProcurementsForExecutiveAsync(string executiveEmail)
         {
-            var requests = await _context.ProcurementRequests
-                .Include(p => p.Items)
+            var requests = await GetBaseQuery()
                 .Where(p => p.AssignedExecutiveEmail == executiveEmail && p.Status == "Completed")
                 .OrderByDescending(p => p.CompletedDate)
                 .ToListAsync();
@@ -159,10 +195,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
         public async Task<ProcurementRequestDto> GetByIdAsync(int id)
         {
-            var request = await _context.ProcurementRequests
-                .Include(p => p.Items)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
+            var request = await GetBaseQuery().FirstOrDefaultAsync(p => p.Id == id);
             if (request == null) throw new Exception("Procurement request not found");
 
             var dtoList = await MapToDtoListAsync(new List<ProcurementRequest> { request });
@@ -181,7 +214,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 SupervisorName = supervisorName,
                 SupervisorEmail = supervisorEmail,
                 SiteId = dto.SiteId,
-                Status = "PendingPDApproval",
+                Status = "PendingRegionalHead",
                 Items = dto.Items.Select(i => new ProcurementRequestItem
                 {
                     ItemName = i.ItemName,
@@ -193,20 +226,54 @@ namespace MytechERP.Infrastructure.Services.Procurement
             _context.ProcurementRequests.Add(request);
             await _context.SaveChangesAsync();
 
-            // Notify PD
             var title = "New Procurement Request";
-            var msg = $"A new procurement request ({procNum}) has been submitted by {supervisorName} and is awaiting your approval.";
-            var link = "/procurement-flow/pending-approvals";
-            await NotifyUsersByRoleAsync("Project Director", title, msg, link);
-            await NotifyUsersByRoleAsync("Manager", title, msg, link);
-            await NotifyUserByEmailAsync("shahbaz.ali@mytecheng.com", title, msg, link);
+            var msg = $"A new procurement request ({procNum}) has been submitted and is awaiting your review.";
+            var link = "/procurement-flow/regional-approvals";
+            await NotifyUsersByRoleAsync("Regional Head", title, msg, link);
 
+            return MapToDto(request);
+        }
+
+        public async Task<ProcurementRequestDto> ReviewByRegionalHeadAsync(int id, RegionalHeadReviewDto dto, string rhEmail)
+        {
+            var request = await GetBaseQuery().FirstOrDefaultAsync(p => p.Id == id);
+            if (request == null) throw new Exception("Procurement request not found");
+
+            request.RegionalHeadEmail = rhEmail;
+            request.RegionalHeadRemarks = dto.Remarks;
+            request.RegionalHeadApprovalDate = DateTime.UtcNow;
+            request.UpdatedAt = DateTime.UtcNow;
+
+            if (dto.IsApproved)
+            {
+                // Update quantities if provided
+                foreach (var qt in dto.UpdatedQuantities)
+                {
+                    var item = request.Items.FirstOrDefault(i => i.Id == qt.ItemId);
+                    if (item != null)
+                    {
+                        item.Quantity = qt.NewQuantity;
+                    }
+                }
+
+                request.Status = "PendingPDApproval";
+                
+                await NotifyUsersByRoleAsync("Project Director", "Procurement Request Awaiting Approval", $"Procurement request {request.ProcurementNumber} has been approved by the Regional Head and awaits your approval.", "/procurement-flow/pending-approvals");
+                await NotifyUsersByRoleAsync("Manager", "Procurement Request Awaiting Approval", $"Procurement request {request.ProcurementNumber} has been approved by the Regional Head.", "/procurement-flow/pending-approvals");
+            }
+            else
+            {
+                request.Status = "RejectedByRegionalHead";
+                await NotifyUserByEmailAsync(request.SupervisorEmail, "Procurement Request Rejected", $"Your procurement request {request.ProcurementNumber} was rejected by the Regional Head. Remarks: {dto.Remarks}", "/procurement-flow/dashboard");
+            }
+
+            await _context.SaveChangesAsync();
             return MapToDto(request);
         }
 
         public async Task<ProcurementRequestDto> ReviewByPdAsync(int id, PdReviewProcurementDto dto, string pdEmail)
         {
-            var request = await _context.ProcurementRequests.Include(p => p.Items).FirstOrDefaultAsync(p => p.Id == id);
+            var request = await GetBaseQuery().FirstOrDefaultAsync(p => p.Id == id);
             if (request == null) throw new Exception("Procurement request not found");
 
             request.PdEmail = pdEmail;
@@ -217,13 +284,11 @@ namespace MytechERP.Infrastructure.Services.Procurement
             if (dto.IsApproved)
             {
                 request.Status = "ApprovedByPD";
-                
-                await NotifyUsersByRoleAsync("Procurement Head", "Procurement Request Approved", $"Procurement request {request.ProcurementNumber} has been approved by PD and is ready for ARF generation.", "/procurement-flow/approved");
+                await NotifyUsersByRoleAsync("Procurement Head", "Procurement Request Approved", $"Procurement request {request.ProcurementNumber} has been approved by PD. Please assign an executive.", "/procurement-flow/approved");
             }
             else
             {
                 request.Status = "RejectedByPD";
-                
                 await NotifyUserByEmailAsync(request.SupervisorEmail, "Procurement Request Rejected", $"Your procurement request {request.ProcurementNumber} was rejected by the Project Director. Remarks: {dto.Remarks}", "/procurement-flow/dashboard");
             }
 
@@ -231,19 +296,109 @@ namespace MytechERP.Infrastructure.Services.Procurement
             return MapToDto(request);
         }
 
+        public async Task<ProcurementRequestDto> AssignExecutiveAsync(int id, AssignProcurementExecutiveDto dto)
+        {
+            var request = await GetBaseQuery().FirstOrDefaultAsync(p => p.Id == id);
+            if (request == null) throw new Exception("Procurement request not found");
+
+            request.AssignedExecutiveEmail = dto.ExecutiveEmail;
+            request.AssignedDate = DateTime.UtcNow;
+            request.Status = "AssignedToExecutive";
+            request.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            await NotifyUserByEmailAsync(request.AssignedExecutiveEmail, "New Procurement Assigned", $"You have been assigned procurement {request.ProcurementNumber} to collect vendor rates.", "/procurement-flow/pending-procurements");
+            await NotifyUserByEmailAsync(request.SupervisorEmail, "Procurement Assigned", $"Your procurement {request.ProcurementNumber} has been assigned to {dto.ExecutiveEmail}.", "/procurement-flow/dashboard");
+
+            return MapToDto(request);
+        }
+
+        public async Task<ProcurementRequestDto> SubmitVendorQuotesAsync(int id, SubmitVendorQuotesDto dto)
+        {
+            var request = await GetBaseQuery().FirstOrDefaultAsync(p => p.Id == id);
+            if (request == null) throw new Exception("Procurement request not found");
+
+            if (request.Status != "AssignedToExecutive")
+                throw new Exception("Request is not in a state to accept quotes.");
+
+            // Add the new quotes
+            decimal lowestTotal = decimal.MaxValue;
+            ProcurementQuote? lowestQuote = null;
+
+            foreach (var quoteDto in dto.Quotes)
+            {
+                var quote = new ProcurementQuote
+                {
+                    VendorName = quoteDto.VendorName,
+                    CityName = quoteDto.CityName,
+                    ContactPerson = quoteDto.ContactPerson,
+                    ContactNumber = quoteDto.ContactNumber,
+                    BankAccountName = quoteDto.BankAccountName,
+                    BankName = quoteDto.BankName,
+                    AccountNumber = quoteDto.AccountNumber,
+                    TotalAmount = quoteDto.Items.Sum(i => i.UnitRate * (request.Items.FirstOrDefault(x => x.Id == i.ProcurementRequestItemId)?.Quantity ?? 0)),
+                    IsSelected = false,
+                    QuoteItems = quoteDto.Items.Select(i => new ProcurementQuoteItem
+                    {
+                        ProcurementRequestItemId = i.ProcurementRequestItemId,
+                        UnitRate = i.UnitRate,
+                        LineTotal = i.UnitRate * (request.Items.FirstOrDefault(x => x.Id == i.ProcurementRequestItemId)?.Quantity ?? 0)
+                    }).ToList()
+                };
+
+                request.Quotes.Add(quote);
+
+                if (quote.TotalAmount < lowestTotal)
+                {
+                    lowestTotal = quote.TotalAmount;
+                    lowestQuote = quote;
+                }
+            }
+
+            // Auto-select lowest
+            if (lowestQuote != null)
+            {
+                lowestQuote.IsSelected = true;
+            }
+
+            request.Status = "QuotesSubmitted";
+            request.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            await NotifyUsersByRoleAsync("Procurement Head", "Vendor Quotes Submitted", $"Vendor quotes for {request.ProcurementNumber} have been submitted. You can now generate the ARF.", "/procurement-flow/approved");
+
+            return MapToDto(request);
+        }
+
         public async Task<ProcurementRequestDto> GenerateArfAsync(int procurementId, string procurementHeadEmail, string arfDetailsUrl)
         {
-            var request = await _context.ProcurementRequests.Include(p => p.Items).FirstOrDefaultAsync(p => p.Id == procurementId);
+            var request = await GetBaseQuery().FirstOrDefaultAsync(p => p.Id == procurementId);
             if (request == null) throw new Exception("Procurement request not found");
             
-            // Logic to create ARF... (simplified mapping)
+            // This method might be called directly, but we assume the frontend sends the ARF generation through the actual ARF Controller now,
+            // or the frontend calls this and we just create a dummy ARF. Since the user wants the form to popup and fill in details, 
+            // the frontend will likely call the ARF creation endpoint.
+            // If they call this endpoint, we'll mark it as ARFCreated and expect the ARF ID to be updated separately or created here.
+            // Let's create a basic ARF here which the frontend can then redirect to for editing, OR the frontend just calls this to link an existing ARF.
+            // To align with the user's request: "ARF Form will popedup with auto fetch site name... then he submit".
+            // So the frontend creates the ARF via AmountRequestFormsController, and then we need a way to link it.
+            // Let's just create it here as "Draft" and return it, OR the frontend does it entirely and just links.
+            // We will just leave this method as is, but it expects the ARF to be created. 
+            // I'll rewrite this to just mark the ARF as created if the UI handles it separately, but keeping existing logic is safer.
+            
+            var selectedQuote = request.Quotes.FirstOrDefault(q => q.IsSelected);
+            var totalAmount = selectedQuote?.TotalAmount ?? 0;
+
             var arf = new AmountRequestForm
             {
-                EmployeeName = "Procurement Head", // Using ProcHead or System
+                EmployeeName = "Procurement Head", 
                 EmployeeEmail = procurementHeadEmail,
                 PurposeOfAdvance = $"Procurement for Request {request.ProcurementNumber}",
                 SiteId = request.SiteId,
-                Status = "PendingDirector", // Initial ARF status
+                AdvanceRequested = totalAmount,
+                Status = "PendingDirector", 
                 ArfNumber = $"ARF-{DateTime.UtcNow:yyyyMMddHHmmss}"
             };
 
@@ -259,28 +414,24 @@ namespace MytechERP.Infrastructure.Services.Procurement
             return MapToDto(request);
         }
 
-        public async Task<ProcurementRequestDto> AssignExecutiveAsync(int id, AssignProcurementExecutiveDto dto)
+        public async Task<ProcurementRequestDto> ProcureAsync(int id)
         {
-            var request = await _context.ProcurementRequests.Include(p => p.Items).FirstOrDefaultAsync(p => p.Id == id);
+            var request = await GetBaseQuery().FirstOrDefaultAsync(p => p.Id == id);
             if (request == null) throw new Exception("Procurement request not found");
 
-            // We could check if ARF is Released, but let's assume UI handles the condition
-            request.AssignedExecutiveEmail = dto.ExecutiveEmail;
-            request.AssignedDate = DateTime.UtcNow;
-            request.Status = "AssignedToExecutive";
+            request.Status = "ReadyToProcure";
             request.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
-            await NotifyUserByEmailAsync(request.AssignedExecutiveEmail, "New Procurement Assigned", $"You have been assigned procurement {request.ProcurementNumber}.", "/procurement-flow/pending-procurements");
-            await NotifyUserByEmailAsync(request.SupervisorEmail, "Procurement Assigned", $"Your procurement {request.ProcurementNumber} has been assigned to {dto.ExecutiveEmail}.", "/procurement-flow/dashboard");
+            await NotifyUserByEmailAsync(request.AssignedExecutiveEmail, "Ready to Procure", $"The ARF for {request.ProcurementNumber} has been approved. You can now procure the items.", "/procurement-flow/pending-procurements");
 
             return MapToDto(request);
         }
 
         public async Task<ProcurementRequestDto> CompleteProcurementAsync(int id, CompleteProcurementDto dto)
         {
-            var request = await _context.ProcurementRequests.Include(p => p.Items).FirstOrDefaultAsync(p => p.Id == id);
+            var request = await GetBaseQuery().FirstOrDefaultAsync(p => p.Id == id);
             if (request == null) throw new Exception("Procurement request not found");
 
             if (string.IsNullOrWhiteSpace(dto.DeliveryNoteText) && (dto.DeliveryNoteDocuments == null || dto.DeliveryNoteDocuments.Count == 0))

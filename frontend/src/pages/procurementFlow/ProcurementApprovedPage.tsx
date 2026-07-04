@@ -99,6 +99,15 @@ const ProcurementApprovedPage: React.FC = () => {
                                 <td className="px-6 py-4 text-right">
                                     {p.status === 'ApprovedByPD' && (
                                         <button 
+                                            onClick={() => openAssignModal(p.id)}
+                                            className="inline-flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md transition-colors text-sm"
+                                        >
+                                            <UserPlus className="h-4 w-4" />
+                                            <span>Assign Executive</span>
+                                        </button>
+                                    )}
+                                    {p.status === 'QuotesSubmitted' && (
+                                        <button 
                                             onClick={() => handleGenerateArf(p)}
                                             className="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md transition-colors text-sm"
                                         >
@@ -106,15 +115,23 @@ const ProcurementApprovedPage: React.FC = () => {
                                             <span>Generate ARF</span>
                                         </button>
                                     )}
-                                    {(p.status === 'ARFCreated' || p.status === 'ARFApproved') && (
+                                    {p.status === 'ARFCreated' && (
                                         <>
                                             {p.isArfApproved ? (
                                                 <button 
-                                                    onClick={() => openAssignModal(p.id)}
-                                                    className="inline-flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md transition-colors text-sm"
+                                                    onClick={async () => {
+                                                        try {
+                                                            await procurementFlowService.procure(p.id);
+                                                            toast.success('Procurement moved to ready state.');
+                                                            loadData();
+                                                        } catch (error) {
+                                                            toast.error('Failed to update procurement');
+                                                        }
+                                                    }}
+                                                    className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md transition-colors text-sm"
                                                 >
-                                                    <UserPlus className="h-4 w-4" />
-                                                    <span>Assign Executive</span>
+                                                    <FileText className="h-4 w-4" />
+                                                    <span>Procure (ARF Approved)</span>
                                                 </button>
                                             ) : (
                                                 <span className="text-xs text-muted-foreground italic flex items-center justify-end h-9 px-3">

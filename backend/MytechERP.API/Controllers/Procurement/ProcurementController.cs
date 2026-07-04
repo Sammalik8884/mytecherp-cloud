@@ -78,10 +78,24 @@ namespace MytechERP.API.Controllers.Procurement
             return Ok(data);
         }
 
+        [HttpPost("{id}/rh-review")]
+        public async Task<IActionResult> RegionalHeadReview(int id, [FromBody] RegionalHeadReviewDto dto)
+        {
+            var data = await _procurementService.ReviewByRegionalHeadAsync(id, dto, CurrentUserEmail);
+            return Ok(data);
+        }
+
         [HttpPost("{id}/pd-review")]
         public async Task<IActionResult> PdReview(int id, [FromBody] PdReviewProcurementDto dto)
         {
             var data = await _procurementService.ReviewByPdAsync(id, dto, CurrentUserEmail);
+            return Ok(data);
+        }
+
+        [HttpPost("{id}/submit-quotes")]
+        public async Task<IActionResult> SubmitQuotes(int id, [FromBody] SubmitVendorQuotesDto dto)
+        {
+            var data = await _procurementService.SubmitVendorQuotesAsync(id, dto);
             return Ok(data);
         }
 
@@ -90,6 +104,13 @@ namespace MytechERP.API.Controllers.Procurement
         {
             // The URL could be dynamic depending on frontend
             var data = await _procurementService.GenerateArfAsync(id, CurrentUserEmail, "/finance/arf");
+            return Ok(data);
+        }
+
+        [HttpPost("{id}/procure")]
+        public async Task<IActionResult> Procure(int id)
+        {
+            var data = await _procurementService.ProcureAsync(id);
             return Ok(data);
         }
 

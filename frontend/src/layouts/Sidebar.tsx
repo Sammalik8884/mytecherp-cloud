@@ -67,8 +67,9 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     // { label: "Procurement (POs)", href: "/procurement", icon: ShoppingCart, allowedRoles: ["Admin", "Manager"] },
     // { label: "Inventory", href: "/inventory", icon: FolderTree, allowedRoles: ["Admin", "Manager"] },
     
-    { label: "Procurement Requirements", isHeader: true, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"] },
-    { label: "Dashboard", href: "/procurement-flow/dashboard", icon: ClipboardList, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"] },
+    { label: "Procurement Requirements", isHeader: true, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
+    { label: "Dashboard", href: "/procurement-flow/dashboard", icon: ClipboardList, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
+    { label: "Regional Approvals", href: "/procurement-flow/regional-approvals", icon: ShieldAlert, allowedRoles: ["Admin", "Manager", "Regional Head"] },
     { label: "Pending Approvals", href: "/procurement-flow/pending-approvals", icon: ShieldAlert, allowedRoles: ["Admin", "Manager", "Project Director"] },
     { label: "Approved (PD)", href: "/procurement-flow/approved", icon: CheckSquare, allowedRoles: ["Procurement Head"] },
     { label: "Pending Procurements", href: "/procurement-flow/pending-procurements", icon: Activity, allowedRoles: ["Procurement Executive"] },
