@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MytechERP.Application.Interfaces;
-using MyTechERP.Infrastructure.Persistence;
+using MytechERP.Infrastructure.Persistance;
 
 namespace MytechERP.API.BackgroundServices
 {
@@ -73,12 +73,12 @@ namespace MytechERP.API.BackgroundServices
                     var siteId = distinctSites.First();
                     var siteInfo = await context.SalesLeads
                         .Where(s => s.Id == siteId)
-                        .Select(s => s.LeadName)
+                        .Select(s => s.LeadNumber)
                         .FirstOrDefaultAsync();
 
                     // Count how many active leads this salesman actually has
                     var activeLeadsCount = await context.SalesLeads
-                        .Where(l => l.SalesmanUserId == salesmanGrp.Key.SalesmanUserId && l.Status != MytechERP.domain.Enums.CRM.LeadStatus.Closed)
+                        .Where(l => l.SalesmanUserId == salesmanGrp.Key.SalesmanUserId && l.Status != MytechERP.domain.Enums.LeadStatus.Closed)
                         .CountAsync();
 
                     // If they have more than 1 active lead but only visited 1, alert

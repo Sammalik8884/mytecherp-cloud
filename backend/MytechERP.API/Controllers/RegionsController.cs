@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyTechERP.Infrastructure.Persistence;
+using MytechERP.Infrastructure.Persistance;
 using MytechERP.domain.Entities.System;
 
 namespace MytechERP.API.Controllers
