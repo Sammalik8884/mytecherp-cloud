@@ -16,9 +16,12 @@ export default function EmployeeInfoFormPage() {
     const [isSaving, setIsSaving] = useState(false);
     const isSiteSupervisorOnly = hasRole(["Site Supervisor"]) && !hasRole(["Admin", "Manager", "Accounts Head"]);
     
+    const [attachments, setAttachments] = useState<File[]>([]);
+
     // Form State
     const [formData, setFormData] = useState<CreateEmployeeInfo>({
         employmentType: "",
+        isActive: true,
         employeeNumber: "", employeeName: "", mailingAddress: "", mothersMaidenName: "",
         grossSalary: "", designation: "", accountBranchCode: "", officePhoneNo: "",
         mobileNetwork: "", mobileNumber: "", placeOfBirth: "", emailAddress: "",
@@ -48,13 +51,22 @@ export default function EmployeeInfoFormPage() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
+            let savedId = id ? Number(id) : 0;
             if (isEditing && id) {
                 await employeeInfoService.update(Number(id), formData);
                 toast.success("Employee record updated!");
             } else {
-                await employeeInfoService.create(formData);
+                const res = await employeeInfoService.create(formData);
+                savedId = res.id;
                 toast.success("Employee record created!");
             }
+
+            if (attachments.length > 0 && savedId) {
+                toast.loading("Uploading attachments...", { id: "upload" });
+                await employeeInfoService.uploadAttachments(savedId, attachments);
+                toast.success("Attachments uploaded!", { id: "upload" });
+            }
+
             if (isSiteSupervisorOnly) {
                 navigate("/dashboard");
             } else {
@@ -164,6 +176,16 @@ export default function EmployeeInfoFormPage() {
                 <section>
                     <h2 className="text-lg font-semibold border-b pb-2 mb-4 text-blue-600">1. Employee Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="md:col-span-3 mb-2 flex items-center gap-2">
+                            <input 
+                                type="checkbox" 
+                                id="isActive"
+                                checked={formData.isActive}
+                                onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <label htmlFor="isActive" className="text-sm font-medium text-gray-900">Active Employee</label>
+                        </div>
                         {renderInput("Employee Number", "employeeNumber")}
                         {renderInput("Employee Name (As per CNIC)", "employeeName")}
                         {renderInput("Designation", "designation")}
@@ -203,6 +225,45 @@ export default function EmployeeInfoFormPage() {
                         {renderInput("CNIC Number", "kinCnicNumber")}
                         {renderInput("Relationship", "kinRelationship")}
                         {renderInput("Mobile Number", "kinMobileNumber")}
+                    </div>
+                </section>
+
+                {/* 4. Attachments */}
+                <section>
+                    <h2 className="text-lg font-semibold border-b pb-2 mb-4 text-blue-600">4. Attachments</h2>
+                    <div className="space-y-4">
+                        <input
+                            type="file"
+                            multiple
+                            onChange={(e) => {
+                                if (e.target.files) {
+                                    setAttachments(Array.from(e.target.files));
+                                }
+                            }}
+                            className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                        />
+                        {attachments.length > 0 && (
+                            <ul className="text-sm list-disc pl-5">
+                                {attachments.map((file, i) => (
+                                    <li key={i}>{file.name}</li>
+                                ))}
+                            </ul>
+                        )}
+                        {/* Display existing attachments if editing */}
+                        {(formData as any).attachments?.length > 0 && (
+                            <div className="mt-2">
+                                <span className="text-xs font-semibold text-muted-foreground">Existing Attachments:</span>
+                                <ul className="text-sm list-disc pl-5 mt-1">
+                                    {(formData as any).attachments.map((url: string, i: number) => (
+                                        <li key={i}>
+                                            <a href={url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                                                Attachment {i + 1}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </div>
                 </section>
             </div>

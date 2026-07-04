@@ -8,6 +8,7 @@ namespace MytechERP.Application.DTOs.HR
         public string EmploymentType { get; set; } = string.Empty;
         public string CreatedByUserId { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+        public bool IsActive { get; set; }
 
         public string? EmployeeNumber { get; set; }
         public string? EmployeeName { get; set; }
@@ -36,5 +37,7 @@ namespace MytechERP.Application.DTOs.HR
         public string? KinCnicNumber { get; set; }
         public string? KinRelationship { get; set; }
         public string? KinMobileNumber { get; set; }
+        
+        public System.Collections.Generic.List<string> Attachments { get; set; } = new System.Collections.Generic.List<string>();
     }
 }

@@ -19,6 +19,9 @@ export interface VehicleTravelFormDto {
     currentDate: string;
     createdByUserId: string;
     createdByUserName: string;
+    status?: string;
+    approvedByShahbazAt?: string;
+    approvedByMunawarAt?: string;
     attachments: VehicleTravelFormAttachmentDto[];
 }
 
@@ -43,5 +46,9 @@ export const vehicleTravelFormApi = {
     create: async (data: any): Promise<VehicleTravelFormDto> => {
         const response = await api.post(`/VehicleTravelForm`, data);
         return response.data;
+    },
+
+    approve: async (id: number): Promise<void> => {
+        await api.post(`/VehicleTravelForm/${id}/approve`);
     }
 };

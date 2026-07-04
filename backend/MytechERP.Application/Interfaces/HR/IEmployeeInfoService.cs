@@ -11,5 +11,6 @@ namespace MytechERP.Application.Interfaces.HR
         Task<EmployeeInfoDto> CreateAsync(CreateEmployeeInfoDto dto, string userId);
         Task<EmployeeInfoDto> UpdateAsync(int id, CreateEmployeeInfoDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<EmployeeInfoDto> AddAttachmentsAsync(int id, List<string> urls);
     }
 }

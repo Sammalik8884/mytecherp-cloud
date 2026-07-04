@@ -143,6 +143,7 @@ builder.Services.AddScoped<IOfficeService, MyTechERP.Infrastructure.Services.Off
 builder.Services.AddScoped<MytechERP.Application.Interfaces.IVehicleTravelFormService, MyTechERP.Infrastructure.Services.HR.VehicleTravelFormService>();
 builder.Services.AddScoped<MytechERP.Application.Interfaces.HR.IEmployeeInfoService, MyTechERP.Infrastructure.Services.HR.EmployeeInfoService>();
 builder.Services.AddScoped<MytechERP.Application.Interfaces.IProcurementService, MytechERP.Infrastructure.Services.Procurement.ProcurementService>();
+builder.Services.AddScoped<MytechERP.Application.Interfaces.IVendorService, MytechERP.Infrastructure.Services.Procurement.VendorService>();
 builder.Services.AddScoped<UniversalSyncService>();
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(options =>

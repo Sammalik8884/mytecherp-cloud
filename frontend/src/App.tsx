@@ -64,6 +64,7 @@ import { DprPrintView } from "./pages/DprPrintView";
 import EmployeeInfoListPage from "./pages/hr/EmployeeInfoListPage";
 import EmployeeInfoFormPage from "./pages/hr/EmployeeInfoFormPage";
 import ProcurementDashboardPage from "./pages/procurementFlow/ProcurementDashboardPage";
+import VendorManagementPage from "./pages/procurementFlow/VendorManagementPage";
 import CreateProcurementPage from "./pages/procurementFlow/CreateProcurementPage";
 import PendingApprovalsPage from "./pages/procurementFlow/PendingApprovalsPage";
 import ProcurementApprovedPage from "./pages/procurementFlow/ProcurementApprovedPage";
@@ -205,6 +206,7 @@ function App() {
                             <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Regional Head", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"]} />}>
                                 <Route path="/procurement-flow/dashboard" element={<ProcurementDashboardPage />} />
                                 <Route path="/procurement-flow/pending-approvals" element={<PendingApprovalsPage />} />
+                                <Route path="/procurement-flow/vendors" element={<VendorManagementPage />} />
                                 <Route path="/procurement-flow/:id" element={<ProcurementDetailsPage />} />
                                 
                                 <Route element={<RoleProtectedRoute allowedRoles={["Regional Head", "Admin", "Manager"]} />}>

@@ -16,6 +16,12 @@ namespace MytechERP.Application.DTOs.Finance
         public decimal ArfReleasedAmount { get; set; }
         public string CreatedByEmail { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+
+        public string Status { get; set; } = "Pending";
+        public string ReviewerComments { get; set; } = string.Empty;
+        public string ReviewedByEmail { get; set; } = string.Empty;
+        public DateTime? ReviewedAt { get; set; }
+
         public List<ExpenseItemDto> Items { get; set; } = new List<ExpenseItemDto>();
     }
 
@@ -54,5 +60,11 @@ namespace MytechERP.Application.DTOs.Finance
         public string Remarks { get; set; } = string.Empty;
         public string FileUrl { get; set; } = string.Empty;
         public List<string> Attachments { get; set; } = new List<string>();
+    }
+
+    public class ExpenseReviewDto
+    {
+        public string Status { get; set; } = string.Empty; // Accepted, Rejected
+        public string Comments { get; set; } = string.Empty;
     }
 }

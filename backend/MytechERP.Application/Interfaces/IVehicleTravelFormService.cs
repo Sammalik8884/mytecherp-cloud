@@ -8,5 +8,6 @@ namespace MytechERP.Application.Interfaces
     {
         Task<VehicleTravelFormDto> CreateAsync(CreateVehicleTravelFormDto dto, string userId);
         Task<List<VehicleTravelFormDto>> GetAllAsync(string userEmail, string userId);
+        Task ApproveAsync(int id, string userEmail);
     }
 }

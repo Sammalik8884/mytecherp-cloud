@@ -69,6 +69,14 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<StoreTool> StoreTools { get; set; }
         public DbSet<StoreDailyLog> StoreDailyLogs { get; set; }
         public DbSet<StoreDailyLogItem> StoreDailyLogItems { get; set; }
+
+        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementRequest> ProcurementRequests { get; set; }
+        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementRequestItem> ProcurementRequestItems { get; set; }
+        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementQuote> ProcurementQuotes { get; set; }
+        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementQuoteItem> ProcurementQuoteItems { get; set; }
+        public DbSet<MytechERP.domain.Entities.Procurement.Vendor> ProcurementVendors { get; set; }
+        public DbSet<MytechERP.domain.Inventory.Vendor> Vendors { get; set; }
+
         public DbSet<SiteToolStock> SiteToolStocks { get; set; }
         public DbSet<ContractItem> ContractItems { get; set; }
         public DbSet<ChecklistQuestion> ChecklistQuestions { get; set; }
@@ -84,7 +92,6 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<InventoryStock> InventoryStocks { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
          public DbSet<InvoiceItem> invoiceItems { get; set; }
-        public DbSet<Vendor> Vendors { get; set; }
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
         public DbSet<StockTransfer> stockTransfers { get; set; }
@@ -146,11 +153,6 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<VehicleTravelFormAttachment> VehicleTravelFormAttachments { get; set; }
 
         public DbSet<MytechERP.domain.Entities.HR.EmployeeInfo> EmployeeInfos { get; set; }
-        
-        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementRequest> ProcurementRequests { get; set; }
-        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementRequestItem> ProcurementRequestItems { get; set; }
-        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementQuote> ProcurementQuotes { get; set; }
-        public DbSet<MytechERP.domain.Entities.Procurement.ProcurementQuoteItem> ProcurementQuoteItems { get; set; }
 
 
         // ─── SaaS Subscription ─────────────────────────────────────────
@@ -176,6 +178,13 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<MytechERP.domain.Entities.Procurement.ProcurementQuoteItem>()
                 .Property(p => p.LineTotal)
                 .HasPrecision(18, 2);
+
+            builder.Entity<MytechERP.domain.Entities.Procurement.ProcurementQuoteItem>()
+                .HasOne(qi => qi.RequestItem)
+                .WithMany()
+                .HasForeignKey(qi => qi.ProcurementRequestItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<Tenant>(entity =>
             {
                 entity.HasKey(e => e.Id);

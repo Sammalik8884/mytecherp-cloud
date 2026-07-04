@@ -59,6 +59,10 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 CompletedDate = entity.CompletedDate,
                 DeliveryNoteText = entity.DeliveryNoteText,
                 DeliveryNoteDocuments = entity.DeliveryNoteDocuments,
+                IsArfApproved = entity.AmountRequestForm != null && entity.AmountRequestForm.Status == "Done",
+                IsAcceptedBySupervisor = entity.IsAcceptedBySupervisor,
+                SupervisorAcceptanceDate = entity.SupervisorAcceptanceDate,
+                SupervisorAcceptanceRemarks = entity.SupervisorAcceptanceRemarks,
                 Items = entity.Items.Select(i => new ProcurementRequestItemDto
                 {
                     Id = i.Id,
@@ -328,6 +332,30 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
             foreach (var quoteDto in dto.Quotes)
             {
+                var vendor = await _context.ProcurementVendors.FirstOrDefaultAsync(v => v.VendorName == quoteDto.VendorName && v.CityName == quoteDto.CityName);
+                if (vendor == null)
+                {
+                    vendor = new Vendor
+                    {
+                        VendorName = quoteDto.VendorName,
+                        CityName = quoteDto.CityName,
+                        ContactPerson = quoteDto.ContactPerson,
+                        ContactNumber = quoteDto.ContactNumber,
+                        BankAccountName = quoteDto.BankAccountName,
+                        BankName = quoteDto.BankName,
+                        AccountNumber = quoteDto.AccountNumber
+                    };
+                    _context.ProcurementVendors.Add(vendor);
+                }
+                else
+                {
+                    vendor.ContactPerson = quoteDto.ContactPerson ?? vendor.ContactPerson;
+                    vendor.ContactNumber = quoteDto.ContactNumber ?? vendor.ContactNumber;
+                    vendor.BankAccountName = quoteDto.BankAccountName ?? vendor.BankAccountName;
+                    vendor.BankName = quoteDto.BankName ?? vendor.BankName;
+                    vendor.AccountNumber = quoteDto.AccountNumber ?? vendor.AccountNumber;
+                }
+
                 var quote = new ProcurementQuote
                 {
                     VendorName = quoteDto.VendorName,
@@ -452,6 +480,29 @@ namespace MytechERP.Infrastructure.Services.Procurement
             if (!string.IsNullOrEmpty(request.ProcurementHeadEmail))
             {
                 await NotifyUserByEmailAsync(request.ProcurementHeadEmail, "Procurement Completed", $"Procurement {request.ProcurementNumber} has been completed by {request.AssignedExecutiveEmail}.", "/procurement-flow/dashboard");
+            }
+
+            return MapToDto(request);
+        }
+
+        public async Task<ProcurementRequestDto> AcceptDeliveryAsync(int id, AcceptProcurementDto dto, string supervisorEmail)
+        {
+            var request = await GetBaseQuery().FirstOrDefaultAsync(p => p.Id == id);
+            if (request == null) throw new Exception("Procurement request not found");
+            if (request.SupervisorEmail != supervisorEmail) throw new Exception("Only the original requester (Site Supervisor) can accept the delivery.");
+            if (request.Status != "Completed") throw new Exception("Procurement is not in completed state to accept.");
+
+            request.IsAcceptedBySupervisor = dto.IsAccepted;
+            request.SupervisorAcceptanceDate = DateTime.UtcNow;
+            request.SupervisorAcceptanceRemarks = dto.Remarks;
+            request.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(request.ProcurementHeadEmail))
+            {
+                string status = dto.IsAccepted ? "Accepted" : "Rejected";
+                await NotifyUserByEmailAsync(request.ProcurementHeadEmail, $"Procurement Delivery {status}", $"Site Supervisor has {status.ToLower()} the delivery for {request.ProcurementNumber}.", "/procurement-flow/dashboard");
             }
 
             return MapToDto(request);

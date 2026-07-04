@@ -2,20 +2,46 @@ import React, { useEffect, useState, useMemo } from "react";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 import { amountRequestApi } from "../api/amountRequestApi";
 
-import { ChevronDown, ChevronRight, Plus, Receipt } from "lucide-react";
+import { useAuth } from "../auth/AuthContext";
+import { ChevronDown, ChevronRight, Plus, Receipt, CheckCircle, XCircle } from "lucide-react";
 import dayjs from "dayjs";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 export const ExpensesPage = () => {
+    const { user } = useAuth();
     const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [arfTotals, setArfTotals] = useState<Record<number, number>>({});
     const [arfEffectiveReleased, setArfEffectiveReleased] = useState<Record<number, number>>({});
     const navigate = useNavigate();
 
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [reviewingExpense, setReviewingExpense] = useState<ExpenseDto | null>(null);
+    const [reviewComments, setReviewComments] = useState("");
+    const [isReviewing, setIsReviewing] = useState(false);
+
+    const currentUserRoles = user?.roles || [];
+    const canReview = currentUserRoles.includes("Admin") || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts");
+
     useEffect(() => {
         loadExpenses();
     }, []);
+
+    const handleReviewSubmit = async (status: string) => {
+        if (!reviewingExpense) return;
+        try {
+            setIsReviewing(true);
+            await expenseApi.review(reviewingExpense.id, { status, comments: reviewComments });
+            toast.success(`Expense ${status} successfully`);
+            setReviewModalOpen(false);
+            loadExpenses();
+        } catch (error) {
+            toast.error("Failed to review expense");
+        } finally {
+            setIsReviewing(false);
+        }
+    };
 
     const loadExpenses = async () => {
         try {
@@ -128,6 +154,8 @@ export const ExpensesPage = () => {
                                 <th className="px-4 py-3 font-medium">Total Amount</th>
                                 <th className="px-4 py-3 font-medium">Created Date</th>
                                 <th className="px-4 py-3 font-medium">Items</th>
+                                <th className="px-4 py-3 font-medium">Status</th>
+                                <th className="px-4 py-3 font-medium">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -197,6 +225,30 @@ export const ExpensesPage = () => {
                                             </td>
                                             <td className="px-4 py-3">{dayjs(expense.createdAt).format("DD MMM YYYY")}</td>
                                             <td className="px-4 py-3">{expense.items?.length || 0}</td>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+                                                    expense.status === "Accepted" ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20" :
+                                                    expense.status === "Rejected" ? "bg-red-50 text-red-700 ring-red-600/20" :
+                                                    "bg-amber-50 text-amber-700 ring-amber-600/20"
+                                                }`}>
+                                                    {expense.status || "Pending"}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {canReview && (!expense.status || expense.status === "Pending") && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setReviewingExpense(expense);
+                                                            setReviewComments("");
+                                                            setReviewModalOpen(true);
+                                                        }}
+                                                        className="text-primary hover:text-primary/80 font-medium text-sm"
+                                                    >
+                                                        Review
+                                                    </button>
+                                                )}
+                                            </td>
                                         </tr>
                                     );
                                 };
@@ -210,7 +262,7 @@ export const ExpensesPage = () => {
                             })}
                             {expenses.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                                         <div className="flex flex-col items-center">
                                             <Receipt className="h-12 w-12 opacity-20 mb-3" />
                                             <p>No expenses found. Click 'Add Expense' to create one.</p>
@@ -224,6 +276,46 @@ export const ExpensesPage = () => {
             </div>
         </div>
 
+        {reviewModalOpen && reviewingExpense && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <div className="bg-background rounded-xl shadow-xl w-full max-w-md p-6">
+                    <h3 className="text-xl font-bold mb-4">Review Expense</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                        Reviewing EXP-{reviewingExpense.id.toString().padStart(4, '0')} 
+                        (Rs {reviewingExpense.totalExpenseAmount?.toLocaleString()})
+                    </p>
+                    <textarea 
+                        value={reviewComments}
+                        onChange={(e) => setReviewComments(e.target.value)}
+                        placeholder="Add comments (optional)..."
+                        className="w-full p-2 mb-4 rounded border border-input bg-background min-h-[100px]"
+                    />
+                    <div className="flex justify-end space-x-2">
+                        <button 
+                            disabled={isReviewing}
+                            onClick={() => setReviewModalOpen(false)}
+                            className="px-4 py-2 text-muted-foreground hover:bg-muted rounded"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            disabled={isReviewing}
+                            onClick={() => handleReviewSubmit("Rejected")}
+                            className="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded font-medium flex items-center gap-1"
+                        >
+                            <XCircle className="w-4 h-4" /> Reject
+                        </button>
+                        <button 
+                            disabled={isReviewing}
+                            onClick={() => handleReviewSubmit("Accepted")}
+                            className="px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded font-medium flex items-center gap-1"
+                        >
+                            <CheckCircle className="w-4 h-4" /> Accept
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
         </>
     );
 };

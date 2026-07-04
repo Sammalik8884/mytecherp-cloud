@@ -142,5 +142,12 @@ namespace MytechERP.API.Controllers.Procurement
             var data = await _procurementService.CompleteProcurementAsync(id, dto);
             return Ok(data);
         }
+
+        [HttpPost("{id}/accept")]
+        public async Task<IActionResult> Accept(int id, [FromBody] AcceptProcurementDto dto)
+        {
+            var data = await _procurementService.AcceptDeliveryAsync(id, dto, CurrentUserEmail);
+            return Ok(data);
+        }
     }
 }

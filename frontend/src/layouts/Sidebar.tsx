@@ -74,6 +74,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Approved (PD)", href: "/procurement-flow/approved", icon: CheckSquare, allowedRoles: ["Procurement Head"] },
     { label: "Pending Procurements", href: "/procurement-flow/pending-procurements", icon: Activity, allowedRoles: ["Procurement Executive"] },
     { label: "Completed Procurements", href: "/procurement-flow/completed-procurements", icon: CheckSquare, allowedRoles: ["Procurement Executive"] },
+    { label: "Vendors Database", href: "/procurement-flow/vendors", icon: Building2, allowedRoles: ["Admin", "Manager", "Procurement Head", "Procurement Executive"] },
 
     { label: "Operations & Jobs", isHeader: true, allowedRoles: ["Admin", "Manager", "Engineer", "Worker", "Technician", "Estimation"] },
     { label: "Sales & Quotes", href: "/quotations", icon: FileText, paths: ["/quotations", "/quotations/new", "/quotations/edit"], allowedRoles: ["Admin", "Manager", "Engineer", "Estimation"] },

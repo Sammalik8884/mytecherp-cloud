@@ -39,6 +39,10 @@ namespace MyTechERP.Infrastructure.Services
                 ArfNumber = entity.AmountRequestForm?.ArfNumber ?? string.Empty,
                 CreatedByEmail = entity.CreatedByEmail,
                 CreatedAt = entity.CreatedAt,
+                Status = entity.Status,
+                ReviewerComments = entity.ReviewerComments,
+                ReviewedByEmail = entity.ReviewedByEmail,
+                ReviewedAt = entity.ReviewedAt,
                 TotalExpenseAmount = totalExpense,
                 ArfReleasedAmount = arfReleased,
                 Items = entity.Items?.Select(i => new ExpenseItemDto
@@ -180,6 +184,20 @@ namespace MyTechERP.Infrastructure.Services
 
             await _context.SaveChangesAsync();
 
+            return await GetByIdAsync(entity.Id);
+        }
+
+        public async Task<ExpenseDto> ReviewExpenseAsync(int id, ExpenseReviewDto dto, string reviewerEmail)
+        {
+            var entity = await _context.Expenses.FindAsync(id);
+            if (entity == null) throw new Exception("Expense not found");
+
+            entity.Status = dto.Status;
+            entity.ReviewerComments = dto.Comments;
+            entity.ReviewedByEmail = reviewerEmail;
+            entity.ReviewedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
             return await GetByIdAsync(entity.Id);
         }
 

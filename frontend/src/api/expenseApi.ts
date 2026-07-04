@@ -26,6 +26,10 @@ export interface ExpenseDto {
     arfReleasedAmount: number;
     createdByEmail: string;
     createdAt: string;
+    status?: string;
+    reviewedByEmail?: string;
+    reviewerComments?: string;
+    reviewedAt?: string;
     items: ExpenseItemDto[];
 }
 
@@ -34,6 +38,11 @@ export interface CreateExpenseDto {
     officeId?: number | null;
     amountRequestFormId?: number | null;
     items: ExpenseItemDto[];
+}
+
+export interface ExpenseReviewDto {
+    status: string;
+    comments: string;
 }
 
 export const expenseApi = {
@@ -59,6 +68,10 @@ export const expenseApi = {
     },
     delete: async (id: number) => {
         const response = await apiClient.delete(`/Expenses/${id}`);
+        return response.data;
+    },
+    review: async (id: number, data: ExpenseReviewDto) => {
+        const response = await apiClient.post<ExpenseDto>(`/Expenses/${id}/review`, data);
         return response.data;
     },
     uploadAttachment: async (file: File) => {

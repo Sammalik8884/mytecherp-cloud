@@ -25,6 +25,10 @@ namespace MytechERP.domain.Entities.HR
         public string CreatedByUserId { get; set; }
         public AppUser CreatedByUser { get; set; }
 
+        public string Status { get; set; } = "Pending Shahbaz";
+        public DateTime? ApprovedByShahbazAt { get; set; }
+        public DateTime? ApprovedByMunawarAt { get; set; }
+
         public ICollection<VehicleTravelFormAttachment> Attachments { get; set; } = new List<VehicleTravelFormAttachment>();
     }
 }

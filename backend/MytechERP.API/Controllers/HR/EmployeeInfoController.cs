@@ -73,5 +73,21 @@ namespace MytechERP.API.Controllers.HR
             if (!success) return NotFound();
             return NoContent();
         }
+
+        [HttpPost("{id}/attachments")]
+        public async Task<IActionResult> UploadAttachments(int id, [FromForm] System.Collections.Generic.List<Microsoft.AspNetCore.Http.IFormFile> files, [FromServices] MytechERP.Application.Interfaces.IBlobService blobService)
+        {
+            if (files == null || files.Count == 0) return BadRequest("No files provided.");
+            
+            var urls = new System.Collections.Generic.List<string>();
+            foreach(var file in files)
+            {
+                var url = await blobService.UploadAsync(file, file.FileName);
+                urls.Add(url);
+            }
+
+            var result = await _service.AddAttachmentsAsync(id, urls);
+            return Ok(result);
+        }
     }
 }

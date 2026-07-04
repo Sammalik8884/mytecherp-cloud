@@ -4,12 +4,14 @@ import { Plus, Search, Car, FileText, Calendar, Eye, Download, X } from 'lucide-
 import { vehicleTravelFormApi, VehicleTravelFormDto } from '../api/vehicleTravelFormApi';
 import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
+import { useAuth } from '../auth/AuthContext';
 
 export const VehicleTravelFormsPage: React.FC = () => {
     const [forms, setForms] = useState<VehicleTravelFormDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedForm, setSelectedForm] = useState<VehicleTravelFormDto | null>(null);
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -25,6 +27,20 @@ export const VehicleTravelFormsPage: React.FC = () => {
             toast.error("Failed to load forms");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleApprove = async (id: number) => {
+        try {
+            await vehicleTravelFormApi.approve(id);
+            toast.success("Form approved successfully");
+            loadForms();
+            if (selectedForm && selectedForm.id === id) {
+                setSelectedForm(null);
+            }
+        } catch (error) {
+            console.error("Failed to approve form:", error);
+            toast.error("Failed to approve form");
         }
     };
 
@@ -82,9 +98,8 @@ export const VehicleTravelFormsPage: React.FC = () => {
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle Info</th>
-                                <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Start Reading</th>
-                                <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">End Reading</th>
                                 <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Distance (km)</th>
+                                <th scope="col" className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -126,18 +141,36 @@ export const VehicleTravelFormsPage: React.FC = () => {
                                                 <div className="text-sm text-gray-900">{form.vehicleName}</div>
                                                 <div className="text-xs text-gray-500 font-mono mt-0.5">{form.registrationNumber}</div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900 font-mono">
-                                                {form.startReading.toLocaleString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900 font-mono">
-                                                {form.endReading.toLocaleString()}
-                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right">
                                                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                                                     {distance} km
                                                 </span>
                                             </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                {form.status === 'Approved' ? (
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        Approved
+                                                    </span>
+                                                ) : form.status === 'PendingMunawar' ? (
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        Pending Munawar
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                        Pending Shahbaz
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                {((user?.email?.toLowerCase() === 'shahbaz.ali@mytecheng.com' && (!form.status || form.status === 'Pending')) || 
+                                                  (user?.email?.toLowerCase() === 'munawar.hasan@mytecheng.com' && form.status === 'PendingMunawar')) && (
+                                                    <button
+                                                        onClick={() => handleApprove(form.id)}
+                                                        className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center mr-2"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => setSelectedForm(form)}
                                                     className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors flex items-center inline-flex"

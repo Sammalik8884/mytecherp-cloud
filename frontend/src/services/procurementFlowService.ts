@@ -86,5 +86,10 @@ export const procurementFlowService = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return response.data;
+  },
+
+  acceptDelivery: async (id: number, data: { isAccepted: boolean, remarks?: string }): Promise<ProcurementRequestDto> => {
+    const response = await apiClient.post<ProcurementRequestDto>(`${BASE_URL}/${id}/accept`, data);
+    return response.data;
   }
 };

@@ -23,6 +23,11 @@ namespace MytechERP.domain.Entities.Finance
 
         public string CreatedByEmail { get; set; } = string.Empty;
 
+        public string Status { get; set; } = "Pending"; // Pending, Accepted, Rejected
+        public string ReviewerComments { get; set; } = string.Empty;
+        public string ReviewedByEmail { get; set; } = string.Empty;
+        public DateTime? ReviewedAt { get; set; }
+
         public ICollection<ExpenseItem> Items { get; set; } = new List<ExpenseItem>();
     }
 

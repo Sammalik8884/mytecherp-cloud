@@ -24,5 +24,6 @@ namespace MytechERP.Application.Interfaces
         Task<ProcurementRequestDto> GenerateArfAsync(int procurementId, string procurementHeadEmail, string arfDetailsUrl);
         Task<ProcurementRequestDto> ProcureAsync(int id);
         Task<ProcurementRequestDto> CompleteProcurementAsync(int id, CompleteProcurementDto dto);
+        Task<ProcurementRequestDto> AcceptDeliveryAsync(int id, AcceptProcurementDto dto, string supervisorEmail);
     }
 }

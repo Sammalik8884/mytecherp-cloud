@@ -31,6 +31,10 @@ namespace MytechERP.Application.DTOs.Procurement
         public List<ProcurementRequestItemDto> Items { get; set; } = new List<ProcurementRequestItemDto>();
         public List<ProcurementQuoteDto> Quotes { get; set; } = new List<ProcurementQuoteDto>();
         public bool IsArfApproved { get; set; }
+
+        public bool IsAcceptedBySupervisor { get; set; }
+        public DateTime? SupervisorAcceptanceDate { get; set; }
+        public string? SupervisorAcceptanceRemarks { get; set; }
     }
 
     public class ProcurementQuoteDto

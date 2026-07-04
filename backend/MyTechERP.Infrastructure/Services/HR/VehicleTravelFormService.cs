@@ -41,6 +41,7 @@ namespace MyTechERP.Infrastructure.Services.HR
                 EndReading = dto.EndReading,
                 CurrentDate = dto.CurrentDate,
                 CreatedByUserId = userId,
+                Status = "Pending"
             };
 
             if (dto.Attachments != null && dto.Attachments.Any())
@@ -59,7 +60,6 @@ namespace MyTechERP.Infrastructure.Services.HR
             _context.VehicleTravelForms.Add(entity);
             await _context.SaveChangesAsync();
 
-            // Fetch with user included to get CreatedByUserName
             var savedEntity = await _context.VehicleTravelForms
                 .Include(v => v.CreatedByUser)
                 .Include(v => v.Attachments)
@@ -77,16 +77,44 @@ namespace MyTechERP.Infrastructure.Services.HR
 
             if (!string.IsNullOrEmpty(userEmail) && _privilegedEmails.Contains(userEmail.ToLower()))
             {
-                // Can see all forms
+                var lowerEmail = userEmail.ToLower();
+                if (lowerEmail == "munawar.hasan@mytecheng.com")
+                {
+                    // Munawar sees only forms approved by Shahbaz
+                    query = query.Where(v => v.Status == "PendingMunawar" || v.Status == "Approved");
+                }
+                else
+                {
+                    // Shahbaz and Faisal see all forms
+                }
             }
             else
             {
-                // Can only see own forms
                 query = query.Where(v => v.CreatedByUserId == userId);
             }
 
             var entities = await query.OrderByDescending(v => v.CurrentDate).ToListAsync();
             return entities.Select(MapToDto).ToList();
+        }
+
+        public async Task ApproveAsync(int id, string userEmail)
+        {
+            var entity = await _context.VehicleTravelForms.FindAsync(id);
+            if (entity == null) return;
+
+            var lowerEmail = userEmail?.ToLower();
+            if (lowerEmail == "shahbaz.ali@mytecheng.com" && (string.IsNullOrEmpty(entity.Status) || entity.Status == "Pending"))
+            {
+                entity.Status = "PendingMunawar";
+                entity.ApprovedByShahbazAt = DateTime.UtcNow;
+            }
+            else if (lowerEmail == "munawar.hasan@mytecheng.com" && entity.Status == "PendingMunawar")
+            {
+                entity.Status = "Approved";
+                entity.ApprovedByMunawarAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         private VehicleTravelFormDto MapToDto(VehicleTravelForm entity)

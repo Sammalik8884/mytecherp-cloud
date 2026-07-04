@@ -1,0 +1,1 @@
+ALTER TABLE [VehicleTravelForms] ADD [Status] nvarchar(max) NULL; ALTER TABLE [VehicleTravelForms] ADD [ApprovedByShahbazAt] datetime2 NULL; ALTER TABLE [VehicleTravelForms] ADD [ApprovedByMunawarAt] datetime2 NULL;

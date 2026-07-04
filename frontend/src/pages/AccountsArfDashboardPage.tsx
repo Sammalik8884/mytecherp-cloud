@@ -65,6 +65,12 @@ const AccountsArfDashboardPage = () => {
         const dateOfFundReleased = target.dateOfFundReleased?.value;
         const releasedAmount = Number(target.releasedAmount?.value);
         const remarks = target.remarks?.value;
+        
+        const paymentSlip = target.paymentSlip?.files?.[0];
+        if (!paymentSlip) {
+            toast.error("Payment slip is mandatory to confirm release.");
+            return;
+        }
 
         try {
             await amountRequestApi.releaseAmount(selectedForm.id, {
@@ -73,7 +79,9 @@ const AccountsArfDashboardPage = () => {
                 releasedAmount,
                 remarks
             });
-            toast.success("Amount released successfully");
+            await amountRequestApi.uploadAttachment(selectedForm.id, paymentSlip);
+            
+            toast.success("Amount released and payment slip uploaded successfully");
             fetchData();
             const res = await amountRequestApi.getById(selectedForm.id);
             setSelectedForm(res.data);
@@ -408,6 +416,7 @@ const AccountsArfDashboardPage = () => {
                                                 <div><label className="block text-muted-foreground mb-1">Date Fund Released</label><input name="dateOfFundReleased" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                 <div><label className="block text-muted-foreground mb-1">Released Amount</label><input name="releasedAmount" type="number" defaultValue={selectedForm.advanceRequested} required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                 <div><label className="block text-muted-foreground mb-1">Remarks</label><input name="remarks" type="text" className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                <div><label className="block text-muted-foreground mb-1">Payment Slip (Mandatory)</label><input name="paymentSlip" type="file" required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                 <button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors">Confirm Release</button>
                                             </form>
                                         ) : (

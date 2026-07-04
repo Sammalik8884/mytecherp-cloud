@@ -1,6 +1,7 @@
 export interface EmployeeInfo {
     id: number;
     employmentType: string;
+    isActive: boolean;
     
     // Employee Details
     employeeNumber?: string;
@@ -32,10 +33,12 @@ export interface EmployeeInfo {
     kinCnicNumber?: string;
     kinRelationship?: string;
     kinMobileNumber?: string;
+    attachments?: string[];
 }
 
 export interface CreateEmployeeInfo {
     employmentType: string;
+    isActive: boolean;
     
     employeeNumber?: string;
     employeeName?: string;

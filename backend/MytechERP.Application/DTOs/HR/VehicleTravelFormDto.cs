@@ -17,6 +17,9 @@ namespace MytechERP.Application.DTOs.HR
         public DateTime CurrentDate { get; set; }
         public string CreatedByUserId { get; set; }
         public string CreatedByUserName { get; set; }
+        public string Status { get; set; }
+        public DateTime? ApprovedByShahbazAt { get; set; }
+        public DateTime? ApprovedByMunawarAt { get; set; }
         public List<VehicleTravelFormAttachmentDto> Attachments { get; set; } = new List<VehicleTravelFormAttachmentDto>();
     }
 

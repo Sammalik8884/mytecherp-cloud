@@ -60,6 +60,15 @@ namespace MytechERP.API.Controllers
             return Ok(new { message = "Expense deleted successfully" });
         }
 
+        [HttpPost("{id}/review")]
+        [Authorize(Roles = "Admin,Accounts Assistant,Accounts Head")]
+        public async Task<IActionResult> Review(int id, [FromBody] ExpenseReviewDto dto)
+        {
+            var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var expense = await _expenseService.ReviewExpenseAsync(id, dto, reviewerEmail);
+            return Ok(expense);
+        }
+
         [HttpPost("upload-attachment")]
         public async Task<IActionResult> UploadAttachment(Microsoft.AspNetCore.Http.IFormFile file, [FromServices] MytechERP.Application.Interfaces.IBlobService blobService)
         {

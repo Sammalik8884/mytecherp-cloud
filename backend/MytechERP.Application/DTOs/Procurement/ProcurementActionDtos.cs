@@ -81,4 +81,11 @@ namespace MytechERP.Application.DTOs.Procurement
         public int ProcurementRequestItemId { get; set; }
         public decimal UnitRate { get; set; }
     }
+
+    public class AcceptProcurementDto
+    {
+        [Required]
+        public bool IsAccepted { get; set; }
+        public string? Remarks { get; set; }
+    }
 }

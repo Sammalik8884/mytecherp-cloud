@@ -45,12 +45,34 @@ namespace MyTechERP.Infrastructure.Services.HR
 
         public async Task<EmployeeInfoDto> CreateAsync(CreateEmployeeInfoDto dto, string userId)
         {
+            string employeeNumber = dto.EmployeeNumber ?? "";
+
+            if (dto.EmploymentType == "Permanent Employee" && string.IsNullOrWhiteSpace(employeeNumber))
+            {
+                var lastPermanent = await _context.EmployeeInfos
+                    .Where(e => e.EmploymentType == "Permanent Employee" && e.EmployeeNumber != null && e.EmployeeNumber.StartsWith("MTEC EN "))
+                    .OrderByDescending(e => e.Id)
+                    .FirstOrDefaultAsync();
+
+                int nextNumber = 1;
+                if (lastPermanent != null && !string.IsNullOrWhiteSpace(lastPermanent.EmployeeNumber))
+                {
+                    var parts = lastPermanent.EmployeeNumber.Split(' ');
+                    if (parts.Length > 2 && int.TryParse(parts[2], out int lastNum))
+                    {
+                        nextNumber = lastNum + 1;
+                    }
+                }
+                employeeNumber = $"MTEC EN {nextNumber:D3}";
+            }
+
             var entity = new EmployeeInfo
             {
                 CreatedByUserId = userId,
                 CreatedAt = DateTime.UtcNow,
+                IsActive = dto.IsActive,
                 EmploymentType = dto.EmploymentType,
-                EmployeeNumber = dto.EmployeeNumber,
+                EmployeeNumber = employeeNumber,
                 EmployeeName = dto.EmployeeName,
                 MailingAddress = dto.MailingAddress,
                 MothersMaidenName = dto.MothersMaidenName,
@@ -88,6 +110,7 @@ namespace MyTechERP.Infrastructure.Services.HR
             var entity = await _context.EmployeeInfos.FindAsync(id);
             if (entity == null) throw new KeyNotFoundException("Employee Info not found");
 
+            entity.IsActive = dto.IsActive;
             entity.EmploymentType = dto.EmploymentType;
             entity.EmployeeNumber = dto.EmployeeNumber;
             entity.EmployeeName = dto.EmployeeName;
@@ -131,6 +154,19 @@ namespace MyTechERP.Infrastructure.Services.HR
             return true;
         }
 
+        public async Task<EmployeeInfoDto> AddAttachmentsAsync(int id, List<string> urls)
+        {
+            var entity = await _context.EmployeeInfos.FindAsync(id);
+            if (entity == null) throw new KeyNotFoundException("Employee Info not found");
+
+            var currentAttachments = entity.Attachments;
+            currentAttachments.AddRange(urls);
+            entity.Attachments = currentAttachments;
+
+            await _context.SaveChangesAsync();
+            return MapToDto(entity);
+        }
+
         private EmployeeInfoDto MapToDto(EmployeeInfo entity)
         {
             return new EmployeeInfoDto
@@ -139,6 +175,7 @@ namespace MyTechERP.Infrastructure.Services.HR
                 EmploymentType = entity.EmploymentType,
                 CreatedByUserId = entity.CreatedByUserId,
                 CreatedAt = entity.CreatedAt,
+                IsActive = entity.IsActive,
                 EmployeeNumber = entity.EmployeeNumber,
                 EmployeeName = entity.EmployeeName,
                 MailingAddress = entity.MailingAddress,
@@ -163,7 +200,8 @@ namespace MyTechERP.Infrastructure.Services.HR
                 KinFullName = entity.KinFullName,
                 KinCnicNumber = entity.KinCnicNumber,
                 KinRelationship = entity.KinRelationship,
-                KinMobileNumber = entity.KinMobileNumber
+                KinMobileNumber = entity.KinMobileNumber,
+                Attachments = entity.Attachments
             };
         }
     }

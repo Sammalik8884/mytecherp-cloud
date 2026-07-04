@@ -24,5 +24,14 @@ export const employeeInfoService = {
 
     delete: async (id: number): Promise<void> => {
         await apiClient.delete(`/EmployeeInfo/${id}`);
+    },
+
+    uploadAttachments: async (id: number, files: File[]): Promise<EmployeeInfo> => {
+        const formData = new FormData();
+        files.forEach(f => formData.append('files', f));
+        const response = await apiClient.post<EmployeeInfo>(`/EmployeeInfo/${id}/attachments`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
     }
 };

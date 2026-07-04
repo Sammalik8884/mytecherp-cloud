@@ -20,6 +20,9 @@ export interface ProcurementRequestDto {
     items: ProcurementRequestItemDto[];
     quotes: ProcurementQuoteDto[];
     isArfApproved?: boolean;
+    isAcceptedBySupervisor?: boolean;
+    supervisorAcceptanceDate?: string;
+    supervisorAcceptanceRemarks?: string;
 }
 
 export interface ProcurementQuoteDto {

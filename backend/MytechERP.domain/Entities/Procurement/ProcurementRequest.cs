@@ -69,5 +69,10 @@ namespace MytechERP.domain.Entities.Procurement
 
         public ICollection<ProcurementRequestItem> Items { get; set; } = new List<ProcurementRequestItem>();
         public ICollection<ProcurementQuote> Quotes { get; set; } = new List<ProcurementQuote>();
+
+        // Site Supervisor Acceptance
+        public bool IsAcceptedBySupervisor { get; set; } = false;
+        public DateTime? SupervisorAcceptanceDate { get; set; }
+        public string? SupervisorAcceptanceRemarks { get; set; }
     }
 }

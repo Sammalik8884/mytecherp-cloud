@@ -37,5 +37,13 @@ namespace MytechERP.API.Controllers.HR
             var result = await _service.GetAllAsync(userEmail, userId);
             return Ok(result);
         }
+
+        [HttpPost("{id}/approve")]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var userEmail = _currentUserService.Email;
+            await _service.ApproveAsync(id, userEmail);
+            return Ok();
+        }
     }
 }

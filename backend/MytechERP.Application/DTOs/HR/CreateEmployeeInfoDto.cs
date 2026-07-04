@@ -5,6 +5,7 @@ namespace MytechERP.Application.DTOs.HR
     public class CreateEmployeeInfoDto
     {
         public string EmploymentType { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
 
         public string? EmployeeNumber { get; set; }
         public string? EmployeeName { get; set; }

@@ -155,11 +155,77 @@ const ProcurementDetailsPage: React.FC = () => {
                                 </div>
                             )}
                         </div>
+
+                        {/* Acceptance Section */}
+                        {request.completedDate && (
+                            <div className="mt-6 pt-6 border-t border-border">
+                                <h4 className="text-md font-medium mb-4">Site Supervisor Acceptance</h4>
+                                {request.supervisorAcceptanceDate ? (
+                                    <div className="bg-background rounded p-4 border border-border">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${request.isAcceptedBySupervisor ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {request.isAcceptedBySupervisor ? 'Accepted' : 'Rejected'}
+                                            </span>
+                                            <span className="text-sm text-muted-foreground">on {format(new Date(request.supervisorAcceptanceDate), 'dd MMM yyyy HH:mm')}</span>
+                                        </div>
+                                        <p className="text-sm mt-2"><span className="font-semibold text-muted-foreground">Remarks:</span> {request.supervisorAcceptanceRemarks || 'None'}</p>
+                                    </div>
+                                ) : (
+                                    <AcceptanceForm procurementId={request.id} onComplete={() => loadData(request.id)} />
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
         </div>
     );
 };
+
+const AcceptanceForm: React.FC<{ procurementId: number, onComplete: () => void }> = ({ procurementId, onComplete }) => {
+    const [remarks, setRemarks] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleAcceptance = async (isAccepted: boolean) => {
+        setLoading(true);
+        try {
+            await procurementFlowService.acceptDelivery(procurementId, { isAccepted, remarks });
+            onComplete();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to submit acceptance.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-4">
+            <textarea
+                className="w-full text-sm rounded-md border border-border bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                placeholder="Enter remarks..."
+                value={remarks}
+                onChange={e => setRemarks(e.target.value)}
+                rows={3}
+            />
+            <div className="flex gap-4">
+                <button
+                    onClick={() => handleAcceptance(true)}
+                    disabled={loading}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                    Accept Delivery
+                </button>
+                <button
+                    onClick={() => handleAcceptance(false)}
+                    disabled={loading}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                    Reject Delivery
+                </button>
+            </div>
+        </div>
+    );
+}
 
 export default ProcurementDetailsPage;

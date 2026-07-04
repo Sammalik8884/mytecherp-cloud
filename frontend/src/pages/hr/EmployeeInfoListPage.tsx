@@ -10,6 +10,7 @@ export default function EmployeeInfoListPage() {
     const [search, setSearch] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [filterType, setFilterType] = useState<"All" | "Permanent Employee" | "Temporary Employee">("All");
+    const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Inactive">("Active");
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeInfo | null>(null);
     const navigate = useNavigate();
 
@@ -41,8 +42,11 @@ export default function EmployeeInfoListPage() {
     };
 
     const filteredEmployees = employees.filter(emp => {
-        if (filterType === "All") return true;
-        return emp.employmentType === filterType;
+        let matchesType = filterType === "All" || emp.employmentType === filterType;
+        let matchesStatus = true;
+        if (statusFilter === "Active") matchesStatus = emp.isActive;
+        if (statusFilter === "Inactive") matchesStatus = !emp.isActive;
+        return matchesType && matchesStatus;
     });
 
     const EmployeeModal = () => {
@@ -156,16 +160,29 @@ export default function EmployeeInfoListPage() {
                     <button onClick={fetchEmployees} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Search</button>
                 </div>
 
-                <div className="flex bg-gray-100 p-1 rounded-md">
-                    {(["All", "Permanent Employee", "Temporary Employee"] as const).map(type => (
-                        <button
-                            key={type}
-                            onClick={() => setFilterType(type)}
-                            className={`px-4 py-1.5 text-sm font-medium rounded ${filterType === type ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
-                        >
-                            {type === "All" ? "All" : type.split(" ")[0]}
-                        </button>
-                    ))}
+                <div className="flex gap-4">
+                    <div className="flex bg-gray-100 p-1 rounded-md">
+                        {(["All", "Permanent Employee", "Temporary Employee"] as const).map(type => (
+                            <button
+                                key={type}
+                                onClick={() => setFilterType(type)}
+                                className={`px-4 py-1.5 text-sm font-medium rounded ${filterType === type ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                            >
+                                {type === "All" ? "All" : type.split(" ")[0]}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex bg-gray-100 p-1 rounded-md">
+                        {(["All", "Active", "Inactive"] as const).map(status => (
+                            <button
+                                key={status}
+                                onClick={() => setStatusFilter(status)}
+                                className={`px-4 py-1.5 text-sm font-medium rounded ${statusFilter === status ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                            >
+                                {status}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -183,6 +200,7 @@ export default function EmployeeInfoListPage() {
                                 <th className="px-4 py-3 font-medium">Employee No</th>
                                 <th className="px-4 py-3 font-medium">Name</th>
                                 <th className="px-4 py-3 font-medium">Type</th>
+                                <th className="px-4 py-3 font-medium">Status</th>
                                 <th className="px-4 py-3 font-medium">Designation</th>
                                 <th className="px-4 py-3 font-medium">CNIC</th>
                                 <th className="px-4 py-3 font-medium text-right">Actions</th>
@@ -196,6 +214,11 @@ export default function EmployeeInfoListPage() {
                                     <td className="px-4 py-3">
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${emp.employmentType === 'Permanent Employee' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
                                             {emp.employmentType}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${emp.isActive ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>
+                                            {emp.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3">{emp.designation || '-'}</td>
