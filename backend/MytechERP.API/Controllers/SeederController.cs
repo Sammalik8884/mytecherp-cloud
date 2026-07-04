@@ -144,5 +144,30 @@ namespace MytechERP.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpDelete("clean-procurement-head")]
+        public async Task<IActionResult> CleanProcurementHead()
+        {
+            try
+            {
+                var targetRequests = _db.ProcurementRequests
+                    .Where(p => p.Status == "ApprovedByPD" || p.Status == "ARFCreated" || p.Status == "ARFApproved")
+                    .ToList();
+
+                var targetIds = targetRequests.Select(r => r.Id).ToList();
+
+                var items = _db.ProcurementRequestItems.Where(i => targetIds.Contains(i.ProcurementRequestId)).ToList();
+                _db.ProcurementRequestItems.RemoveRange(items);
+                _db.ProcurementRequests.RemoveRange(targetRequests);
+
+                await _db.SaveChangesAsync();
+
+                return Ok(new { message = $"Successfully cleaned {targetRequests.Count} requests and their items from the Procurement Head module." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }
