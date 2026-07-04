@@ -7,6 +7,9 @@ export const UsersPage = () => {
     const [users, setUsers] = useState<any[]>([]);
     const [roles, setRoles] = useState<string[]>([]);
     const [sites, setSites] = useState<any[]>([]);
+    const [regions, setRegions] = useState<string[]>([]);
+    const [customRegion, setCustomRegion] = useState("");
+    const [isAddingCustomRegion, setIsAddingCustomRegion] = useState(false);
     const [loading, setLoading] = useState(true);
 
     // Modal State
@@ -18,19 +21,22 @@ export const UsersPage = () => {
         password: "",
         role: "",
         designation: "",
-        siteId: ""
+        siteId: "",
+        region: ""
     });
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [usersData, rolesData, sitesData] = await Promise.all([
+            const [usersData, rolesData, sitesData, regionsData] = await Promise.all([
                 authService.getUsers(),
                 authService.getRoles(),
-                import("../services/apiClient").then(m => m.apiClient.get('/Sites').then(r => r.data).catch(() => []))
+                import("../services/apiClient").then(m => m.apiClient.get('/Sites').then(r => r.data).catch(() => [])),
+                import("../services/apiClient").then(m => m.apiClient.get('/Regions').then(r => r.data).catch(() => []))
             ]);
             setUsers(usersData);
             setSites(sitesData);
+            setRegions(regionsData);
             // Only show the official backend roles — filter out stale DB entries like Worker, Client, Customers
             const validRoles = ["Manager", "Engineer", "Technician", "Customer", "Salesman", "Estimation", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller"];
             const filteredRoles = rolesData.filter((r: string) => validRoles.includes(r));
@@ -56,7 +62,8 @@ export const UsersPage = () => {
             password: "",
             role: roles.length > 0 ? roles[0] : "",
             designation: "",
-            siteId: ""
+            siteId: "",
+            region: ""
         });
         setIsModalOpen(true);
     };
@@ -270,6 +277,71 @@ export const UsersPage = () => {
                                                 <option key={site.id} value={site.id}>{site.name}</option>
                                             ))}
                                         </select>
+                                    </div>
+                                )}
+                                {formData.role === "Salesman" && (
+                                    <div>
+                                        <label className="text-xs font-semibold text-muted-foreground mb-1 block">Assign Region *</label>
+                                        {!isAddingCustomRegion ? (
+                                            <div className="flex gap-2">
+                                                <select
+                                                    required
+                                                    value={formData.region}
+                                                    onChange={e => {
+                                                        if (e.target.value === "ADD_CUSTOM") {
+                                                            setIsAddingCustomRegion(true);
+                                                        } else {
+                                                            setFormData({ ...formData, region: e.target.value });
+                                                        }
+                                                    }}
+                                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                                >
+                                                    <option value="" disabled>Select a region...</option>
+                                                    {regions.map(r => (
+                                                        <option key={r} value={r}>{r}</option>
+                                                    ))}
+                                                    <option value="ADD_CUSTOM" className="font-semibold text-primary">+ Add Custom Region</option>
+                                                </select>
+                                            </div>
+                                        ) : (
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={customRegion}
+                                                    onChange={e => setCustomRegion(e.target.value)}
+                                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                                    placeholder="Enter custom region name"
+                                                    autoFocus
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        if (!customRegion.trim()) return;
+                                                        try {
+                                                            const apiClient = (await import("../services/apiClient")).apiClient;
+                                                            await apiClient.post('/Regions', `"${customRegion}"`, { headers: { 'Content-Type': 'application/json' } });
+                                                            toast.success("Region added");
+                                                            setRegions([...regions, customRegion]);
+                                                            setFormData({ ...formData, region: customRegion });
+                                                            setIsAddingCustomRegion(false);
+                                                            setCustomRegion("");
+                                                        } catch (e) {
+                                                            toast.error("Failed to add region");
+                                                        }
+                                                    }}
+                                                    className="bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm"
+                                                >
+                                                    Save
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsAddingCustomRegion(false)}
+                                                    className="px-3 py-2 border rounded-lg text-sm"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

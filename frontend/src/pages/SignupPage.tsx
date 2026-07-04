@@ -149,6 +149,9 @@ export const SignupPage = () => {
                                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                     </button>
                                 </div>
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                    Password must contain an uppercase letter, lowercase letter, number, and special character.
+                                </p>
                             </div>
                         </div>
 

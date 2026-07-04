@@ -169,6 +169,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddHostedService<MytechERP.API.BackgroundServices.SalesmanVisitMonitorService>();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

@@ -163,6 +163,11 @@ export const QuotationsPage = () => {
         catch (error: any) { toast.error(extractApiError(error, "Failed to submit"), { id: `submit-${id}` }); }
     });
 
+    const handleSendToSalesman = (id: number) => confirmAction("Send to Salesman", "Send this quote to the linked salesman?", "info", async () => {
+        try { toast.loading("Sending...", { id: `send-salesman-${id}` }); await quotationService.sendToSalesman(id); toast.success("Sent to Salesman", { id: `send-salesman-${id}` }); fetchData(); }
+        catch (error: any) { toast.error(extractApiError(error, "Failed to send"), { id: `send-salesman-${id}` }); }
+    });
+
     const handleReject = (id: number) => setPromptModal({ isOpen: true, title: "Reject Quotation", message: "Reason for rejection:", onConfirm: async (comment) => {
         setPromptModal(prev => ({ ...prev, isOpen: false }));
         try { toast.loading("Rejecting...", { id: `reject-${id}` }); await quotationService.reject(id, comment); toast.success("Quotation Rejected", { id: `reject-${id}` }); fetchData(); }
@@ -316,7 +321,10 @@ export const QuotationsPage = () => {
                                                     )}
                                                     <button onClick={() => navigate(`/quotations/revise/${quote.id}`)} title="Revise" className="p-2 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-lg transition-colors"><Copy className="h-4 w-4" /></button>
                                                     {normalizeStatus(quote.status) === 'draft' && (
-                                                        <button onClick={() => handleSubmitForApproval(quote.id)} title="Submit for Approval" className="p-2 text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
+                                                        <>
+                                                            <button onClick={() => handleSubmitForApproval(quote.id)} title="Submit for Approval" className="p-2 text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
+                                                            <button onClick={() => handleSendToSalesman(quote.id)} title="Send to Salesman" className="p-2 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
+                                                        </>
                                                     )}
                                                     {normalizeStatus(quote.status) === 'pendingapproval' && isHuzefa && (
                                                         <>

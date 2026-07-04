@@ -182,17 +182,28 @@ namespace MyTechERP.Infrastructure.Services
             };
         }
 
-        public async Task<SalesmanActivityResponseDto> GetSalesmanActivityMetricsAsync(DateTime? startDate = null, DateTime? endDate = null)
+        public async Task<SalesmanActivityResponseDto> GetSalesmanActivityMetricsAsync(DateTime? startDate = null, DateTime? endDate = null, string? region = null, string? salesmanId = null)
         {
             var endOfPeriod = endDate?.Date.AddDays(1).AddSeconds(-1) ?? DateTime.UtcNow.Date.AddDays(1).AddSeconds(-1);
             var startOfPeriod = startDate?.Date ?? endOfPeriod.Date.AddDays(-6);
             int benchmark = 5;
 
-            var siteVisits = await _context.SiteVisits
+            var query = _context.SiteVisits
                 .Include(s => s.SalesLead)
                 .ThenInclude(l => l.SalesmanUser)
-                .Where(s => s.StartTime != null && s.StartTime >= startOfPeriod && s.StartTime <= endOfPeriod && s.SalesLead != null && s.SalesLead.SalesmanUser != null)
-                .ToListAsync();
+                .Where(s => s.StartTime != null && s.StartTime >= startOfPeriod && s.StartTime <= endOfPeriod && s.SalesLead != null && s.SalesLead.SalesmanUser != null);
+
+            if (!string.IsNullOrEmpty(region))
+            {
+                query = query.Where(s => s.SalesLead!.SalesmanUser!.Region == region);
+            }
+
+            if (!string.IsNullOrEmpty(salesmanId))
+            {
+                query = query.Where(s => s.SalesLead!.SalesmanUserId == salesmanId);
+            }
+
+            var siteVisits = await query.ToListAsync();
 
             var dateLabels = new List<DateTime>();
             for (var d = startOfPeriod.Date; d <= endOfPeriod.Date; d = d.AddDays(1))

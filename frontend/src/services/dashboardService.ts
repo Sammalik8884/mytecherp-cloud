@@ -30,19 +30,23 @@ export interface SalesmanActivityResponse {
     salesmenSummary: SalesmanActivitySummary[];
 }
 
-export const getSalesmanActivityMetrics = async (startDate?: Date, endDate?: Date): Promise<SalesmanActivityResponse> => {
+export const getSalesmanActivityMetrics = async (startDate?: Date, endDate?: Date, region?: string, salesmanId?: string): Promise<SalesmanActivityResponse> => {
     let url = "/dashboard/sales-activity?";
     if (startDate) url += `startDate=${startDate.toISOString()}&`;
-    if (endDate) url += `endDate=${endDate.toISOString()}`;
+    if (endDate) url += `endDate=${endDate.toISOString()}&`;
+    if (region) url += `region=${encodeURIComponent(region)}&`;
+    if (salesmanId) url += `salesmanId=${encodeURIComponent(salesmanId)}&`;
     
     const res = await apiClient.get<SalesmanActivityResponse>(url);
     return res.data;
 };
 
-export const downloadSalesActivityPdf = (startDate?: Date, endDate?: Date) => {
+export const downloadSalesActivityPdf = (startDate?: Date, endDate?: Date, region?: string, salesmanId?: string) => {
     let url = "/dashboard/sales-activity/export/pdf?";
     if (startDate) url += `startDate=${startDate.toISOString()}&`;
-    if (endDate) url += `endDate=${endDate.toISOString()}`;
+    if (endDate) url += `endDate=${endDate.toISOString()}&`;
+    if (region) url += `region=${encodeURIComponent(region)}&`;
+    if (salesmanId) url += `salesmanId=${encodeURIComponent(salesmanId)}&`;
     
     // using token based fetch since apiClient uses interceptor, but file download is easily done via window.open if cookies/auth pass in URL, or by fetching blob
     return apiClient.get(url, { responseType: 'blob' })
@@ -57,10 +61,12 @@ export const downloadSalesActivityPdf = (startDate?: Date, endDate?: Date) => {
         });
 };
 
-export const downloadSalesActivityCsv = (startDate?: Date, endDate?: Date) => {
+export const downloadSalesActivityCsv = (startDate?: Date, endDate?: Date, region?: string, salesmanId?: string) => {
     let url = "/dashboard/sales-activity/export/csv?";
     if (startDate) url += `startDate=${startDate.toISOString()}&`;
-    if (endDate) url += `endDate=${endDate.toISOString()}`;
+    if (endDate) url += `endDate=${endDate.toISOString()}&`;
+    if (region) url += `region=${encodeURIComponent(region)}&`;
+    if (salesmanId) url += `salesmanId=${encodeURIComponent(salesmanId)}&`;
     
     return apiClient.get(url, { responseType: 'blob' })
         .then(response => {

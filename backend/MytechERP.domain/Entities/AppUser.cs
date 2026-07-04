@@ -18,5 +18,6 @@ namespace MytechERP.domain.Entities
         public Customer? Customer { get; set; }
         public int? SiteId { get; set; }
         public Site? Site { get; set; }
+        public string? Region { get; set; }
     }
 }

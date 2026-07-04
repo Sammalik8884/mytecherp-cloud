@@ -148,6 +148,11 @@ export const quotationService = {
         return response.data;
     },
 
+    sendToSalesman: async (id: number): Promise<any> => {
+        const response = await apiClient.post(`/Quotation/${id}/send-to-salesman`);
+        return response.data;
+    },
+
     approve: async (id: number): Promise<any> => {
         const response = await apiClient.post(`/Quotation/${id}/approve`);
         return response.data;

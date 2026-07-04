@@ -28,6 +28,7 @@ namespace MytechERP.API.Controllers
         private readonly IBlobService _blobService;
         private readonly INotificationService _notificationService;
         private readonly UserManager<AppUser> _userManager;
+        private readonly IEmailService _emailService;
 
         private const string HuzefaEmail = "m.huzefa@mytecheng.com";
 
@@ -36,12 +37,13 @@ namespace MytechERP.API.Controllers
             TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
                 TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time"));
 
-        public SalesController(ApplicationDbContext context, IBlobService blobService, INotificationService notificationService, UserManager<AppUser> userManager)
+        public SalesController(ApplicationDbContext context, IBlobService blobService, INotificationService notificationService, UserManager<AppUser> userManager, IEmailService emailService)
         {
             _context = context;
             _blobService = blobService;
             _notificationService = notificationService;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         // ======================= LEADS =======================
@@ -568,6 +570,17 @@ namespace MytechERP.API.Controllers
                         type: "BOQ",
                         targetId: lead.Id
                     );
+
+                    // Send email notification to Huzefa
+                    var emailBody = $@"
+                        <h2>New BOQ/Drawings Submitted</h2>
+                        <p>A new document has been submitted for Lead <strong>#{lead.LeadNumber}</strong>.</p>
+                        <p>Customer: {lead.Customer?.Name ?? "N/A"}</p>
+                        <p>Salesman: {lead.SalesmanUser?.FullName ?? "N/A"}</p>
+                        <br/>
+                        <p>Please log in to the system to review the documents.</p>";
+                    
+                    await _emailService.SendEmailAsync(HuzefaEmail, $"New BOQ/Drawings for Lead #{lead.LeadNumber}", emailBody, true);
                 }
             }
 

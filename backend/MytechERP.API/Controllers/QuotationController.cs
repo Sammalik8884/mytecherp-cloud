@@ -249,6 +249,43 @@ namespace MytechERP.API.Controllers
 
             return Ok(new { Message = $"Email sent successfully to {quote.Customer.Email}" });
         }
+                [HttpPost("{id}/send-to-salesman")]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Estimation)]
+        public async Task<IActionResult> SendToSalesman(int id)
+        {
+            var quote = await _context.Quotations.FindAsync(id);
+            if (quote == null) return NotFound(new { Error = "Quotation not found." });
+
+            var lead = await _context.SalesLeads.Include(l => l.SalesmanUser).FirstOrDefaultAsync(l => l.QuotationId == id);
+            if (lead == null || lead.SalesmanUser == null)
+            {
+                return BadRequest(new { Error = "No linked Salesman found for this quote." });
+            }
+
+            // Create notification for salesman
+            var notificationService = HttpContext.RequestServices.GetRequiredService<INotificationService>(); await notificationService.CreateNotificationAsync(
+                userId: lead.SalesmanUserId,
+                title: "Quote Ready",
+                message: $"Estimator has sent you Quotation #{quote.QuoteNumber} for Lead #{lead.LeadNumber}.",
+                type: "Quotation",
+                targetId: quote.Id
+            );
+
+            // Optional Email to salesman
+            if (!string.IsNullOrEmpty(lead.SalesmanUser.Email))
+            {
+                
+                await _emailService.SendEmailAsync(
+                    lead.SalesmanUser.Email,
+                    $"Quotation #{quote.QuoteNumber} Ready",
+                    $"<p>Hello {lead.SalesmanUser.FullName},</p><p>An Estimator has sent you Quotation #{quote.QuoteNumber} for Lead #{lead.LeadNumber}. Please review it in the system.</p>",
+                    true
+                );
+            }
+
+            return Ok(new { Message = "Quote sent to Salesman successfully" });
+        }
+
         [HttpPost("create-from-failure")]
         [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer)]
         public async Task<IActionResult> CreateFromFailure([FromBody] ConvertFailureToQuoteDto dto)

@@ -38,11 +38,11 @@ namespace MytechERP.API.Controllers
         }
         [HttpGet("sales-activity")]
         [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
-        public async Task<IActionResult> GetSalesmanActivity([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        public async Task<IActionResult> GetSalesmanActivity([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? region, [FromQuery] string? salesmanId)
         {
             try
             {
-                var metrics = await _dashboardService.GetSalesmanActivityMetricsAsync(startDate, endDate);
+                var metrics = await _dashboardService.GetSalesmanActivityMetricsAsync(startDate, endDate, region, salesmanId);
                 return Ok(metrics);
             }
             catch (Exception ex)
@@ -53,11 +53,11 @@ namespace MytechERP.API.Controllers
         
         [HttpGet("sales-activity/export/csv")]
         [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
-        public async Task<IActionResult> ExportSalesActivityCsv([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        public async Task<IActionResult> ExportSalesActivityCsv([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? region, [FromQuery] string? salesmanId)
         {
             try
             {
-                var metrics = await _dashboardService.GetSalesmanActivityMetricsAsync(startDate, endDate);
+                var metrics = await _dashboardService.GetSalesmanActivityMetricsAsync(startDate, endDate, region, salesmanId);
                 var sb = new System.Text.StringBuilder();
                 sb.AppendLine("Salesman,Date,Total Visits,Activity %");
                 
@@ -80,11 +80,11 @@ namespace MytechERP.API.Controllers
         
         [HttpGet("sales-activity/export/pdf")]
         [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
-        public async Task<IActionResult> ExportSalesActivityPdf([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        public async Task<IActionResult> ExportSalesActivityPdf([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? region, [FromQuery] string? salesmanId)
         {
             try
             {
-                var metrics = await _dashboardService.GetSalesmanActivityMetricsAsync(startDate, endDate);
+                var metrics = await _dashboardService.GetSalesmanActivityMetricsAsync(startDate, endDate, region, salesmanId);
                 var pdfBytes = await _pdfService.GenerateSalesmanActivityReportPdfAsync(metrics);
                 return File(pdfBytes, "application/pdf", $"Salesman_Activity_Report_{DateTime.UtcNow:yyyyMMdd}.pdf");
             }

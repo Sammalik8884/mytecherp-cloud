@@ -15,6 +15,11 @@ export const ActivityPage: React.FC = () => {
     const [customStartDate, setCustomStartDate] = useState(format(subMonths(new Date(), 1), 'yyyy-MM-dd'));
     const [customEndDate, setCustomEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
+    const [region, setRegion] = useState<string>('');
+    const [salesmanId, setSalesmanId] = useState<string>('');
+    const [regions, setRegions] = useState<string[]>([]);
+    const [salesmen, setSalesmen] = useState<any[]>([]);
+
     const fetchActivity = async () => {
         try {
             setLoading(true);
@@ -41,7 +46,9 @@ export const ActivityPage: React.FC = () => {
 
             const res = await getSalesmanActivityMetrics(
                 startDate ? new Date(startDate) : undefined,
-                endDate ? new Date(endDate) : undefined
+                endDate ? new Date(endDate) : undefined,
+                region || undefined,
+                salesmanId || undefined
             ).catch(() => null);
 
             if (res) setSalesActivity(res);
@@ -53,11 +60,32 @@ export const ActivityPage: React.FC = () => {
         }
     };
 
+    const fetchFilters = async () => {
+        try {
+            const apiClient = (await import('../services/apiClient')).apiClient;
+            const authService = (await import('../services/authService')).authService;
+            const [regionsData, usersData] = await Promise.all([
+                apiClient.get('/Regions').then(r => r.data).catch(() => []),
+                authService.getUsers().catch(() => [])
+            ]);
+            setRegions(regionsData);
+            setSalesmen(usersData.filter((u: any) => u.roles?.includes('Salesman')));
+        } catch (e) {
+            console.error('Filter fetch failed', e);
+        }
+    };
+
+    useEffect(() => {
+        if (user?.roles?.includes('Admin') || user?.roles?.includes('Manager')) {
+            fetchFilters();
+        }
+    }, [user]);
+
     useEffect(() => {
         if (user?.roles?.includes('Admin') || user?.roles?.includes('Manager')) {
             fetchActivity();
         }
-    }, [dateRange, user]);
+    }, [dateRange, region, salesmanId, user]);
 
     return (
         <div className="min-h-screen pb-20 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -71,7 +99,33 @@ export const ActivityPage: React.FC = () => {
                         Managerial Check & Balance for Site Visits.
                     </p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-2 bg-secondary/50 border border-border rounded-lg p-1">
+                        <select
+                            value={region}
+                            onChange={(e) => setRegion(e.target.value)}
+                            className="bg-secondary text-foreground text-sm border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer py-1.5 px-2"
+                        >
+                            <option value="">All Regions</option>
+                            {regions.map(r => (
+                                <option key={r} value={r}>{r}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 bg-secondary/50 border border-border rounded-lg p-1">
+                        <select
+                            value={salesmanId}
+                            onChange={(e) => setSalesmanId(e.target.value)}
+                            className="bg-secondary text-foreground text-sm border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer py-1.5 px-2"
+                        >
+                            <option value="">All Salesmen</option>
+                            {salesmen.map(s => (
+                                <option key={s.id} value={s.id}>{s.fullName}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="flex items-center gap-2 bg-secondary/50 border border-border rounded-lg p-1">
                         <Calendar size={14} className="text-muted-foreground ml-2 shrink-0" />
                         <select
@@ -123,7 +177,7 @@ export const ActivityPage: React.FC = () => {
                                         ed = new Date(customEndDate);
                                     }
                                 }
-                                downloadSalesActivityPdf(sd, ed);
+                                downloadSalesActivityPdf(sd, ed, region || undefined, salesmanId || undefined);
                             }}
                             className="bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/20 px-3 py-1.5 rounded-lg text-sm transition-all"
                         >
@@ -143,7 +197,7 @@ export const ActivityPage: React.FC = () => {
                                         ed = new Date(customEndDate);
                                     }
                                 }
-                                downloadSalesActivityCsv(sd, ed);
+                                downloadSalesActivityCsv(sd, ed, region || undefined, salesmanId || undefined);
                             }}
                             className="bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border px-3 py-1.5 rounded-lg text-sm transition-all"
                         >

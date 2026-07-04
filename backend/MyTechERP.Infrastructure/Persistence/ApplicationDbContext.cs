@@ -44,6 +44,7 @@ namespace MytechERP.Infrastructure.Persistance
         }
 
         public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<MytechERP.domain.Entities.System.SystemRegion> SystemRegions { get; set; }
         public DbSet<Product> Products { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
