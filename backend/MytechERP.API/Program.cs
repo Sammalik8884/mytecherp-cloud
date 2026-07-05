@@ -571,6 +571,22 @@ app.MapControllers();
 app.MapHub<MytechERP.API.Hubs.SyncHub>("/hubs/sync");
 app.MapGet("/api/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
+app.MapGet("/api/debug/migrations", async (MytechERP.Infrastructure.Persistance.ApplicationDbContext ctx) => 
+{
+    try 
+    {
+        var pending = await ctx.Database.GetPendingMigrationsAsync();
+        if (!pending.Any()) return Results.Ok("No pending migrations.");
+        
+        await ctx.Database.MigrateAsync();
+        return Results.Ok($"Successfully applied {pending.Count()} migrations.");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.ToString(), title: "Migration Failed");
+    }
+});
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<MytechERP.Infrastructure.Persistance.ApplicationDbContext>();
