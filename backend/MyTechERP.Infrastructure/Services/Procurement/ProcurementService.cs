@@ -32,8 +32,6 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 .Include(p => p.Items)
                 .Include(p => p.Quotes)
                     .ThenInclude(q => q.QuoteItems)
-                .Include(p => p.Quotes)
-                    .ThenInclude(q => q.Vendor)
                 .Include(p => p.AmountRequestForm);
         }
 
