@@ -61,7 +61,7 @@ export const EstimatorActivityPage: React.FC = () => {
         try {
             const authService = (await import('../services/authService')).authService;
             const usersData = await authService.getUsers().catch(() => []);
-            setEstimators(usersData.filter((u: any) => u.roles?.includes('Estimator')));
+            setEstimators(usersData.filter((u: any) => u.roles?.includes('Estimation') || u.roles?.includes('Estimator')));
         } catch (e) {
             console.error('Filter fetch failed', e);
         }
