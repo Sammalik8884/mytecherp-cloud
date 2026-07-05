@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { procurementFlowService } from '../../services/procurementFlowService';
-import { ProcurementRequestDto } from '../../types/procurementFlow';
+import { ProcurementRequestDto, ProcurementQuoteDto } from '../../types/procurementFlow';
 import { format } from 'date-fns';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, XCircle } from 'lucide-react';
 
 const ProcurementDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [request, setRequest] = useState<ProcurementRequestDto | null>(null);
     const [loading, setLoading] = useState(true);
+    const [selectedQuoteDetail, setSelectedQuoteDetail] = useState<ProcurementQuoteDto | null>(null);
 
     useEffect(() => {
         if (id) {
@@ -116,7 +117,11 @@ const ProcurementDetailsPage: React.FC = () => {
                         <h3 className="text-lg font-semibold text-foreground mb-4">Submitted Vendor Quotes</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {request.quotes.map((quote) => (
-                                <div key={quote.id} className={`rounded-lg border p-4 shadow-sm relative ${quote.isSelected ? 'border-primary ring-1 ring-primary bg-primary/5' : 'border-border bg-card'}`}>
+                                <div 
+                                    key={quote.id} 
+                                    onClick={() => setSelectedQuoteDetail(quote)}
+                                    className={`rounded-lg border p-4 shadow-sm relative cursor-pointer hover:shadow-md transition-shadow ${quote.isSelected ? 'border-primary ring-1 ring-primary bg-primary/5' : 'border-border bg-card'}`}
+                                >
                                     {quote.isSelected && (
                                         <span className="absolute top-3 right-3 flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
                                             Selected Lowest
@@ -212,6 +217,56 @@ const ProcurementDetailsPage: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Quote Details Modal */}
+            {selectedQuoteDetail && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+                    <div className="bg-card w-full max-w-3xl rounded-lg border border-border shadow-lg flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30 shrink-0">
+                            <h2 className="text-xl font-bold">Quote Details - {selectedQuoteDetail.vendorName}</h2>
+                            <button onClick={() => setSelectedQuoteDetail(null)} className="text-muted-foreground hover:text-foreground">
+                                <XCircle className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-muted text-muted-foreground">
+                                    <tr>
+                                        <th className="px-4 py-3 font-medium border-b border-border">Item Name</th>
+                                        <th className="px-4 py-3 font-medium border-b border-border text-right">Qty</th>
+                                        <th className="px-4 py-3 font-medium border-b border-border text-right">Unit Rate</th>
+                                        <th className="px-4 py-3 font-medium border-b border-border text-right">Line Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border">
+                                    {selectedQuoteDetail.quoteItems?.map(qi => {
+                                        const reqItem = request.items.find(i => i.id === qi.procurementRequestItemId);
+                                        return (
+                                            <tr key={qi.id} className="hover:bg-muted/50">
+                                                <td className="px-4 py-3">{reqItem?.itemName || 'Unknown Item'}</td>
+                                                <td className="px-4 py-3 text-right">{reqItem?.quantity || 0}</td>
+                                                <td className="px-4 py-3 text-right">Rs {qi.unitRate.toLocaleString()}</td>
+                                                <td className="px-4 py-3 text-right font-medium">Rs {qi.lineTotal.toLocaleString()}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {(!selectedQuoteDetail.quoteItems || selectedQuoteDetail.quoteItems.length === 0) && (
+                                        <tr>
+                                            <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No line items available</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colSpan={3} className="px-4 py-3 text-right font-bold border-t border-border">Total Amount</td>
+                                        <td className="px-4 py-3 text-right font-bold border-t border-border text-primary">Rs {selectedQuoteDetail.totalAmount.toLocaleString()}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
