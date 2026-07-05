@@ -293,66 +293,6 @@ using (var scope = app.Services.CreateScope())
                   Console.WriteLine($"Migration warning (non-fatal): {migEx.Message}");
               }
 
-              // CRITICAL: Force apply missing columns and tables via Raw SQL to bypass corrupted EF Core History
-              try
-              {
-                  var fixDbSql = @"
-                      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'ProcurementRequests') AND name = N'RegionalHeadApprovalDate')
-                          ALTER TABLE ProcurementRequests ADD RegionalHeadApprovalDate datetime2 NULL;
-
-                      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'ProcurementRequests') AND name = N'RegionalHeadEmail')
-                          ALTER TABLE ProcurementRequests ADD RegionalHeadEmail nvarchar(max) NULL;
-
-                      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'ProcurementRequests') AND name = N'RegionalHeadRemarks')
-                          ALTER TABLE ProcurementRequests ADD RegionalHeadRemarks nvarchar(max) NULL;
-
-                      IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = N'ProcurementQuotes')
-                      BEGIN
-                          CREATE TABLE ProcurementQuotes (
-                              Id int NOT NULL IDENTITY,
-                              ProcurementRequestId int NOT NULL,
-                              VendorName nvarchar(200) NOT NULL,
-                              CityName nvarchar(100) NULL,
-                              ContactPerson nvarchar(100) NULL,
-                              ContactNumber nvarchar(50) NULL,
-                              BankAccountName nvarchar(200) NULL,
-                              BankName nvarchar(100) NULL,
-                              AccountNumber nvarchar(100) NULL,
-                              TotalAmount decimal(18,2) NOT NULL,
-                              IsSelected bit NOT NULL,
-                              SubmittedAt datetime2 NOT NULL,
-                              TenantId int NOT NULL,
-                              CONSTRAINT PK_ProcurementQuotes PRIMARY KEY (Id),
-                              CONSTRAINT FK_ProcurementQuotes_ProcurementRequests_ProcurementRequestId FOREIGN KEY (ProcurementRequestId) REFERENCES ProcurementRequests (Id) ON DELETE CASCADE
-                          );
-                          CREATE INDEX IX_ProcurementQuotes_ProcurementRequestId ON ProcurementQuotes (ProcurementRequestId);
-                      END
-
-                      IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = N'ProcurementQuoteItems')
-                      BEGIN
-                          CREATE TABLE ProcurementQuoteItems (
-                              Id int NOT NULL IDENTITY,
-                              QuoteId int NOT NULL,
-                              ProcurementRequestItemId int NOT NULL,
-                              UnitRate decimal(18,2) NOT NULL,
-                              LineTotal decimal(18,2) NOT NULL,
-                              TenantId int NOT NULL,
-                              CONSTRAINT PK_ProcurementQuoteItems PRIMARY KEY (Id),
-                              CONSTRAINT FK_ProcurementQuoteItems_ProcurementQuotes_QuoteId FOREIGN KEY (QuoteId) REFERENCES ProcurementQuotes (Id) ON DELETE CASCADE,
-                              CONSTRAINT FK_ProcurementQuoteItems_ProcurementRequestItems_ProcurementRequestItemId FOREIGN KEY (ProcurementRequestItemId) REFERENCES ProcurementRequestItems (Id) ON DELETE NO ACTION
-                          );
-                          CREATE INDEX IX_ProcurementQuoteItems_ProcurementRequestItemId ON ProcurementQuoteItems (ProcurementRequestItemId);
-                          CREATE INDEX IX_ProcurementQuoteItems_QuoteId ON ProcurementQuoteItems (QuoteId);
-                      END
-                  ";
-                  await context.Database.ExecuteSqlRawAsync(fixDbSql);
-                  Console.WriteLine("DB Schema patched successfully.");
-              }
-              catch (Exception colEx)
-              {
-                  Console.WriteLine($"DB Schema patch warning: {colEx.Message}");
-              }
-  
               // Ensure Store entity sync columns exist (safe to run even if already present)
             try
             {
