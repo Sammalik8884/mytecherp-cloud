@@ -49,8 +49,19 @@ export const amountRequestApi = {
   create: (data: Partial<AmountRequestFormDto>) => api.post<AmountRequestFormDto>("/AmountRequestForms", data),
   approve: (id: number, data: { approverRole: string; approverName: string; comment: string; isApproved: boolean }) =>
     api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/approve`, data),
-  releaseAmount: (id: number, data: { dateOfEntry?: string; dateOfFundReleased?: string; releasedAmount: number; remarks: string }) =>
-    api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/release`, data),
+  releaseAmount: (id: number, data: { dateOfEntry?: string; dateOfFundReleased?: string; releasedAmount: number; remarks: string; paymentSlip?: File }) => {
+    const formData = new FormData();
+    if (data.dateOfEntry) formData.append('dateOfEntry', data.dateOfEntry);
+    if (data.dateOfFundReleased) formData.append('dateOfFundReleased', data.dateOfFundReleased);
+    formData.append('releasedAmount', data.releasedAmount.toString());
+    formData.append('remarks', data.remarks);
+    if (data.paymentSlip) {
+      formData.append('paymentSlip', data.paymentSlip);
+    }
+    return api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/release`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
   addPayment: (id: number, data: AmountRequestPayment) =>
     api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/payments`, data),
   uploadAttachment: (id: number, file: File) => {

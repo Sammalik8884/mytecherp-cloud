@@ -368,10 +368,18 @@ namespace MyTechERP.Infrastructure.Services
             return await GetByIdAsync(entity.Id);
         }
 
-        public async Task<AmountRequestFormDto> ReleaseAmountAsync(int id, AccountsReleaseAmountDto dto)
+        public async Task<AmountRequestFormDto> ReleaseAmountAsync(int id, AccountsReleaseAmountDto dto, Microsoft.AspNetCore.Http.IFormFile? paymentSlip)
         {
+            if (paymentSlip == null || paymentSlip.Length == 0)
+            {
+                throw new Exception("Payment Slip attachment is strictly required to release the amount.");
+            }
+
             var entity = await _context.AmountRequestForms.Include(a => a.Site).FirstOrDefaultAsync(a => a.Id == id);
             if (entity == null) throw new Exception("Form not found");
+
+            var fileName = $"paymentslip_{id}_{Guid.NewGuid()}_{paymentSlip.FileName}";
+            var fileUrl = await _blobService.UploadAsync(paymentSlip, fileName);
 
             entity.AccountsDateOfEntry = dto.DateOfEntry;
             entity.AccountsDateOfFundReleased = dto.DateOfFundReleased;
@@ -386,7 +394,8 @@ namespace MyTechERP.Infrastructure.Services
                 ReleasedAmount = dto.ReleasedAmount,
                 ReceivedBy = entity.EmployeeName,
                 ModeOfPayment = "Transfer",
-                Remarks = "Auto-generated from Release Details: " + dto.Remarks
+                Remarks = "Auto-generated from Release Details: " + dto.Remarks,
+                PaymentSlipUrl = fileUrl
             };
             _context.AmountRequestPayments.Add(payment);
 

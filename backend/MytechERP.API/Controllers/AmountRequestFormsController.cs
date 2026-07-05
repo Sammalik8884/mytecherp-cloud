@@ -78,11 +78,12 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("{id}/release")]
-        public async Task<ActionResult<AmountRequestFormDto>> ReleaseAmount(int id, [FromBody] AccountsReleaseAmountDto dto)
+        [Authorize(Roles = "Admin,Manager,Accounts Assistant,Accounts Head")]
+        public async Task<ActionResult<AmountRequestFormDto>> ReleaseAmount(int id, [FromForm] AccountsReleaseAmountDto dto, IFormFile? paymentSlip)
         {
             try
             {
-                var result = await _service.ReleaseAmountAsync(id, dto);
+                var result = await _service.ReleaseAmountAsync(id, dto, paymentSlip);
                 return Ok(result);
             }
             catch (System.Exception ex)

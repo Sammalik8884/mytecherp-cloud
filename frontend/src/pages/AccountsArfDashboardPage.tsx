@@ -77,9 +77,9 @@ const AccountsArfDashboardPage = () => {
                 dateOfEntry: dateOfEntry || undefined,
                 dateOfFundReleased: dateOfFundReleased || undefined,
                 releasedAmount,
-                remarks
+                remarks,
+                paymentSlip
             });
-            await amountRequestApi.uploadAttachment(selectedForm.id, paymentSlip);
             
             toast.success("Amount released and payment slip uploaded successfully");
             fetchData();
