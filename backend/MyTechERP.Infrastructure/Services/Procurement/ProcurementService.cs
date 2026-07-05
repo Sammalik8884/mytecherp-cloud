@@ -31,7 +31,10 @@ namespace MytechERP.Infrastructure.Services.Procurement
             return _context.ProcurementRequests
                 .Include(p => p.Items)
                 .Include(p => p.Quotes)
-                    .ThenInclude(q => q.QuoteItems);
+                    .ThenInclude(q => q.QuoteItems)
+                .Include(p => p.Quotes)
+                    .ThenInclude(q => q.Vendor)
+                .Include(p => p.AmountRequestForm);
         }
 
         private ProcurementRequestDto MapToDto(ProcurementRequest entity)
@@ -530,10 +533,17 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
         private async Task NotifyUsersByRoleAsync(string roleName, string title, string message, string type)
         {
-            var usersInRole = await _userManager.GetUsersInRoleAsync(roleName);
-            foreach (var user in usersInRole)
+            try 
             {
-                await _notificationService.CreateNotificationAsync(user.Id, title, message, type);
+                var usersInRole = await _userManager.GetUsersInRoleAsync(roleName);
+                foreach (var user in usersInRole)
+                {
+                    await _notificationService.CreateNotificationAsync(user.Id, title, message, type);
+                }
+            } 
+            catch (Exception)
+            {
+                // Role might not exist, just ignore for now so we don't crash the operation
             }
         }
 

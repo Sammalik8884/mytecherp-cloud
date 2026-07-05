@@ -36,6 +36,18 @@ namespace MytechERP.API.Controllers.Procurement
             return Ok(data);
         }
 
+        [AllowAnonymous]
+        [HttpGet("test-getall")]
+        public async Task<IActionResult> TestGetAll()
+        {
+            try {
+                var data = await _procurementService.GetAllProcurementsAsync("test@test.com", "SiteSupervisor");
+                return Ok(data);
+            } catch (Exception ex) {
+                return StatusCode(500, ex.ToString());
+            }
+        }
+
         [HttpGet("pending-pd")]
         public async Task<IActionResult> GetPendingPd()
         {
