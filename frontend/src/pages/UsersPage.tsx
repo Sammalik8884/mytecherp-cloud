@@ -269,7 +269,7 @@ export const UsersPage = () => {
                                         </button>
                                         
                                         {isRolesDropdownOpen && (
-                                            <div className="absolute z-10 mt-1 w-full bg-popover text-popover-foreground border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                            <div className="mt-1 w-full bg-secondary/50 text-foreground border border-border rounded-lg max-h-48 overflow-y-auto">
                                                 <div className="p-2 space-y-1">
                                                     {roles.map(role => (
                                                         <label key={role} className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-secondary/50 p-2 rounded-md">
