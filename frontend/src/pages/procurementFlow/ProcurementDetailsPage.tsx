@@ -109,7 +109,6 @@ const ProcurementDetailsPage: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                    </div>
                 </div>
 
                 {request.quotes && request.quotes.length > 0 && (
