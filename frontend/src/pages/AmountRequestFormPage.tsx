@@ -86,6 +86,7 @@ const AmountRequestFormPage = () => {
             setIsFormOpen(true);
             const siteIdParam = searchParams.get('siteId');
             const purposeParam = searchParams.get('purpose');
+            const amountParam = searchParams.get('amount');
             
             if (siteIdParam) {
                 setLocationType('site');
@@ -94,8 +95,9 @@ const AmountRequestFormPage = () => {
             if (purposeParam) {
                 setPurposeOfAdvance(purposeParam);
             }
-            // Optional: you can store procurementId in a state to send back
-            // but we can just read it from searchParams during submit
+            if (amountParam) {
+                setAdvanceRequested(Number(amountParam));
+            }
         }
     }, [searchParams]);
 

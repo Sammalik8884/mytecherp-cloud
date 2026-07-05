@@ -257,16 +257,16 @@ const PendingProcurementsPage: React.FC = () => {
 
             {/* Quotes Modal */}
             {quotesModalOpen && selectedRequest && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
-                    <div className="bg-card w-full max-w-5xl rounded-lg border border-border shadow-lg flex flex-col my-8">
-                        <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+                    <div className="bg-card w-full max-w-5xl rounded-lg border border-border shadow-lg flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30 shrink-0">
                             <h2 className="text-xl font-bold">Submit Vendor Quotes - {selectedRequest.procurementNumber}</h2>
                             <button onClick={() => setQuotesModalOpen(false)} className="text-muted-foreground hover:text-foreground">
                                 <XCircle className="w-6 h-6" />
                             </button>
                         </div>
                         
-                        <div className="p-6 space-y-8 flex-1">
+                        <div className="p-6 space-y-8 flex-1 overflow-y-auto">
                             {vendorQuotes.map((vendor, idx) => (
                                 <div key={vendor.id} className="border border-border rounded-lg p-5 bg-background shadow-sm">
                                     <div className="flex justify-between items-center mb-4 pb-3 border-b border-border">
@@ -366,7 +366,7 @@ const PendingProcurementsPage: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="p-6 border-t border-border flex justify-between items-center bg-muted/20">
+                        <div className="p-6 border-t border-border flex justify-between items-center bg-muted/20 shrink-0">
                             <div className="text-sm text-muted-foreground flex items-center">
                                 <Calculator className="w-4 h-4 mr-2" />
                                 The system will automatically select the vendor with the lowest total amount.

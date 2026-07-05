@@ -3,7 +3,7 @@ import { procurementFlowService } from '../../services/procurementFlowService';
 import { authService } from '../../services/authService';
 import { ProcurementRequestDto } from '../../types/procurementFlow';
 import { format } from 'date-fns';
-import { FileText, UserPlus, XCircle } from 'lucide-react';
+import { FileText, UserPlus, XCircle, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -41,7 +41,9 @@ const ProcurementApprovedPage: React.FC = () => {
 
     const handleGenerateArf = (p: ProcurementRequestDto) => {
         const purpose = encodeURIComponent(`Procurement for Request ${p.procurementNumber}`);
-        navigate(`/amount-request?action=generateFromProcurement&procurementId=${p.id}&siteId=${p.siteId}&purpose=${purpose}`);
+        const selectedQuote = p.quotes?.find(q => q.isSelected);
+        const amount = selectedQuote ? selectedQuote.totalAmount : 0;
+        navigate(`/amount-request?action=generateFromProcurement&procurementId=${p.id}&siteId=${p.siteId}&purpose=${purpose}&amount=${amount}`);
     };
 
     const openAssignModal = (id: number) => {
@@ -96,14 +98,21 @@ const ProcurementApprovedPage: React.FC = () => {
                                         {p.status}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-right">
+                                <td className="px-6 py-4 text-right space-x-2">
+                                    <button 
+                                        onClick={() => navigate(`/procurement-flow/${p.id}`)}
+                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-border bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+                                    >
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        View
+                                    </button>
                                     {p.status === 'ApprovedByPD' && (
                                         <button 
                                             onClick={() => openAssignModal(p.id)}
                                             className="inline-flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md transition-colors text-sm"
                                         >
                                             <UserPlus className="h-4 w-4" />
-                                            <span>Assign Executive</span>
+                                            <span>Assign</span>
                                         </button>
                                     )}
                                     {p.status === 'QuotesSubmitted' && (
