@@ -138,7 +138,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
         {
             var query = GetBaseQuery();
 
-            if (role == "SiteSupervisor")
+            if (role == "Site Supervisor" || role == "SiteSupervisor")
             {
                 query = query.Where(p => p.SupervisorEmail == userId);
             }
