@@ -292,25 +292,6 @@ using (var scope = app.Services.CreateScope())
               {
                   Console.WriteLine($"Migration warning (non-fatal): {migEx.Message}");
               }
-              
-              // Ensure RegionalHead columns exist on ProcurementRequests
-              try
-              {
-                  var ensureRegionalHeadSql = @"
-                      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'ProcurementRequests') AND name = N'RegionalHeadApprovalDate')
-                          ALTER TABLE ProcurementRequests ADD RegionalHeadApprovalDate datetime2 NULL;
-                      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'ProcurementRequests') AND name = N'RegionalHeadEmail')
-                          ALTER TABLE ProcurementRequests ADD RegionalHeadEmail nvarchar(max) NULL;
-                      IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'ProcurementRequests') AND name = N'RegionalHeadRemarks')
-                          ALTER TABLE ProcurementRequests ADD RegionalHeadRemarks nvarchar(max) NULL;
-                  ";
-                  await context.Database.ExecuteSqlRawAsync(ensureRegionalHeadSql);
-                  Console.WriteLine("RegionalHead columns verified/created successfully.");
-              }
-              catch (Exception colEx)
-              {
-                  Console.WriteLine($"RegionalHead column ensure warning: {colEx.Message}");
-              }
   
               // Ensure Store entity sync columns exist (safe to run even if already present)
             try

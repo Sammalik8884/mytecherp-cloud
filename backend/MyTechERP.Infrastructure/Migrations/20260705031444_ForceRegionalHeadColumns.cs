@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MyTechERP.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddRegionalHeadToProcurement : Migration
+    public partial class ForceRegionalHeadColumns : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
