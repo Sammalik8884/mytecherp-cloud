@@ -363,5 +363,73 @@ namespace MyTechERP.Infrastructure.Services
                 RecentQuotations = recent
             };
         }
+
+        public async Task<EstimatorActivityResponseDto> GetEstimatorsActivityAsync(DateTime? startDate = null, DateTime? endDate = null, string? estimatorId = null)
+        {
+            var endOfPeriod = endDate?.Date.AddDays(1).AddSeconds(-1) ?? DateTime.UtcNow.Date.AddDays(1).AddSeconds(-1);
+            var startOfPeriod = startDate?.Date ?? endOfPeriod.Date.AddDays(-30);
+
+            var query = _context.SalesLeads
+                .Include(l => l.AssignedEstimator)
+                .Include(l => l.Quotation)
+                .ThenInclude(q => q.Items)
+                .Where(l => l.AssignedEstimatorId != null && l.CreatedAt >= startOfPeriod && l.CreatedAt <= endOfPeriod);
+
+            if (!string.IsNullOrEmpty(estimatorId))
+            {
+                query = query.Where(l => l.AssignedEstimatorId == estimatorId);
+            }
+
+            var leads = await query.ToListAsync();
+            var grouped = leads.GroupBy(l => new { l.AssignedEstimatorId, l.AssignedEstimator?.FullName }).ToList();
+
+            var response = new EstimatorActivityResponseDto
+            {
+                StartDate = startOfPeriod,
+                EndDate = endOfPeriod
+            };
+
+            foreach (var group in grouped)
+            {
+                var summary = new EstimatorActivitySummaryDto
+                {
+                    EstimatorId = group.Key.AssignedEstimatorId!,
+                    EstimatorName = group.Key.FullName ?? group.Key.AssignedEstimatorId!,
+                    AssignedQuotesCount = group.Count(),
+                    MadeQuotesCount = group.Count(l => l.QuotationId.HasValue),
+                    PendingQuotesCount = group.Count(l => !l.QuotationId.HasValue),
+                    ApprovedQuotesCount = group.Count(l => l.Quotation != null && l.Quotation.Status == QuotationStatus.Approved)
+                };
+
+                foreach (var lead in group.Where(l => l.Quotation != null))
+                {
+                    var q = lead.Quotation!;
+                    var quoteDetail = new QuoteActivityDetailDto
+                    {
+                        QuoteId = q.Id,
+                        QuoteNumber = q.QuoteNumber,
+                        CreatedAt = q.CreatedAt,
+                        Status = q.Status.ToString(),
+                        TotalLineItems = q.Items.Count,
+                        LocalSupplyLines = q.Items.Count(i => i.ItemType == ItemType.Local),
+                        ImportedSupplyLines = q.Items.Count(i => i.ItemType == ItemType.Imported),
+                        LocalInstallLines = q.Items.Count(i => i.ItemType == ItemType.LocalService),
+                        ImportedInstallLines = q.Items.Count(i => i.ItemType == ItemType.ImportedService)
+                    };
+
+                    summary.TotalLineItems += quoteDetail.TotalLineItems;
+                    summary.LocalSupplyLines += quoteDetail.LocalSupplyLines;
+                    summary.ImportedSupplyLines += quoteDetail.ImportedSupplyLines;
+                    summary.LocalInstallLines += quoteDetail.LocalInstallLines;
+                    summary.ImportedInstallLines += quoteDetail.ImportedInstallLines;
+
+                    summary.QuoteActivityDetails.Add(quoteDetail);
+                }
+
+                response.EstimatorsSummary.Add(summary);
+            }
+
+            return response;
+        }
     }
 }

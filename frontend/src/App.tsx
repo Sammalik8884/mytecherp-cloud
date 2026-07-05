@@ -40,6 +40,7 @@ import { SyncDashboardPage } from "./pages/SyncDashboardPage";
 import { SalesLeadsPage } from "./pages/SalesLeadsPage";
 import { SalesmanDashboardPage } from "./pages/SalesmanDashboardPage";
 import { ActivityPage } from "./pages/ActivityPage";
+import { EstimatorActivityPage } from "./pages/EstimatorActivityPage";
 import { SiteVisitPage } from "./pages/SiteVisitPage";
 import { BoqDrawingsPortalPage } from "./pages/BoqDrawingsPortalPage";
 import { CustomerPortalDashboardPage } from "./pages/CustomerPortalDashboardPage";
@@ -131,6 +132,7 @@ function App() {
                                 <Route path="/sales/leads" element={<SalesLeadsPage />} />
                                 <Route path="/sales/visit/:id" element={<SiteVisitPage />} />
                                 <Route path="/sales/activity" element={<ActivityPage />} />
+                                <Route path="/dashboard/estimator-activity" element={<EstimatorActivityPage />} />
                                 <Route path="/sales/my-dashboard" element={<SalesmanDashboardPage />} />
                             </Route>
 

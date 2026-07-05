@@ -110,5 +110,19 @@ namespace MytechERP.API.Controllers
                 return StatusCode(500, new { message = "Failed to generate estimator metrics.", detail = ex.Message });
             }
         }
+        [HttpGet("estimator-activity")]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager)]
+        public async Task<IActionResult> GetEstimatorsActivity([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] string? estimatorId)
+        {
+            try
+            {
+                var metrics = await _dashboardService.GetEstimatorsActivityAsync(startDate, endDate, estimatorId);
+                return Ok(metrics);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Failed to fetch estimator activity.", detail = ex.Message });
+            }
+        }
     }
 }

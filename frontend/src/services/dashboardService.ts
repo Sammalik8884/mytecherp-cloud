@@ -61,6 +61,49 @@ export const downloadSalesActivityPdf = (startDate?: Date, endDate?: Date, regio
         });
 };
 
+export interface QuoteActivityDetail {
+    quoteId: number;
+    quoteNumber: string;
+    createdAt: string;
+    status: string;
+    totalLineItems: number;
+    localSupplyLines: number;
+    importedSupplyLines: number;
+    localInstallLines: number;
+    importedInstallLines: number;
+}
+
+export interface EstimatorActivitySummary {
+    estimatorId: string;
+    estimatorName: string;
+    assignedQuotesCount: number;
+    madeQuotesCount: number;
+    pendingQuotesCount: number;
+    approvedQuotesCount: number;
+    totalLineItems: number;
+    localSupplyLines: number;
+    importedSupplyLines: number;
+    localInstallLines: number;
+    importedInstallLines: number;
+    quoteActivityDetails: QuoteActivityDetail[];
+}
+
+export interface EstimatorActivityResponse {
+    startDate: string;
+    endDate: string;
+    estimatorsSummary: EstimatorActivitySummary[];
+}
+
+export const getEstimatorsActivity = async (startDate?: Date, endDate?: Date, estimatorId?: string): Promise<EstimatorActivityResponse> => {
+    let url = "/dashboard/estimator-activity?";
+    if (startDate) url += `startDate=${startDate.toISOString()}&`;
+    if (endDate) url += `endDate=${endDate.toISOString()}&`;
+    if (estimatorId) url += `estimatorId=${encodeURIComponent(estimatorId)}&`;
+    
+    const res = await apiClient.get<EstimatorActivityResponse>(url);
+    return res.data;
+};
+
 export const downloadSalesActivityCsv = (startDate?: Date, endDate?: Date, region?: string, salesmanId?: string) => {
     let url = "/dashboard/sales-activity/export/csv?";
     if (startDate) url += `startDate=${startDate.toISOString()}&`;
