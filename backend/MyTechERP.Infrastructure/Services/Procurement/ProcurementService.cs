@@ -285,6 +285,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 
                 await NotifyUsersByRoleAsync("Project Director", "Procurement Request Awaiting Approval", $"Procurement request {request.ProcurementNumber} has been approved by the Regional Head and awaits your approval.", "/procurement-flow/pending-approvals");
                 await NotifyUsersByRoleAsync("Manager", "Procurement Request Awaiting Approval", $"Procurement request {request.ProcurementNumber} has been approved by the Regional Head.", "/procurement-flow/pending-approvals");
+                await NotifyUserByEmailAsync(request.SupervisorEmail, "Procurement Request Approved", $"Your procurement request {request.ProcurementNumber} was approved by the Regional Head and forwarded to the Project Director.", $"/procurement-flow/{request.Id}");
             }
             else
             {
@@ -310,6 +311,7 @@ namespace MytechERP.Infrastructure.Services.Procurement
             {
                 request.Status = "ApprovedByPD";
                 await NotifyUsersByRoleAsync("Procurement Head", "Procurement Request Approved", $"Procurement request {request.ProcurementNumber} has been approved by PD. Please assign an executive.", "/procurement-flow/approved");
+                await NotifyUserByEmailAsync(request.SupervisorEmail, "Procurement Request Approved by PD", $"Your procurement request {request.ProcurementNumber} was approved by the Project Director.", $"/procurement-flow/{request.Id}");
             }
             else
             {
