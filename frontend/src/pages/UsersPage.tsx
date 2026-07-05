@@ -201,9 +201,10 @@ export const UsersPage = () => {
 
             {/* Create User Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-secondary border border-border rounded-2xl w-full max-w-md shadow-2xl relative">
-                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary to-accent pointer-events-none rounded-t-2xl" />
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-background/80 backdrop-blur-sm animate-in fade-in">
+                    <div className="flex min-h-full items-center justify-center p-4">
+                        <div className="bg-secondary border border-border rounded-2xl w-full max-w-md shadow-2xl relative my-8">
+                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary to-accent pointer-events-none rounded-t-2xl" />
 
                         <div className="p-6">
                             <h2 className="text-xl font-bold mb-6 flex items-center space-x-2">
@@ -398,6 +399,7 @@ export const UsersPage = () => {
                             </form>
                         </div>
                     </div>
+                </div>
                 </div>
             )}
         </div>
