@@ -257,7 +257,7 @@ const PendingProcurementsPage: React.FC = () => {
 
             {/* Quotes Modal */}
             {quotesModalOpen && selectedRequest && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm p-4 pt-10">
                     <div className="bg-card w-full max-w-5xl rounded-lg border border-border shadow-lg flex flex-col max-h-[90vh]">
                         <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30 shrink-0">
                             <h2 className="text-xl font-bold">Submit Vendor Quotes - {selectedRequest.procurementNumber}</h2>
