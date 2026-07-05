@@ -250,13 +250,33 @@ namespace MytechERP.Infrastructure.Services.Procurement
 
             if (dto.IsApproved)
             {
-                // Update quantities if provided
-                foreach (var qt in dto.UpdatedQuantities)
+                if (dto.UpdatedItems != null && dto.UpdatedItems.Any())
                 {
-                    var item = request.Items.FirstOrDefault(i => i.Id == qt.ItemId);
-                    if (item != null)
+                    var updatedItemIds = dto.UpdatedItems.Where(i => i.ItemId.HasValue && i.ItemId.Value > 0).Select(i => i.ItemId.Value).ToList();
+                    var itemsToRemove = request.Items.Where(i => !updatedItemIds.Contains(i.Id)).ToList();
+                    _context.ProcurementRequestItems.RemoveRange(itemsToRemove);
+
+                    foreach (var upItem in dto.UpdatedItems)
                     {
-                        item.Quantity = qt.NewQuantity;
+                        if (upItem.ItemId.HasValue && upItem.ItemId.Value > 0)
+                        {
+                            var existing = request.Items.FirstOrDefault(i => i.Id == upItem.ItemId.Value);
+                            if (existing != null)
+                            {
+                                existing.ItemName = upItem.ItemName;
+                                existing.Quantity = upItem.Quantity;
+                                existing.Reason = upItem.Reason;
+                            }
+                        }
+                        else
+                        {
+                            request.Items.Add(new domain.Entities.Procurement.ProcurementRequestItem
+                            {
+                                ItemName = upItem.ItemName,
+                                Quantity = upItem.Quantity,
+                                Reason = upItem.Reason
+                            });
+                        }
                     }
                 }
 

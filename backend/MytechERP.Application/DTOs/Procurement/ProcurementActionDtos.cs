@@ -48,13 +48,20 @@ namespace MytechERP.Application.DTOs.Procurement
         [Required]
         public bool IsApproved { get; set; }
         public string? Remarks { get; set; }
-        public List<UpdateQuantityDto> UpdatedQuantities { get; set; } = new List<UpdateQuantityDto>();
+        public List<UpdateProcurementItemDto> UpdatedItems { get; set; } = new List<UpdateProcurementItemDto>();
     }
 
-    public class UpdateQuantityDto
+    public class UpdateProcurementItemDto
     {
-        public int ItemId { get; set; }
-        public decimal NewQuantity { get; set; }
+        public int? ItemId { get; set; }
+        [Required]
+        [MaxLength(200)]
+        public string ItemName { get; set; } = string.Empty;
+        [Required]
+        [Range(0.01, double.MaxValue)]
+        public decimal Quantity { get; set; }
+        [MaxLength(500)]
+        public string? Reason { get; set; }
     }
 
     public class SubmitVendorQuotesDto

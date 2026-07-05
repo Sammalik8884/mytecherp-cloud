@@ -27,7 +27,8 @@ namespace MytechERP.domain.Roles
         public const string PermanentEmployee = "Permanent Employee";
         public const string AccountsAssistant = "Accounts Assistant";
         public const string DocumentController = "Document Controller";
+        public const string RegionalHead = "Regional Head";
 
-        public const string AllInternal = Admin + "," + Manager + "," + Engineer + "," + Estimation + "," + Technician + "," + Salesman + "," + Worker + "," + AccountsHead + "," + SoftwareDeveloper + "," + ProcurementHead + "," + ProcurementExecutive + "," + SiteSupervisor + "," + TemporaryEmployee + "," + PermanentEmployee + "," + AccountsAssistant + "," + DocumentController;
+        public const string AllInternal = Admin + "," + Manager + "," + Engineer + "," + Estimation + "," + Technician + "," + Salesman + "," + Worker + "," + AccountsHead + "," + SoftwareDeveloper + "," + ProcurementHead + "," + ProcurementExecutive + "," + SiteSupervisor + "," + TemporaryEmployee + "," + PermanentEmployee + "," + AccountsAssistant + "," + DocumentController + "," + RegionalHead;
     }
 }

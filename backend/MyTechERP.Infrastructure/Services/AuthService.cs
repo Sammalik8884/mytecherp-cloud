@@ -111,7 +111,7 @@ namespace MyTechERP.Infrastructure.Services
             }
 
 
-            if (request.Role == "Customer")
+            if (request.Roles != null && request.Roles.Contains("Customer"))
             {
                 var customerRecord = await _context.Customers
                     .FirstOrDefaultAsync(c => c.Email.ToLower() == request.Email.ToLower() && c.TenantId == tenantId);
@@ -142,10 +142,24 @@ namespace MyTechERP.Infrastructure.Services
             }
 
             await EnsureRolesExist();
-            string roleToAssign = (await _roleManager.RoleExistsAsync(request.Role)) ? request.Role : "Technician";
-            await _userManager.AddToRoleAsync(newUser, roleToAssign);
+            var validRoles = new List<string>();
+            if (request.Roles != null && request.Roles.Any())
+            {
+                foreach (var role in request.Roles)
+                {
+                    if (await _roleManager.RoleExistsAsync(role))
+                    {
+                        validRoles.Add(role);
+                    }
+                }
+            }
+            if (!validRoles.Any())
+            {
+                validRoles.Add("Technician");
+            }
+            await _userManager.AddToRolesAsync(newUser, validRoles);
 
-            return $"User created successfully as {roleToAssign}";
+            return $"User created successfully with roles: {string.Join(", ", validRoles)}";
         }
 
 
@@ -338,7 +352,7 @@ namespace MyTechERP.Infrastructure.Services
         
         private async Task EnsureRolesExist()
         {
-            string[] roleNames = { "Admin", "Manager", "Engineer", "Technician", "Customer", "Estimation", "Salesman", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller" };
+            string[] roleNames = { "Admin", "Manager", "Engineer", "Technician", "Customer", "Estimation", "Salesman", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller", "Regional Head" };
 
             foreach (var roleName in roleNames)
             {

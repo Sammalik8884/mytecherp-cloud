@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { procurementFlowService } from '../../services/procurementFlowService';
 import { ProcurementRequestDto } from '../../types/procurementFlow';
 import { format } from 'date-fns';
-import { XCircle, Eye } from 'lucide-react';
+import { XCircle, Eye, Trash2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const RegionalHeadApprovalsPage: React.FC = () => {
@@ -33,15 +33,17 @@ const RegionalHeadApprovalsPage: React.FC = () => {
     const handleAction = async (isApproved: boolean) => {
         if (!selectedRequest) return;
         try {
-            const updatedQuantities = selectedRequest.items.map(item => ({
-                itemId: item.id,
-                newQuantity: item.quantity
+            const updatedItems = selectedRequest.items.map(item => ({
+                itemId: item.id > 0 ? item.id : null,
+                itemName: item.itemName,
+                quantity: item.quantity,
+                reason: item.reason
             }));
 
             await procurementFlowService.rhReview(selectedRequest.id, { 
                 isApproved, 
                 remarks, 
-                updatedQuantities 
+                updatedItems 
             });
 
             toast.success(`Request ${isApproved ? 'approved' : 'rejected'} successfully`);
@@ -54,15 +56,39 @@ const RegionalHeadApprovalsPage: React.FC = () => {
         }
     };
 
-    const handleQuantityChange = (itemId: number, newQuantityStr: string) => {
-        const val = parseFloat(newQuantityStr);
-        if (isNaN(val) || val < 0) return;
-        
+    const handleItemChange = (itemId: number, field: string, value: any) => {
         setSelectedRequest(prev => {
             if (!prev) return prev;
             return {
                 ...prev,
-                items: prev.items.map(i => i.id === itemId ? { ...i, quantity: val } : i)
+                items: prev.items.map(i => i.id === itemId ? { ...i, [field]: value } : i)
+            };
+        });
+    };
+
+    const handleRemoveItem = (itemId: number) => {
+        setSelectedRequest(prev => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                items: prev.items.filter(i => i.id !== itemId)
+            };
+        });
+    };
+
+    const handleAddItem = () => {
+        setSelectedRequest(prev => {
+            if (!prev) return prev;
+            const newItem = {
+                id: -Date.now(),
+                procurementRequestId: prev.id,
+                itemName: '',
+                quantity: 1,
+                reason: ''
+            };
+            return {
+                ...prev,
+                items: [...prev.items, newItem]
             };
         });
     };
@@ -133,27 +159,61 @@ const RegionalHeadApprovalsPage: React.FC = () => {
                         
                         <div className="p-6 overflow-y-auto flex-1 space-y-6">
                             <div>
-                                <h3 className="font-medium mb-3">Requested Items</h3>
+                                <h3 className="font-medium mb-3 flex items-center justify-between">
+                                    <span>Requested Items</span>
+                                    <button 
+                                        onClick={handleAddItem}
+                                        className="text-sm flex items-center text-primary hover:text-primary/80"
+                                    >
+                                        <Plus className="w-4 h-4 mr-1" /> Add Item
+                                    </button>
+                                </h3>
                                 <div className="space-y-3">
-                                    {selectedRequest.items.map((item, idx) => (
-                                        <div key={idx} className="flex justify-between items-center p-3 bg-muted/50 rounded-md">
-                                            <div>
-                                                <p className="font-medium">{item.itemName}</p>
-                                                {item.reason && <p className="text-sm text-muted-foreground">{item.reason}</p>}
+                                    {selectedRequest.items.map((item) => (
+                                        <div key={item.id} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center p-3 bg-muted/50 rounded-md">
+                                            <div className="flex-1 space-y-2 w-full">
+                                                <input 
+                                                    type="text" 
+                                                    value={item.itemName}
+                                                    onChange={(e) => handleItemChange(item.id, 'itemName', e.target.value)}
+                                                    placeholder="Item Name"
+                                                    className="w-full px-2 py-1 border border-input rounded-md bg-background text-foreground"
+                                                />
+                                                <input 
+                                                    type="text" 
+                                                    value={item.reason || ''}
+                                                    onChange={(e) => handleItemChange(item.id, 'reason', e.target.value)}
+                                                    placeholder="Reason (Optional)"
+                                                    className="w-full text-sm px-2 py-1 border border-input rounded-md bg-background text-foreground"
+                                                />
                                             </div>
-                                            <div className="flex items-center space-x-2">
+                                            <div className="flex items-center space-x-2 w-full sm:w-auto mt-2 sm:mt-0">
                                                 <label className="text-sm">Qty:</label>
                                                 <input 
                                                     type="number" 
                                                     min="0.01"
                                                     step="0.01"
                                                     value={item.quantity}
-                                                    onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                                                    onChange={(e) => {
+                                                        const val = parseFloat(e.target.value);
+                                                        if (!isNaN(val) && val >= 0) handleItemChange(item.id, 'quantity', val);
+                                                    }}
                                                     className="w-20 px-2 py-1 border border-input rounded-md bg-background text-foreground"
                                                 />
+                                                <button 
+                                                    onClick={() => handleRemoveItem(item.id)}
+                                                    className="p-1.5 text-destructive hover:bg-destructive/10 rounded-md"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
                                     ))}
+                                    {selectedRequest.items.length === 0 && (
+                                        <div className="text-sm text-muted-foreground text-center p-4">
+                                            No items in request. Please add an item.
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

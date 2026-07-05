@@ -19,7 +19,7 @@ export const UsersPage = () => {
         fullName: "",
         email: "",
         password: "",
-        role: "",
+        roles: [] as string[],
         designation: "",
         siteId: "",
         region: ""
@@ -38,11 +38,11 @@ export const UsersPage = () => {
             setSites(sitesData);
             setRegions(regionsData);
             // Only show the official backend roles — filter out stale DB entries like Worker, Client, Customers
-            const validRoles = ["Manager", "Engineer", "Technician", "Customer", "Salesman", "Estimation", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller"];
+            const validRoles = ["Manager", "Engineer", "Technician", "Customer", "Salesman", "Estimation", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller", "Regional Head"];
             const filteredRoles = rolesData.filter((r: string) => validRoles.includes(r));
             setRoles(filteredRoles);
             if (filteredRoles.length > 0) {
-                setFormData(prev => ({ ...prev, role: filteredRoles[0] }));
+                setFormData(prev => ({ ...prev, roles: [] }));
             }
         } catch (error) {
             toast.error("Failed to load users or roles. You may not have permission.");
@@ -60,7 +60,7 @@ export const UsersPage = () => {
             fullName: "",
             email: "",
             password: "",
-            role: roles.length > 0 ? roles[0] : "",
+            roles: [],
             designation: "",
             siteId: "",
             region: ""
@@ -74,6 +74,7 @@ export const UsersPage = () => {
         try {
             const payload = {
                 ...formData,
+                roles: formData.roles,
                 siteId: formData.siteId ? parseInt(formData.siteId) : null
             };
             const res = await authService.createUser(payload);
@@ -250,20 +251,31 @@ export const UsersPage = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Assign Role *</label>
-                                    <select
-                                        required
-                                        value={formData.role}
-                                        onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
-                                    >
-                                        <option value="" disabled>Select a role...</option>
+                                    <label className="text-xs font-semibold text-muted-foreground mb-2 block">Assign Roles *</label>
+                                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-secondary/30 rounded-lg border border-border">
                                         {roles.map(role => (
-                                            <option key={role} value={role}>{role}</option>
+                                            <label key={role} className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-secondary/50 p-1.5 rounded-md">
+                                                <input 
+                                                    type="checkbox"
+                                                    checked={formData.roles.includes(role)}
+                                                    onChange={e => {
+                                                        if (e.target.checked) {
+                                                            setFormData({ ...formData, roles: [...formData.roles, role] });
+                                                        } else {
+                                                            setFormData({ ...formData, roles: formData.roles.filter(r => r !== role) });
+                                                        }
+                                                    }}
+                                                    className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                                                />
+                                                <span>{role}</span>
+                                            </label>
                                         ))}
-                                    </select>
+                                    </div>
+                                    {formData.roles.length === 0 && (
+                                        <p className="text-xs text-red-500 mt-1">Please select at least one role.</p>
+                                    )}
                                 </div>
-                                {formData.role === "Procurement Executive" && (
+                                {formData.roles.includes("Procurement Executive") && (
                                     <div>
                                         <label className="text-xs font-semibold text-muted-foreground mb-1 block">Assign Site *</label>
                                         <select
@@ -279,7 +291,7 @@ export const UsersPage = () => {
                                         </select>
                                     </div>
                                 )}
-                                {formData.role === "Salesman" && (
+                                {formData.roles.includes("Regional Head") && (
                                     <div>
                                         <label className="text-xs font-semibold text-muted-foreground mb-1 block">Assign Region *</label>
                                         {!isAddingCustomRegion ? (
