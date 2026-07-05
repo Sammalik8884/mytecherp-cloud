@@ -109,7 +109,42 @@ const ProcurementDetailsPage: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
+                    </div>
                 </div>
+
+                {request.quotes && request.quotes.length > 0 && (
+                    <div className="p-6 border-t border-border">
+                        <h3 className="text-lg font-semibold text-foreground mb-4">Submitted Vendor Quotes</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {request.quotes.map((quote) => (
+                                <div key={quote.id} className={`rounded-lg border p-4 shadow-sm relative ${quote.isSelected ? 'border-primary ring-1 ring-primary bg-primary/5' : 'border-border bg-card'}`}>
+                                    {quote.isSelected && (
+                                        <span className="absolute top-3 right-3 flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                            Selected Lowest
+                                        </span>
+                                    )}
+                                    <h4 className="font-semibold text-base mb-1 pr-24">{quote.vendorName}</h4>
+                                    <p className="text-sm text-muted-foreground mb-4">Total Amount: <strong className="text-foreground">Rs {quote.totalAmount.toLocaleString()}</strong></p>
+                                    
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">City:</span>
+                                            <span className="text-right">{quote.cityName || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Contact:</span>
+                                            <span className="text-right">{quote.contactPerson || 'N/A'}<br/><span className="text-xs">{quote.contactNumber || ''}</span></span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Bank:</span>
+                                            <span className="text-right">{quote.bankName || 'N/A'}<br/><span className="text-xs">{quote.accountNumber || ''}</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {(request.assignedExecutiveEmail || request.completedDate) && (
                     <div className="p-6 border-t border-border bg-muted/10">
