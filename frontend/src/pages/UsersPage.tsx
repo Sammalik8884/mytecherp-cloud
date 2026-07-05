@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Plus, Shield, Mail, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Users, Plus, Shield, Mail, CheckCircle, XCircle, Loader2, ChevronDown } from "lucide-react";
 import { authService } from "../services/authService";
 import { toast } from "react-hot-toast";
 
@@ -14,6 +14,7 @@ export const UsersPage = () => {
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isRolesDropdownOpen, setIsRolesDropdownOpen] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
     const [formData, setFormData] = useState({
         fullName: "",
@@ -65,6 +66,7 @@ export const UsersPage = () => {
             siteId: "",
             region: ""
         });
+        setIsRolesDropdownOpen(false);
         setIsModalOpen(true);
     };
 
@@ -251,25 +253,44 @@ export const UsersPage = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-semibold text-muted-foreground mb-2 block">Assign Roles *</label>
-                                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-secondary/30 rounded-lg border border-border">
-                                        {roles.map(role => (
-                                            <label key={role} className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-secondary/50 p-1.5 rounded-md">
-                                                <input 
-                                                    type="checkbox"
-                                                    checked={formData.roles.includes(role)}
-                                                    onChange={e => {
-                                                        if (e.target.checked) {
-                                                            setFormData({ ...formData, roles: [...formData.roles, role] });
-                                                        } else {
-                                                            setFormData({ ...formData, roles: formData.roles.filter(r => r !== role) });
-                                                        }
-                                                    }}
-                                                    className="rounded border-border text-primary focus:ring-primary h-4 w-4"
-                                                />
-                                                <span>{role}</span>
-                                            </label>
-                                        ))}
+                                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Assign Roles *</label>
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsRolesDropdownOpen(!isRolesDropdownOpen)}
+                                            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-left focus:outline-none focus:border-primary flex justify-between items-center"
+                                        >
+                                            <span className={`block truncate ${formData.roles.length === 0 ? 'text-muted-foreground' : 'text-foreground'}`}>
+                                                {formData.roles.length === 0 
+                                                    ? 'Select roles...' 
+                                                    : formData.roles.join(', ')}
+                                            </span>
+                                            <ChevronDown className="h-4 w-4 opacity-50" />
+                                        </button>
+                                        
+                                        {isRolesDropdownOpen && (
+                                            <div className="absolute z-10 mt-1 w-full bg-popover text-popover-foreground border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                <div className="p-2 space-y-1">
+                                                    {roles.map(role => (
+                                                        <label key={role} className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-secondary/50 p-2 rounded-md">
+                                                            <input 
+                                                                type="checkbox"
+                                                                checked={formData.roles.includes(role)}
+                                                                onChange={e => {
+                                                                    if (e.target.checked) {
+                                                                        setFormData({ ...formData, roles: [...formData.roles, role] });
+                                                                    } else {
+                                                                        setFormData({ ...formData, roles: formData.roles.filter(r => r !== role) });
+                                                                    }
+                                                                }}
+                                                                className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                                                            />
+                                                            <span>{role}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     {formData.roles.length === 0 && (
                                         <p className="text-xs text-red-500 mt-1">Please select at least one role.</p>
