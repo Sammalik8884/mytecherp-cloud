@@ -1,4 +1,5 @@
 import axios from "axios";
+import toast from "react-hot-toast";
 
 // Create Axios Instance
 export const apiClient = axios.create({
@@ -32,6 +33,23 @@ apiClient.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
+
+        if (error.response?.status === 400) {
+            const data = error.response.data;
+            if (data && data.errors) {
+                // It's a standard .NET validation error response
+                const errorMessages = Object.values(data.errors).flat().join('\n');
+                if (errorMessages) {
+                    toast.error(errorMessages);
+                } else if (data.title) {
+                    toast.error(data.title);
+                }
+            } else if (typeof data === "string") {
+                toast.error(data);
+            } else if (data && data.message) {
+                toast.error(data.message);
+            }
+        }
 
         // Do not intercept login failures
         if (originalRequest.url?.includes("/Auth/")) {
