@@ -587,6 +587,51 @@ app.MapGet("/api/debug/migrations", async (MytechERP.Infrastructure.Persistance.
     }
 });
 
+app.MapGet("/api/debug/fix-dups", async (MytechERP.Infrastructure.Persistance.ApplicationDbContext ctx) => 
+{
+    try 
+    {
+        var dups = await ctx.Quotations.IgnoreQueryFilters().Where(q => q.QuoteNumber.Contains("-DUP-")).ToListAsync();
+        if (!dups.Any()) return Results.Ok("No duplicates found to fix.");
+        
+        var allQuotes = await ctx.Quotations.IgnoreQueryFilters().Where(q => q.QuoteNumber.StartsWith("MTQ-")).ToListAsync();
+        int maxSeq = 1;
+        foreach(var q in allQuotes) {
+            var parts = q.QuoteNumber.Split('-');
+            if (parts.Length >= 2) {
+                string seqPart = parts[1];
+                if (seqPart.Length >= 3 && char.IsLetter(seqPart[0]) && char.IsLetter(seqPart[1])) {
+                    int letterVal = (seqPart[0] - 'A') * 26 + (seqPart[1] - 'A');
+                    if (int.TryParse(seqPart.Substring(2), out int numPart)) {
+                        int seq = letterVal * 100000 + numPart;
+                        if (seq > maxSeq) maxSeq = seq;
+                    }
+                }
+            }
+        }
+        
+        var fixedNumbers = new List<string>();
+        foreach (var dup in dups) {
+            maxSeq++;
+            int letterGroup = (maxSeq - 1) / 100000;
+            int digitPart = ((maxSeq - 1) % 100000) + 1;
+            char c1 = (char)('A' + (letterGroup / 26));
+            char c2 = (char)('A' + (letterGroup % 26));
+            string alphaSeq = $"{c1}{c2}{digitPart:D5}";
+            
+            dup.QuoteNumber = $"MTQ-{alphaSeq}-FPS-R0";
+            fixedNumbers.Add(dup.QuoteNumber);
+        }
+        
+        await ctx.SaveChangesAsync();
+        return Results.Ok(fixedNumbers);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.ToString(), title: "Fix Failed");
+    }
+});
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<MytechERP.Infrastructure.Persistance.ApplicationDbContext>();
