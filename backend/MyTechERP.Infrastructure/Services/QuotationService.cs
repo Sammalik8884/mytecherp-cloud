@@ -110,13 +110,26 @@ namespace MyTechERP.Infrastructure.Services
                         }
                     }
                 }
-                int letterGroup = (nextSeq - 1) / 100000;
-                int digitPart = ((nextSeq - 1) % 100000) + 1;
-                char c1 = (char)('A' + (letterGroup / 26));
-                char c2 = (char)('A' + (letterGroup % 26));
-                string alphaSeq = $"{c1}{c2}{digitPart:D5}";
+                bool isUnique = false;
+                while (!isUnique)
+                {
+                    int letterGroup = (nextSeq - 1) / 100000;
+                    int digitPart = ((nextSeq - 1) % 100000) + 1;
+                    char c1 = (char)('A' + (letterGroup / 26));
+                    char c2 = (char)('A' + (letterGroup % 26));
+                    string alphaSeq = $"{c1}{c2}{digitPart:D5}";
 
-                quoteNumber = $"MTQ-{alphaSeq}-{projectCode}-R0";
+                    quoteNumber = $"MTQ-{alphaSeq}-{projectCode}-R0";
+                    
+                    if (!await _context.Quotations.IgnoreQueryFilters().AnyAsync(q => q.QuoteNumber == quoteNumber))
+                    {
+                        isUnique = true;
+                    }
+                    else
+                    {
+                        nextSeq++;
+                    }
+                }
             }
 
             // Auto-generate headline if not provided
