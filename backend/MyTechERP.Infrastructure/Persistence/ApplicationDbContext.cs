@@ -264,6 +264,9 @@ namespace MytechERP.Infrastructure.Persistance
             builder.Entity<ContractItem>().HasQueryFilter(ci => ci.TenantId == _currentUserService.TenantId && !ci.IsDeleted);
             builder.Entity<Asset>().HasQueryFilter(a => a.TenantId == _currentUserService.TenantId && !a.IsDeleted);
             builder.Entity<WorkOrder>().HasQueryFilter(w => w.TenantId == _currentUserService.TenantId && !w.IsDeleted);
+            builder.Entity<Quotation>()
+                .HasIndex(q => new { q.TenantId, q.QuoteNumber })
+                .IsUnique();
             builder.Entity<Quotation>().HasQueryFilter(q => q.TenantId == _currentUserService.TenantId && !q.IsDeleted);
             builder.Entity<QuotationItem>().HasQueryFilter(qi => qi.TenantId == _currentUserService.TenantId && !qi.IsDeleted);
             builder.Entity<QuotationSettings>().HasQueryFilter(qs => qs.TenantId == _currentUserService.TenantId && !qs.IsDeleted);
