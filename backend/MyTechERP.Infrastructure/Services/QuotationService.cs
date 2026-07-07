@@ -55,7 +55,7 @@ namespace MyTechERP.Infrastructure.Services
             if (dto.Items == null || !dto.Items.Any())
                 throw new Exception("Cannot create a quotation with 0 items.");
 
-            string quoteNumber;
+            string quoteNumber = string.Empty;
             int revisionNumber = 0;
             string projectCode = string.IsNullOrWhiteSpace(dto.ProjectCode) ? "FPS" : dto.ProjectCode;
 
