@@ -94,7 +94,15 @@ namespace MyTechERP.Infrastructure.Services
                     DrawMetaRow(currentRow, 1, "Project / Site", quote.SiteName);
                 if (quote.RevisionNumber > 0)
                     DrawMetaRow(currentRow, 5, "Revision", $"R{quote.RevisionNumber}");
-                currentRow += 2;
+                currentRow++;
+
+                if (!string.IsNullOrWhiteSpace(quote.BoqReferenceNumber))
+                {
+                    DrawMetaRow(currentRow, 1, "BOQ Ref #", quote.BoqReferenceNumber);
+                    currentRow++;
+                }
+
+                currentRow++;
 
                 // --- Headline ---
                 if (!string.IsNullOrWhiteSpace(quote.QuoteHeadline))

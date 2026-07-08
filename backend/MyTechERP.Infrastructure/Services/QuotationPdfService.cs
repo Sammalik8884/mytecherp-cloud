@@ -137,6 +137,8 @@ namespace MyTechERP.Infrastructure.Services
                             InfoRow("Contact Person", quote.ContactPersonName);
                         if (!string.IsNullOrWhiteSpace(quote.SiteName))
                             InfoRow("Project / Site", quote.SiteName);
+                        if (!string.IsNullOrWhiteSpace(quote.BoqReferenceNumber))
+                            InfoRow("BOQ Ref #", quote.BoqReferenceNumber);
                     });
 
                     // CENTER spacer

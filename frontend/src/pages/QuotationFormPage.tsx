@@ -1034,7 +1034,7 @@ export const QuotationFormPage = () => {
                 </div>
 
                 {/* ── PROJECT CODE & HEADLINE ── */}
-                <div className="bg-secondary/30 border border-border/50 rounded-2xl p-4 md:p-6 shadow-md grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                <div className="bg-secondary/30 border border-border/50 rounded-2xl p-4 md:p-6 shadow-md grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
                     <div>
                         <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Project Code (Quote Suffix)</label>
                         <input type="text" placeholder="FPS" value={formData.projectCode || ""} onChange={e => setFormData({...formData, projectCode: e.target.value.toUpperCase()})} className={inputCls} />
@@ -1043,6 +1043,10 @@ export const QuotationFormPage = () => {
                     <div>
                         <label className="text-xs font-semibold text-muted-foreground block mb-1.5">PDF Headline (auto-generated if blank)</label>
                         <input type="text" placeholder="e.g. Fire Fighting Equipments for Marka-e-Haq Monument" value={formData.quoteHeadline || ""} onChange={e => setFormData({...formData, quoteHeadline: e.target.value})} className={inputCls} />
+                    </div>
+                    <div>
+                        <label className="text-xs font-semibold text-muted-foreground block mb-1.5">BOQ Reference Number (Optional)</label>
+                        <input type="text" placeholder="e.g. BOQ-2026-001" value={formData.boqReferenceNumber || ""} onChange={e => setFormData({...formData, boqReferenceNumber: e.target.value})} className={inputCls} />
                     </div>
                 </div>
 

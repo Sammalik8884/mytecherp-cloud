@@ -180,8 +180,9 @@ namespace MyTechERP.Infrastructure.Services
                 QuoteMode = dto.QuoteMode,
                 SupplyColumnMode = dto.SupplyColumnMode,
                 RevisionNumber = revisionNumber,
-                ProjectCode = projectCode,
+                ProjectCode = string.IsNullOrWhiteSpace(dto.ProjectCode) ? "FPS" : dto.ProjectCode,
                 QuoteHeadline = headline,
+                BoqReferenceNumber = dto.BoqReferenceNumber,
                 TermsAndConditionsJson = dto.TermsAndConditionsJson
             };
 
@@ -255,6 +256,7 @@ namespace MyTechERP.Infrastructure.Services
             existingQuote.QuoteMode = dto.QuoteMode;
             existingQuote.SupplyColumnMode = dto.SupplyColumnMode;
             existingQuote.QuoteHeadline = dto.QuoteHeadline;
+            existingQuote.BoqReferenceNumber = dto.BoqReferenceNumber;
             existingQuote.TermsAndConditionsJson = dto.TermsAndConditionsJson;
 
             var newItems = await CalculateItemsAsync(existingQuote, dto);
@@ -602,6 +604,7 @@ namespace MyTechERP.Infrastructure.Services
                 RevisionNumber = q.RevisionNumber,
                 ProjectCode = q.ProjectCode,
                 QuoteHeadline = q.QuoteHeadline,
+                BoqReferenceNumber = q.BoqReferenceNumber,
 
                 Items = q.Items?.Select(i => new QuotationItemDto
                 {

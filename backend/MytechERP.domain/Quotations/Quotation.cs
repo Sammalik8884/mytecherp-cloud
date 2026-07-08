@@ -74,6 +74,7 @@ namespace MytechERP.domain.Quotations
         public int RevisionNumber { get; set; } = 0;
         public string ProjectCode { get; set; } = "FPS";
         public string? QuoteHeadline { get; set; }
+        public string? BoqReferenceNumber { get; set; }
 
         public string? TermsAndConditionsJson { get; set; }
 

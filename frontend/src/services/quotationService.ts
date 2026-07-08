@@ -44,6 +44,7 @@ export interface QuotationDto {
     revisionNumber: number;
     projectCode: string;
     quoteHeadline?: string;
+    boqReferenceNumber?: string;
     termsAndConditionsJson?: string;
     items: QuotationItemDto[];
 }
@@ -85,6 +86,7 @@ export interface CreateQuotationDto {
     localProfitPct?: number;
     projectCode?: string;
     quoteHeadline?: string;
+    boqReferenceNumber?: string;
     termsAndConditionsJson?: string;
     items: CreateQuotationItemDto[];
 }

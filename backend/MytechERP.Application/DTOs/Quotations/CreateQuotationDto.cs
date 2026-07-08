@@ -41,6 +41,7 @@ namespace MytechERP.Application.DTOs.Quotations
         
         public string ProjectCode { get; set; } = "FPS";
         public string? QuoteHeadline { get; set; }
+        public string? BoqReferenceNumber { get; set; }
 
         [Required]
         public List<CreateQuotationItemDto> Items { get; set; } = new List<CreateQuotationItemDto>();
