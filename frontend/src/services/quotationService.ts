@@ -134,6 +134,13 @@ export const quotationService = {
         return response.data;
     },
 
+    downloadExcel: async (id: number): Promise<Blob> => {
+        const response = await apiClient.get(`/Quotation/${id}/excel`, {
+            responseType: 'blob',
+        });
+        return response.data;
+    },
+
     sendEmail: async (id: number): Promise<void> => {
         await apiClient.post(`/Quotation/${id}/send-email`);
     },

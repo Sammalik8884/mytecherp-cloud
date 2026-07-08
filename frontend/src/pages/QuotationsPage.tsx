@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Search, Plus, FileText, DownloadCloud, Send, Edit, Trash2, FilePlus2, Briefcase, CheckCircle, XCircle, FileSignature, Activity, AlertTriangle, Copy, Pin } from "lucide-react";
+import { Loader2, Search, Plus, FileText, DownloadCloud, Send, Edit, Trash2, FilePlus2, Briefcase, CheckCircle, XCircle, FileSignature, Activity, AlertTriangle, Copy, Pin, Sheet } from "lucide-react";
 import { StatCard } from "../components/dashboard/StatCard";
 import { quotationService, QuotationDto } from "../services/quotationService";
 import { toast } from "react-hot-toast";
@@ -135,6 +135,25 @@ export const QuotationsPage = () => {
             window.URL.revokeObjectURL(url);
             toast.success("PDF Downloaded", { id: `pdf-${id}` });
         } catch (error) { toast.error("Failed to download PDF", { id: `pdf-${id}` }); }
+    };
+
+    const handleDownloadExcel = async (id: number, quoteNumber: string) => {
+        try {
+            toast.loading("Generating Excel...", { id: `excel-${id}` });
+            const blob = await quotationService.downloadExcel(id);
+            if (blob.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                const text = await blob.text();
+                let errorMsg = "Failed to generate Excel";
+                try { const j = JSON.parse(text); errorMsg = j.Error || j.error || j.Message || errorMsg; } catch(e) {}
+                toast.error(errorMsg, { id: `excel-${id}` }); return;
+            }
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url; a.download = `${quoteNumber}.xlsx`;
+            document.body.appendChild(a); a.click();
+            window.URL.revokeObjectURL(url);
+            toast.success("Excel Downloaded", { id: `excel-${id}` });
+        } catch (error) { toast.error("Failed to download Excel", { id: `excel-${id}` }); }
     };
 
     const confirmAction = (title: string, message: string, type: 'info' | 'warning' | 'danger', action: () => Promise<void>) => {
@@ -313,6 +332,7 @@ export const QuotationsPage = () => {
                                                         <Pin className={`h-4 w-4 ${pinnedQuotes.includes(quote.id) ? 'fill-current' : ''}`} />
                                                     </button>
                                                     <button onClick={() => handleDownloadPdf(quote.id, quote.quoteNumber)} title="Download PDF" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><DownloadCloud className="h-4 w-4" /></button>
+                                                    <button onClick={() => handleDownloadExcel(quote.id, quote.quoteNumber)} title="Download Excel" className="p-2 text-muted-foreground hover:text-green-600 hover:bg-green-600/10 rounded-lg transition-colors"><Sheet className="h-4 w-4" /></button>
                                                     {!hasRole(["Estimation"]) && (
                                                         <button onClick={() => handleSendEmail(quote.id)} title="Send Email" className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
                                                     )}

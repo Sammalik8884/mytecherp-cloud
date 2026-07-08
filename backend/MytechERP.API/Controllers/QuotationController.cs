@@ -25,14 +25,16 @@ namespace MytechERP.API.Controllers
         private readonly IQuotationConversionService _conversionService;
         private readonly IEmailService _emailService;
         private readonly QuotationPdfService _quotationPdfService;
+        private readonly QuotationExcelService _quotationExcelService;
         private ApplicationDbContext _context;
 
-        public QuotationController(IQuotationService service, IQuotationConversionService conversionService,IEmailService emailService, QuotationPdfService quotationPdfService, ApplicationDbContext context)
+        public QuotationController(IQuotationService service, IQuotationConversionService conversionService,IEmailService emailService, QuotationPdfService quotationPdfService, QuotationExcelService quotationExcelService, ApplicationDbContext context)
         {
             _service = service;
             _conversionService = conversionService;
             _emailService = emailService;
             _quotationPdfService  = quotationPdfService;
+            _quotationExcelService = quotationExcelService;
             _context = context;
         }
 
@@ -139,6 +141,29 @@ namespace MytechERP.API.Controllers
                 return BadRequest(new { Error = "Failed to generate PDF.", Details = ex.ToString() });
             }
         }
+
+        [HttpGet("{id}/excel")]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Customers + "," + Roles.Estimation + "," + Roles.Salesman)]
+        public async Task<IActionResult> DownloadExcel(int id)
+        {
+            try
+            {
+                var quoteDto = await _service.GetQuoteByIdAsync(id);
+                if (quoteDto == null) return NotFound(new { Message = "Quotation not found" });
+
+                var excelFileBytes = _quotationExcelService.GenerateExcel(quoteDto);
+
+                string fileName = $"{quoteDto.QuoteNumber}.xlsx";
+                return File(excelFileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"EXCEL GENERATION ERROR for ID {id}: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return BadRequest(new { Error = "Failed to generate Excel.", Details = ex.ToString() });
+            }
+        }
+
         [HttpPost("{id}/submit")]
         [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Estimation + "," + Roles.Salesman)]
         public async Task<IActionResult> Submit(int id)
