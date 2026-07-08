@@ -41,14 +41,14 @@ export const SiteVisitPage = () => {
     // Closure state
     const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
     const [boqFile, setBoqFile] = useState<File | null>(null);
-    const [drawingFile, setDrawingFile] = useState<File | null>(null);
+    const [drawingFiles, setDrawingFiles] = useState<File[]>([]);
     const [extraAttachments, setExtraAttachments] = useState<File[]>([]);
     const [closing, setClosing] = useState(false);
 
     // Revision state
     const [isReviseModalOpen, setIsReviseModalOpen] = useState(false);
     const [revBoqFile, setRevBoqFile] = useState<File | null>(null);
-    const [revDrawingFile, setRevDrawingFile] = useState<File | null>(null);
+    const [revDrawingFiles, setRevDrawingFiles] = useState<File[]>([]);
     const [revNotes, setRevNotes] = useState("");
     const [revExtraAttachments, setRevExtraAttachments] = useState<File[]>([]);
     const [revising, setRevising] = useState(false);
@@ -129,16 +129,16 @@ export const SiteVisitPage = () => {
     };
 
     const handleReviseBoq = async () => {
-        if (!revBoqFile && !revDrawingFile && revExtraAttachments.length === 0) {
+        if (!revBoqFile && revDrawingFiles.length === 0 && revExtraAttachments.length === 0) {
             return toast.error("Please provide at least a BOQ, Drawing, or additional document.");
         }
         setRevising(true);
         try {
-            await salesService.reviseBoq(Number(id), revBoqFile || undefined, revDrawingFile || undefined, revNotes || undefined, revExtraAttachments.length > 0 ? revExtraAttachments : undefined);
+            await salesService.reviseBoq(Number(id), revBoqFile || undefined, revDrawingFiles.length > 0 ? revDrawingFiles : undefined, revNotes || undefined, revExtraAttachments.length > 0 ? revExtraAttachments : undefined);
             toast.success("BOQ/Drawings revised and re-uploaded!");
             setIsReviseModalOpen(false);
             setRevBoqFile(null);
-            setRevDrawingFile(null);
+            setRevDrawingFiles([]);
             setRevNotes("");
             setRevExtraAttachments([]);
             fetchData();
@@ -275,15 +275,16 @@ export const SiteVisitPage = () => {
     };
 
     const handleCloseLead = async () => {
-        if (!boqFile && !drawingFile && extraAttachments.length === 0) {
+        if (!boqFile && drawingFiles.length === 0 && extraAttachments.length === 0) {
             return toast.error("Please provide at least a BOQ, Drawing, or additional document to close the lead.");
         }
         setClosing(true);
         try {
-            await salesService.closeLead(Number(id), boqFile || undefined, drawingFile || undefined, undefined, extraAttachments.length > 0 ? extraAttachments : undefined);
+            await salesService.closeLead(Number(id), boqFile || undefined, drawingFiles.length > 0 ? drawingFiles : undefined, undefined, extraAttachments.length > 0 ? extraAttachments : undefined);
             toast.success("Lead successfully closed with documents.");
             setIsCloseModalOpen(false);
             setExtraAttachments([]);
+            setDrawingFiles([]);
             fetchData();
         } catch (error: any) {
             toast.error(extractApiError(error, "Failed to close lead and upload files."));
@@ -560,11 +561,25 @@ export const SiteVisitPage = () => {
                                 <label className="block text-sm font-semibold mb-1">Architectural Drawings (Optional)</label>
                                 <input 
                                     type="file"
+                                    multiple
                                     accept=".pdf,.doc,.docx,.dwg,.png,.jpg,.jpeg"
                                     className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"
-                                    onChange={(e) => setDrawingFile(e.target.files?.[0] || null)}
+                                    onChange={(e) => {
+                                        const files = e.target.files;
+                                        if (files && files.length > 0) {
+                                            setDrawingFiles(Array.from(files));
+                                        } else {
+                                            setDrawingFiles([]);
+                                        }
+                                    }}
                                 />
-                                {drawingFile && <p className="text-xs text-green-500 mt-1">✓ {drawingFile.name}</p>}
+                                {drawingFiles.length > 0 && (
+                                    <div className="mt-1 space-y-1">
+                                        {drawingFiles.map((f, idx) => (
+                                            <p key={idx} className="text-xs text-green-500">✓ {f.name}</p>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Additional Attachments */}
@@ -639,13 +654,27 @@ export const SiteVisitPage = () => {
                                 {revBoqFile && <p className="text-xs text-green-500 mt-1">✓ {revBoqFile.name}</p>}
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold mb-1">Revised Drawings (Optional)</label>
+                                <label className="block text-sm font-semibold mb-1">Revised Architectural Drawings (Optional)</label>
                                 <input 
                                     type="file" 
+                                    multiple
                                     className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"
-                                    onChange={(e) => setRevDrawingFile(e.target.files?.[0] || null)}
+                                    onChange={(e) => {
+                                        const files = e.target.files;
+                                        if (files && files.length > 0) {
+                                            setRevDrawingFiles(Array.from(files));
+                                        } else {
+                                            setRevDrawingFiles([]);
+                                        }
+                                    }}
                                 />
-                                {revDrawingFile && <p className="text-xs text-green-500 mt-1">✓ {revDrawingFile.name}</p>}
+                                {revDrawingFiles.length > 0 && (
+                                    <div className="mt-1 space-y-1">
+                                        {revDrawingFiles.map((f, idx) => (
+                                            <p key={idx} className="text-xs text-green-500">✓ {f.name}</p>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Additional Documents for Revision */}

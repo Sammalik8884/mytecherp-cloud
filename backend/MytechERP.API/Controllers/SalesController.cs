@@ -537,6 +537,34 @@ namespace MytechERP.API.Controllers
             {
                 lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFile, $"drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.DrawingsFile.FileName)}");
             }
+            
+            if (dto.DrawingsFiles != null && dto.DrawingsFiles.Count > 0)
+            {
+                var drawingsUrls = new System.Collections.Generic.List<string>();
+                
+                // If it's a single file upload from the new array logic, optionally populate the old column too
+                if (dto.DrawingsFiles.Count == 1 && string.IsNullOrEmpty(lead.DrawingsFileUrl))
+                {
+                    lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFiles[0], $"drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.DrawingsFiles[0].FileName)}");
+                    drawingsUrls.Add(lead.DrawingsFileUrl);
+                }
+                else
+                {
+                    foreach (var drawingFile in dto.DrawingsFiles)
+                    {
+                        var url = await _blobService.UploadAsync(drawingFile, $"drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(drawingFile.FileName)}");
+                        drawingsUrls.Add(url);
+                        
+                        // Populate old column with first file if it's empty
+                        if (string.IsNullOrEmpty(lead.DrawingsFileUrl))
+                        {
+                            lead.DrawingsFileUrl = url;
+                        }
+                    }
+                }
+                
+                lead.DrawingsFileUrlsJson = System.Text.Json.JsonSerializer.Serialize(drawingsUrls);
+            }
 
             if (dto.ExtraFiles != null && dto.ExtraFiles.Count > 0)
             {
@@ -609,6 +637,38 @@ namespace MytechERP.API.Controllers
             if (dto.DrawingsFile != null)
             {
                 lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFile, $"rev-drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.DrawingsFile.FileName)}");
+                changed = true;
+            }
+            
+            if (dto.DrawingsFiles != null && dto.DrawingsFiles.Count > 0)
+            {
+                var drawingsUrls = new System.Collections.Generic.List<string>();
+                // Keep existing drawing files if any (assuming they were in the JSON array)
+                if (!string.IsNullOrEmpty(lead.DrawingsFileUrlsJson))
+                {
+                    try { drawingsUrls = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<string>>(lead.DrawingsFileUrlsJson) ?? new System.Collections.Generic.List<string>(); } catch { }
+                }
+                
+                if (dto.DrawingsFiles.Count == 1 && string.IsNullOrEmpty(lead.DrawingsFileUrl))
+                {
+                    lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFiles[0], $"rev-drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.DrawingsFiles[0].FileName)}");
+                    drawingsUrls.Add(lead.DrawingsFileUrl);
+                }
+                else
+                {
+                    foreach (var drawingFile in dto.DrawingsFiles)
+                    {
+                        var url = await _blobService.UploadAsync(drawingFile, $"rev-drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(drawingFile.FileName)}");
+                        drawingsUrls.Add(url);
+                        
+                        if (string.IsNullOrEmpty(lead.DrawingsFileUrl))
+                        {
+                            lead.DrawingsFileUrl = url;
+                        }
+                    }
+                }
+                
+                lead.DrawingsFileUrlsJson = System.Text.Json.JsonSerializer.Serialize(drawingsUrls);
                 changed = true;
             }
 

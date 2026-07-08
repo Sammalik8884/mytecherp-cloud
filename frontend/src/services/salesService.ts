@@ -32,10 +32,14 @@ export const salesService = {
         return response.data;
     },
 
-    closeLead: async (id: number, boqFile?: File, drawingsFile?: File, notes?: string, extraFiles?: File[]): Promise<{ message: string }> => {
+    closeLead: async (id: number, boqFile?: File, drawingsFiles?: File[], notes?: string, extraFiles?: File[]): Promise<{ message: string }> => {
         const formData = new FormData();
         if (boqFile) formData.append("BOQFile", boqFile);
-        if (drawingsFile) formData.append("DrawingsFile", drawingsFile);
+        
+        if (drawingsFiles && drawingsFiles.length > 0) {
+            drawingsFiles.forEach(f => formData.append("DrawingsFiles", f));
+        }
+        
         if (notes) formData.append("Notes", notes);
         if (extraFiles && extraFiles.length > 0) {
             extraFiles.forEach(f => formData.append("ExtraFiles", f));
@@ -108,10 +112,14 @@ export const salesService = {
         return response.data;
     },
 
-    reviseBoq: async (id: number, boqFile?: File, drawingsFile?: File, notes?: string, extraFiles?: File[]): Promise<{ message: string }> => {
+    reviseBoq: async (id: number, boqFile?: File, drawingsFiles?: File[], notes?: string, extraFiles?: File[]): Promise<{ message: string }> => {
         const formData = new FormData();
         if (boqFile) formData.append("BOQFile", boqFile);
-        if (drawingsFile) formData.append("DrawingsFile", drawingsFile);
+        
+        if (drawingsFiles && drawingsFiles.length > 0) {
+            drawingsFiles.forEach(f => formData.append("DrawingsFiles", f));
+        }
+        
         if (notes) formData.append("Notes", notes);
         if (extraFiles && extraFiles.length > 0) {
             extraFiles.forEach(f => formData.append("ExtraFiles", f));

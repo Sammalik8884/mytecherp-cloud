@@ -8,6 +8,7 @@ namespace MytechERP.Application.DTOs.Sales
     {
         public IFormFile? BOQFile { get; set; }
         public IFormFile? DrawingsFile { get; set; }
+        public List<IFormFile>? DrawingsFiles { get; set; }
         public List<IFormFile>? ExtraFiles { get; set; }
         public string? Notes { get; set; }
     }

@@ -31,6 +31,7 @@ namespace MytechERP.domain.Entities.sales
         
         public string? BOQFileUrl { get; set; }
         public string? DrawingsFileUrl { get; set; }
+        public string? DrawingsFileUrlsJson { get; set; }
         public string? ExtraFileUrlsJson { get; set; }  // JSON array of extra attachment blob URLs
 
         
