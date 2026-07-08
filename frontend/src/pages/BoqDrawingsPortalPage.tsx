@@ -257,7 +257,14 @@ export const BoqDrawingsPortalPage = () => {
                                                         <span>BOQ Document</span>
                                                     </a>
                                                 ) : <span className="text-xs text-muted-foreground/50">No BOQ</span>}
-                                                {lead.drawingsFileUrl ? (
+                                                {lead.drawingsFileUrls && lead.drawingsFileUrls.length > 0 ? (
+                                                    lead.drawingsFileUrls.map((url, i) => (
+                                                        <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-xs font-medium text-purple-500 hover:underline">
+                                                            <FileText className="h-3.5 w-3.5" />
+                                                            <span>Drawings {lead.drawingsFileUrls!.length > 1 ? i + 1 : ''}</span>
+                                                        </a>
+                                                    ))
+                                                ) : lead.drawingsFileUrl ? (
                                                     <a href={lead.drawingsFileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-xs font-medium text-purple-500 hover:underline">
                                                         <FileText className="h-3.5 w-3.5" />
                                                         <span>Drawings</span>
@@ -400,7 +407,21 @@ export const BoqDrawingsPortalPage = () => {
                                             <div className="text-sm text-muted-foreground">No BOQ uploaded</div>
                                         </div>
                                     )}
-                                    {selectedLead.drawingsFileUrl ? (
+                                    {selectedLead.drawingsFileUrls && selectedLead.drawingsFileUrls.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {selectedLead.drawingsFileUrls.map((url, i) => (
+                                                <a key={i} href={url} target="_blank" rel="noreferrer" className="flex items-center space-x-3 p-4 border border-border rounded-xl hover:bg-secondary/30 transition-colors">
+                                                    <div className="h-10 w-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-500">
+                                                        <Building className="h-5 w-5" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-medium text-sm">Drawings / Plans {selectedLead.drawingsFileUrls!.length > 1 ? `(${i + 1})` : ''}</div>
+                                                        <div className="text-xs text-purple-500">Click to download</div>
+                                                    </div>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    ) : selectedLead.drawingsFileUrl ? (
                                         <a href={selectedLead.drawingsFileUrl} target="_blank" rel="noreferrer" className="flex items-center space-x-3 p-4 border border-border rounded-xl hover:bg-secondary/30 transition-colors">
                                             <div className="h-10 w-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-500">
                                                 <Building className="h-5 w-5" />

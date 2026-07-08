@@ -115,6 +115,9 @@ namespace MytechERP.API.Controllers
                 Notes = l.Notes,
                 BoqFileUrl = _blobService.GenerateSasUrl(l.BOQFileUrl, 120),
                 DrawingsFileUrl = _blobService.GenerateSasUrl(l.DrawingsFileUrl, 120),
+                DrawingsFileUrls = !string.IsNullOrEmpty(l.DrawingsFileUrlsJson)
+                    ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(l.DrawingsFileUrlsJson)?.Select(u => _blobService.GenerateSasUrl(u, 120)).ToList()
+                    : null,
                 ExtraFileUrls = !string.IsNullOrEmpty(l.ExtraFileUrlsJson)
                     ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(l.ExtraFileUrlsJson)
                     : null,
@@ -176,6 +179,9 @@ namespace MytechERP.API.Controllers
                 Notes = lead.Notes,
                 BoqFileUrl = _blobService.GenerateSasUrl(lead.BOQFileUrl, 120),
                 DrawingsFileUrl = _blobService.GenerateSasUrl(lead.DrawingsFileUrl, 120),
+                DrawingsFileUrls = !string.IsNullOrEmpty(lead.DrawingsFileUrlsJson)
+                    ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(lead.DrawingsFileUrlsJson)?.Select(u => _blobService.GenerateSasUrl(u, 120)).ToList()
+                    : null,
                 ExtraFileUrls = !string.IsNullOrEmpty(lead.ExtraFileUrlsJson)
                     ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(lead.ExtraFileUrlsJson)
                     : null,

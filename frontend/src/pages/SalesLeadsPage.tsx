@@ -265,7 +265,19 @@ export const SalesLeadsPage = () => {
                                                 </div>
                                             </a>
                                         )}
-                                        {selectedLead.drawingsFileUrl && (
+                                        {(selectedLead.drawingsFileUrls && selectedLead.drawingsFileUrls.length > 0) ? (
+                                            selectedLead.drawingsFileUrls.map((url, i) => (
+                                                <a key={i} href={url} target="_blank" rel="noreferrer" className="flex items-center space-x-3 p-4 border border-border rounded-xl hover:bg-secondary/30 transition-colors">
+                                                    <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                                                        <Building className="h-5 w-5" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-medium text-sm truncate">Drawings/Plans {selectedLead.drawingsFileUrls!.length > 1 ? `(${i + 1})` : ''}</div>
+                                                        <div className="text-xs text-muted-foreground">Click to view</div>
+                                                    </div>
+                                                </a>
+                                            ))
+                                        ) : selectedLead.drawingsFileUrl && (
                                             <a href={selectedLead.drawingsFileUrl} target="_blank" rel="noreferrer" className="flex items-center space-x-3 p-4 border border-border rounded-xl hover:bg-secondary/30 transition-colors">
                                                 <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
                                                     <Building className="h-5 w-5" />
