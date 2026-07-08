@@ -12,7 +12,7 @@ namespace MyTechERP.Infrastructure.Services
     {
         public byte[] GenerateExcel(QuotationDto quote)
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExcelPackage.License.SetNonCommercialOrganization("MyTech Engineering");
 
             using (var package = new ExcelPackage())
             {
