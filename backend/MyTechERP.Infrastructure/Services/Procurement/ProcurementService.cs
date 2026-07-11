@@ -18,12 +18,14 @@ namespace MytechERP.Infrastructure.Services.Procurement
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notificationService;
         private readonly UserManager<AppUser> _userManager;
+        private readonly IEmailService _emailService;
 
-        public ProcurementService(ApplicationDbContext context, INotificationService notificationService, UserManager<AppUser> userManager)
+        public ProcurementService(ApplicationDbContext context, INotificationService notificationService, UserManager<AppUser> userManager, IEmailService emailService)
         {
             _context = context;
             _notificationService = notificationService;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         private IQueryable<ProcurementRequest> GetBaseQuery()
@@ -449,12 +451,31 @@ namespace MytechERP.Infrastructure.Services.Procurement
                 PurposeOfAdvance = $"Procurement for Request {request.ProcurementNumber}",
                 SiteId = request.SiteId,
                 AdvanceRequested = totalAmount,
-                Status = "PendingDirector", 
+                Status = "Approved - Ready for Accounts", 
                 ArfNumber = $"ARF-{DateTime.UtcNow:yyyyMMddHHmmss}"
             };
 
             _context.AmountRequestForms.Add(arf);
             await _context.SaveChangesAsync();
+
+            // Send Email to Accounts Head
+            try
+            {
+                string subject = $"Amount Request Ready for Release - Procurement Head";
+                string body = $"<p>An amount advance request of {totalAmount} by Procurement Head has been created and is automatically approved, ready for release.</p>";
+                await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+            }
+            catch (Exception) { }
+
+            // Notify Directors for info
+            try
+            {
+                string subject = $"Amount Request Notification - Procurement Head";
+                string body = $"<p>A new amount advance request of {totalAmount} has been submitted for Procurement. This is for your information only; it has been automatically routed to Accounts.</p>";
+                await _emailService.SendEmailAsync("shahbaz.ali@mytecheng.com", subject, body);
+                await _emailService.SendEmailAsync("munawar.hasan@mytecheng.com", subject, body);
+            }
+            catch (Exception) { }
 
             request.AmountRequestFormId = arf.Id;
             request.Status = "ARFCreated";
