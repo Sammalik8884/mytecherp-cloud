@@ -14,7 +14,7 @@ interface HeaderProps {
 export const Header = ({ onMenuClick }: HeaderProps) => {
     const { theme, setTheme } = useTheme();
     const navigate = useNavigate();
-    const { hasRole } = useAuth();
+    const { hasRole, user } = useAuth();
 
     // Search State
     const [searchQuery, setSearchQuery] = useState("");
@@ -74,7 +74,11 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
         } else if (notif.type === "Assignment" || notif.type === "BOQ" || notif.type === "success" || notif.type === "error" || notif.type === "Quotation" || notif.title.includes("Quotation")) {
             navigate("/sales/boq-portal");
         } else if (notif.type === "ARF" || notif.type === "ArfReleased" || notif.title.includes("Amount Request") || notif.title.includes("Amount Released") || notif.title.includes("ARF")) {
-            navigate("/amount-request");
+            if (hasRole(["Accounts Head"]) || user?.email === "faisal.ghani@mytecheng.com") {
+                navigate("/accounts/arf-dashboard");
+            } else {
+                navigate("/amount-request");
+            }
         } else if (notif.type === "IncidentRecord" || notif.title.includes("Incident")) {
             navigate("/incident-records");
         } else {
