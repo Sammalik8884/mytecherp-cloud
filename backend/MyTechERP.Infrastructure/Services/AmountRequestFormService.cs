@@ -58,22 +58,20 @@ namespace MyTechERP.Infrastructure.Services
             catch (Exception) { }
         }
 
-        // Helper: send in-app bell notification to all Admins + specific email users
-        private async Task NotifyAdminsAndUsersAsync(List<string> emails, string title, string message, int arfId)
+        // Helper: send in-app bell notification to all Admins + a specific email user
+        private async Task NotifyAdminsAndUserAsync(string email, string title, string message, int arfId)
         {
             try
             {
                 var admins = await _userManager.GetUsersInRoleAsync("Admin");
                 var recipients = admins.ToList();
 
-                foreach (var email in emails)
+                // Also notify the specific email user (e.g., Director shahbaz.ali)
+                if (!string.IsNullOrEmpty(email))
                 {
-                    if (!string.IsNullOrEmpty(email))
-                    {
-                        var specificUser = await _userManager.FindByEmailAsync(email);
-                        if (specificUser != null && !recipients.Any(u => u.Id == specificUser.Id))
-                            recipients.Add(specificUser);
-                    }
+                    var specificUser = await _userManager.FindByEmailAsync(email);
+                    if (specificUser != null && !recipients.Any(u => u.Id == specificUser.Id))
+                        recipients.Add(specificUser);
                 }
 
                 foreach (var user in recipients)
@@ -209,6 +207,13 @@ namespace MyTechERP.Infrastructure.Services
             var currentUser = await _context.Users.FindAsync(userId);
             var designation = currentUser?.Designation?.ToLower() ?? "";
 
+            var isManager = _currentUserService.Roles.Contains("Manager") || 
+                            _currentUserService.Roles.Contains("Admin") ||
+                            _currentUserService.Roles.Contains("Project Director") ||
+                            designation == "manager" || 
+                            designation == "project director" ||
+                            designation == "director";
+
             var entity = new AmountRequestForm
             {
                 ArfNumber = arfNumber,
@@ -222,7 +227,7 @@ namespace MyTechERP.Infrastructure.Services
                 CustomSiteName = dto.CustomSiteName,
                 ClientName = dto.ClientName,
                 PurposeOfAdvance = dto.PurposeOfAdvance,
-                Status = "Approved - Ready for Accounts"
+                Status = isManager ? "Approved - Ready for Accounts" : "Waiting for Director Approval"
             };
 
             _context.AmountRequestForms.Add(entity);
@@ -242,39 +247,58 @@ namespace MyTechERP.Infrastructure.Services
                 }
             }
 
-            // Send Email to Accounts Head
-            try
+            if (!isManager)
             {
-                string subject = $"Amount Request Ready for Release - {entity.EmployeeName}";
-                string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been created and is automatically approved, ready for release.</p>";
-                await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+                // Send Email to Director
+                try
+                {
+                    string subject = $"New Amount Advance Request from {entity.EmployeeName}";
+                    string body = $"<p>A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}.</p><p>Please log in to approve or reject.</p>";
+                    await _emailService.SendEmailAsync("shahbaz.ali@mytecheng.com", subject, body);
+                }
+                catch (Exception) { /* Log or ignore email failure */ }
+
+                // In-App notification to Admins + Director
+                await NotifyAdminsAndUserAsync(
+                    "shahbaz.ali@mytecheng.com",
+                    "New Amount Request Submitted",
+                    $"{entity.EmployeeName} submitted a new ARF ({entity.ArfNumber}) for Rs {entity.AdvanceRequested}. Awaiting your approval.",
+                    entity.Id
+                );
+
+                // --- Notify Faisal Ghani for info only ---
+                try
+                {
+                    string subject = $"Amount Request Notification - {entity.EmployeeName}";
+                    string body = $"<p>A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}.</p><p>This is for your information only; it is currently waiting for Director approval.</p>";
+                    await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+                }
+                catch (Exception) { }
+
+                await NotifyFaisalAsync(
+                    "Amount Request Notification",
+                    $"{entity.EmployeeName} submitted a new ARF ({entity.ArfNumber}) for Rs {entity.AdvanceRequested}. Awaiting Director approval.",
+                    entity.Id
+                );
             }
-            catch (Exception) { }
-
-            // In-App notification to Faisal Ghani (Accounts Head)
-            await NotifyFaisalAsync(
-                "ARF Ready for Release",
-                $"{entity.EmployeeName} submitted ARF {entity.ArfNumber} for Rs {entity.AdvanceRequested}. Auto-approved — ready for your release.",
-                entity.Id
-            );
-
-            // Notify Directors for information only
-            try
+            else
             {
-                string subject = $"Amount Request Notification - {entity.EmployeeName}";
-                string body = $"<p>A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}.</p><p>This is for your information only; it has been automatically routed to Accounts.</p>";
-                await _emailService.SendEmailAsync("shahbaz.ali@mytecheng.com", subject, body);
-                await _emailService.SendEmailAsync("munawar.hasan@mytecheng.com", subject, body);
-            }
-            catch (Exception) { /* Log or ignore email failure */ }
+                // Send Email to Accounts Head
+                try
+                {
+                    string subject = $"Amount Request Ready for Release - {entity.EmployeeName}";
+                    string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} (Manager) has been created and is automatically approved, ready for release.</p>";
+                    await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+                }
+                catch (Exception) { }
 
-            // In-App notification to Admins + Directors
-            await NotifyAdminsAndUsersAsync(
-                new List<string> { "shahbaz.ali@mytecheng.com", "munawar.hasan@mytecheng.com" },
-                "Amount Request Notification",
-                $"{entity.EmployeeName} submitted a new ARF ({entity.ArfNumber}) for Rs {entity.AdvanceRequested}. Auto-sent to Accounts.",
-                entity.Id
-            );
+                // In-App notification to Faisal Ghani (Accounts Head)
+                await NotifyFaisalAsync(
+                    "ARF Ready for Release",
+                    $"{entity.EmployeeName} submitted ARF {entity.ArfNumber} for Rs {entity.AdvanceRequested}. Auto-approved — ready for your release.",
+                    entity.Id
+                );
+            }
 
             return await GetByIdAsync(entity.Id);
         }
