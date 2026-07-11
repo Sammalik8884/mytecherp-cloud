@@ -583,15 +583,15 @@ namespace MyTechERP.Infrastructure.Services
         {
             container.Column(col =>
             {
-                // Top separator
-                col.Item().LineHorizontal(1f).LineColor(Brand);
-
                 if (File.Exists(footerImagePath))
                 {
                     col.Item().PaddingTop(2).Image(footerImagePath).FitWidth();
                 }
                 else
                 {
+                    // Top separator
+                    col.Item().LineHorizontal(1f).LineColor(Brand);
+
                     // Expanded footer text content (Fallback if no image)
                     col.Item().PaddingTop(4).PaddingBottom(2).Row(row =>
                     {
