@@ -114,6 +114,7 @@ builder.Services.AddScoped<IAssetImportService, AssetImportService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAmountRequestFormService, AmountRequestFormService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<MytechERP.Application.Interfaces.Finance.IMonthlyReportGenerator, MyTechERP.Infrastructure.Services.Finance.MonthlyReportGenerator>();
 builder.Services.AddScoped<MytechERP.Application.Interfaces.HR.IApplicationFormService, MyTechERP.Infrastructure.Services.HR.ApplicationFormService>();
 // Hangfire (Skip if placeholder)
 var hangfireConnection = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -562,6 +563,11 @@ try
         "daily-maintenance-check",
         service => service.GenerateMonthlyJobs(),
         Cron.Daily);
+
+    RecurringJob.AddOrUpdate<MytechERP.Application.Interfaces.Finance.IMonthlyReportGenerator>(
+        "monthly-expense-arf-report",
+        service => service.GenerateAndSendMonthlyReportAsync(),
+        "0 10 1 * *");
 } 
 catch (Exception ex) 
 {
