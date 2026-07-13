@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { 
     Plus, MapPin, Building, User, Target, CalendarDays, 
-    CheckCircle2, Folder, Eye, CheckCircle, FileText, X, Camera, Clock
+    CheckCircle2, Folder, Eye, CheckCircle, FileText, X, Camera, Clock, Trash2, Loader2
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { salesService } from "../services/salesService";
@@ -31,6 +31,24 @@ export const SalesLeadsPage = () => {
     const [visits, setVisits] = useState<SiteVisitDto[]>([]);
     const [visitsLoading, setVisitsLoading] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number } | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (!deleteModal) return;
+        setIsDeleting(true);
+        try {
+            await salesService.deleteLead(deleteModal.id);
+            toast.success("Lead deleted successfully");
+            setDeleteModal(null);
+            fetchLeads();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete lead");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     // Convert
     // 'converting' removed as navigate doesn't require async wait
@@ -193,13 +211,22 @@ export const SalesLeadsPage = () => {
                                                 <span>{lead.visitCount}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
+                                        <td className="px-6 py-4 text-right flex justify-end space-x-2">
                                             <button
                                                 onClick={() => handleViewDetails(lead)}
                                                 className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
                                             >
                                                 <Eye className="h-4 w-4 mx-auto" />
                                             </button>
+                                            {hasRole(["Admin", "Manager", "Project Director", "CEO", "Director", "Accounts"]) && (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, id: lead.id }); }}
+                                                    className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                                                    title="Delete Lead"
+                                                >
+                                                    <Trash2 className="h-4 w-4 mx-auto" />
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -443,6 +470,33 @@ export const SalesLeadsPage = () => {
                     />
                 </div>,
                 document.body
+            )}
+
+            {/* Custom Delete Confirmation Modal */}
+            {deleteModal && deleteModal.isOpen && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+                    <div className="bg-card border border-border/50 rounded-2xl shadow-2xl p-6 w-full max-w-md animate-in zoom-in-95 duration-200">
+                        <h3 className="text-xl font-bold text-foreground mb-4">Confirm Deletion</h3>
+                        <p className="text-muted-foreground mb-6">Are you sure you want to delete this sales lead? This action cannot be undone and will delete all associated visits and evidence.</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setDeleteModal(null)}
+                                disabled={isDeleting}
+                                className="px-5 py-2 rounded-xl border border-border hover:bg-muted/50 transition-colors font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="px-5 py-2 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors font-medium shadow-sm shadow-destructive/20 flex items-center space-x-2"
+                            >
+                                {isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                                <span>{isDeleting ? "Deleting..." : "Delete"}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

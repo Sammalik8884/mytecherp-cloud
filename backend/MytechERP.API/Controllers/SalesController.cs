@@ -514,6 +514,17 @@ namespace MytechERP.API.Controllers
         [Authorize(Roles = Roles.AllInternal)]
         public async Task<ActionResult> DeleteLead(int id)
         {
+            var userRoles = User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
+            var userEmail = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
+
+            bool isManagerOrAdmin = userRoles.Contains("Admin") || userRoles.Contains("Manager") || userRoles.Contains("Project Director") || 
+                                    userEmail == "munawar.hasan@mytecheng.com" || userEmail == "shahbaz.ali@mytecheng.com";
+
+            if (!isManagerOrAdmin)
+            {
+                return Forbid();
+            }
+
             var lead = await _context.SalesLeads.FindAsync(id);
             if (lead == null) return NotFound();
 
