@@ -267,13 +267,7 @@ namespace MyTechERP.Infrastructure.Services
                 );
 
                 // --- Notify Faisal Ghani for info only ---
-                try
-                {
-                    string subject = $"Amount Request Notification - {entity.EmployeeName}";
-                    string body = $"<p>A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}.</p><p>This is for your information only; it is currently waiting for Director approval.</p>";
-                    await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
-                }
-                catch (Exception) { }
+                await SendFaisalArfEmailAsync(entity, $"A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}. This is for your information only; it is currently waiting for Director approval.");
 
                 await NotifyFaisalAsync(
                     "Amount Request Notification",
@@ -284,13 +278,7 @@ namespace MyTechERP.Infrastructure.Services
             else
             {
                 // Send Email to Accounts Head
-                try
-                {
-                    string subject = $"Amount Request Ready for Release - {entity.EmployeeName}";
-                    string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} (Manager) has been created and is automatically approved, ready for release.</p>";
-                    await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
-                }
-                catch (Exception) { }
+                await SendFaisalArfEmailAsync(entity, $"An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} (Manager) has been created and is automatically approved, ready for release.");
 
                 // In-App notification to Faisal Ghani (Accounts Head)
                 await NotifyFaisalAsync(
@@ -358,13 +346,7 @@ namespace MyTechERP.Infrastructure.Services
                 if (dto.IsApproved)
                 {
                     entity.Status = "Approved - Ready for Accounts";
-                    try
-                    {
-                        string subject = $"Amount Request Ready for Release - {entity.EmployeeName}";
-                        string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been fully approved and is ready for release.</p>";
-                        await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
-                    }
-                    catch (Exception) { }
+                    await SendFaisalArfEmailAsync(entity, $"An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been fully approved and is ready for release.");
 
                     // In-App notification to Faisal Ghani (Accounts Head)
                     await NotifyFaisalAsync(
@@ -500,6 +482,49 @@ namespace MyTechERP.Infrastructure.Services
                 entity.IsDeleted = true;
                 await _context.SaveChangesAsync();
             }
+        }
+
+        private async Task SendFaisalArfEmailAsync(AmountRequestForm entity, string subjectTemplate)
+        {
+            try
+            {
+                var siteName = entity.CustomSiteName;
+                if (string.IsNullOrEmpty(siteName) && entity.SiteId.HasValue)
+                {
+                    var site = await _context.Sites.FindAsync(entity.SiteId);
+                    if (site != null) siteName = site.Name;
+                }
+
+                var officeName = "";
+                if (entity.OfficeId.HasValue)
+                {
+                    var office = await _context.Offices.FindAsync(entity.OfficeId);
+                    if (office != null) officeName = office.Name;
+                }
+
+                var location = !string.IsNullOrEmpty(siteName) ? $"Site: {siteName}" : (!string.IsNullOrEmpty(officeName) ? $"Office: {officeName}" : "N/A");
+
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail);
+                var designation = currentUser?.Designation ?? "N/A";
+
+                string body = $@"
+                    <p>{subjectTemplate}</p>
+                    <br/>
+                    <p><strong>ARF Number:</strong> {entity.ArfNumber}</p>
+                    <p><strong>Requestee Name:</strong> <mark>{entity.EmployeeName}</mark></p>
+                    <p><strong>Requestee Designation/Department:</strong> <mark>{designation}</mark></p>
+                    <p><strong>Location:</strong> <mark>{location}</mark></p>
+                    <p><strong>Amount Requested:</strong> Rs {entity.AdvanceRequested}</p>
+                    <p><strong>Current Status:</strong> {entity.Status}</p>
+                    <p><strong>Requested Time:</strong> {entity.CreatedAt.ToString("g")}</p>
+                ";
+
+                string subject = $"Amount Request Notification - {entity.EmployeeName} ({entity.ArfNumber})";
+
+                await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+                await _emailService.SendEmailAsync("usamamalikwork1@gmail.com", subject, body);
+            }
+            catch (Exception) { }
         }
     }
 }
