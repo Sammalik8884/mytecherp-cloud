@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../auth/AuthContext';
 import { EstimatorActivityChart } from '../components/dashboard/EstimatorActivityChart';
 import { getEstimatorsActivity, EstimatorActivityResponse } from '../services/dashboardService';
-import { Calendar, RefreshCw, Activity, FileText, CheckCircle, Clock } from 'lucide-react';
+import { quotationService } from '../services/quotationService';
+import { Calendar, RefreshCw, Activity, FileText, CheckCircle, Clock, X, Loader2 } from 'lucide-react';
 import { format, subDays, subMonths, subYears } from 'date-fns';
 
 export const EstimatorActivityPage: React.FC = () => {
@@ -17,6 +20,23 @@ export const EstimatorActivityPage: React.FC = () => {
 
     const [estimatorId, setEstimatorId] = useState<string>('');
     const [estimators, setEstimators] = useState<any[]>([]);
+
+    const [selectedQuoteDetails, setSelectedQuoteDetails] = useState<any>(null);
+    const [isQuoteLoading, setIsQuoteLoading] = useState(false);
+
+    const handleViewQuoteDetails = async (quoteId: number) => {
+        setIsQuoteLoading(true);
+        setSelectedQuoteDetails({ loading: true });
+        try {
+            const data = await quotationService.getQuotationById(quoteId);
+            setSelectedQuoteDetails(data);
+        } catch (err) {
+            toast.error("Failed to load quote details");
+            setSelectedQuoteDetails(null);
+        } finally {
+            setIsQuoteLoading(false);
+        }
+    };
 
     const fetchActivity = async () => {
         try {
@@ -257,7 +277,15 @@ export const EstimatorActivityPage: React.FC = () => {
                                                 </tr>
                                             ) : summary.quoteActivityDetails.map(q => (
                                                 <tr key={q.quoteId} className="border-b border-border/50 hover:bg-secondary/20 transition-colors">
-                                                    <td className="px-6 py-4 font-medium">{q.quoteNumber}</td>
+                                                    <td className="px-6 py-4 font-medium">
+                                                        <button 
+                                                            onClick={() => handleViewQuoteDetails(q.quoteId)}
+                                                            className="text-primary hover:underline font-semibold focus:outline-none"
+                                                            title="View Details"
+                                                        >
+                                                            {q.quoteNumber}
+                                                        </button>
+                                                    </td>
                                                     <td className="px-6 py-4">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${q.status === 'Approved' ? 'bg-green-500/10 text-green-500' : 'bg-secondary text-muted-foreground'}`}>
                                                             {q.status}
@@ -278,6 +306,92 @@ export const EstimatorActivityPage: React.FC = () => {
                     </div>
                 </div>
             ) : null}
+
+            {/* Quote Details Modal */}
+            {selectedQuoteDetails && createPortal(
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+                    <div className="bg-card border border-border/50 rounded-2xl shadow-2xl w-full max-w-xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                        <div className="flex items-center justify-between p-5 border-b border-border bg-secondary/10 shrink-0">
+                            <h3 className="text-xl font-bold flex items-center gap-2 text-foreground">
+                                <FileText className="h-5 w-5 text-primary" />
+                                {selectedQuoteDetails.loading ? "Loading Details..." : selectedQuoteDetails.quoteNumber}
+                            </h3>
+                            <button 
+                                onClick={() => setSelectedQuoteDetails(null)} 
+                                className="p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-xl transition-colors"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+                            {isQuoteLoading || selectedQuoteDetails.loading ? (
+                                <div className="flex flex-col items-center justify-center h-48 space-y-4">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                    <p className="text-muted-foreground animate-pulse">Fetching details...</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 rounded-xl bg-secondary/30 border border-border">
+                                            <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Client Name</div>
+                                            <div className="font-medium">{selectedQuoteDetails.customerName}</div>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-secondary/30 border border-border">
+                                            <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Status</div>
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                                selectedQuoteDetails.status === 'Approved' ? 'bg-green-500/15 text-green-600' : 
+                                                selectedQuoteDetails.status === 'InProgress' ? 'bg-amber-500/15 text-amber-600' :
+                                                'bg-secondary text-muted-foreground border border-border/50'
+                                            }`}>
+                                                {selectedQuoteDetails.status}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 rounded-xl bg-secondary/30 border border-border">
+                                            <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Assigned Date</div>
+                                            <div className="font-medium flex items-center gap-2">
+                                                <Calendar className="h-4 w-4 text-primary/70" />
+                                                {format(new Date(selectedQuoteDetails.createdAt), 'MMM dd, yyyy')}
+                                            </div>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-secondary/30 border border-border">
+                                            <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Revision History</div>
+                                            <div className="font-medium flex items-center gap-2">
+                                                <RefreshCw className="h-4 w-4 text-primary/70" />
+                                                Revision {selectedQuoteDetails.revisionNumber}
+                                            </div>
+                                            {selectedQuoteDetails.parentQuoteId && (
+                                                <div className="text-xs text-muted-foreground mt-1">Has Parent Quote</div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {selectedQuoteDetails.quoteHeadline && (
+                                        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                                            <div className="text-xs text-primary mb-1 uppercase tracking-wider font-semibold">Headline / Subject</div>
+                                            <div className="font-medium text-sm">{selectedQuoteDetails.quoteHeadline}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-5 border-t border-border bg-muted/20 shrink-0 flex justify-end">
+                            <button
+                                onClick={() => setSelectedQuoteDetails(null)}
+                                className="px-6 py-2 rounded-xl border border-border hover:bg-secondary/80 font-medium transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 };
+
+export default EstimatorActivityPage;
