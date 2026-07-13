@@ -507,6 +507,9 @@ namespace MyTechERP.Infrastructure.Services
                 var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail);
                 var designation = currentUser?.Designation ?? "N/A";
 
+                var pktZone = TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time");
+                var pktTime = TimeZoneInfo.ConvertTimeFromUtc(entity.CreatedAt, pktZone);
+
                 string body = $@"
                     <p>{subjectTemplate}</p>
                     <br/>
@@ -516,7 +519,7 @@ namespace MyTechERP.Infrastructure.Services
                     <p><strong>Location:</strong> <mark>{location}</mark></p>
                     <p><strong>Amount Requested:</strong> Rs {entity.AdvanceRequested}</p>
                     <p><strong>Current Status:</strong> {entity.Status}</p>
-                    <p><strong>Requested Time:</strong> {entity.CreatedAt.ToString("g")}</p>
+                    <p><strong>Requested Time:</strong> {pktTime.ToString("g")} (PKT)</p>
                 ";
 
                 string subject = $"Amount Request Notification - {entity.EmployeeName} ({entity.ArfNumber})";
