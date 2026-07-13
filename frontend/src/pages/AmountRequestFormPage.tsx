@@ -23,6 +23,7 @@ const AmountRequestFormPage = () => {
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
 
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number } | null>(null);
 
     // Form State
     const getSavedDefault = (key: string) => {
@@ -175,14 +176,18 @@ const AmountRequestFormPage = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm("Are you sure you want to delete this amount request?")) return;
+    const handleDelete = async () => {
+        if (!deleteModal) return;
+        setIsSubmitting(true);
         try {
-            await amountRequestApi.delete(id);
+            await amountRequestApi.delete(deleteModal.id);
             toast.success("Request deleted successfully");
+            setDeleteModal(null);
             fetchData();
         } catch (error: any) {
             toast.error(error.response?.data || "Failed to delete request");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -389,7 +394,7 @@ const AmountRequestFormPage = () => {
                                                 </button>
                                                 {(isDirector || isCEO || isAccounts || form.status === "Waiting for Director Approval" || form.status.includes('Rejected')) && (
                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); handleDelete(form.id); }}
+                                                        onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, id: form.id }); }}
                                                         className="text-destructive hover:text-destructive/80 transition-colors"
                                                         title="Delete Request"
                                                     >
@@ -812,6 +817,32 @@ const AmountRequestFormPage = () => {
                 </div>
             )}
 
+            {/* Custom Delete Confirmation Modal */}
+            {deleteModal && deleteModal.isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+                    <div className="bg-card border border-border/50 rounded-2xl shadow-2xl p-6 w-full max-w-md animate-in zoom-in-95 duration-200">
+                        <h3 className="text-xl font-bold text-foreground mb-4">Confirm Deletion</h3>
+                        <p className="text-muted-foreground mb-6">Are you sure you want to delete this amount request? This action cannot be undone.</p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setDeleteModal(null)}
+                                disabled={isSubmitting}
+                                className="px-5 py-2 rounded-xl border border-border hover:bg-muted/50 transition-colors font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={isSubmitting}
+                                className="px-5 py-2 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors font-medium shadow-sm shadow-destructive/20 flex items-center space-x-2"
+                            >
+                                {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                                <span>{isSubmitting ? "Deleting..." : "Delete"}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );
