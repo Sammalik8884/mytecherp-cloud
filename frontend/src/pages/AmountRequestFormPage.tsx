@@ -6,7 +6,7 @@ import { officeApi, OfficeDto } from "../api/officeApi";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 
-import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip } from "lucide-react";
+import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip, Trash2, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 
@@ -16,6 +16,7 @@ const AmountRequestFormPage = () => {
     const [sites, setSites] = useState<SiteDto[]>([]);
     const [offices, setOffices] = useState<OfficeDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [searchParams] = useSearchParams();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -144,6 +145,8 @@ const AmountRequestFormPage = () => {
 
     const handleCreateSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmitting) return;
+        setIsSubmitting(true);
         try {
             const finalPurpose = hiddenExpenseId ? `${purposeOfAdvance} [ExpenseId:${hiddenExpenseId}]` : purposeOfAdvance;
             const procIdParam = searchParams.get('procurementId');
@@ -167,6 +170,19 @@ const AmountRequestFormPage = () => {
             fetchData();
         } catch (error: any) {
             toast.error(error.response?.data || "Failed to submit request");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!window.confirm("Are you sure you want to delete this amount request?")) return;
+        try {
+            await amountRequestApi.delete(id);
+            toast.success("Request deleted successfully");
+            fetchData();
+        } catch (error: any) {
+            toast.error(error.response?.data || "Failed to delete request");
         }
     };
 
@@ -364,13 +380,22 @@ const AmountRequestFormPage = () => {
                                                     {form.status}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-right">
+                                            <td className="p-4 text-right flex items-center justify-end space-x-4">
                                                 <button
                                                     onClick={() => setSelectedForm(form)}
                                                     className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
                                                 >
                                                     View Details
                                                 </button>
+                                                {(isDirector || isCEO || isAccounts || form.status === "Waiting for Director Approval" || form.status.includes('Rejected')) && (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDelete(form.id); }}
+                                                        className="text-destructive hover:text-destructive/80 transition-colors"
+                                                        title="Delete Request"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))
@@ -499,10 +524,13 @@ const AmountRequestFormPage = () => {
                             </div>
                         </div>
 
-                        <div className="flex justify-end space-x-4 pt-4 border-t border-border/50">
-                            <button type="button" onClick={() => setIsFormOpen(false)} className="px-6 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors font-medium">Cancel</button>
-                            <button type="submit" className="px-6 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-colors font-medium shadow-sm shadow-primary/20">Submit Request</button>
-                        </div>
+                            <div className="flex justify-end space-x-4 pt-4 border-t border-border/50">
+                                <button type="button" onClick={() => setIsFormOpen(false)} disabled={isSubmitting} className="px-6 py-2 rounded-lg border border-border hover:bg-muted/50 transition-colors font-medium">Cancel</button>
+                                <button type="submit" disabled={isSubmitting} className="px-6 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-colors font-medium shadow-sm shadow-primary/20 flex items-center space-x-2">
+                                    {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    <span>{isSubmitting ? "Submitting..." : "Submit Request"}</span>
+                                </button>
+                            </div>
                     </form>
                 </div>
             )}

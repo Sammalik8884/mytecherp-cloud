@@ -49,6 +49,7 @@ export const amountRequestApi = {
   create: (data: Partial<AmountRequestFormDto>) => api.post<AmountRequestFormDto>("/AmountRequestForms", data),
   approve: (id: number, data: { approverRole: string; approverName: string; comment: string; isApproved: boolean }) =>
     api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/approve`, data),
+  delete: (id: number) => api.delete<void>(`/AmountRequestForms/${id}`),
   releaseAmount: (id: number, data: { dateOfEntry?: string; dateOfFundReleased?: string; releasedAmount: number; remarks: string; paymentSlip?: File }) => {
     const formData = new FormData();
     if (data.dateOfEntry) formData.append('dateOfEntry', data.dateOfEntry);

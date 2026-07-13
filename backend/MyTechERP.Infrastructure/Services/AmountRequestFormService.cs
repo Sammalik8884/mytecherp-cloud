@@ -479,6 +479,25 @@ namespace MyTechERP.Infrastructure.Services
             var entity = await _context.AmountRequestForms.FirstOrDefaultAsync(a => a.Id == id);
             if (entity != null)
             {
+                var userId = _currentUserService.UserId;
+                var currentUser = await _context.Users.FindAsync(userId);
+                var designation = currentUser?.Designation?.ToLower() ?? "";
+
+                var isManagerOrAdmin = _currentUserService.Roles.Contains("Manager") || 
+                                       _currentUserService.Roles.Contains("Admin") ||
+                                       _currentUserService.Roles.Contains("Project Director") ||
+                                       designation == "manager" || 
+                                       designation == "project director" ||
+                                       designation == "director";
+
+                if (!isManagerOrAdmin)
+                {
+                    if (entity.Status != "Waiting for Director Approval" && !entity.Status.Contains("Rejected"))
+                    {
+                        throw new Exception("You cannot delete an ARF that has already been approved or processed.");
+                    }
+                }
+
                 entity.IsDeleted = true;
                 await _context.SaveChangesAsync();
             }
