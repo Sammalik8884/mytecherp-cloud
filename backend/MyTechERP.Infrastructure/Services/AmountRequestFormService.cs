@@ -253,7 +253,7 @@ namespace MyTechERP.Infrastructure.Services
                 try
                 {
                     string subject = $"New Amount Advance Request from {entity.EmployeeName}";
-                    string body = $"<p>A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}.</p><p>Please log in to approve or reject.</p><br/><p><a href=\"https://mytecherp.com/login\">Click here to log in to the system</a></p>";
+                    string body = $"<p>A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}.</p><p><strong>Account Details:</strong> {entity.AccountDetail}</p><p>Please log in to approve or reject.</p><br/><p><a href=\"https://mytecherp.com/login\">Click here to log in to the system</a></p>";
                     await _emailService.SendEmailAsync("shahbaz.ali@mytecheng.com", subject, body);
                 }
                 catch (Exception) { /* Log or ignore email failure */ }
@@ -310,7 +310,7 @@ namespace MyTechERP.Infrastructure.Services
                     try
                     {
                         string subject = $"Amount Advance Request Approval Required - {entity.EmployeeName}";
-                        string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been approved by the Director and requires your approval.</p><br/><p><a href=\"https://mytecherp.com/login\">Click here to log in to the system</a></p>";
+                        string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been approved by the Director and requires your approval.</p><p><strong>Account Details:</strong> {entity.AccountDetail}</p><br/><p><a href=\"https://mytecherp.com/login\">Click here to log in to the system</a></p>";
                         await _emailService.SendEmailAsync("munawar.hasan@mytecheng.com", subject, body);
                     }
                     catch (Exception) { }
@@ -518,6 +518,7 @@ namespace MyTechERP.Infrastructure.Services
                     <p><strong>Requestee Designation/Department:</strong> <mark>{designation}</mark></p>
                     <p><strong>Location:</strong> <mark>{location}</mark></p>
                     <p><strong>Amount Requested:</strong> Rs {entity.AdvanceRequested}</p>
+                    <p><strong>Account Details:</strong> {entity.AccountDetail}</p>
                     <p><strong>Current Status:</strong> {entity.Status}</p>
                     <p><strong>Requested Time:</strong> {pktTime.ToString("g")} (PKT)</p>
                     <br/>
