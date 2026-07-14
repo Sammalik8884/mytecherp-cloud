@@ -328,6 +328,7 @@ export const QuotationFormPage = () => {
                             unit: isCustomUnit ? "Custom" : (i.unit || ""),
                             unitQty: i.unitQty || 0,
                             customUnit: isCustomUnit ? i.unit : "",
+                            referenceNumber: i.referenceNumber || "",
                         };
                         // For imported items: re-derive calculations from saved originalPrice
                         if (i.itemType === "Imported" && i.originalPrice > 0) {
@@ -639,7 +640,8 @@ export const QuotationFormPage = () => {
                  overridePrice: i.originalPrice,
                  finalPriceOverride: i.isManualFinalPrice ? i.unitPrice : undefined,
                  unit: resolveUnit(i),
-                 unitQty: i.unitQty || 0
+                 unitQty: i.unitQty || 0,
+                 referenceNumber: i.referenceNumber || undefined
              })));
         }
         if (showLocal) {
@@ -653,16 +655,17 @@ export const QuotationFormPage = () => {
                  overridePrice: i.originalPrice,
                  finalPriceOverride: i.isManualFinalPrice ? i.unitPrice : undefined,
                  unit: resolveUnit(i),
-                 unitQty: i.unitQty || 0
+                 unitQty: i.unitQty || 0,
+                 referenceNumber: i.referenceNumber || undefined
              })));
         }
         if (showImportedServices) {
              const valid = importedServiceItems.filter(i => i.serviceName && i.serviceName.trim() !== "");
-             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "ImportedService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0 })));
+             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "ImportedService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0, referenceNumber: i.referenceNumber || undefined })));
         }
         if (showLocalServices) {
              const valid = localServiceItems.filter(i => i.serviceName && i.serviceName.trim() !== "");
-             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "LocalService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0 })));
+             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "LocalService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0, referenceNumber: i.referenceNumber || undefined })));
         }
 
         if (payloadItems.length === 0) {
@@ -810,6 +813,16 @@ export const QuotationFormPage = () => {
                     <Search className="h-4 w-4 text-muted-foreground" />
                 </button>
             </div>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="col-span-2">
+                    <label className="text-xs text-muted-foreground">Ref # (Optional)</label>
+                    <input type="text" placeholder="e.g. ITEM-01" className={inputCls + " !py-1 !text-xs mt-1"} value={item.referenceNumber || ""} onChange={e => {
+                        const newArr = [...importedItems];
+                        newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                        setImportedItems(newArr);
+                    }}/>
+                </div>
+            </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
                     <label className="text-xs text-muted-foreground">Unit</label>
@@ -906,6 +919,16 @@ export const QuotationFormPage = () => {
                 >
                     <Search className="h-4 w-4 text-muted-foreground" />
                 </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="col-span-2">
+                    <label className="text-xs text-muted-foreground">Ref # (Optional)</label>
+                    <input type="text" placeholder="e.g. ITEM-01" className={inputCls + " !py-1 !text-xs mt-1"} value={item.referenceNumber || ""} onChange={e => {
+                        const newArr = [...localItems];
+                        newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                        setLocalItems(newArr);
+                    }}/>
+                </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -1080,7 +1103,7 @@ export const QuotationFormPage = () => {
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (USD)</th><th className="w-36 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Ref #</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (USD)</th><th className="w-36 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody data-section="imported">
                                  {importedItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -1104,6 +1127,13 @@ export const QuotationFormPage = () => {
                                                       <Search className="h-4 w-4 text-muted-foreground" />
                                                   </button>
                                               </div>
+                                         </td>
+                                         <td className="px-1">
+                                             <input type="text" placeholder="Ref #" className={inputCls + " !py-1 !text-xs text-center"} value={item.referenceNumber || ""} onChange={e => {
+                                                 const newArr = [...importedItems];
+                                                 newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                                                 setImportedItems(newArr);
+                                             }}/>
                                          </td>
                                          <td className="px-1">
                                               <div className="flex flex-col gap-1">
@@ -1220,7 +1250,7 @@ export const QuotationFormPage = () => {
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (PKR)</th><th className="w-36 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Product</th><th className="w-[100px] text-center">Ref #</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (PKR)</th><th className="w-36 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody data-section="local">
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -1244,6 +1274,13 @@ export const QuotationFormPage = () => {
                                                       <Search className="h-4 w-4 text-muted-foreground" />
                                                   </button>
                                               </div>
+                                         </td>
+                                         <td className="px-1">
+                                             <input type="text" placeholder="Ref #" className={inputCls + " !py-1 !text-xs text-center"} value={item.referenceNumber || ""} onChange={e => {
+                                                 const newArr = [...localItems];
+                                                 newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                                                 setLocalItems(newArr);
+                                             }}/>
                                          </td>
                                          <td className="px-1">
                                               <div className="flex flex-col gap-1">
@@ -1341,12 +1378,19 @@ export const QuotationFormPage = () => {
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Service Name</th><th className="w-[100px] text-center">Ref #</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {importedServiceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
                                               {renderServiceNameDisplay(item, idx, "importedService")}
+                                         </td>
+                                         <td className="px-1">
+                                             <input type="text" placeholder="Ref #" className={inputCls + " !py-1.5 !text-xs text-center"} value={item.referenceNumber || ""} onChange={e => {
+                                                 const newArr = [...importedServiceItems];
+                                                 newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                                                 setImportedServiceItems(newArr);
+                                             }}/>
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
@@ -1379,6 +1423,16 @@ export const QuotationFormPage = () => {
                              {importedServiceItems.map((item, idx) => (
                                  <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
                                      {renderServiceNameDisplay(item, idx, "importedService")}
+                                     <div className="grid grid-cols-2 gap-3 mb-3">
+                                         <div className="col-span-2">
+                                             <label className="text-xs text-muted-foreground">Ref # (Optional)</label>
+                                             <input type="text" placeholder="e.g. ITEM-01" className={inputCls + " !py-1 !text-xs mt-1"} value={item.referenceNumber || ""} onChange={e => {
+                                                 const newArr = [...importedServiceItems];
+                                                 newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                                                 setImportedServiceItems(newArr);
+                                             }}/>
+                                         </div>
+                                     </div>
                                      <div className="grid grid-cols-2 gap-3">
                                          <div><label className="text-xs text-muted-foreground">Qty</label><input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => { const newArr = [...importedServiceItems]; newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) }; setImportedServiceItems(newArr); }}/></div>
                                          <div><label className="text-xs text-muted-foreground">Price</label><input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.servicePrice||0} onChange={e => { const newArr = [...importedServiceItems]; newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) }; setImportedServiceItems(newArr); }}/></div>
@@ -1421,12 +1475,19 @@ export const QuotationFormPage = () => {
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Service Name</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[300px] w-auto">Service Name</th><th className="w-[100px] text-center">Ref #</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {localServiceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
                                          <td className="py-2 pr-2">
                                               {renderServiceNameDisplay(item, idx, "localService")}
+                                         </td>
+                                         <td className="px-1">
+                                             <input type="text" placeholder="Ref #" className={inputCls + " !py-1.5 !text-xs text-center"} value={item.referenceNumber || ""} onChange={e => {
+                                                 const newArr = [...localServiceItems];
+                                                 newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                                                 setLocalServiceItems(newArr);
+                                             }}/>
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
@@ -1459,6 +1520,16 @@ export const QuotationFormPage = () => {
                              {localServiceItems.map((item, idx) => (
                                  <div key={item.id} className="bg-background border border-border rounded-xl p-4 space-y-3">
                                      {renderServiceNameDisplay(item, idx, "localService")}
+                                     <div className="grid grid-cols-2 gap-3 mb-3">
+                                         <div className="col-span-2">
+                                             <label className="text-xs text-muted-foreground">Ref # (Optional)</label>
+                                             <input type="text" placeholder="e.g. ITEM-01" className={inputCls + " !py-1 !text-xs mt-1"} value={item.referenceNumber || ""} onChange={e => {
+                                                 const newArr = [...localServiceItems];
+                                                 newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                                                 setLocalServiceItems(newArr);
+                                             }}/>
+                                         </div>
+                                     </div>
                                      <div className="grid grid-cols-2 gap-3">
                                          <div><label className="text-xs text-muted-foreground">Qty</label><input type="number" className={inputCls + " !py-1.5"} min="1" value={item.quantity} onChange={e => { const newArr = [...localServiceItems]; newArr[idx] = { ...newArr[idx], quantity: Number(e.target.value), lineTotal: Number(e.target.value) * (newArr[idx].servicePrice||0) }; setLocalServiceItems(newArr); }}/></div>
                                          <div><label className="text-xs text-muted-foreground">Price</label><input type="number" step="any" className={inputCls + " !py-1.5"} min="0" value={item.servicePrice||0} onChange={e => { const newArr = [...localServiceItems]; newArr[idx] = { ...newArr[idx], servicePrice: Number(e.target.value), unitPrice: Number(e.target.value), lineTotal: newArr[idx].quantity * Number(e.target.value) }; setLocalServiceItems(newArr); }}/></div>

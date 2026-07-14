@@ -239,6 +239,8 @@ namespace MyTechERP.Infrastructure.Services
         // ─────────────────────────────────────────────────────────
         void DrawSection(IContainer container, string title, List<QuotationItemDto> items, string currency, bool showCalcBreakdown, bool showUnit = true)
         {
+            bool showRefNumber = items.Any(i => !string.IsNullOrWhiteSpace(i.ReferenceNumber));
+
             container.Column(col =>
             {
                 // Section header bar
@@ -258,6 +260,10 @@ namespace MyTechERP.Infrastructure.Services
                     {
                         columns.ConstantColumn(22);  // Sr#
                         columns.RelativeColumn(5);   // Description
+                        if (showRefNumber)
+                        {
+                            columns.ConstantColumn(50);  // Ref#
+                        }
                         if (showUnit)
                         {
                             columns.ConstantColumn(55);  // Unit
@@ -272,6 +278,10 @@ namespace MyTechERP.Infrastructure.Services
                     {
                         header.Cell().Element(TH).AlignCenter().Text("#");
                         header.Cell().Element(TH).Text("Description");
+                        if (showRefNumber)
+                        {
+                            header.Cell().Element(TH).AlignCenter().Text("Ref #");
+                        }
                         if (showUnit)
                         {
                             header.Cell().Element(TH).AlignCenter().Text("Unit");

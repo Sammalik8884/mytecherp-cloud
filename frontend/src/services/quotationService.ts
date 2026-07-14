@@ -9,6 +9,7 @@ export interface QuotationItemDto {
     lineTotal: number;
     itemType: string;
     serviceName?: string;
+    referenceNumber?: string;
     originalPrice: number;
     calculationBreakdown?: string;
     unit?: string;
@@ -55,6 +56,7 @@ export interface CreateQuotationItemDto {
     manualCommissionPct?: number;
     itemType: string;
     serviceName?: string;
+    referenceNumber?: string;
     servicePrice?: number;
     overridePrice?: number;
     finalPriceOverride?: number;

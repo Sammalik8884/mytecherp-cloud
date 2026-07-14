@@ -12,6 +12,7 @@ namespace MytechERP.domain.Quotations
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public bool IsDeleted { get; set; } = false;
         public string Description { get; set; } = string.Empty;
+        public string? ReferenceNumber { get; set; }
         public int Quantity { get; set; }
 
         public int QuotationId { get; set; }
