@@ -618,6 +618,7 @@ namespace MyTechERP.Infrastructure.Services
                     ServiceName = i.ServiceName,
                     OriginalPrice = i.OriginalPrice,
                     CalculationBreakdown = i.CalculationBreakdown,
+                    ReferenceNumber = i.ReferenceNumber,
                     Unit = i.Unit,
                     UnitQty = i.UnitQty
                 }).ToList() ?? new List<QuotationItemDto>()

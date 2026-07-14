@@ -243,10 +243,15 @@ namespace MytechERP.API.Controllers
                 Currency = quote.Currency,
                 Items = quote.Items.Select(i => new QuotationItemDto
                 {
+                    Id = i.Id,
                     Description = i.Description,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
-                    LineTotal = i.LineTotal
+                    LineTotal = i.LineTotal,
+                    ItemType = i.ItemType.ToString(),
+                    ReferenceNumber = i.ReferenceNumber,
+                    Unit = i.Unit,
+                    UnitQty = i.UnitQty
                 }).ToList(),
                 SubTotal = quote.SubTotal,
                 GSTPercentage = quote.GSTPercentage,
