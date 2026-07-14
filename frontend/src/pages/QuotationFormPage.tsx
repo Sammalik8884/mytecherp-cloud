@@ -1712,15 +1712,14 @@ export const QuotationFormPage = () => {
                         
                         setShowImportedServices(true);
                         setImportedServiceItems(prev => {
-                            // Replace a blank placeholder row if one exists, otherwise append
-                            const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
-                            if (prev.some(s => s.serviceName === p.name)) return prev;
-                            if (blankIdx !== -1) {
-                                const updated = [...prev];
-                                updated[blankIdx] = { ...updated[blankIdx], serviceName: p.name, quantity: quantity };
-                                return updated;
+                            const updated = [...prev];
+                            const targetIdx = productModalTarget.index;
+                            if (updated[targetIdx]) {
+                                updated[targetIdx] = { ...updated[targetIdx], serviceName: p.name, quantity: quantity };
+                            } else {
+                                updated[targetIdx] = { ...makeEmptyRow("ImportedService"), serviceName: p.name, quantity: quantity };
                             }
-                            return [...prev, { ...makeEmptyRow("ImportedService"), serviceName: p.name, quantity: quantity }];
+                            return updated;
                         });
                     } else if (productModalTarget?.list === "local") {
                         const newArr = [...localItems];
@@ -1742,14 +1741,14 @@ export const QuotationFormPage = () => {
                         
                         setShowLocalServices(true);
                         setLocalServiceItems(prev => {
-                            const blankIdx = prev.findIndex(s => !s.serviceName || s.serviceName.trim() === "");
-                            if (prev.some(s => s.serviceName === p.name)) return prev;
-                            if (blankIdx !== -1) {
-                                const updated = [...prev];
-                                updated[blankIdx] = { ...updated[blankIdx], serviceName: p.name, quantity: quantity };
-                                return updated;
+                            const updated = [...prev];
+                            const targetIdx = productModalTarget.index;
+                            if (updated[targetIdx]) {
+                                updated[targetIdx] = { ...updated[targetIdx], serviceName: p.name, quantity: quantity };
+                            } else {
+                                updated[targetIdx] = { ...makeEmptyRow("LocalService"), serviceName: p.name, quantity: quantity };
                             }
-                            return [...prev, { ...makeEmptyRow("LocalService"), serviceName: p.name, quantity: quantity }];
+                            return updated;
                         });
                     }
                     setProductModalTarget(null);
