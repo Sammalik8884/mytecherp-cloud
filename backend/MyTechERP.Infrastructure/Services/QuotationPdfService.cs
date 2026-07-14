@@ -306,6 +306,14 @@ namespace MyTechERP.Infrastructure.Services
                         {
                             dc.Item().Text(item.Description ?? "Unknown Service").FontSize(8);
                         });
+                        // Ref # cell
+                        if (showRefNumber)
+                        {
+                            table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(text =>
+                            {
+                                text.Span(item.ReferenceNumber ?? "").FontSize(7.5f);
+                            });
+                        }
 
                         // Unit cell - show unit type and quantity (conditional)
                         if (showUnit)
@@ -336,7 +344,11 @@ namespace MyTechERP.Infrastructure.Services
 
                     // Section sub-total row
                     decimal sectionTotal = items.Sum(x => x.LineTotal);
-                    table.Cell().ColumnSpan(showUnit ? (uint)4 : (uint)3)
+                    uint span = 3;
+                    if (showUnit) span++;
+                    if (showRefNumber) span++;
+
+                    table.Cell().ColumnSpan(span)
                         .Background(BrandLight).Border(0.5f).BorderColor(Brand)
                         .PaddingHorizontal(5).PaddingVertical(4)
                         .AlignRight().DefaultTextStyle(x => x.FontSize(8.5f).FontColor(Brand))
