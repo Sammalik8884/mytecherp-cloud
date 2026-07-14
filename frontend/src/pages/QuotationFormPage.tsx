@@ -156,12 +156,12 @@ export const QuotationFormPage = () => {
                     : item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ''}` : '';
                 
                 if (next[i]) {
-                    if (next[i].quantity !== item.quantity) {
-                        next[i] = { ...next[i], quantity: item.quantity };
+                    if (next[i].quantity !== item.quantity || next[i].referenceNumber !== item.referenceNumber) {
+                        next[i] = { ...next[i], quantity: item.quantity, referenceNumber: item.referenceNumber };
                         changed = true;
                     }
                 } else {
-                    next[i] = { ...makeEmptyRow('ImportedService'), serviceName: defaultName, quantity: item.quantity };
+                    next[i] = { ...makeEmptyRow('ImportedService'), serviceName: defaultName, quantity: item.quantity, referenceNumber: item.referenceNumber };
                     changed = true;
                 }
             });
@@ -182,12 +182,12 @@ export const QuotationFormPage = () => {
                     : item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ''}` : '';
                 
                 if (next[i]) {
-                    if (next[i].quantity !== item.quantity) {
-                        next[i] = { ...next[i], quantity: item.quantity };
+                    if (next[i].quantity !== item.quantity || next[i].referenceNumber !== item.referenceNumber) {
+                        next[i] = { ...next[i], quantity: item.quantity, referenceNumber: item.referenceNumber };
                         changed = true;
                     }
                 } else {
-                    next[i] = { ...makeEmptyRow('LocalService'), serviceName: defaultName, quantity: item.quantity };
+                    next[i] = { ...makeEmptyRow('LocalService'), serviceName: defaultName, quantity: item.quantity, referenceNumber: item.referenceNumber };
                     changed = true;
                 }
             });
