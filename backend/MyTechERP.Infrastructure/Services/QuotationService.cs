@@ -553,6 +553,7 @@ namespace MyTechERP.Infrastructure.Services
                         ServiceName = itemDto.ServiceName,
                         OriginalPrice = originalPrice,
                         CalculationBreakdown = calcBreakdown,
+                        ReferenceNumber = itemDto.ReferenceNumber,
                         Unit = itemDto.Unit,
                         UnitQty = itemDto.UnitQty
                     });
