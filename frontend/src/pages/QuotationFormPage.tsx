@@ -447,10 +447,30 @@ export const QuotationFormPage = () => {
 
     const handleAddImported = () => {
         setImportedItems([...importedItems, makeEmptyRow("Imported")]);
+        if (showImportedServices) {
+            setImportedServiceItems([...importedServiceItems, makeEmptyRow("ImportedService")]);
+        }
     };
     
     const handleAddLocal = () => {
         setLocalItems([...localItems, makeEmptyRow("Local")]);
+        if (showLocalServices) {
+            setLocalServiceItems([...localServiceItems, makeEmptyRow("LocalService")]);
+        }
+    };
+
+    const handleRemoveImported = (idx: number) => {
+        setImportedItems(prev => prev.filter((_, i) => i !== idx));
+        if (showImportedServices) {
+            setImportedServiceItems(prev => prev.filter((_, i) => i !== idx));
+        }
+    };
+
+    const handleRemoveLocal = (idx: number) => {
+        setLocalItems(prev => prev.filter((_, i) => i !== idx));
+        if (showLocalServices) {
+            setLocalServiceItems(prev => prev.filter((_, i) => i !== idx));
+        }
     };
 
     const handleAddImportedService = () => {
@@ -474,12 +494,10 @@ export const QuotationFormPage = () => {
             if (showImportedServices) {
                 setImportedServiceItems(prev => {
                     const next = [...prev];
-                    if (next[idx]) {
-                        const currentServiceName = next[idx].serviceName || "";
-                        if (currentServiceName === oldName || currentServiceName === "") {
-                            next[idx] = { ...next[idx], serviceName: newName };
-                            return next;
-                        }
+                    const targetIdx = next.findIndex(x => x.serviceName === oldName || (!x.serviceName && oldName === ""));
+                    if (targetIdx !== -1) {
+                        next[targetIdx] = { ...next[targetIdx], serviceName: newName };
+                        return next;
                     }
                     return prev;
                 });
@@ -496,12 +514,10 @@ export const QuotationFormPage = () => {
             if (showLocalServices) {
                 setLocalServiceItems(prev => {
                     const next = [...prev];
-                    if (next[idx]) {
-                        const currentServiceName = next[idx].serviceName || "";
-                        if (currentServiceName === oldName || currentServiceName === "") {
-                            next[idx] = { ...next[idx], serviceName: newName };
-                            return next;
-                        }
+                    const targetIdx = next.findIndex(x => x.serviceName === oldName || (!x.serviceName && oldName === ""));
+                    if (targetIdx !== -1) {
+                        next[targetIdx] = { ...next[targetIdx], serviceName: newName };
+                        return next;
                     }
                     return prev;
                 });
@@ -893,7 +909,7 @@ export const QuotationFormPage = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
-                    <button type="button" onClick={() => setImportedItems(importedItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors">
+                    <button type="button" onClick={() => handleRemoveImported(idx)} className="p-1.5 rounded hover:bg-destructive/10 transition-colors">
                         <Trash2 className="w-4 h-4 text-destructive"/>
                     </button>
                 </div>
@@ -988,7 +1004,7 @@ export const QuotationFormPage = () => {
             </div>
             <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
-                <button type="button" onClick={() => setLocalItems(localItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors">
+                <button type="button" onClick={() => handleRemoveLocal(idx)} className="p-1.5 rounded hover:bg-destructive/10 transition-colors">
                     <Trash2 className="w-4 h-4 text-destructive"/>
                 </button>
             </div>
@@ -1201,7 +1217,7 @@ export const QuotationFormPage = () => {
                                          </td>
                                          <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
                                          <td className="text-center">
-                                             <button type="button" onClick={() => setImportedItems(importedItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
+                                             <button type="button" onClick={() => handleRemoveImported(idx)} className="p-1 rounded hover:bg-destructive/10 transition-colors">
                                                  <Trash2 className="w-4 h-4 text-destructive"/>
                                              </button>
                                          </td>
@@ -1334,7 +1350,7 @@ export const QuotationFormPage = () => {
                                          </td>
                                          <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
                                          <td className="text-center">
-                                             <button type="button" onClick={() => setLocalItems(localItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
+                                             <button type="button" onClick={() => handleRemoveLocal(idx)} className="p-1 rounded hover:bg-destructive/10 transition-colors">
                                                  <Trash2 className="w-4 h-4 text-destructive"/>
                                              </button>
                                          </td>
