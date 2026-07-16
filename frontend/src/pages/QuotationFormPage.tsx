@@ -240,11 +240,11 @@ export const QuotationFormPage = () => {
                     if (firstImported?.calculationBreakdown) {
                         try {
                             const bd = JSON.parse(firstImported.calculationBreakdown);
-                            if (bd.costFactorPct) savedCostFactor = bd.costFactorPct;
-                            if (bd.importationPct) savedImportPct = bd.importationPct;
-                            if (bd.transportationPct) savedTransPct = bd.transportationPct;
-                            if (bd.profitPct) savedProfitPct = bd.profitPct;
-                            if (bd.exchangeRate) savedExchangeRate = bd.exchangeRate;
+                            if (bd.costFactorPct !== undefined) savedCostFactor = bd.costFactorPct;
+                            if (bd.importationPct !== undefined) savedImportPct = bd.importationPct;
+                            if (bd.transportationPct !== undefined) savedTransPct = bd.transportationPct;
+                            if (bd.profitPct !== undefined) savedProfitPct = bd.profitPct;
+                            if (bd.exchangeRate !== undefined) savedExchangeRate = bd.exchangeRate;
                         } catch {}
                     }
 
@@ -253,8 +253,8 @@ export const QuotationFormPage = () => {
                     if (firstLocal?.calculationBreakdown) {
                         try {
                             const bd = JSON.parse(firstLocal.calculationBreakdown);
-                            if (bd.transportationPct) savedLocalTransPct = bd.transportationPct;
-                            if (bd.profitPct) savedLocalProfitPct = bd.profitPct;
+                            if (bd.transportationPct !== undefined) savedLocalTransPct = bd.transportationPct;
+                            if (bd.profitPct !== undefined) savedLocalProfitPct = bd.profitPct;
                         } catch {}
                     }
 
