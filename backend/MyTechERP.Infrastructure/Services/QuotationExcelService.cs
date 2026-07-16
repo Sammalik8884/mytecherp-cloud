@@ -30,8 +30,8 @@ namespace MyTechERP.Infrastructure.Services
 
                 // --- Column Widths ---
                 ws.Column(1).Width = 5;  // Sr#
-                ws.Column(2).Width = 50; // Description
-                ws.Column(3).Width = 15; // Ref #
+                ws.Column(2).Width = 15; // Ref #
+                ws.Column(3).Width = 50; // Description
                 ws.Column(4).Width = 15; // Unit
                 ws.Column(5).Width = 10; // Qty
                 ws.Column(6).Width = 15; // Unit Price
@@ -148,7 +148,7 @@ namespace MyTechERP.Infrastructure.Services
                     currentRow++;
 
                     // Table Headers
-                    string[] headers = { "#", "Description", "Ref #", "Unit", "Qty", "Unit Rate", "Amount" };
+                    string[] headers = { "#", "Ref #", "Description", "Unit", "Qty", "Unit Rate", "Amount" };
                     for (int i = 0; i < headers.Length; i++)
                     {
                         ws.Cells[currentRow, i + 1].Value = headers[i];
@@ -168,11 +168,11 @@ namespace MyTechERP.Infrastructure.Services
                         ws.Cells[currentRow, 1].Value = index++;
                         ws.Cells[currentRow, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
 
-                        ws.Cells[currentRow, 2].Value = item.Description ?? "Unknown Service";
-                        ws.Cells[currentRow, 2].Style.WrapText = true;
+                        ws.Cells[currentRow, 2].Value = item.ReferenceNumber ?? "";
+                        ws.Cells[currentRow, 2].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
 
-                        ws.Cells[currentRow, 3].Value = item.ReferenceNumber ?? "";
-                        ws.Cells[currentRow, 3].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        ws.Cells[currentRow, 3].Value = item.Description ?? "Unknown Service";
+                        ws.Cells[currentRow, 3].Style.WrapText = true;
 
                         string unitText = "-";
                         if (!string.IsNullOrWhiteSpace(item.Unit) && item.UnitQty > 0) unitText = $"{item.UnitQty:G29} {item.Unit}";

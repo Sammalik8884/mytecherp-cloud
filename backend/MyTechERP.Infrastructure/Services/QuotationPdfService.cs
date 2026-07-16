@@ -258,12 +258,12 @@ namespace MyTechERP.Infrastructure.Services
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.ConstantColumn(22);  // Sr#
-                        columns.RelativeColumn(5);   // Description
+                        columns.ConstantColumn(22);  // #
                         if (showRefNumber)
                         {
                             columns.ConstantColumn(50);  // Ref#
                         }
+                        columns.RelativeColumn();    // Description
                         if (showUnit)
                         {
                             columns.ConstantColumn(55);  // Unit
@@ -277,11 +277,11 @@ namespace MyTechERP.Infrastructure.Services
                     table.Header(header =>
                     {
                         header.Cell().Element(TH).AlignCenter().Text("#");
-                        header.Cell().Element(TH).Text("Description");
                         if (showRefNumber)
                         {
                             header.Cell().Element(TH).AlignCenter().Text("Ref #");
                         }
+                        header.Cell().Element(TH).Text("Description");
                         if (showUnit)
                         {
                             header.Cell().Element(TH).AlignCenter().Text("Unit");
@@ -301,11 +301,6 @@ namespace MyTechERP.Infrastructure.Services
                         table.Cell().Element(c => TD(c, isAlt))
                             .AlignCenter().Text(rowIndex.ToString());
                         
-                        // Description cell
-                        table.Cell().Element(c => TD(c, isAlt)).Column(dc =>
-                        {
-                            dc.Item().Text(item.Description ?? "Unknown Service").FontSize(8);
-                        });
                         // Ref # cell
                         if (showRefNumber)
                         {
@@ -315,6 +310,11 @@ namespace MyTechERP.Infrastructure.Services
                             });
                         }
 
+                        // Description cell
+                        table.Cell().Element(c => TD(c, isAlt)).Column(dc =>
+                        {
+                            dc.Item().Text(item.Description ?? "Unknown Service").FontSize(8);
+                        });
                         // Unit cell - show unit type and quantity (conditional)
                         if (showUnit)
                         {
