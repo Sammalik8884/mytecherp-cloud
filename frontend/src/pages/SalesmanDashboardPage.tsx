@@ -633,11 +633,25 @@ export const SalesmanDashboardPage = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-muted-foreground mb-1">Project Status</label>
-                                            <select value={clientForm.projectStatus} onChange={e => setClientForm({...clientForm, projectStatus: e.target.value})} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background">
+                                            <select value={clientForm.projectStatus} onChange={e => {
+                                                const val = e.target.value;
+                                                if (val === "Others") {
+                                                    const custom = window.prompt("Enter Custom Project Status:");
+                                                    if (custom && custom.trim() !== "") {
+                                                        setClientForm({...clientForm, projectStatus: custom.trim()});
+                                                    }
+                                                } else {
+                                                    setClientForm({...clientForm, projectStatus: val});
+                                                }
+                                            }} className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background">
                                                 <option value="Building">Building / Under Construction</option>
                                                 <option value="Land">Empty Land</option>
                                                 <option value="Renovation">Renovation</option>
                                                 <option value="Completed">Completed Structure</option>
+                                                {!["Building", "Land", "Renovation", "Completed", ""].includes(clientForm.projectStatus || "") && (
+                                                    <option value={clientForm.projectStatus}>{clientForm.projectStatus}</option>
+                                                )}
+                                                <option value="Others">Others...</option>
                                             </select>
                                         </div>
                                         <div>
