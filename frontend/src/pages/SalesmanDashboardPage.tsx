@@ -185,6 +185,9 @@ export const SalesmanDashboardPage = () => {
     const [clientFormLoading, setClientFormLoading] = useState(false);
     const [isLeadByCall, setIsLeadByCall] = useState(false);
     
+    const [isCustomStatusModalOpen, setIsCustomStatusModalOpen] = useState(false);
+    const [customStatusInput, setCustomStatusInput] = useState("");
+    
     // Track if we are editing an existing lead
     const [editingLeadId, setEditingLeadId] = useState<number | null>(null);
     
@@ -636,10 +639,8 @@ export const SalesmanDashboardPage = () => {
                                             <select value={clientForm.projectStatus} onChange={e => {
                                                 const val = e.target.value;
                                                 if (val === "Others") {
-                                                    const custom = window.prompt("Enter Custom Project Status:");
-                                                    if (custom && custom.trim() !== "") {
-                                                        setClientForm({...clientForm, projectStatus: custom.trim()});
-                                                    }
+                                                    setCustomStatusInput("");
+                                                    setIsCustomStatusModalOpen(true);
                                                 } else {
                                                     setClientForm({...clientForm, projectStatus: val});
                                                 }
@@ -786,6 +787,52 @@ export const SalesmanDashboardPage = () => {
                                 ) : (
                                     editingLeadId ? "Update Client Profile" : "Save & Log Initial Visit"
                                 )}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Custom Project Status Modal */}
+            {isCustomStatusModalOpen && createPortal(
+                <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsCustomStatusModalOpen(false)} />
+                    <div className="bg-card w-full max-w-md rounded-xl shadow-2xl border border-border relative z-10 animate-in zoom-in-95 duration-200 p-6">
+                        <h3 className="text-lg font-bold mb-4">Enter Custom Project Status</h3>
+                        <input
+                            type="text"
+                            autoFocus
+                            value={customStatusInput}
+                            onChange={(e) => setCustomStatusInput(e.target.value)}
+                            className="w-full text-sm rounded-md border border-input px-3 py-2 bg-background mb-4"
+                            placeholder="e.g. Pharmaceutical Site"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    if (customStatusInput.trim() !== "") {
+                                        setClientForm({...clientForm, projectStatus: customStatusInput.trim()});
+                                        setIsCustomStatusModalOpen(false);
+                                    }
+                                }
+                            }}
+                        />
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setIsCustomStatusModalOpen(false)}
+                                className="px-4 py-2 text-sm font-medium border border-input rounded-md hover:bg-muted"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (customStatusInput.trim() !== "") {
+                                        setClientForm({...clientForm, projectStatus: customStatusInput.trim()});
+                                        setIsCustomStatusModalOpen(false);
+                                    }
+                                }}
+                                className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                            >
+                                Save
                             </button>
                         </div>
                     </div>
