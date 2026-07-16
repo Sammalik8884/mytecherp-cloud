@@ -430,10 +430,10 @@ namespace MyTechERP.Infrastructure.Services
             var items = new List<QuotationItem>();
             var tenantId = _currentUserService.TenantId ?? 0;
             
-            decimal costFactorPct = dto.CostFactorPct > 0 ? dto.CostFactorPct : 60m;
-            decimal importationPct = dto.ImportationPct > 0 ? dto.ImportationPct : 13.75m;
-            decimal transportationPct = dto.TransportationPct > 0 ? dto.TransportationPct : 2m;
-            decimal profitPct = dto.ProfitPct > 0 ? dto.ProfitPct : 15m;
+            decimal costFactorPct = dto.CostFactorPct;
+            decimal importationPct = dto.ImportationPct;
+            decimal transportationPct = dto.TransportationPct;
+            decimal profitPct = dto.ProfitPct;
             decimal exchangeRate = quote.ExchangeRate;
             
             if (dto.Items != null)
@@ -513,8 +513,8 @@ namespace MyTechERP.Infrastructure.Services
                         }
                         else // Local
                         {
-                            decimal localTransPct = dto.LocalTransportationPct > 0 ? dto.LocalTransportationPct : 2m;
-                            decimal localProfPct = dto.LocalProfitPct > 0 ? dto.LocalProfitPct : 15m;
+                            decimal localTransPct = dto.LocalTransportationPct;
+                            decimal localProfPct = dto.LocalProfitPct;
                             decimal costInQuoteCurrency = originalPrice;
                             decimal transportationCharge = costInQuoteCurrency * (localTransPct / 100m);
                             decimal profitCharge = costInQuoteCurrency * (localProfPct / 100m);
