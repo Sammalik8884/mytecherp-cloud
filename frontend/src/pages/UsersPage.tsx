@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Plus, Shield, Mail, CheckCircle, XCircle, Loader2, ChevronDown } from "lucide-react";
+import { Users, Plus, Shield, Mail, CheckCircle, XCircle, Loader2, ChevronDown, MoreVertical, Edit2, Trash2 } from "lucide-react";
 import { authService } from "../services/authService";
 import { toast } from "react-hot-toast";
 
@@ -16,6 +16,13 @@ export const UsersPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isRolesDropdownOpen, setIsRolesDropdownOpen] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editingUserId, setEditingUserId] = useState<string | null>(null);
+    const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<any>(null);
+
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
@@ -23,7 +30,8 @@ export const UsersPage = () => {
         roles: [] as string[],
         designation: "",
         siteId: "",
-        region: ""
+        region: "",
+        isActive: true
     });
 
     const fetchData = async () => {
@@ -39,7 +47,7 @@ export const UsersPage = () => {
             setSites(sitesData);
             setRegions(regionsData);
             // Only show the official backend roles — filter out stale DB entries like Worker, Client, Customers
-            const validRoles = ["Manager", "Engineer", "Technician", "Customer", "Salesman", "Estimation", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller", "Regional Head"];
+            const validRoles = ["Project Director", "Engineer", "Technician", "Customer", "Salesman", "Estimation", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller", "Regional Head", "CEO"];
             const filteredRoles = rolesData.filter((r: string) => validRoles.includes(r));
             setRoles(filteredRoles);
             if (filteredRoles.length > 0) {
@@ -56,18 +64,57 @@ export const UsersPage = () => {
         fetchData();
     }, []);
 
-    const handleOpenModal = () => {
-        setFormData({
-            fullName: "",
-            email: "",
-            password: "",
-            roles: [],
-            designation: "",
-            siteId: "",
-            region: ""
-        });
+    const handleOpenModal = (user?: any) => {
+        if (user) {
+            setIsEditMode(true);
+            setEditingUserId(user.id);
+            setFormData({
+                fullName: user.fullName || "",
+                email: user.email || "",
+                password: "",
+                roles: user.roles || [],
+                designation: user.designation || "",
+                siteId: user.siteId || "",
+                region: user.region || "",
+                isActive: user.isActive ?? true
+            });
+        } else {
+            setIsEditMode(false);
+            setEditingUserId(null);
+            setFormData({
+                fullName: "",
+                email: "",
+                password: "",
+                roles: [],
+                designation: "",
+                siteId: "",
+                region: "",
+                isActive: true
+            });
+        }
         setIsRolesDropdownOpen(false);
         setIsModalOpen(true);
+        setActiveDropdown(null);
+    };
+
+    const confirmDelete = (user: any) => {
+        setUserToDelete(user);
+        setIsDeleteModalOpen(true);
+        setActiveDropdown(null);
+    };
+
+    const handleDeleteUser = async () => {
+        if (!userToDelete) return;
+        try {
+            await authService.deleteUser(userToDelete.id);
+            toast.success("User deleted successfully");
+            fetchData();
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "Error deleting user");
+        } finally {
+            setIsDeleteModalOpen(false);
+            setUserToDelete(null);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -79,8 +126,15 @@ export const UsersPage = () => {
                 roles: formData.roles,
                 siteId: formData.siteId ? parseInt(formData.siteId) : null
             };
-            const res = await authService.createUser(payload);
-            toast.success(res.message || "User created successfully");
+            
+            if (isEditMode && editingUserId) {
+                const res = await authService.updateUser(editingUserId, payload);
+                toast.success(res.message || "User updated successfully");
+            } else {
+                const res = await authService.createUser(payload);
+                toast.success(res.message || "User created successfully");
+            }
+            
             setIsModalOpen(false);
             fetchData();
         } catch (error: any) {
@@ -109,7 +163,7 @@ export const UsersPage = () => {
                     <p className="text-muted-foreground mt-1 text-sm">Manage access and roles for your organization.</p>
                 </div>
                 <button
-                    onClick={handleOpenModal}
+                    onClick={() => handleOpenModal()}
                     className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:-translate-y-0.5 transition-all shadow-lg hover:shadow-primary/25 flex items-center space-x-2"
                 >
                     <Plus className="h-5 w-5" />
@@ -126,6 +180,7 @@ export const UsersPage = () => {
                                 <th className="px-6 py-4 font-medium">Designation</th>
                                 <th className="px-6 py-4 font-medium">Role(s)</th>
                                 <th className="px-6 py-4 font-medium text-center">Status</th>
+                                <th className="px-6 py-4 font-medium text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
@@ -191,6 +246,40 @@ export const UsersPage = () => {
                                                 </span>
                                             )}
                                         </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="relative inline-block text-left">
+                                                <button 
+                                                    onClick={() => setActiveDropdown(activeDropdown === user.id ? null : user.id)}
+                                                    className="p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+                                                >
+                                                    <MoreVertical className="h-4 w-4" />
+                                                </button>
+                                                
+                                                {activeDropdown === user.id && (
+                                                    <>
+                                                        <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
+                                                        <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-background border border-border z-20">
+                                                            <div className="py-1">
+                                                                <button
+                                                                    onClick={() => handleOpenModal(user)}
+                                                                    className="w-full text-left px-4 py-2 text-sm hover:bg-secondary flex items-center space-x-2"
+                                                                >
+                                                                    <Edit2 className="h-4 w-4" />
+                                                                    <span>Edit User</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => confirmDelete(user)}
+                                                                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 flex items-center space-x-2"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                    <span>Delete User</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))
                             )}
@@ -209,7 +298,7 @@ export const UsersPage = () => {
                         <div className="p-6">
                             <h2 className="text-xl font-bold mb-6 flex items-center space-x-2">
                                 <Users className="h-5 w-5 text-primary" />
-                                <span>Invite New User</span>
+                                <span>{isEditMode ? "Edit User" : "Invite New User"}</span>
                             </h2>
 
                             <form onSubmit={handleSubmit} className="space-y-4">
@@ -225,24 +314,26 @@ export const UsersPage = () => {
                                 <div>
                                     <label className="text-xs font-semibold text-muted-foreground mb-1 block">Email Address *</label>
                                     <input
-                                        type="email" required
+                                        type="email" required disabled={isEditMode}
                                         value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary disabled:opacity-50"
                                         placeholder="john@example.com"
                                     />
                                 </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Temporary Password *</label>
-                                    <input
-                                        type="password" required minLength={6}
-                                        value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
-                                        placeholder="Min 6 chars, 1 uppercase, 1 symbol"
-                                    />
-                                    <p className="text-[10px] text-muted-foreground mt-1">
-                                        Password must contain an uppercase letter, lowercase letter, number, and special character.
-                                    </p>
-                                </div>
+                                {!isEditMode && (
+                                    <div>
+                                        <label className="text-xs font-semibold text-muted-foreground mb-1 block">Temporary Password *</label>
+                                        <input
+                                            type="password" required={!isEditMode} minLength={6}
+                                            value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                            placeholder="Min 6 chars, 1 uppercase, 1 symbol"
+                                        />
+                                        <p className="text-[10px] text-muted-foreground mt-1">
+                                            Password must contain an uppercase letter, lowercase letter, number, and special character.
+                                        </p>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="text-xs font-semibold text-muted-foreground mb-1 block">Designation</label>
                                     <input
@@ -393,13 +484,48 @@ export const UsersPage = () => {
                                         className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:-translate-y-0.5 transition-transform flex items-center space-x-2"
                                     >
                                         {formLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                                        <span>Create User</span>
+                                        <span>{isEditMode ? "Save Changes" : "Create User"}</span>
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
+                </div>
+            )}
+
+            {/* Custom Delete Confirmation Modal */}
+            {isDeleteModalOpen && userToDelete && (
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-background/80 backdrop-blur-sm animate-in fade-in">
+                    <div className="flex min-h-full items-center justify-center p-4">
+                        <div className="bg-secondary border border-border rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center">
+                            <div className="mx-auto w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
+                                <Trash2 className="h-6 w-6 text-red-500" />
+                            </div>
+                            <h3 className="text-lg font-bold text-foreground mb-2">Delete User?</h3>
+                            <p className="text-sm text-muted-foreground mb-6">
+                                Are you sure you want to delete <span className="font-semibold text-foreground">{userToDelete.fullName || userToDelete.email}</span>? This action cannot be undone.
+                            </p>
+                            
+                            <div className="flex justify-center space-x-3">
+                                <button
+                                    onClick={() => {
+                                        setIsDeleteModalOpen(false);
+                                        setUserToDelete(null);
+                                    }}
+                                    className="px-4 py-2 text-sm font-medium border border-border hover:bg-secondary/50 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteUser}
+                                    className="px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

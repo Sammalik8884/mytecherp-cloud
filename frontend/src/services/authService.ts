@@ -44,6 +44,16 @@ export const authService = {
         return response.data;
     },
 
+    updateUser: async (id: string, userData: any): Promise<any> => {
+        const response = await apiClient.put<any>(`/Auth/users/${id}`, userData);
+        return response.data;
+    },
+
+    deleteUser: async (id: string): Promise<any> => {
+        const response = await apiClient.delete<any>(`/Auth/users/${id}`);
+        return response.data;
+    },
+
     logout: () => {
         sessionStorage.removeItem("token");
         sessionStorage.removeItem("user");

@@ -18,5 +18,7 @@ namespace MytechERP.Application.Interfaces
         Task<(bool Success, string[] Errors)> ResetPasswordAsync(ResetPasswordDto dto);
         Task<IEnumerable<object>> GetUsersByTenantAsync(int tenantId);
         Task<IEnumerable<string>> GetRolesAsync();
+        Task<string> UpdateUserAsync(string userId, UpdateUserRequest request, string tenantId);
+        Task<string> DeleteUserAsync(string userId, string tenantId);
     }
 }

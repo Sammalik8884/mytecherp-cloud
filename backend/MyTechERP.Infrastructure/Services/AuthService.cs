@@ -72,9 +72,9 @@ namespace MyTechERP.Infrastructure.Services
             {
 
                 await EnsureRolesExist();
-                await _userManager.AddToRoleAsync(user, "Admin");
+                await _userManager.AddToRoleAsync(user, "CEO");
 
-                return "Company registered successfully! You are the Admin.";
+                return "Company registered successfully! You are the CEO.";
             }
             else
             {
@@ -352,7 +352,7 @@ namespace MyTechERP.Infrastructure.Services
         
         private async Task EnsureRolesExist()
         {
-            string[] roleNames = { "Admin", "Manager", "Engineer", "Technician", "Customer", "Estimation", "Salesman", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller", "Regional Head" };
+            string[] roleNames = { "CEO", "Project Director", "Engineer", "Technician", "Customer", "Estimation", "Salesman", "Accounts Head", "Software Developer", "Procurement Head", "Procurement Executive", "Site Supervisor", "Temporary Employee", "Permanent Employee", "Accounts Assistant", "Document Controller", "Regional Head" };
 
             foreach (var roleName in roleNames)
             {
@@ -392,6 +392,72 @@ namespace MyTechERP.Infrastructure.Services
             await EnsureRolesExist();
             var roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
             return roles;
+        }
+
+        public async Task<string> UpdateUserAsync(string userId, UpdateUserRequest request, string tenantId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new Exception("User not found.");
+
+            if (user.TenantId.ToString() != tenantId)
+                throw new Exception("You do not have permission to update this user.");
+
+            user.FullName = request.FullName;
+            user.Designation = request.Designation;
+            user.SiteId = request.SiteId;
+            user.Region = request.Region;
+            user.IsActive = request.IsActive;
+
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+                throw new Exception($"Failed to update user details: {errors}");
+            }
+
+            if (request.Roles != null)
+            {
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                
+                var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                if (!removeResult.Succeeded)
+                    throw new Exception("Failed to remove existing roles.");
+
+                var addResult = await _userManager.AddToRolesAsync(user, request.Roles);
+                if (!addResult.Succeeded)
+                {
+                    var errors = string.Join(", ", addResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Failed to assign new roles: {errors}");
+                }
+            }
+
+            return "User updated successfully";
+        }
+
+        public async Task<string> DeleteUserAsync(string userId, string tenantId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new Exception("User not found.");
+
+            if (user.TenantId.ToString() != tenantId)
+                throw new Exception("You do not have permission to delete this user.");
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            if (currentRoles.Contains(MytechERP.domain.Roles.Roles.Admin))
+            {
+                throw new Exception("Cannot delete a CEO user.");
+            }
+
+            var deleteResult = await _userManager.DeleteAsync(user);
+            if (!deleteResult.Succeeded)
+            {
+                var errors = string.Join(", ", deleteResult.Errors.Select(e => e.Description));
+                throw new Exception($"Failed to delete user: {errors}");
+            }
+
+            return "User deleted successfully";
         }
     }
 }

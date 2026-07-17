@@ -8,8 +8,8 @@ namespace MytechERP.domain.Roles
 {
     public static class Roles
     {
-        public const string Admin = "Admin";
-        public const string Manager = "Manager";
+        public const string Admin = "CEO";
+        public const string Manager = "Project Director";
         public const string Engineer = "Engineer";
         public const string Estimation = "Estimation";
 
