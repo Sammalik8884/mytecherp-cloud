@@ -79,7 +79,7 @@ export const DashboardPage: React.FC = () => {
     };
 
     useEffect(() => {
-        if (user?.roles?.includes('Admin') || user?.roles?.includes('Manager')) {
+        if (user?.roles?.includes('CEO') || user?.roles?.includes('Project Director')) {
             fetchMetrics();
         }
     }, [dateRange, user]);
@@ -87,11 +87,11 @@ export const DashboardPage: React.FC = () => {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
-    if (user?.roles?.includes('Estimation') && !user?.roles?.includes('Admin') && !user?.roles?.includes('Manager')) {
+    if (user?.roles?.includes('Estimation') && !user?.roles?.includes('CEO') && !user?.roles?.includes('Project Director')) {
         return <EstimatorDashboard />;
     }
 
-    if (!(user?.roles?.includes('Admin') || user?.roles?.includes('Manager'))) {
+    if (!(user?.roles?.includes('CEO') || user?.roles?.includes('Project Director'))) {
         return (
             <div className="min-h-screen p-8 animate-in fade-in duration-500">
                 <h1 className="text-4xl font-black tracking-tight text-foreground leading-tight">
@@ -117,7 +117,7 @@ export const DashboardPage: React.FC = () => {
                     <h1 className="text-4xl font-black tracking-tight text-foreground leading-tight">
                         {greeting},&nbsp;
                         <span className="text-primary font-black">
-                            {user?.fullName?.split(' ')[0] ?? 'Admin'}
+                            {user?.fullName?.split(' ')[0] ?? 'CEO'}
                         </span>
                     </h1>
                     <p className="text-muted-foreground mt-1 text-sm">

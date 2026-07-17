@@ -21,7 +21,7 @@ const getImageUrl = (url: string | null | undefined) => {
 
 export const ProductsPage = () => {
     const { hasRole } = useAuth();
-    const canManageProducts = hasRole(["Admin", "Manager", "Engineer"]);
+    const canManageProducts = hasRole(["CEO", "Project Director", "Engineer"]);
     const [products, setProducts] = useState<ProductDto[]>([]);
     const [categories, setCategories] = useState<CategoryDto[]>([]);
     const [loading, setLoading] = useState(true);

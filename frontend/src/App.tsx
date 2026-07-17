@@ -108,7 +108,7 @@ function App() {
                         <Route element={<DashboardLayout />}>
                             <Route path="/dashboard" element={<DashboardPage />} />
                             {/* CRM - Manager/Admin Only */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director"]} />}>
                                 <Route path="/customers" element={<CustomersPage />} />
                                 <Route path="/sites" element={<SitesPage />} />
                                 <Route path="/project-documents" element={<ProjectDocumentsPage />} />
@@ -116,7 +116,7 @@ function App() {
                             </Route>
 
                             {/* Catalog & Sales - Engineer/Manager/Admin Only */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Estimation", "Salesman"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Engineer", "Estimation", "Salesman"]} />}>
                                 <Route path="/categories" element={<CategoriesPage />} />
                                 <Route path="/products" element={<ProductsPage />} />
                                 <Route path="/quotations" element={<QuotationsPage />} />
@@ -128,7 +128,7 @@ function App() {
                             </Route>
 
                             {/* Sales & Leads - Internal Roles */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Salesman", "Estimation", "Engineer", "Worker", "Technician"]} />}>
                                 <Route path="/sales/leads" element={<SalesLeadsPage />} />
                                 <Route path="/sales/visit/:id" element={<SiteVisitPage />} />
                                 <Route path="/sales/activity" element={<ActivityPage />} />
@@ -137,7 +137,7 @@ function App() {
                             </Route>
 
                             {/* System Area / Admin - Manager/Admin Only */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director"]} />}>
                                 <Route path="/users" element={<UsersPage />} />
                                 <Route element={<FeatureProtectedRoute requiredFeature={PlanFeature.HrPayroll} />}>
                                     <Route path="/payroll" element={<PayrollPage />} />
@@ -154,7 +154,7 @@ function App() {
                                 <Route path="/subscription/plans" element={<SubscriptionPlansPage />} />
                             </Route>
                             {/* Operations / Dispatch - Manager/Admin Only */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director"]} />}>
                                 <Route path="/assets" element={<AssetsPage />} />
                                 <Route path="/work-orders" element={<WorkOrdersPage />} />
                                 <Route path="/inventory" element={<InventoryPage />} />
@@ -162,12 +162,12 @@ function App() {
                             </Route>
 
                             {/* Finance & Invoicing - Manager/Admin Only */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director"]} />}>
                                 <Route path="/invoices" element={<InvoicesPage />} />
                             </Route>
 
                             {/* Field Services - Anyone with a Job (Engineer/Worker/Tech/Admin) */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Worker", "Technician"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Engineer", "Worker", "Technician"]} />}>
                                 <Route path="/my-jobs" element={<MyJobsPage />} />
                                 <Route path="/job/:id" element={<JobExecutionPage />} />
                             </Route>
@@ -180,14 +180,14 @@ function App() {
                             <Route path="/application-forms/new" element={<NewApplicationFormPage />} />
                             <Route path="/vehicle-travel-forms" element={<VehicleTravelFormsPage />} />
                             <Route path="/vehicle-travel-forms/new" element={<NewVehicleTravelFormPage />} />
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Accounts Head"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} />}>
                                 <Route path="/accounts/arf-dashboard" element={<AccountsArfDashboardPage />} />
                             </Route>
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Accounts Head"]} allowedEmails={["munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} allowedEmails={["munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"]} />}>
                                 <Route path="/accounts/expense-auditor" element={<ExpenseAuditorPage />} />
                             </Route>
                             
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Salesman", "Estimation", "Accounts Head", "Technician", "Worker"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Engineer", "Salesman", "Estimation", "Accounts Head", "Technician", "Worker"]} />}>
                                 <Route path="/projects" element={<ProjectsPage />} />
                                 <Route path="/projects/:id" element={<ProjectDetailsPage />} />
                                 <Route path="/offices" element={<OfficesListPage />} />
@@ -196,22 +196,22 @@ function App() {
                                 {/* End of previous RoleProtectedRoute routes */}
                             </Route>
 
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Accounts Head"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} />}>
                                 <Route path="/hr/employees" element={<EmployeeInfoListPage />} />
                                 <Route path="/hr/employees/:id/edit" element={<EmployeeInfoFormPage />} />
                             </Route>
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Site Supervisor", "Accounts Head"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Site Supervisor", "Accounts Head"]} />}>
                                 <Route path="/hr/employees/new" element={<EmployeeInfoFormPage />} />
                             </Route>
 
                             {/* Procurement Flow */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Regional Head", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Regional Head", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"]} />}>
                                 <Route path="/procurement-flow/dashboard" element={<ProcurementDashboardPage />} />
                                 <Route path="/procurement-flow/pending-approvals" element={<PendingApprovalsPage />} />
                                 <Route path="/procurement-flow/vendors" element={<VendorManagementPage />} />
                                 <Route path="/procurement-flow/:id" element={<ProcurementDetailsPage />} />
                                 
-                                <Route element={<RoleProtectedRoute allowedRoles={["Regional Head", "Admin", "Manager"]} />}>
+                                <Route element={<RoleProtectedRoute allowedRoles={["Regional Head", "CEO", "Project Director"]} />}>
                                     <Route path="/procurement-flow/regional-approvals" element={<RegionalHeadApprovalsPage />} />
                                 </Route>
                                 
@@ -229,7 +229,7 @@ function App() {
                             </Route>
 
                             {/* Store Management Flow */}
-                            <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Procurement Executive"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Procurement Executive"]} />}>
                                 <Route path="/store/tools" element={<StoreToolsPage />} />
                                 <Route path="/store/logs" element={<DailyLogsPage />} />
                                 <Route path="/store/logs/new" element={<DailyLogFormPage />} />
@@ -241,13 +241,13 @@ function App() {
                         </Route>
 
                         {/* Subscription Finalization Routes (Full Screen, No Sidebar) */}
-                        <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager"]} />}>
+                        <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director"]} />}>
                             <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
                             <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
                         </Route>
 
                         {/* Print Routes */}
-                        <Route element={<RoleProtectedRoute allowedRoles={["Admin", "Manager", "Engineer", "Salesman", "Estimation", "Accounts Head", "Technician", "Worker"]} />}>
+                        <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Engineer", "Salesman", "Estimation", "Accounts Head", "Technician", "Worker"]} />}>
                             <Route path="/dpr/:id/print" element={<DprPrintView />} />
                         </Route>
                     </Route>

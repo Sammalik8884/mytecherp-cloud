@@ -51,9 +51,9 @@ const AmountRequestFormPage = () => {
     const [hiddenExpenseId, setHiddenExpenseId] = useState<string | null>(null);
     const [redCount, setRedCount] = useState<number>(0);
 
-    const isDirector = user?.email?.toLowerCase() === "shahbaz.ali@mytecheng.com" || hasRole(["Admin", "Manager"]);
-    const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["Admin", "Manager"]);
-    const isAccounts = hasRole(["Admin", "Accounts Head", "Manager"]); 
+    const isDirector = user?.email?.toLowerCase() === "shahbaz.ali@mytecheng.com" || hasRole(["CEO", "Project Director"]);
+    const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["CEO", "Project Director"]);
+    const isAccounts = hasRole(["CEO", "Accounts Head", "Project Director"]); 
 
     useEffect(() => {
         fetchData();

@@ -29,75 +29,75 @@ type SidebarItem = {
 };
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
-    { label: "Employee Info Form", href: "/hr/employees", paths: ["/hr/employees", "/hr/employees/new", "/hr/employees/edit"], icon: Users, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Accounts Head"] },
+    { label: "Employee Info Form", href: "/hr/employees", paths: ["/hr/employees", "/hr/employees/new", "/hr/employees/edit"], icon: Users, allowedRoles: ["CEO", "Project Director", "Site Supervisor", "Accounts Head"] },
     { label: "Dashboard", href: "/dashboard", icon: Home },
     { label: "Amount Request Form", href: "/amount-request", icon: DollarSign },
     { label: "Expenses", href: "/expenses", icon: Receipt },
-    { label: "Offices", href: "/offices", icon: Building2, allowedRoles: ["Admin", "Manager"] },
-    { label: "Projects", href: "/projects", icon: FolderTree, allowedRoles: ["Admin", "Manager"] },
+    { label: "Offices", href: "/offices", icon: Building2, allowedRoles: ["CEO", "Project Director"] },
+    { label: "Projects", href: "/projects", icon: FolderTree, allowedRoles: ["CEO", "Project Director"] },
     { 
         label: "Project Documents", 
         href: "/project-documents",
         icon: FileSignature, 
-        allowedRoles: ["Admin", "Manager"]
+        allowedRoles: ["CEO", "Project Director"]
     },
 
-    { label: "Store Management", isHeader: true, allowedRoles: ["Admin", "Procurement Executive"] },
-    { label: "Tools Inventory", href: "/store/tools", paths: ["/store/tools"], icon: Package, allowedRoles: ["Admin", "Procurement Executive"] },
-    { label: "Site Inventory", href: "/store/inventory", paths: ["/store/inventory"], icon: Warehouse, allowedRoles: ["Admin", "Procurement Executive"] },
-    { label: "Daily Store Logs", href: "/store/logs", paths: ["/store/logs", "/store/logs/new"], icon: ClipboardList, allowedRoles: ["Admin", "Procurement Executive"] },
+    { label: "Store Management", isHeader: true, allowedRoles: ["CEO", "Procurement Executive"] },
+    { label: "Tools Inventory", href: "/store/tools", paths: ["/store/tools"], icon: Package, allowedRoles: ["CEO", "Procurement Executive"] },
+    { label: "Site Inventory", href: "/store/inventory", paths: ["/store/inventory"], icon: Warehouse, allowedRoles: ["CEO", "Procurement Executive"] },
+    { label: "Daily Store Logs", href: "/store/logs", paths: ["/store/logs", "/store/logs/new"], icon: ClipboardList, allowedRoles: ["CEO", "Procurement Executive"] },
 
-    { label: "Sales & Leads", isHeader: true, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
-    { label: "Sales Management", href: "/sales/leads", icon: Target, allowedRoles: ["Admin", "Manager", "Salesman", "Engineer", "Worker", "Technician"] },
-    { label: "BOQ / Drawings Portal", href: "/sales/boq-portal", icon: FileText, allowedRoles: ["Admin", "Manager", "Estimation"] },
-    { label: "Activity (Salesmen)", href: "/sales/activity", icon: Activity, allowedRoles: ["Admin", "Manager"] },
-    { label: "Activity (Estimators)", href: "/dashboard/estimator-activity", icon: Activity, allowedRoles: ["Admin", "Manager"] },
-    { label: "My Sales Dashboard", href: "/sales/my-dashboard", icon: MapPin, allowedRoles: ["Admin", "Manager", "Salesman", "Estimation"] },
+    { label: "Sales & Leads", isHeader: true, allowedRoles: ["CEO", "Project Director", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
+    { label: "Sales Management", href: "/sales/leads", icon: Target, allowedRoles: ["CEO", "Project Director", "Salesman", "Engineer", "Worker", "Technician"] },
+    { label: "BOQ / Drawings Portal", href: "/sales/boq-portal", icon: FileText, allowedRoles: ["CEO", "Project Director", "Estimation"] },
+    { label: "Activity (Salesmen)", href: "/sales/activity", icon: Activity, allowedRoles: ["CEO", "Project Director"] },
+    { label: "Activity (Estimators)", href: "/dashboard/estimator-activity", icon: Activity, allowedRoles: ["CEO", "Project Director"] },
+    { label: "My Sales Dashboard", href: "/sales/my-dashboard", icon: MapPin, allowedRoles: ["CEO", "Project Director", "Salesman", "Estimation"] },
 
     { label: "Foundation", isHeader: true },
-    { label: "Users & Roles", href: "/users", icon: ShieldAlert, allowedRoles: ["Admin", "Manager"] },
+    { label: "Users & Roles", href: "/users", icon: ShieldAlert, allowedRoles: ["CEO", "Project Director"] },
     { label: "Application Forms", href: "/application-forms", paths: ["/application-forms", "/application-forms/new"], icon: FileText },
     { label: "Vehicle Travel Forms", href: "/vehicle-travel-forms", paths: ["/vehicle-travel-forms", "/vehicle-travel-forms/new"], icon: Car },
 
-    { label: "CRM & Assets", isHeader: true, allowedRoles: ["Admin", "Manager"] },
-    { label: "Clients (CRM)", href: "/customers", icon: Users, paths: ["/customers", "/sites"], allowedRoles: ["Admin", "Manager"] },
-    { label: "Assets", href: "/assets", icon: Box, allowedRoles: ["Admin", "Manager"] },
+    { label: "CRM & Assets", isHeader: true, allowedRoles: ["CEO", "Project Director"] },
+    { label: "Clients (CRM)", href: "/customers", icon: Users, paths: ["/customers", "/sites"], allowedRoles: ["CEO", "Project Director"] },
+    { label: "Assets", href: "/assets", icon: Box, allowedRoles: ["CEO", "Project Director"] },
 
-    // { label: "Inventory", isHeader: true, allowedRoles: ["Admin", "Manager", "Engineer"] },
-    // { label: "Catalog (Items)", href: "/products", icon: Package, paths: ["/products", "/categories"], allowedRoles: ["Admin", "Manager", "Engineer"] },
-    // { label: "Procurement (POs)", href: "/procurement", icon: ShoppingCart, allowedRoles: ["Admin", "Manager"] },
-    // { label: "Inventory", href: "/inventory", icon: FolderTree, allowedRoles: ["Admin", "Manager"] },
+    // { label: "Inventory", isHeader: true, allowedRoles: ["CEO", "Project Director", "Engineer"] },
+    // { label: "Catalog (Items)", href: "/products", icon: Package, paths: ["/products", "/categories"], allowedRoles: ["CEO", "Project Director", "Engineer"] },
+    // { label: "Procurement (POs)", href: "/procurement", icon: ShoppingCart, allowedRoles: ["CEO", "Project Director"] },
+    // { label: "Inventory", href: "/inventory", icon: FolderTree, allowedRoles: ["CEO", "Project Director"] },
     
-    { label: "Procurement Requirements", isHeader: true, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
-    { label: "Dashboard", href: "/procurement-flow/dashboard", icon: ClipboardList, allowedRoles: ["Admin", "Manager", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
-    { label: "Regional Approvals", href: "/procurement-flow/regional-approvals", icon: ShieldAlert, allowedRoles: ["Admin", "Manager", "Regional Head"] },
-    { label: "Pending Approvals", href: "/procurement-flow/pending-approvals", icon: ShieldAlert, allowedRoles: ["Admin", "Manager", "Project Director"] },
+    { label: "Procurement Requirements", isHeader: true, allowedRoles: ["CEO", "Project Director", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
+    { label: "Dashboard", href: "/procurement-flow/dashboard", icon: ClipboardList, allowedRoles: ["CEO", "Project Director", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
+    { label: "Regional Approvals", href: "/procurement-flow/regional-approvals", icon: ShieldAlert, allowedRoles: ["CEO", "Project Director", "Regional Head"] },
+    { label: "Pending Approvals", href: "/procurement-flow/pending-approvals", icon: ShieldAlert, allowedRoles: ["CEO", "Project Director", "Project Director"] },
     { label: "Approved (PD)", href: "/procurement-flow/approved", icon: CheckSquare, allowedRoles: ["Procurement Head"] },
     { label: "Pending Procurements", href: "/procurement-flow/pending-procurements", icon: Activity, allowedRoles: ["Procurement Executive"] },
     { label: "Completed Procurements", href: "/procurement-flow/completed-procurements", icon: CheckSquare, allowedRoles: ["Procurement Executive"] },
-    { label: "Vendors Database", href: "/procurement-flow/vendors", icon: Building2, allowedRoles: ["Admin", "Manager", "Procurement Head", "Procurement Executive"] },
+    { label: "Vendors Database", href: "/procurement-flow/vendors", icon: Building2, allowedRoles: ["CEO", "Project Director", "Procurement Head", "Procurement Executive"] },
 
-    { label: "Operations & Jobs", isHeader: true, allowedRoles: ["Admin", "Manager", "Engineer", "Worker", "Technician", "Estimation"] },
-    { label: "Sales & Quotes", href: "/quotations", icon: FileText, paths: ["/quotations", "/quotations/new", "/quotations/edit"], allowedRoles: ["Admin", "Manager", "Engineer", "Estimation"] },
+    { label: "Operations & Jobs", isHeader: true, allowedRoles: ["CEO", "Project Director", "Engineer", "Worker", "Technician", "Estimation"] },
+    { label: "Sales & Quotes", href: "/quotations", icon: FileText, paths: ["/quotations", "/quotations/new", "/quotations/edit"], allowedRoles: ["CEO", "Project Director", "Engineer", "Estimation"] },
     { label: "Products", href: "/products", icon: Package, allowedRoles: ["None"], allowedEmails: ["m.huzefa@mytecheng.com"] },
-    // { label: "Contracts & AMCs", href: "/contracts", icon: FileSignature, allowedRoles: ["Admin", "Manager", "Engineer"] },
-    // { label: "Dispatch (Jobs)", href: "/work-orders", icon: Briefcase, allowedRoles: ["Admin", "Manager"] },
-    // { label: "My Jobs", href: "/my-jobs", icon: Wrench, paths: ["/my-jobs", "/job/:id"], allowedRoles: ["Admin", "Manager", "Engineer", "Worker", "Technician"] },
-    // { label: "Checklist Form Builder", href: "/checklists", icon: ClipboardList, allowedRoles: ["Admin", "Manager"], requiredFeature: PlanFeature.ChecklistFormBuilder },
+    // { label: "Contracts & AMCs", href: "/contracts", icon: FileSignature, allowedRoles: ["CEO", "Project Director", "Engineer"] },
+    // { label: "Dispatch (Jobs)", href: "/work-orders", icon: Briefcase, allowedRoles: ["CEO", "Project Director"] },
+    // { label: "My Jobs", href: "/my-jobs", icon: Wrench, paths: ["/my-jobs", "/job/:id"], allowedRoles: ["CEO", "Project Director", "Engineer", "Worker", "Technician"] },
+    // { label: "Checklist Form Builder", href: "/checklists", icon: ClipboardList, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.ChecklistFormBuilder },
 
-    { label: "Financials", isHeader: true, allowedRoles: ["Admin", "Manager"] },
-    { label: "Invoices", href: "/invoices", icon: Receipt, allowedRoles: ["Admin", "Manager"] },
-    // { label: "HR & Payroll", href: "/payroll", icon: DollarSign, allowedRoles: ["Admin", "Manager"], requiredFeature: PlanFeature.HrPayroll },
+    { label: "Financials", isHeader: true, allowedRoles: ["CEO", "Project Director"] },
+    { label: "Invoices", href: "/invoices", icon: Receipt, allowedRoles: ["CEO", "Project Director"] },
+    // { label: "HR & Payroll", href: "/payroll", icon: DollarSign, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.HrPayroll },
 
-    { label: "Accounts Module", isHeader: true, allowedRoles: ["Admin", "Accounts Head", "Manager"] },
-    { label: "ARF Dashboard", href: "/accounts/arf-dashboard", icon: Wallet, allowedRoles: ["Admin", "Accounts Head", "Manager"] },
-    { label: "Expense Auditor", href: "/accounts/expense-auditor", icon: Calculator, allowedRoles: ["Admin", "Accounts Head", "Manager"], allowedEmails: ["munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"] },
+    { label: "Accounts Module", isHeader: true, allowedRoles: ["CEO", "Accounts Head", "Project Director"] },
+    { label: "ARF Dashboard", href: "/accounts/arf-dashboard", icon: Wallet, allowedRoles: ["CEO", "Accounts Head", "Project Director"] },
+    { label: "Expense Auditor", href: "/accounts/expense-auditor", icon: Calculator, allowedRoles: ["CEO", "Accounts Head", "Project Director"], allowedEmails: ["munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"] },
 
-    { label: "System", isHeader: true, allowedRoles: ["Admin", "Manager"] },
-    { label: "Activity Monitoring", href: "/activity-monitoring", icon: Activity, allowedRoles: ["Admin", "Manager"] },
-    // { label: "Audit Logs", href: "/audit-logs", icon: Activity, allowedRoles: ["Admin", "Manager"], requiredFeature: PlanFeature.AuditLogs },
-    // { label: "Sync Dashboard", href: "/sync-dashboard", icon: RefreshCw, allowedRoles: ["Admin", "Manager"], requiredFeature: PlanFeature.OfflineSync },
-    // { label: "Billing & Plans", href: "/subscription/plans", icon: CreditCard, allowedRoles: ["Admin", "Manager"] },
+    { label: "System", isHeader: true, allowedRoles: ["CEO", "Project Director"] },
+    { label: "Activity Monitoring", href: "/activity-monitoring", icon: Activity, allowedRoles: ["CEO", "Project Director"] },
+    // { label: "Audit Logs", href: "/audit-logs", icon: Activity, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.AuditLogs },
+    // { label: "Sync Dashboard", href: "/sync-dashboard", icon: RefreshCw, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.OfflineSync },
+    // { label: "Billing & Plans", href: "/subscription/plans", icon: CreditCard, allowedRoles: ["CEO", "Project Director"] },
 ];
 
 interface SidebarProps {
@@ -151,7 +151,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     }
 
                     let href = item.href as string;
-                    if (item.label === "Employee Info Form" && hasRole(["Site Supervisor"]) && !hasRole(["Admin", "Manager", "Accounts Head"])) {
+                    if (item.label === "Employee Info Form" && hasRole(["Site Supervisor"]) && !hasRole(["CEO", "Project Director", "Accounts Head"])) {
                         href = "/hr/employees/new";
                     }
                     const isActive = location.pathname === href || item.paths?.includes(location.pathname);

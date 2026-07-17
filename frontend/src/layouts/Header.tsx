@@ -151,7 +151,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <input
                         type="text"
-                        placeholder={hasRole(["Admin", "Manager"]) ? "Search system (Customers, Sites, PR, WO...)" : "Search..."}
+                        placeholder={hasRole(["CEO", "Project Director"]) ? "Search system (Customers, Sites, PR, WO...)" : "Search..."}
                         value={searchQuery}
                         onChange={(e) => {
                             setSearchQuery(e.target.value);

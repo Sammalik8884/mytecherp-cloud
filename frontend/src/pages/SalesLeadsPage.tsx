@@ -218,7 +218,7 @@ export const SalesLeadsPage = () => {
                                             >
                                                 <Eye className="h-4 w-4 mx-auto" />
                                             </button>
-                                            {hasRole(["Admin", "Manager", "Project Director", "CEO", "Director", "Accounts"]) && (
+                                            {hasRole(["CEO", "Project Director", "Project Director", "CEO", "Director", "Accounts"]) && (
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, id: lead.id }); }}
                                                     className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
@@ -320,7 +320,7 @@ export const SalesLeadsPage = () => {
                             )}
 
                             {/* Action Buttons for Admins */}
-                            {selectedLead.status === "Closed" && !selectedLead.quotationId && hasRole(["Admin", "Manager", "Estimation"]) && (
+                            {selectedLead.status === "Closed" && !selectedLead.quotationId && hasRole(["CEO", "Project Director", "Estimation"]) && (
                                 <div className="p-6 bg-primary/5 border border-primary/20 rounded-xl relative overflow-hidden">
                                     <div className="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
                                     <h3 className="text-lg font-semibold mb-2">Convert to Quotation</h3>

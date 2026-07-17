@@ -81,7 +81,7 @@ export const SystemSetupGuide = () => {
     }, []);
 
     // Also hide if they are explicitly not an Admin (don't hide if user is still loading)
-    if ((user && !hasRole(["Admin"])) || !isVisible) {
+    if ((user && !hasRole(["CEO"])) || !isVisible) {
         return null;
     }
 

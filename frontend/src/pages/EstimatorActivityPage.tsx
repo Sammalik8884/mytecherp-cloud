@@ -88,13 +88,13 @@ export const EstimatorActivityPage: React.FC = () => {
     };
 
     useEffect(() => {
-        if (user?.roles?.includes('Admin') || user?.roles?.includes('Manager')) {
+        if (user?.roles?.includes('CEO') || user?.roles?.includes('Project Director')) {
             fetchFilters();
         }
     }, [user]);
 
     useEffect(() => {
-        if (user?.roles?.includes('Admin') || user?.roles?.includes('Manager')) {
+        if (user?.roles?.includes('CEO') || user?.roles?.includes('Project Director')) {
             fetchActivity();
         }
     }, [dateRange, estimatorId, user]);

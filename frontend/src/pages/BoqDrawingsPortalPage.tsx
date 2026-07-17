@@ -31,7 +31,7 @@ export const BoqDrawingsPortalPage = () => {
     const { user, hasRole } = useAuth();
     
     // Check if user is the assigner (M. Huzefa or Admin)
-    const isAssigner = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' || hasRole(['Admin', 'Manager']);
+    const isAssigner = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' || hasRole(['CEO', 'Project Director']);
 
     // Assignment Modal State
     const [assignModalOpen, setAssignModalOpen] = useState(false);
@@ -105,7 +105,7 @@ export const BoqDrawingsPortalPage = () => {
             const users = await authService.getUsers();
             // Filter to only Estimation or Managers
             const eligibleUsers = users.filter((u: any) => 
-                u.roles?.includes('Estimation') || u.roles?.includes('Manager')
+                u.roles?.includes('Estimation') || u.roles?.includes('Project Director')
             );
             setEstimators(eligibleUsers);
         } catch (error) {

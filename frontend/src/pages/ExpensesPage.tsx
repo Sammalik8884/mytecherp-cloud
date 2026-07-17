@@ -22,7 +22,7 @@ export const ExpensesPage = () => {
     const [isReviewing, setIsReviewing] = useState(false);
 
     const currentUserRoles = user?.roles || [];
-    const canReview = currentUserRoles.includes("Admin") || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts");
+    const canReview = currentUserRoles.includes("CEO") || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts");
 
     useEffect(() => {
         loadExpenses();

@@ -14,7 +14,7 @@ export default function EmployeeInfoFormPage() {
 
     const [isLoading, setIsLoading] = useState(isEditing);
     const [isSaving, setIsSaving] = useState(false);
-    const isSiteSupervisorOnly = hasRole(["Site Supervisor"]) && !hasRole(["Admin", "Manager", "Accounts Head"]);
+    const isSiteSupervisorOnly = hasRole(["Site Supervisor"]) && !hasRole(["CEO", "Project Director", "Accounts Head"]);
     
     const [attachments, setAttachments] = useState<File[]>([]);
 
