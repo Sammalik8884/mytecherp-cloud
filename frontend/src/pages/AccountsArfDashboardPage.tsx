@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
-import { Download, Wallet, XCircle } from "lucide-react";
+import { Download, Wallet, XCircle, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -18,6 +18,7 @@ const AccountsArfDashboardPage = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
+    const [isReleasingAmount, setIsReleasingAmount] = useState(false);
 
     // History Tab State
     const [historySection, setHistorySection] = useState<"offices" | "sites" | "employees">("offices");
@@ -72,6 +73,7 @@ const AccountsArfDashboardPage = () => {
             return;
         }
 
+        setIsReleasingAmount(true);
         try {
             await amountRequestApi.releaseAmount(selectedForm.id, {
                 dateOfEntry: dateOfEntry || undefined,
@@ -87,6 +89,8 @@ const AccountsArfDashboardPage = () => {
             setSelectedForm(res.data);
         } catch (error: any) {
             toast.error(error.response?.data || "Failed to release amount");
+        } finally {
+            setIsReleasingAmount(false);
         }
     };
 
@@ -417,7 +421,10 @@ const AccountsArfDashboardPage = () => {
                                                 <div><label className="block text-muted-foreground mb-1">Released Amount</label><input name="releasedAmount" type="number" defaultValue={selectedForm.advanceRequested} required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                 <div><label className="block text-muted-foreground mb-1">Remarks</label><input name="remarks" type="text" className="w-full p-2 rounded border border-input bg-background" /></div>
                                                 <div><label className="block text-muted-foreground mb-1">Payment Slip (Mandatory)</label><input name="paymentSlip" type="file" required className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                <button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors">Confirm Release</button>
+                                                <button type="submit" disabled={isReleasingAmount} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                                                    {isReleasingAmount ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+                                                    {isReleasingAmount ? "Confirming..." : "Confirm Release"}
+                                                </button>
                                             </form>
                                         ) : (
                                             <div className="p-4 text-center text-muted-foreground text-sm italic">Not yet released by accounts.</div>
