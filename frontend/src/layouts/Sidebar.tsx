@@ -4,7 +4,8 @@ import {
     Home, Users, MapPin, LogOut, FileText, FolderTree, Package, Receipt,
     Building2,
     ShieldAlert, X, Box, DollarSign, FileSignature, ClipboardList,
-    Activity, Lock, Target, Car, Wallet, Calculator, CheckSquare, Warehouse
+    Activity, Lock, Target, Car, Wallet, Calculator, CheckSquare, Warehouse,
+    ShoppingCart, Wrench, Briefcase, RefreshCw, CreditCard
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { PlanFeature } from "../types/auth";
@@ -63,10 +64,10 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Clients (CRM)", href: "/customers", icon: Users, paths: ["/customers", "/sites"], allowedRoles: ["CEO", "Project Director"] },
     { label: "Assets", href: "/assets", icon: Box, allowedRoles: ["CEO", "Project Director"] },
 
-    // { label: "Inventory", isHeader: true, allowedRoles: ["CEO", "Project Director", "Engineer"] },
-    // { label: "Catalog (Items)", href: "/products", icon: Package, paths: ["/products", "/categories"], allowedRoles: ["CEO", "Project Director", "Engineer"] },
-    // { label: "Procurement (POs)", href: "/procurement", icon: ShoppingCart, allowedRoles: ["CEO", "Project Director"] },
-    // { label: "Inventory", href: "/inventory", icon: FolderTree, allowedRoles: ["CEO", "Project Director"] },
+    { label: "Inventory", isHeader: true, allowedRoles: ["CEO", "Project Director", "Engineer"] },
+    { label: "Catalog (Items)", href: "/products", icon: Package, paths: ["/products", "/categories"], allowedRoles: ["CEO", "Project Director", "Engineer"] },
+    { label: "Procurement (POs)", href: "/procurement", icon: ShoppingCart, allowedRoles: ["CEO", "Project Director"] },
+    { label: "Inventory", href: "/inventory", icon: FolderTree, allowedRoles: ["CEO", "Project Director"] },
     
     { label: "Procurement Requirements", isHeader: true, allowedRoles: ["CEO", "Project Director", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
     { label: "Dashboard", href: "/procurement-flow/dashboard", icon: ClipboardList, allowedRoles: ["CEO", "Project Director", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
@@ -80,14 +81,14 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Operations & Jobs", isHeader: true, allowedRoles: ["CEO", "Project Director", "Engineer", "Worker", "Technician", "Estimation"] },
     { label: "Sales & Quotes", href: "/quotations", icon: FileText, paths: ["/quotations", "/quotations/new", "/quotations/edit"], allowedRoles: ["CEO", "Project Director", "Engineer", "Estimation"] },
     { label: "Products", href: "/products", icon: Package, allowedRoles: ["None"], allowedEmails: ["m.huzefa@mytecheng.com"] },
-    // { label: "Contracts & AMCs", href: "/contracts", icon: FileSignature, allowedRoles: ["CEO", "Project Director", "Engineer"] },
-    // { label: "Dispatch (Jobs)", href: "/work-orders", icon: Briefcase, allowedRoles: ["CEO", "Project Director"] },
-    // { label: "My Jobs", href: "/my-jobs", icon: Wrench, paths: ["/my-jobs", "/job/:id"], allowedRoles: ["CEO", "Project Director", "Engineer", "Worker", "Technician"] },
-    // { label: "Checklist Form Builder", href: "/checklists", icon: ClipboardList, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.ChecklistFormBuilder },
+    { label: "Contracts & AMCs", href: "/contracts", icon: FileSignature, allowedRoles: ["CEO", "Project Director", "Engineer"] },
+    { label: "Dispatch (Jobs)", href: "/work-orders", icon: Briefcase, allowedRoles: ["CEO", "Project Director"] },
+    { label: "My Jobs", href: "/my-jobs", icon: Wrench, paths: ["/my-jobs", "/job/:id"], allowedRoles: ["CEO", "Project Director", "Engineer", "Worker", "Technician"] },
+    { label: "Checklist Form Builder", href: "/checklists", icon: ClipboardList, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.ChecklistFormBuilder },
 
     { label: "Financials", isHeader: true, allowedRoles: ["CEO", "Project Director"] },
     { label: "Invoices", href: "/invoices", icon: Receipt, allowedRoles: ["CEO", "Project Director"] },
-    // { label: "HR & Payroll", href: "/payroll", icon: DollarSign, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.HrPayroll },
+    { label: "HR & Payroll", href: "/payroll", icon: DollarSign, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.HrPayroll },
 
     { label: "Accounts Module", isHeader: true, allowedRoles: ["CEO", "Accounts Head", "Project Director"] },
     { label: "ARF Dashboard", href: "/accounts/arf-dashboard", icon: Wallet, allowedRoles: ["CEO", "Accounts Head", "Project Director"] },
@@ -95,9 +96,9 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
 
     { label: "System", isHeader: true, allowedRoles: ["CEO", "Project Director"] },
     { label: "Activity Monitoring", href: "/activity-monitoring", icon: Activity, allowedRoles: ["CEO", "Project Director"] },
-    // { label: "Audit Logs", href: "/audit-logs", icon: Activity, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.AuditLogs },
-    // { label: "Sync Dashboard", href: "/sync-dashboard", icon: RefreshCw, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.OfflineSync },
-    // { label: "Billing & Plans", href: "/subscription/plans", icon: CreditCard, allowedRoles: ["CEO", "Project Director"] },
+    { label: "Audit Logs", href: "/audit-logs", icon: Activity, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.AuditLogs },
+    { label: "Sync Dashboard", href: "/sync-dashboard", icon: RefreshCw, allowedRoles: ["CEO", "Project Director"], requiredFeature: PlanFeature.OfflineSync },
+    { label: "Billing & Plans", href: "/subscription/plans", icon: CreditCard, allowedRoles: ["CEO", "Project Director"] },
 ];
 
 interface SidebarProps {
