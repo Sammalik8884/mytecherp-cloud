@@ -3,7 +3,7 @@ import { expenseApi, ExpenseDto } from "../api/expenseApi";
 import { amountRequestApi } from "../api/amountRequestApi";
 
 import { useAuth } from "../auth/AuthContext";
-import { ChevronDown, ChevronRight, Plus, Receipt, CheckCircle, XCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Receipt, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import dayjs from "dayjs";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -277,19 +277,69 @@ export const ExpensesPage = () => {
         </div>
 
         {reviewModalOpen && reviewingExpense && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                <div className="bg-background rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="bg-background rounded-xl shadow-xl w-full max-w-3xl p-6 flex flex-col max-h-[90vh]">
                     <h3 className="text-xl font-bold mb-4">Review Expense</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                        Reviewing EXP-{reviewingExpense.id.toString().padStart(4, '0')} 
-                        (Rs {reviewingExpense.totalExpenseAmount?.toLocaleString()})
-                    </p>
-                    <textarea 
-                        value={reviewComments}
-                        onChange={(e) => setReviewComments(e.target.value)}
-                        placeholder="Add comments (optional)..."
-                        className="w-full p-2 mb-4 rounded border border-input bg-background min-h-[100px]"
-                    />
+                    <div className="mb-4 text-sm shrink-0">
+                        <p className="font-semibold text-foreground">
+                            EXP-{reviewingExpense.id.toString().padStart(4, '0')} 
+                            <span className="ml-2 text-primary">(Rs {reviewingExpense.totalExpenseAmount?.toLocaleString()})</span>
+                        </p>
+                        <p className="text-muted-foreground">Submitted by: {reviewingExpense.createdByEmail}</p>
+                        {reviewingExpense.reviewerComments && (
+                            <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded text-amber-800 dark:text-amber-200">
+                                <span className="font-semibold block mb-1">Last Comments: </span>
+                                {reviewingExpense.reviewerComments}
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="overflow-y-auto border border-border rounded mb-4 flex-1 min-h-[200px]">
+                        <table className="w-full text-xs text-left">
+                            <thead className="bg-muted sticky top-0 z-10 shadow-sm">
+                                <tr>
+                                    <th className="p-2 border-b">Type</th>
+                                    <th className="p-2 border-b">Description</th>
+                                    <th className="p-2 border-b">Amount</th>
+                                    <th className="p-2 border-b">Attachments</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {reviewingExpense.items?.map((item: any, i: number) => (
+                                    <tr key={i} className="hover:bg-muted/50">
+                                        <td className="p-2 font-medium">{item.expenseType}</td>
+                                        <td className="p-2">{item.descriptionItems}</td>
+                                        <td className="p-2 font-semibold">Rs {item.amount?.toLocaleString()}</td>
+                                        <td className="p-2">
+                                            <div className="flex flex-wrap gap-2">
+                                                {item.fileUrl && (
+                                                    <a href={item.fileUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center bg-primary/5 px-2 py-1 rounded">
+                                                        <ExternalLink className="h-3 w-3 mr-1" /> File 1
+                                                    </a>
+                                                )}
+                                                {item.attachments?.map((url: string, attIdx: number) => (
+                                                    <a key={attIdx} href={url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center bg-primary/5 px-2 py-1 rounded">
+                                                        <ExternalLink className="h-3 w-3 mr-1" /> Att {attIdx + 1}
+                                                    </a>
+                                                ))}
+                                                {(!item.fileUrl && (!item.attachments || item.attachments.length === 0)) && (
+                                                    <span className="text-muted-foreground italic">None</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="shrink-0">
+                        <textarea 
+                            value={reviewComments}
+                            onChange={(e) => setReviewComments(e.target.value)}
+                            placeholder="Add comments (optional)..."
+                            className="w-full p-2 mb-4 rounded border border-input bg-background min-h-[100px] text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+                        />
+                    </div>
                     <div className="flex justify-end space-x-2">
                         <button 
                             disabled={isReviewing}

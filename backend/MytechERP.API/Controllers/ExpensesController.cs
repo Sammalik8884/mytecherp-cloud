@@ -61,7 +61,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("{id}/review")]
-        [Authorize(Roles = "Admin,Accounts Assistant,Accounts Head")]
+        [Authorize(Roles = "CEO,Admin,Accounts Assistant,Accounts Head")]
         public async Task<IActionResult> Review(int id, [FromBody] ExpenseReviewDto dto)
         {
             var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
