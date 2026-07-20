@@ -243,9 +243,20 @@ export const ExpensesPage = () => {
                                                             setReviewComments("");
                                                             setReviewModalOpen(true);
                                                         }}
-                                                        className="text-primary hover:text-primary/80 font-medium text-sm"
+                                                        className="text-primary hover:text-primary/80 font-medium text-sm mr-3"
                                                     >
                                                         Review
+                                                    </button>
+                                                )}
+                                                {(expense.status === "Rejected" && (expense.createdByEmail === user?.email || currentUserRoles.includes("Admin") || currentUserRoles.includes("CEO"))) && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/expenses/edit/${expense.id}`);
+                                                        }}
+                                                        className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                                                    >
+                                                        Resubmit
                                                     </button>
                                                 )}
                                             </td>

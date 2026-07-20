@@ -166,6 +166,12 @@ namespace MyTechERP.Infrastructure.Services
             entity.OfficeId = dto.OfficeId;
             entity.AmountRequestFormId = dto.AmountRequestFormId;
 
+            // If the expense was previously reviewed and rejected, reset it to Pending
+            if (entity.Status == "Rejected")
+            {
+                entity.Status = "Pending";
+            }
+
             _context.ExpenseItems.RemoveRange(entity.Items);
 
             entity.Items = dto.Items.Select(i => new ExpenseItem
