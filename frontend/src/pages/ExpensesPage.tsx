@@ -294,7 +294,7 @@ export const ExpensesPage = () => {
                         )}
                     </div>
                     
-                    <div className="overflow-y-auto border border-border rounded mb-4 flex-1 min-h-[200px]">
+                    <div className="overflow-y-auto border border-border rounded mb-4 max-h-[40vh]">
                         <table className="w-full text-xs text-left">
                             <thead className="bg-muted sticky top-0 z-10 shadow-sm">
                                 <tr>
