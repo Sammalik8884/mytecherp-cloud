@@ -141,10 +141,12 @@ export const ExpenseAuditorPage = () => {
         // 2. Map ARFs to Expenses
         const records: AuditRecord[] = filteredArfs.map(arf => {
             let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id).map(e => ({...e}));
-            let totalExpenseAmount = connectedExpenses.reduce((sum, e) => sum + e.totalExpenseAmount, 0);
+            let totalExpenseAmount = connectedExpenses
+                .filter(e => e.status !== "Rejected")
+                .reduce((sum, e) => sum + e.totalExpenseAmount, 0);
 
             // Add unallocated excess to this ARF's total (any excess that hasn't been claimed by an Excess ARF yet)
-            connectedExpenses.forEach(e => {
+            connectedExpenses.filter(e => e.status !== "Rejected").forEach(e => {
                 let unallocatedExcess = 0;
                 if (remainingExcessByExpense[e.id] !== undefined) {
                     unallocatedExcess = remainingExcessByExpense[e.id];
@@ -551,6 +553,7 @@ export const ExpenseAuditorPage = () => {
                                                             {isExpanded ? <ChevronUp className="h-4 w-4 mr-2 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />}
                                                             Expense ID: {expense.id}
                                                             {((expense as any).isExcessConnection || expense.items?.some((i: any) => i.isExcess)) && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Contains Excess Items</span>}
+                                                            {expense.status === "Rejected" && <span className="ml-2 text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">Rejected</span>}
                                                         </p>
                                                         <p className="text-xs text-muted-foreground ml-6">
                                                             Created by: {expense.createdByEmail} • 

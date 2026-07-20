@@ -60,7 +60,9 @@ export const ExpensesPage = () => {
                 if (e.amountRequestFormId) {
                     const arfId = e.amountRequestFormId;
                     const excessItemsAmount = e.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + (Number(item.amount) || 0), 0) || 0;
-                    totals[arfId] = (totals[arfId] || 0) + (Number(e.totalExpenseAmount) || 0) + excessItemsAmount;
+                    if (e.status !== "Rejected") {
+                        totals[arfId] = (totals[arfId] || 0) + (Number(e.totalExpenseAmount) || 0) + excessItemsAmount;
+                    }
                     
                     if (e.arfNumber && !(arfId in effectiveReleased)) {
                         // Original ARF released amount
@@ -215,10 +217,10 @@ export const ExpensesPage = () => {
                                             </td>
                                             <td className="px-4 py-3">{expense.officeId ? (expense.officeName || "Office") : (expense.siteName || "No Site")}</td>
                                             <td className="px-4 py-3">{arfElement}</td>
-                                            <td className="px-4 py-3 font-medium text-emerald-600">
+                                            <td className={`px-4 py-3 font-medium ${expense.status === "Rejected" ? "text-red-500 line-through" : expense.status === "Accepted" ? "text-emerald-600" : "text-amber-600"}`}>
                                                 Rs {expense.totalExpenseAmount?.toLocaleString()}
                                                 {excessItemsAmount > 0 && (
-                                                    <div className="text-xs text-amber-600 mt-0.5">
+                                                    <div className={`text-xs mt-0.5 ${expense.status === "Rejected" ? "text-red-400" : "text-amber-600"}`}>
                                                         + Rs {excessItemsAmount.toLocaleString()} Excess
                                                     </div>
                                                 )}
