@@ -22,7 +22,7 @@ export const ExpensesPage = () => {
     const [isReviewing, setIsReviewing] = useState(false);
 
     const currentUserRoles = user?.roles || [];
-    const canReview = currentUserRoles.includes("CEO") || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts");
+    const canReview = currentUserRoles.includes("CEO") || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts") || user?.email === "asma@mytecheng.com" || user?.email === "munawar.hasan@mytecheng.com" || user?.email === "shahbaz.ali@mytecheng.com" || user?.email === "faisal.ghani@mytecheng.com";
 
     useEffect(() => {
         loadExpenses();

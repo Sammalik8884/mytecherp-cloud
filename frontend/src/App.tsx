@@ -183,7 +183,7 @@ function App() {
                             <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} />}>
                                 <Route path="/accounts/arf-dashboard" element={<AccountsArfDashboardPage />} />
                             </Route>
-                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} allowedEmails={["munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} allowedEmails={["asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"]} />}>
                                 <Route path="/accounts/expense-auditor" element={<ExpenseAuditorPage />} />
                             </Route>
                             

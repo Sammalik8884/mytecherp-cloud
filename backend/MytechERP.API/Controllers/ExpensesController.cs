@@ -61,10 +61,20 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("{id}/review")]
-        [Authorize(Roles = "CEO,Admin,Accounts Assistant,Accounts Head")]
+        [Authorize]
         public async Task<IActionResult> Review(int id, [FromBody] ExpenseReviewDto dto)
         {
             var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
+            
+            var allowedRoles = new[] { "CEO", "Admin", "Accounts Assistant", "Accounts Head" };
+            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com" };
+
+            if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
             var expense = await _expenseService.ReviewExpenseAsync(id, dto, reviewerEmail);
             return Ok(expense);
         }
