@@ -9,6 +9,7 @@ import {
 import { format, subDays, subMonths, subYears } from 'date-fns';
 
 import { EstimatorDashboard } from '../components/dashboard/EstimatorDashboard';
+import { ExpenseAuditorDashboard } from '../components/dashboard/ExpenseAuditorDashboard';
 
 interface ChartDataPoint { name: string; value: number; secondaryValue?: number }
 interface DashboardMetrics {
@@ -89,6 +90,12 @@ export const DashboardPage: React.FC = () => {
 
     if (user?.roles?.includes('Estimation') && !user?.roles?.includes('CEO') && !user?.roles?.includes('Project Director')) {
         return <EstimatorDashboard />;
+    }
+
+    const isExpenseAuditor = user?.roles?.includes('Accounts Head') || user?.email === 'asma@mytecheng.com' || user?.email === 'munawar.hasan@mytecheng.com' || user?.email === 'shahbaz.ali@mytecheng.com' || user?.email === 'faisal.ghani@mytecheng.com';
+
+    if (isExpenseAuditor && !user?.roles?.includes('CEO') && !user?.roles?.includes('Project Director')) {
+        return <ExpenseAuditorDashboard />;
     }
 
     if (!(user?.roles?.includes('CEO') || user?.roles?.includes('Project Director'))) {
