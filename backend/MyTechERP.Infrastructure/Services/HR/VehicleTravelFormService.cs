@@ -17,6 +17,7 @@ namespace MyTechERP.Infrastructure.Services.HR
 
         private readonly string[] _privilegedEmails = new[] 
         { 
+            "asma@mytecheng.com",
             "faisal.ghani@mytecheng.com", 
             "shahbaz.ali@mytecheng.com", 
             "munawar.hasan@mytecheng.com" 

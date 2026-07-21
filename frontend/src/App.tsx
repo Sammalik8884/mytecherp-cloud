@@ -180,7 +180,7 @@ function App() {
                             <Route path="/application-forms/new" element={<NewApplicationFormPage />} />
                             <Route path="/vehicle-travel-forms" element={<VehicleTravelFormsPage />} />
                             <Route path="/vehicle-travel-forms/new" element={<NewVehicleTravelFormPage />} />
-                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} />}>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} allowedEmails={["asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"]} />}>
                                 <Route path="/accounts/arf-dashboard" element={<AccountsArfDashboardPage />} />
                             </Route>
                             <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} allowedEmails={["asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com"]} />}>

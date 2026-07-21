@@ -38,21 +38,25 @@ namespace MyTechERP.Infrastructure.Services
             _userManager = userManager;
         }
 
-        // Helper: send in-app bell notification to Faisal Ghani (Accounts Head)
-        private async Task NotifyFaisalAsync(string title, string message, int arfId)
+        // Helper: send in-app bell notification to Auditors (Faisal Ghani, Asma)
+        private async Task NotifyAuditorsAsync(string title, string message, int arfId)
         {
             try
             {
-                var faisal = await _userManager.FindByEmailAsync("faisal.ghani@mytecheng.com");
-                if (faisal != null)
+                var emails = new[] { "faisal.ghani@mytecheng.com", "asma@mytecheng.com" };
+                foreach (var email in emails)
                 {
-                    await _notificationService.CreateNotificationAsync(
-                        userId: faisal.Id,
-                        title: title,
-                        message: message,
-                        type: "ARF",
-                        targetId: arfId
-                    );
+                    var auditor = await _userManager.FindByEmailAsync(email);
+                    if (auditor != null)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            userId: auditor.Id,
+                            title: title,
+                            message: message,
+                            type: "ARF",
+                            targetId: arfId
+                        );
+                    }
                 }
             }
             catch (Exception) { }
@@ -282,7 +286,7 @@ namespace MyTechERP.Infrastructure.Services
                 await SendFaisalArfEmailAsync(entity, $"An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} (Manager) has been created and is automatically approved, ready for release.");
 
                 // In-App notification to Faisal Ghani (Accounts Head)
-                await NotifyFaisalAsync(
+                await NotifyAuditorsAsync(
                     "ARF Ready for Release",
                     $"{entity.EmployeeName} submitted ARF {entity.ArfNumber} for Rs {entity.AdvanceRequested}. Auto-approved — ready for your release.",
                     entity.Id
@@ -350,7 +354,7 @@ namespace MyTechERP.Infrastructure.Services
                     await SendFaisalArfEmailAsync(entity, $"An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been fully approved and is ready for release.");
 
                     // In-App notification to Faisal Ghani (Accounts Head)
-                    await NotifyFaisalAsync(
+                    await NotifyAuditorsAsync(
                         "ARF Ready for Release",
                         $"ARF {entity.ArfNumber} by {entity.EmployeeName} (Rs {entity.AdvanceRequested}) has been approved by the CEO and is ready for release.",
                         entity.Id
@@ -548,6 +552,7 @@ namespace MyTechERP.Infrastructure.Services
                 string subject = $"Amount Request Notification - {entity.EmployeeName} ({entity.ArfNumber})";
 
                 await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+                await _emailService.SendEmailAsync("asma@mytecheng.com", subject, body);
                 await _emailService.SendEmailAsync("usamamalikwork1@gmail.com", subject, body);
             }
             catch (Exception) { }

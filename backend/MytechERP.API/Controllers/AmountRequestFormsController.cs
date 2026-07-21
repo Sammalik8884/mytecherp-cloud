@@ -27,17 +27,33 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpGet("accounts/pending")]
-        [Authorize(Roles = "Admin,Accounts Head,Manager")]
+        [Authorize]
         public async Task<ActionResult<List<AmountRequestFormDto>>> GetPendingForAccounts()
         {
+            var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
+            var allowedRoles = new[] { "CEO", "Admin", "Manager", "Accounts Head", "Accounts Assistant" };
+            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com" };
+
+            if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
+                return Forbid();
+
             var forms = await _service.GetPendingForAccountsAsync();
             return Ok(forms);
         }
 
         [HttpGet("accounts/history")]
-        [Authorize(Roles = "Admin,Accounts Head,Manager")]
+        [Authorize]
         public async Task<ActionResult<List<AmountRequestFormDto>>> GetHistoryForAccounts()
         {
+            var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
+            var allowedRoles = new[] { "CEO", "Admin", "Manager", "Accounts Head", "Accounts Assistant" };
+            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com" };
+
+            if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
+                return Forbid();
+
             var forms = await _service.GetHistoryForAccountsAsync();
             return Ok(forms);
         }
@@ -78,11 +94,19 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpPost("{id}/release")]
-        [Authorize(Roles = "Admin,Manager,Accounts Assistant,Accounts Head")]
+        [Authorize]
         public async Task<ActionResult<AmountRequestFormDto>> ReleaseAmount(int id, [FromForm] AccountsReleaseAmountDto dto, IFormFile? paymentSlip)
         {
             try
             {
+                var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+                var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
+                var allowedRoles = new[] { "CEO", "Admin", "Manager", "Accounts Head", "Accounts Assistant" };
+                var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com" };
+
+                if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
+                    return Forbid();
+
                 var result = await _service.ReleaseAmountAsync(id, dto, paymentSlip);
                 return Ok(result);
             }
