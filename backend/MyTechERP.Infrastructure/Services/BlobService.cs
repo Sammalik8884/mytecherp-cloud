@@ -49,7 +49,7 @@ namespace MyTechERP.Infrastructure.Services
                 var safeFileName = file.FileName.Replace("\"", "\\\"");
                 var blobHttpHeaders = new BlobHttpHeaders { 
                     ContentType = file.ContentType,
-                    ContentDisposition = $"inline; filename=\"{safeFileName}\""
+                    ContentDisposition = $"attachment; filename=\"{safeFileName}\""
                 };
                 await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders });
             }

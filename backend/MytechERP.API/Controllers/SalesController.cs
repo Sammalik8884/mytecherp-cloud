@@ -303,7 +303,7 @@ namespace MytechERP.API.Controllers
                 {
                     foreach (var file in attachments)
                     {
-                        var blobUrl = await _blobService.UploadAsync(file, $"visit-{visit.Id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}");
+                        var blobUrl = await _blobService.UploadAsync(file, $"visit-{visit.Id}-{Guid.NewGuid()}_{file.FileName}");
                         var visitPhoto = new VisitPhoto
                         {
                             SiteVisitId = visit.Id,
@@ -318,7 +318,7 @@ namespace MytechERP.API.Controllers
                 // 6. If Visiting Card Photo exists
                 if (visitingCardPhoto != null)
                 {
-                    var blobUrl = await _blobService.UploadAsync(visitingCardPhoto, $"visiting-card-{visit.Id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(visitingCardPhoto.FileName)}");
+                    var blobUrl = await _blobService.UploadAsync(visitingCardPhoto, $"visiting-card-{visit.Id}-{Guid.NewGuid()}_{visitingCardPhoto.FileName}");
                     var cardPhotoEntity = new VisitPhoto
                     {
                         SiteVisitId = visit.Id,
@@ -450,7 +450,7 @@ namespace MytechERP.API.Controllers
                     {
                         foreach (var file in attachments)
                         {
-                            var blobUrl = await _blobService.UploadAsync(file, $"visit-{firstVisit.Id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}");
+                            var blobUrl = await _blobService.UploadAsync(file, $"visit-{firstVisit.Id}-{Guid.NewGuid()}_{file.FileName}");
                             var visitPhoto = new VisitPhoto
                             {
                                 SiteVisitId = firstVisit.Id,
@@ -463,7 +463,7 @@ namespace MytechERP.API.Controllers
 
                     if (visitingCardPhoto != null)
                     {
-                        var blobUrl = await _blobService.UploadAsync(visitingCardPhoto, $"visiting-card-edit-{firstVisit.Id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(visitingCardPhoto.FileName)}");
+                        var blobUrl = await _blobService.UploadAsync(visitingCardPhoto, $"visiting-card-edit-{firstVisit.Id}-{Guid.NewGuid()}_{visitingCardPhoto.FileName}");
                         var cardPhotoEntity = new VisitPhoto
                         {
                             SiteVisitId = firstVisit.Id,
@@ -547,12 +547,12 @@ namespace MytechERP.API.Controllers
 
             if (dto.BOQFile != null)
             {
-                lead.BOQFileUrl = await _blobService.UploadAsync(dto.BOQFile, $"boq-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.BOQFile.FileName)}");
+                lead.BOQFileUrl = await _blobService.UploadAsync(dto.BOQFile, $"boq-{id}-{Guid.NewGuid()}_{dto.BOQFile.FileName}");
             }
             
             if (dto.DrawingsFile != null)
             {
-                lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFile, $"drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.DrawingsFile.FileName)}");
+                lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFile, $"drawings-{id}-{Guid.NewGuid()}_{dto.DrawingsFile.FileName}");
             }
             
             if (dto.DrawingsFiles != null && dto.DrawingsFiles.Count > 0)
@@ -562,14 +562,14 @@ namespace MytechERP.API.Controllers
                 // If it's a single file upload from the new array logic, optionally populate the old column too
                 if (dto.DrawingsFiles.Count == 1 && string.IsNullOrEmpty(lead.DrawingsFileUrl))
                 {
-                    lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFiles[0], $"drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.DrawingsFiles[0].FileName)}");
+                    lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFiles[0], $"drawings-{id}-{Guid.NewGuid()}_{dto.DrawingsFiles[0].FileName}");
                     drawingsUrls.Add(lead.DrawingsFileUrl);
                 }
                 else
                 {
                     foreach (var drawingFile in dto.DrawingsFiles)
                     {
-                        var url = await _blobService.UploadAsync(drawingFile, $"drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(drawingFile.FileName)}");
+                        var url = await _blobService.UploadAsync(drawingFile, $"drawings-{id}-{Guid.NewGuid()}_{drawingFile.FileName}");
                         drawingsUrls.Add(url);
                         
                         // Populate old column with first file if it's empty
@@ -588,7 +588,7 @@ namespace MytechERP.API.Controllers
                 var extraUrls = new System.Collections.Generic.List<string>();
                 foreach (var extraFile in dto.ExtraFiles)
                 {
-                    var url = await _blobService.UploadAsync(extraFile, $"extra-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(extraFile.FileName)}");
+                    var url = await _blobService.UploadAsync(extraFile, $"extra-{id}-{Guid.NewGuid()}_{extraFile.FileName}");
                     extraUrls.Add(url);
                 }
                 lead.ExtraFileUrlsJson = System.Text.Json.JsonSerializer.Serialize(extraUrls);
@@ -647,13 +647,13 @@ namespace MytechERP.API.Controllers
             bool changed = false;
             if (dto.BOQFile != null)
             {
-                lead.BOQFileUrl = await _blobService.UploadAsync(dto.BOQFile, $"rev-boq-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.BOQFile.FileName)}");
+                lead.BOQFileUrl = await _blobService.UploadAsync(dto.BOQFile, $"rev-boq-{id}-{Guid.NewGuid()}_{dto.BOQFile.FileName}");
                 changed = true;
             }
             
             if (dto.DrawingsFile != null)
             {
-                lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFile, $"rev-drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.DrawingsFile.FileName)}");
+                lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFile, $"rev-drawings-{id}-{Guid.NewGuid()}_{dto.DrawingsFile.FileName}");
                 changed = true;
             }
             
@@ -668,14 +668,14 @@ namespace MytechERP.API.Controllers
                 
                 if (dto.DrawingsFiles.Count == 1 && string.IsNullOrEmpty(lead.DrawingsFileUrl))
                 {
-                    lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFiles[0], $"rev-drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(dto.DrawingsFiles[0].FileName)}");
+                    lead.DrawingsFileUrl = await _blobService.UploadAsync(dto.DrawingsFiles[0], $"rev-drawings-{id}-{Guid.NewGuid()}_{dto.DrawingsFiles[0].FileName}");
                     drawingsUrls.Add(lead.DrawingsFileUrl);
                 }
                 else
                 {
                     foreach (var drawingFile in dto.DrawingsFiles)
                     {
-                        var url = await _blobService.UploadAsync(drawingFile, $"rev-drawings-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(drawingFile.FileName)}");
+                        var url = await _blobService.UploadAsync(drawingFile, $"rev-drawings-{id}-{Guid.NewGuid()}_{drawingFile.FileName}");
                         drawingsUrls.Add(url);
                         
                         if (string.IsNullOrEmpty(lead.DrawingsFileUrl))
@@ -699,7 +699,7 @@ namespace MytechERP.API.Controllers
                 }
                 foreach (var extraFile in dto.ExtraFiles)
                 {
-                    var url = await _blobService.UploadAsync(extraFile, $"rev-extra-{id}-{Guid.NewGuid()}{System.IO.Path.GetExtension(extraFile.FileName)}");
+                    var url = await _blobService.UploadAsync(extraFile, $"rev-extra-{id}-{Guid.NewGuid()}_{extraFile.FileName}");
                     extraUrls.Add(url);
                 }
                 lead.ExtraFileUrlsJson = System.Text.Json.JsonSerializer.Serialize(extraUrls);
@@ -938,7 +938,7 @@ namespace MytechERP.API.Controllers
 
             if (userRole == Roles.Salesman && visit.SalesLead!.SalesmanUserId != userId) return Forbid();
 
-            var blobUrl = await _blobService.UploadAsync(file, $"visit-{visitId}-{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}");
+            var blobUrl = await _blobService.UploadAsync(file, $"visit-{visitId}-{Guid.NewGuid()}_{file.FileName}");
 
             var photo = new VisitPhoto
             {
@@ -992,3 +992,4 @@ namespace MytechERP.API.Controllers
         }
     }
 }
+
