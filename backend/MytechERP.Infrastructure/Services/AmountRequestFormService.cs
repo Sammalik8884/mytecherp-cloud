@@ -274,7 +274,7 @@ namespace MyTechERP.Infrastructure.Services
                 // --- Notify Faisal Ghani for info only ---
                 await SendFaisalArfEmailAsync(entity, $"A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}. This is for your information only; it is currently waiting for Director approval.");
 
-                await NotifyFaisalAsync(
+                await NotifyAuditorsAsync(
                     "Amount Request Notification",
                     $"{entity.EmployeeName} submitted a new ARF ({entity.ArfNumber}) for Rs {entity.AdvanceRequested}. Awaiting Director approval.",
                     entity.Id
