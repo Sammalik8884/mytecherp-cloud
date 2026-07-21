@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { expenseApi, ExpenseDto } from '../../api/expenseApi';
+import { expenseApi } from '../../api/expenseApi';
 import { PremiumChart } from './PremiumChart';
-import { Calculator, CheckSquare, Clock, AlertTriangle } from 'lucide-react';
+import { CheckSquare, Clock, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 
 interface ChartDataPoint {
@@ -20,7 +20,6 @@ const fmt = (n: number) =>
 export const ExpenseAuditorDashboard: React.FC = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
 
     // Metrics
     const [auditStatusData, setAuditStatusData] = useState<ChartDataPoint[]>([]);
@@ -38,7 +37,6 @@ export const ExpenseAuditorDashboard: React.FC = () => {
             try {
                 setLoading(true);
                 const data = await expenseApi.getAll();
-                setExpenses(data);
 
                 // 1. Audit Status
                 let pending = 0;
