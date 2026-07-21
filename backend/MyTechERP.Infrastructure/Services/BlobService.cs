@@ -46,7 +46,11 @@ namespace MyTechERP.Infrastructure.Services
 
             using (var stream = file.OpenReadStream())
             {
-                var blobHttpHeaders = new BlobHttpHeaders { ContentType = file.ContentType };
+                var safeFileName = file.FileName.Replace("\"", "\\\"");
+                var blobHttpHeaders = new BlobHttpHeaders { 
+                    ContentType = file.ContentType,
+                    ContentDisposition = $"inline; filename=\"{safeFileName}\""
+                };
                 await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = blobHttpHeaders });
             }
 
@@ -107,7 +111,8 @@ namespace MyTechERP.Infrastructure.Services
                     };
                     sasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.Read);
                     
-                    sasBuilder.ContentDisposition = isDownload ? "attachment" : "inline";
+                    // Do not overwrite ContentDisposition to allow the native blob properties (including filename) to take effect.
+                    // sasBuilder.ContentDisposition = isDownload ? "attachment" : "inline";
                     
                     string ext = System.IO.Path.GetExtension(blobName).ToLower();
                     sasBuilder.ContentType = ext switch
