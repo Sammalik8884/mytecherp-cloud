@@ -3,14 +3,12 @@ import { procurementFlowService } from '../../services/procurementFlowService';
 import { ProcurementRequestDto } from '../../types/procurementFlow';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Eye, Building2 } from 'lucide-react';
+import { Plus, Eye } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
-import { AddSiteModal } from '../../components/common/AddSiteModal';
 
 const ProcurementDashboardPage: React.FC = () => {
     const [procurements, setProcurements] = useState<ProcurementRequestDto[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showAddSiteModal, setShowAddSiteModal] = useState(false);
     const navigate = useNavigate();
     const { user, hasRole } = useAuth();
 
@@ -36,15 +34,6 @@ const ProcurementDashboardPage: React.FC = () => {
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">Procurement Dashboard</h1>
                 <div className="flex gap-3">
-                    {(hasRole(['Procurement Head']) || user?.email === 'atiq.siddiqui@mytecheng.com') && (
-                        <button 
-                            onClick={() => setShowAddSiteModal(true)}
-                            className="flex items-center space-x-2 bg-secondary text-foreground border border-border px-4 py-2 rounded-md hover:bg-muted transition-colors"
-                        >
-                            <Building2 className="h-4 w-4" />
-                            <span>Add Site</span>
-                        </button>
-                    )}
                     {hasRole(['Site Supervisor']) && (
                         <button 
                             onClick={() => navigate('/procurement-flow/create')}
@@ -102,11 +91,6 @@ const ProcurementDashboardPage: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-            <AddSiteModal 
-                isOpen={showAddSiteModal} 
-                onClose={() => setShowAddSiteModal(false)} 
-                onSuccess={() => {}} 
-            />
         </div>
     );
 };

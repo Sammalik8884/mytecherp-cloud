@@ -71,6 +71,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     
     { label: "Procurement Requirements", isHeader: true, allowedRoles: ["CEO", "Project Director", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
     { label: "Dashboard", href: "/procurement-flow/dashboard", icon: ClipboardList, allowedRoles: ["CEO", "Project Director", "Site Supervisor", "Regional Head", "Project Director", "Procurement Head", "Procurement Executive"] },
+    { label: "Add Site", href: "/procurement-flow/add-site", icon: Building2, allowedRoles: ["Procurement Head"], allowedEmails: ["atiq.siddiqui@mytecheng.com"] },
     { label: "Regional Approvals", href: "/procurement-flow/regional-approvals", icon: ShieldAlert, allowedRoles: ["CEO", "Project Director", "Regional Head"] },
     { label: "Pending Approvals", href: "/procurement-flow/pending-approvals", icon: ShieldAlert, allowedRoles: ["CEO", "Project Director", "Project Director"] },
     { label: "Approved (PD)", href: "/procurement-flow/approved", icon: CheckSquare, allowedRoles: ["Procurement Head"] },

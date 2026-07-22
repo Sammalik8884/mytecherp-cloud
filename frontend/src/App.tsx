@@ -69,6 +69,7 @@ import VendorManagementPage from "./pages/procurementFlow/VendorManagementPage";
 import CreateProcurementPage from "./pages/procurementFlow/CreateProcurementPage";
 import PendingApprovalsPage from "./pages/procurementFlow/PendingApprovalsPage";
 import ProcurementApprovedPage from "./pages/procurementFlow/ProcurementApprovedPage";
+import AddSitePage from "./pages/procurementFlow/AddSitePage";
 import PendingProcurementsPage from "./pages/procurementFlow/PendingProcurementsPage";
 import CompletedProcurementsPage from "./pages/procurementFlow/CompletedProcurementsPage";
 import RegionalHeadApprovalsPage from "./pages/procurementFlow/RegionalHeadApprovalsPage";
@@ -207,6 +208,7 @@ function App() {
                             {/* Procurement Flow */}
                             <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Regional Head", "Site Supervisor", "Project Director", "Procurement Head", "Procurement Executive"]} />}>
                                 <Route path="/procurement-flow/dashboard" element={<ProcurementDashboardPage />} />
+                                <Route path="/procurement-flow/add-site" element={<AddSitePage />} />
                                 <Route path="/procurement-flow/pending-approvals" element={<PendingApprovalsPage />} />
                                 <Route path="/procurement-flow/vendors" element={<VendorManagementPage />} />
                                 <Route path="/procurement-flow/:id" element={<ProcurementDetailsPage />} />

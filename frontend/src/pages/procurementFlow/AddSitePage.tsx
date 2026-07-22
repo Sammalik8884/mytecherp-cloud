@@ -3,17 +3,13 @@ import { Loader2, Building2 } from 'lucide-react';
 import { siteService } from '../../services/siteService';
 import { customerService } from '../../services/customerService';
 import toast from 'react-hot-toast';
-import { SearchableObjectSelect } from './SearchableObjectSelect';
+import { SearchableObjectSelect } from '../../components/common/SearchableObjectSelect';
+import { useNavigate } from 'react-router-dom';
 
-interface AddSiteModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess: () => void;
-}
-
-export const AddSiteModal: React.FC<AddSiteModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const AddSitePage: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [customers, setCustomers] = useState<{ id: number; name: string }[]>([]);
+    const navigate = useNavigate();
     
     const [formData, setFormData] = useState({
         name: "",
@@ -23,11 +19,8 @@ export const AddSiteModal: React.FC<AddSiteModalProps> = ({ isOpen, onClose, onS
     });
 
     useEffect(() => {
-        if (isOpen) {
-            loadCustomers();
-            setFormData({ name: "", address: "", city: "", customerId: "" });
-        }
-    }, [isOpen]);
+        loadCustomers();
+    }, []);
 
     const loadCustomers = async () => {
         try {
@@ -56,8 +49,7 @@ export const AddSiteModal: React.FC<AddSiteModalProps> = ({ isOpen, onClose, onS
                 customerId: Number(formData.customerId)
             });
             toast.success("Site added successfully!");
-            onSuccess();
-            onClose();
+            navigate('/procurement-flow/dashboard');
         } catch (error: any) {
             console.error("Failed to add site", error);
             toast.error(error.response?.data?.Message || error.response?.data?.Error || "Failed to add site");
@@ -66,19 +58,15 @@ export const AddSiteModal: React.FC<AddSiteModalProps> = ({ isOpen, onClose, onS
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" onClick={() => !isSubmitting && onClose()} />
-            <div className="bg-background border border-border p-6 rounded-2xl w-full max-w-md relative z-10 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
-                        <Building2 className="text-primary h-6 w-6" /> Add New Site
-                    </h2>
-                    <button onClick={() => !isSubmitting && onClose()} className="text-muted-foreground hover:text-foreground transition-colors">✕</button>
-                </div>
+        <div className="p-6 max-w-2xl mx-auto space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                    <Building2 className="text-primary h-6 w-6" /> Add New Site
+                </h1>
+            </div>
 
+            <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium mb-1 text-foreground">Site Name *</label>
@@ -129,7 +117,7 @@ export const AddSiteModal: React.FC<AddSiteModalProps> = ({ isOpen, onClose, onS
                     <div className="pt-4 border-t border-border mt-6 flex justify-end gap-3">
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={() => navigate('/procurement-flow/dashboard')}
                             disabled={isSubmitting}
                             className="px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
                         >
@@ -148,3 +136,5 @@ export const AddSiteModal: React.FC<AddSiteModalProps> = ({ isOpen, onClose, onS
         </div>
     );
 };
+
+export default AddSitePage;
