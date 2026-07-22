@@ -36,7 +36,7 @@ const ProcurementDashboardPage: React.FC = () => {
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">Procurement Dashboard</h1>
                 <div className="flex gap-3">
-                    {(hasRole(['Procurement Head', 'Procurement Executive']) || user?.email === 'atiq.siddiqui@mytecheng.com') && (
+                    {(hasRole(['Procurement Head']) || user?.email === 'atiq.siddiqui@mytecheng.com') && (
                         <button 
                             onClick={() => setShowAddSiteModal(true)}
                             className="flex items-center space-x-2 bg-secondary text-foreground border border-border px-4 py-2 rounded-md hover:bg-muted transition-colors"
