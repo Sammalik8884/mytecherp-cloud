@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, Plus, Building2 } from 'lucide-react';
+import { Loader2, Building2 } from 'lucide-react';
 import { siteService } from '../../services/siteService';
 import { customerService } from '../../services/customerService';
 import toast from 'react-hot-toast';
