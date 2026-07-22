@@ -136,16 +136,29 @@ namespace MytechERP.API.Controllers
             var site = await _context.Sites.FindAsync(id);
             if (site == null) return NotFound();
 
-            if (site.CustomerId != request.CustomerId)
+            int finalCustomerId = request.CustomerId ?? 0;
+            if (finalCustomerId == 0)
             {
-                var customerExists = await _context.Customers.AnyAsync(c => c.Id == request.CustomerId);
+                var internalCustomer = await _context.Customers.FirstOrDefaultAsync(c => c.Name == "Internal");
+                if (internalCustomer == null)
+                {
+                    internalCustomer = new MytechERP.domain.Entities.CRM.Customer { Name = "Internal", Email = "internal@mytecheng.com", Phone = "000", Address = "Internal" };
+                    _context.Customers.Add(internalCustomer);
+                    await _context.SaveChangesAsync();
+                }
+                finalCustomerId = internalCustomer.Id;
+            }
+
+            if (site.CustomerId != finalCustomerId)
+            {
+                var customerExists = await _context.Customers.AnyAsync(c => c.Id == finalCustomerId);
                 if (!customerExists) return BadRequest("Invalid Customer ID");
             }
 
             site.Name = request.Name;
-            site.Address = request.Address;
-            site.City = request.City;
-            site.CustomerId = request.CustomerId;
+            site.Address = request.Address ?? string.Empty;
+            site.City = request.City ?? string.Empty;
+            site.CustomerId = finalCustomerId;
 
             await _context.SaveChangesAsync();
 
