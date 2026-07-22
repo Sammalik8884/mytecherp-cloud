@@ -20,7 +20,7 @@ namespace MytechERP.API.Controllers
         private readonly ApplicationDbContext _context;
         public CustomersController(ApplicationDbContext context)
         { _context = context; }
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Salesman + "," + Roles.Estimation)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Technician + "," + Roles.Salesman + "," + Roles.Estimation + "," + Roles.ProcurementHead + "," + Roles.ProcurementExecutive + "," + Roles.SiteSupervisor + "," + Roles.RegionalHead)]
         [HttpGet]
         public async Task<ActionResult<List<CustomerDto>>> GetAll()
         {

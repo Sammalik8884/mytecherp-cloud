@@ -36,9 +36,6 @@ const AddSitePage: React.FC = () => {
         e.preventDefault();
         
         if (!formData.name.trim()) return toast.error("Site name is required");
-        if (!formData.address.trim()) return toast.error("Address is required");
-        if (!formData.city.trim()) return toast.error("City is required");
-        if (!formData.customerId) return toast.error("Please select a customer");
 
         try {
             setIsSubmitting(true);
@@ -46,7 +43,7 @@ const AddSitePage: React.FC = () => {
                 name: formData.name,
                 address: formData.address,
                 city: formData.city,
-                customerId: Number(formData.customerId)
+                customerId: formData.customerId ? Number(formData.customerId) : undefined
             });
             toast.success("Site added successfully!");
             navigate('/procurement-flow/dashboard');
@@ -81,10 +78,9 @@ const AddSitePage: React.FC = () => {
                     </div>
                     
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-foreground">Address *</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Address</label>
                         <input
                             type="text"
-                            required
                             placeholder="e.g. 123 Main St"
                             className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none"
                             value={formData.address}
@@ -93,10 +89,9 @@ const AddSitePage: React.FC = () => {
                     </div>
                     
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-foreground">City *</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">City</label>
                         <input
                             type="text"
-                            required
                             placeholder="e.g. New York"
                             className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none"
                             value={formData.city}
@@ -105,7 +100,7 @@ const AddSitePage: React.FC = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-foreground">Customer *</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Customer</label>
                         <SearchableObjectSelect
                             options={customers.map(c => ({ label: c.name, value: c.id }))}
                             value={formData.customerId}

@@ -53,23 +53,36 @@ namespace MytechERP.API.Controllers
         }
       
         [HttpPost]
-        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Salesman)]
+        [Authorize(Roles = Roles.Admin + "," + Roles.Manager + "," + Roles.Engineer + "," + Roles.Salesman + "," + Roles.ProcurementHead + "," + Roles.ProcurementExecutive + "," + Roles.RegionalHead + "," + Roles.SiteSupervisor)]
         public async Task<ActionResult> Create(CreateSiteDto request)
         {
- 
-            var customerExists = await _context.Customers.AnyAsync(c => c.Id == request.CustomerId);
-            if (!customerExists)
+            int finalCustomerId = request.CustomerId ?? 0;
+            if (finalCustomerId == 0)
             {
-                return BadRequest("Invalid Customer ID. The customer does not exist.");
+                var internalCustomer = await _context.Customers.FirstOrDefaultAsync(c => c.Name == "Internal");
+                if (internalCustomer == null)
+                {
+                    internalCustomer = new MytechERP.domain.Entities.CRM.Customer { Name = "Internal", Email = "internal@mytecheng.com", Phone = "000", Address = "Internal" };
+                    _context.Customers.Add(internalCustomer);
+                    await _context.SaveChangesAsync();
+                }
+                finalCustomerId = internalCustomer.Id;
+            }
+            else
+            {
+                var customerExists = await _context.Customers.AnyAsync(c => c.Id == finalCustomerId);
+                if (!customerExists)
+                {
+                    return BadRequest("Invalid Customer ID. The customer does not exist.");
+                }
             }
 
-            
             var site = new Site
             {
                 Name = request.Name,
-                Address = request.Address,
-                City = request.City,
-                CustomerId = request.CustomerId
+                Address = request.Address ?? string.Empty,
+                City = request.City ?? string.Empty,
+                CustomerId = finalCustomerId
             };
 
             _context.Sites.Add(site);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -11,10 +11,8 @@ namespace MytechERP.Application.DTOs.CRM
     {
         [Required]
         public string Name { get; set; }=string.Empty;
-        [Required]
         public string Address { get; set; }= string.Empty;
         public string City {  get; set; }=string.Empty;
-        [Required]
-        public int CustomerId {  get; set; }
+        public int? CustomerId {  get; set; }
     }
 }
