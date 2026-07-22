@@ -6,6 +6,7 @@ import { SiteDto } from '../../types/site';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { SearchableObjectSelect } from '../../components/common/SearchableObjectSelect';
 
 const CreateProcurementPage: React.FC = () => {
     const [siteId, setSiteId] = useState<string>('');
@@ -89,18 +90,12 @@ const CreateProcurementPage: React.FC = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="max-w-md">
                         <label className="block text-sm font-medium text-foreground mb-1">Site (Optional)</label>
-                        <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            value={siteId}
-                            onChange={(e) => setSiteId(e.target.value)}
-                        >
-                            <option value="">Select a Site...</option>
-                            {sites.map(site => (
-                                <option key={site.id} value={site.id}>
-                                    {site.name} {site.city ? `(${site.city})` : ''}
-                                </option>
-                            ))}
-                        </select>
+                        <SearchableObjectSelect
+                            options={sites.map(site => ({ label: `${site.name} ${site.city ? `(${site.city})` : ''}`, value: site.id }))}
+                            value={siteId ? Number(siteId) : ""}
+                            onChange={(val) => setSiteId(String(val))}
+                            placeholder="Select a Site..."
+                        />
                         <div className="mt-2 flex items-center space-x-2">
                             <input 
                                 type="checkbox" 

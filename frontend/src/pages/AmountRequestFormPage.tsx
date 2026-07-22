@@ -4,6 +4,7 @@ import { siteService } from "../services/siteService";
 import { SiteDto } from "../types/site";
 import { officeApi, OfficeDto } from "../api/officeApi";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
+import { SearchableObjectSelect } from "../components/common/SearchableObjectSelect";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 
 import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip, Trash2, Loader2 } from "lucide-react";
@@ -493,13 +494,15 @@ const AmountRequestFormPage = () => {
                                 {locationType === 'site' ? (
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-foreground">Site Name</label>
-                                        <select value={siteId} onChange={e => setSiteId(e.target.value === "custom" ? "custom" : Number(e.target.value))} className="w-full p-2.5 rounded-lg border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none transition-all">
-                                            <option value="">-- Select a Site --</option>
-                                            {sites.map(s => (
-                                                <option key={s.id} value={s.id}>{s.name}</option>
-                                            ))}
-                                            <option value="custom">Other (Custom Site)</option>
-                                        </select>
+                                        <SearchableObjectSelect
+                                            options={[
+                                                ...sites.map(s => ({ label: s.name, value: s.id })),
+                                                { label: "Other (Custom Site)", value: "custom" }
+                                            ]}
+                                            value={siteId}
+                                            onChange={(val) => setSiteId(val === "custom" ? "custom" : (val === "" ? "" : Number(val)))}
+                                            placeholder="-- Select a Site --"
+                                        />
                                     </div>
                                 ) : (
                                     <div className="space-y-2">

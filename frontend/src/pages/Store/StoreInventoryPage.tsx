@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, Warehouse, Save, Search, PackagePlus, X, Trash2 } from "lucide-react";
+import { SearchableObjectSelect } from "../../components/common/SearchableObjectSelect";
 import { useSearchParams } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
 
@@ -237,16 +238,12 @@ export function StoreInventoryPage() {
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Select Site</label>
-                    <select
+                    <SearchableObjectSelect
+                        options={sites.map(s => ({ label: s.name, value: s.id }))}
                         value={siteId}
-                        onChange={(e) => { setSiteId(e.target.value); setRows([]); }}
-                        className="px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 min-w-[220px]"
-                    >
-                        <option value="">— Choose a site —</option>
-                        {sites.map(s => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                    </select>
+                        onChange={(val) => { setSiteId(String(val)); setRows([]); }}
+                        placeholder="— Choose a site —"
+                    />
                 </div>
 
                 {siteId && rows.length > 0 && (

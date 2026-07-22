@@ -9,6 +9,7 @@ import { useAuth } from "../auth/AuthContext";
 import toast from "react-hot-toast";
 import { Check, Plus, Trash2, X, AlertCircle, Info, ExternalLink, Paperclip } from "lucide-react";
 import dayjs from "dayjs";
+import { SearchableObjectSelect } from "../components/common/SearchableObjectSelect";
 
 export const AddExpensePage = () => {
     const { id } = useParams<{ id: string }>();
@@ -79,11 +80,8 @@ export const AddExpensePage = () => {
             setSites(siteData);
             setOffices(officeData);
             
-            // Only approved/released ARFs for the current user (in real app filtered by API)
-            const availableArfs = arfData.filter((a: any) => 
-                (a.status === "Released" || a.status === "Approved - Ready for Accounts") 
-            );
-            setArfs(availableArfs);
+            // Show all ARFs
+            setArfs(arfData);
             setAllArfs(arfData);
 
             if (isEditMode && id) {
@@ -195,12 +193,12 @@ export const AddExpensePage = () => {
     };
 
     const selectedArf = arfs.find((a: any) => a.id === Number(selectedArfId));
-    // Find any excess ARFs generated for this ARF and add their requested/released amounts
     const excessCovered = selectedArf ? allArfs
         .filter(a => a.purposeOfAdvance?.includes(selectedArf.arfNumber || String(selectedArf.id)))
         .reduce((sum, a) => sum + Math.max(Number(a.accountsReleasedAmount) || 0, Number(a.advanceRequested) || 0), 0) : 0;
         
-    const releasedAmount = (Number(selectedArf?.accountsReleasedAmount) || 0) + excessCovered;
+    const baseArfAmount = selectedArf?.status === "Released" ? (Number(selectedArf?.accountsReleasedAmount) || 0) : (Number(selectedArf?.advanceRequested) || 0);
+    const releasedAmount = baseArfAmount + excessCovered;
     const alreadySpent = arfConsumedAmounts[Number(selectedArfId)] || 0;
     const remainingArfBalance = Math.max(0, releasedAmount - alreadySpent);
     
@@ -513,16 +511,12 @@ export const AddExpensePage = () => {
                         
                         {locationType === 'site' ? (
                             <div className="space-y-2">
-                                <select 
-                                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                <SearchableObjectSelect
+                                    options={sites.map((s: any) => ({ label: `${s.name} (${s.customerName || "No Client"})`, value: s.id }))}
                                     value={selectedSiteId}
-                                    onChange={(e) => setSelectedSiteId(e.target.value ? Number(e.target.value) : "")}
-                                >
-                                    <option value="">-- Select a Site --</option>
-                                    {sites.map((s: any) => (
-                                        <option key={s.id} value={s.id}>{s.name} ({s.customerName || "No Client"})</option>
-                                    ))}
-                                </select>
+                                    onChange={(val) => setSelectedSiteId(val === "" ? "" : Number(val))}
+                                    placeholder="-- Select a Site --"
+                                />
                             </div>
                         ) : (
                             <div className="space-y-2">
@@ -553,7 +547,7 @@ export const AddExpensePage = () => {
                                     <option value="">-- Select an ARF --</option>
                                     {arfs.map((a: any) => (
                                         <option key={a.id} value={a.id}>
-                                            {a.arfNumber || `ARF-${a.id}`} - Rs {a.accountsReleasedAmount?.toLocaleString()}
+                                            {a.arfNumber || `ARF-${a.id}`} - Rs {(a.status === "Released" ? a.accountsReleasedAmount : a.advanceRequested)?.toLocaleString() || 0} - {a.status === "Released" ? "Confirmed by accounts" : "Not confirmed by accounts yet"}
                                         </option>
                                     ))}
                                 </select>
@@ -566,7 +560,7 @@ export const AddExpensePage = () => {
                             {selectedArf && (
                                 <div className="text-xs flex justify-between mt-1">
                                     <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Released Amount: Rs {releasedAmount.toLocaleString()}</span>
+                                        <span className="text-muted-foreground">{selectedArf?.status === "Released" ? "Released Amount" : "Requested Amount"}: Rs {releasedAmount.toLocaleString()}</span>
                                         {alreadySpent > 0 && (
                                             <>
                                                 <div className="flex items-center gap-1 mt-0.5">
