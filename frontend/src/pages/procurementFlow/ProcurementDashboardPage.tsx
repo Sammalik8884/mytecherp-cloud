@@ -10,7 +10,7 @@ const ProcurementDashboardPage: React.FC = () => {
     const [procurements, setProcurements] = useState<ProcurementRequestDto[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const { user, hasRole } = useAuth();
+    const { hasRole } = useAuth();
 
     useEffect(() => {
         loadData();
