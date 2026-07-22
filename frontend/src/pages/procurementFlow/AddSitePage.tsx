@@ -43,7 +43,7 @@ const AddSitePage: React.FC = () => {
                 name: formData.name,
                 address: formData.address,
                 city: formData.city,
-                customerId: formData.customerId ? Number(formData.customerId) : undefined
+                customerId: formData.customerId ? Number(formData.customerId) : 0
             });
             toast.success("Site added successfully!");
             navigate('/procurement-flow/dashboard');
