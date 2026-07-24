@@ -120,6 +120,14 @@ export const BoqDrawingsPortalPage = () => {
                         return false;
                     }
                 }
+                
+                // If user is ali.azeem, he can ONLY assign to riffat.nazir
+                if (user?.email?.toLowerCase() === 'ali.azeem@mytecheng.com') {
+                    if (u.email?.toLowerCase() !== 'riffat.nazir@mytecheng.com') {
+                        return false;
+                    }
+                }
+                
                 return isEstOrDir;
             });
             setEstimators(eligibleUsers);
