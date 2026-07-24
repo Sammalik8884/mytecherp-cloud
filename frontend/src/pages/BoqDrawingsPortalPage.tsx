@@ -104,9 +104,14 @@ export const BoqDrawingsPortalPage = () => {
         try {
             const users = await authService.getUsers();
             // Filter to only Estimation or Managers
-            const eligibleUsers = users.filter((u: any) => 
-                u.roles?.includes('Estimation') || u.roles?.includes('Project Director')
-            );
+            const eligibleUsers = users.filter((u: any) => {
+                const isEstOrDir = u.roles?.includes('Estimation') || u.roles?.includes('Project Director');
+                // Hide ali.azeem@mytecheng.com from m.huzefa@mytecheng.com
+                if (user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' && u.email?.toLowerCase() === 'ali.azeem@mytecheng.com') {
+                    return false;
+                }
+                return isEstOrDir;
+            });
             setEstimators(eligibleUsers);
         } catch (error) {
             toast.error("Failed to load estimators.");
