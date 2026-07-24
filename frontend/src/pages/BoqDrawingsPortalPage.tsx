@@ -121,9 +121,10 @@ export const BoqDrawingsPortalPage = () => {
                     }
                 }
                 
-                // If user is ali.azeem, he can ONLY assign to riffat.nazir
+                // If user is ali.azeem, he can ONLY assign to riffat.nazir or himself
                 if (user?.email?.toLowerCase() === 'ali.azeem@mytecheng.com') {
-                    if (u.email?.toLowerCase() !== 'riffat.nazir@mytecheng.com') {
+                    const email = u.email?.toLowerCase();
+                    if (email !== 'riffat.nazir@mytecheng.com' && email !== 'ali.azeem@mytecheng.com') {
                         return false;
                     }
                 }
