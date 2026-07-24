@@ -6,6 +6,7 @@ import { enUS } from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { getMeetings, createMeeting, updateMeeting, deleteMeeting, SalesMeetingReminderDto } from '../services/salesMeetingService';
 import toast from 'react-hot-toast';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 
 const locales = {
   'en-US': enUS,
@@ -28,6 +29,9 @@ export const SalesmanCalendarPage: React.FC = () => {
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
     const [editingMeetingId, setEditingMeetingId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'info' | 'warning' | 'danger'; onConfirm: () => Promise<void> }>({
+        isOpen: false, title: "", message: "", type: "info", onConfirm: async () => {}
+    });
 
     const fetchMeetings = async () => {
         try {
@@ -127,18 +131,26 @@ export const SalesmanCalendarPage: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleDeleteEvent = async () => {
+    const handleDeleteEvent = () => {
         if (!selectedEvent) return;
-        if (window.confirm("Are you sure you want to delete this meeting?")) {
-            try {
-                await deleteMeeting(selectedEvent.id);
-                toast.success("Meeting deleted");
-                setSelectedEvent(null);
-                fetchMeetings();
-            } catch (error) {
-                toast.error("Failed to delete meeting");
+        setConfirmModal({
+            isOpen: true,
+            title: "Delete Meeting",
+            message: "Are you sure you want to delete this meeting? This action cannot be undone.",
+            type: "danger",
+            onConfirm: async () => {
+                try {
+                    await deleteMeeting(selectedEvent.id);
+                    toast.success("Meeting deleted");
+                    setSelectedEvent(null);
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    fetchMeetings();
+                } catch (error) {
+                    toast.error("Failed to delete meeting");
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }
             }
-        }
+        });
     };
 
     return (
@@ -283,6 +295,15 @@ export const SalesmanCalendarPage: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal 
+                isOpen={confirmModal.isOpen} 
+                title={confirmModal.title} 
+                message={confirmModal.message} 
+                type={confirmModal.type} 
+                onConfirm={confirmModal.onConfirm} 
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} 
+            />
         </div>
     );
 };
