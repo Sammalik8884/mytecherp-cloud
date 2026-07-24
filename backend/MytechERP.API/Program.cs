@@ -181,6 +181,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddHostedService<MytechERP.API.BackgroundServices.SalesmanVisitMonitorService>();
+builder.Services.AddHostedService<MytechERP.API.BackgroundServices.MeetingReminderService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

@@ -48,6 +48,7 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<Product> Products { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<SalesMeetingReminder> SalesMeetingReminders { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Site> Sites { get; set; }

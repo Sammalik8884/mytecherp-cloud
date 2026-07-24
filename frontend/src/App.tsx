@@ -39,6 +39,7 @@ import { AuditLogsPage } from "./pages/AuditLogsPage";
 import { SyncDashboardPage } from "./pages/SyncDashboardPage";
 import { SalesLeadsPage } from "./pages/SalesLeadsPage";
 import { SalesmanDashboardPage } from "./pages/SalesmanDashboardPage";
+import { SalesmanCalendarPage } from "./pages/SalesmanCalendarPage";
 import { ActivityPage } from "./pages/ActivityPage";
 import { EstimatorActivityPage } from "./pages/EstimatorActivityPage";
 import { SiteVisitPage } from "./pages/SiteVisitPage";
@@ -135,6 +136,7 @@ function App() {
                                 <Route path="/sales/activity" element={<ActivityPage />} />
                                 <Route path="/dashboard/estimator-activity" element={<EstimatorActivityPage />} />
                                 <Route path="/sales/my-dashboard" element={<SalesmanDashboardPage />} />
+                                <Route path="/sales/calendar" element={<SalesmanCalendarPage />} />
                             </Route>
 
                             {/* System Area / Admin - Manager/Admin Only */}

@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { TrialBanner, TrialExpiredWall, useTrialEnforcement } from "../components/TrialBanner";
+import { MeetingAlertModal } from "../components/common/MeetingAlertModal";
 
 export const DashboardLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
@@ -38,6 +39,8 @@ export const DashboardLayout = () => {
                     </div>
                 </main>
             </div>
+            
+            <MeetingAlertModal />
         </div>
     );
 };

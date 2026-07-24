@@ -5,7 +5,7 @@ import {
     Building2,
     ShieldAlert, X, Box, DollarSign, FileSignature, ClipboardList,
     Activity, Lock, Target, Car, Wallet, Calculator, CheckSquare, Warehouse,
-    ShoppingCart, Wrench, Briefcase, RefreshCw, CreditCard
+    ShoppingCart, Wrench, Briefcase, RefreshCw, CreditCard, Calendar
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { PlanFeature } from "../types/auth";
@@ -54,6 +54,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Activity (Salesmen)", href: "/sales/activity", icon: Activity, allowedRoles: ["CEO", "Project Director"] },
     { label: "Activity (Estimators)", href: "/dashboard/estimator-activity", icon: Activity, allowedRoles: ["CEO", "Project Director"] },
     { label: "My Sales Dashboard", href: "/sales/my-dashboard", icon: MapPin, allowedRoles: ["CEO", "Project Director", "Salesman", "Estimation"] },
+    { label: "Salesman Calendar", href: "/sales/calendar", icon: Calendar, allowedRoles: ["CEO", "Project Director", "Salesman"] },
 
     { label: "Foundation", isHeader: true },
     { label: "Users & Roles", href: "/users", icon: ShieldAlert, allowedRoles: ["CEO", "Project Director"] },
