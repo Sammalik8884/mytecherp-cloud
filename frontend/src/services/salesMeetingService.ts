@@ -28,6 +28,16 @@ export const createMeeting = async (data: CreateSalesMeetingReminderDto): Promis
     return response.data;
 };
 
+export const updateMeeting = async (id: number, data: CreateSalesMeetingReminderDto): Promise<{message: string}> => {
+    const response = await api.put(`/SalesMeetings/${id}`, data);
+    return response.data;
+};
+
+export const deleteMeeting = async (id: number): Promise<{message: string}> => {
+    const response = await api.delete(`/SalesMeetings/${id}`);
+    return response.data;
+};
+
 export const getPendingAlerts = async (): Promise<SalesMeetingReminderDto[]> => {
     const response = await api.get('/SalesMeetings/pending-alerts');
     return response.data;

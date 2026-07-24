@@ -3,7 +3,7 @@ import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { getMeetings, createMeeting, SalesMeetingReminderDto } from '../services/salesMeetingService';
+import { getMeetings, createMeeting, updateMeeting, deleteMeeting, SalesMeetingReminderDto } from '../services/salesMeetingService';
 import toast from 'react-hot-toast';
 
 const locales = {
@@ -25,6 +25,7 @@ export const SalesmanCalendarPage: React.FC = () => {
     const [siteName, setSiteName] = useState('');
     const [timeStr, setTimeStr] = useState('');
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
+    const [editingMeetingId, setEditingMeetingId] = useState<number | null>(null);
 
     const fetchMeetings = async () => {
         try {
@@ -56,6 +57,7 @@ export const SalesmanCalendarPage: React.FC = () => {
         setSelectedDate(start);
         setSiteName('');
         setTimeStr('');
+        setEditingMeetingId(null);
         setIsModalOpen(true);
     };
 
@@ -82,16 +84,55 @@ export const SalesmanCalendarPage: React.FC = () => {
         }
 
         try {
-            await createMeeting({
-                siteName,
-                meetingDate: finalDate.toISOString(),
-                isTimeIncluded
-            });
-            toast.success("Meeting scheduled successfully");
+            if (editingMeetingId) {
+                await updateMeeting(editingMeetingId, {
+                    siteName,
+                    meetingDate: finalDate.toISOString(),
+                    isTimeIncluded
+                });
+                toast.success("Meeting updated successfully");
+            } else {
+                await createMeeting({
+                    siteName,
+                    meetingDate: finalDate.toISOString(),
+                    isTimeIncluded
+                });
+                toast.success("Meeting scheduled successfully");
+            }
             setIsModalOpen(false);
+            setEditingMeetingId(null);
             fetchMeetings();
         } catch (error) {
-            toast.error("Failed to schedule meeting");
+            toast.error("Failed to save meeting");
+        }
+    };
+
+    const handleEditEvent = () => {
+        if (!selectedEvent) return;
+        setEditingMeetingId(selectedEvent.id);
+        setSelectedDate(selectedEvent.start);
+        const originalName = selectedEvent.title.split(' - ').slice(1).join(' - ');
+        setSiteName(originalName || selectedEvent.title);
+        if (!selectedEvent.allDay) {
+            setTimeStr(format(selectedEvent.start, 'HH:mm'));
+        } else {
+            setTimeStr('');
+        }
+        setSelectedEvent(null);
+        setIsModalOpen(true);
+    };
+
+    const handleDeleteEvent = async () => {
+        if (!selectedEvent) return;
+        if (window.confirm("Are you sure you want to delete this meeting?")) {
+            try {
+                await deleteMeeting(selectedEvent.id);
+                toast.success("Meeting deleted");
+                setSelectedEvent(null);
+                fetchMeetings();
+            } catch (error) {
+                toast.error("Failed to delete meeting");
+            }
         }
     };
 
@@ -104,6 +145,7 @@ export const SalesmanCalendarPage: React.FC = () => {
                         setSelectedDate(new Date());
                         setSiteName('');
                         setTimeStr('');
+                        setEditingMeetingId(null);
                         setIsModalOpen(true);
                     }}
                     className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold shadow-sm"
@@ -208,7 +250,21 @@ export const SalesmanCalendarPage: React.FC = () => {
                             )}
                         </div>
 
-                        <div className="mt-6 flex justify-end">
+                        <div className="mt-6 flex justify-between">
+                            <div className="space-x-2">
+                                <button
+                                    onClick={handleEditEvent}
+                                    className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded font-semibold transition-colors"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={handleDeleteEvent}
+                                    className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded font-semibold transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
                             <button
                                 onClick={() => setSelectedEvent(null)}
                                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded font-semibold transition-colors"

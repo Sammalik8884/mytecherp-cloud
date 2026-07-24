@@ -79,7 +79,48 @@ namespace MytechERP.API.Controllers
 
             return Ok(new { message = "Meeting scheduled successfully." });
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateMeeting(int id, [FromBody] CreateSalesMeetingReminderDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
 
+            var meeting = await _context.SalesMeetingReminders.FirstOrDefaultAsync(m => m.Id == id && m.SalesmanUserId == userId);
+            if (meeting == null)
+            {
+                return NotFound("Meeting not found or you don't have permission to update it.");
+            }
+
+            meeting.SiteName = dto.SiteName;
+            meeting.MeetingDate = dto.MeetingDate;
+            meeting.IsTimeIncluded = dto.IsTimeIncluded;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Meeting updated successfully." });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMeeting(int id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var meeting = await _context.SalesMeetingReminders.FirstOrDefaultAsync(m => m.Id == id && m.SalesmanUserId == userId);
+            if (meeting == null)
+            {
+                return NotFound("Meeting not found or you don't have permission to delete it.");
+            }
+
+            _context.SalesMeetingReminders.Remove(meeting);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Meeting deleted successfully." });
+        }
         [HttpGet("pending-alerts")]
         public async Task<IActionResult> GetPendingAlerts()
         {
