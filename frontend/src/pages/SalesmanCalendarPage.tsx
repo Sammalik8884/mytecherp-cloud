@@ -24,6 +24,7 @@ export const SalesmanCalendarPage: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [siteName, setSiteName] = useState('');
     const [timeStr, setTimeStr] = useState('');
+    const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
     const fetchMeetings = async () => {
         try {
@@ -56,6 +57,10 @@ export const SalesmanCalendarPage: React.FC = () => {
         setSiteName('');
         setTimeStr('');
         setIsModalOpen(true);
+    };
+
+    const handleSelectEvent = (event: any) => {
+        setSelectedEvent(event);
     };
 
     const handleSaveMeeting = async () => {
@@ -116,6 +121,7 @@ export const SalesmanCalendarPage: React.FC = () => {
                         style={{ height: '100%' }}
                         selectable
                         onSelectSlot={handleSelectSlot}
+                        onSelectEvent={handleSelectEvent}
                         views={['month', 'week', 'day']}
                         defaultView="month"
                     />
@@ -174,6 +180,40 @@ export const SalesmanCalendarPage: React.FC = () => {
                                 onClick={handleSaveMeeting}
                             >
                                 Save Meeting
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {selectedEvent && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+                        <h2 className="text-xl font-semibold mb-4 text-primary border-b pb-2">Meeting Details</h2>
+                        
+                        <div className="space-y-3">
+                            <div>
+                                <span className="text-sm text-gray-500 block">Title</span>
+                                <span className="font-medium">{selectedEvent.title}</span>
+                            </div>
+                            <div>
+                                <span className="text-sm text-gray-500 block">Date</span>
+                                <span className="font-medium">{format(selectedEvent.start, 'PPP')}</span>
+                            </div>
+                            {!selectedEvent.allDay && (
+                                <div>
+                                    <span className="text-sm text-gray-500 block">Time</span>
+                                    <span className="font-medium">{format(selectedEvent.start, 'p')}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                onClick={() => setSelectedEvent(null)}
+                                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded font-semibold transition-colors"
+                            >
+                                Close
                             </button>
                         </div>
                     </div>
