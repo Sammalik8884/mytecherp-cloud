@@ -30,8 +30,10 @@ export const BoqDrawingsPortalPage = () => {
     const navigate = useNavigate();
     const { user, hasRole } = useAuth();
     
-    // Check if user is the assigner (M. Huzefa, Ali Azeem, or Admin)
-    const isAssigner = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' || user?.email?.toLowerCase() === 'ali.azeem@mytecheng.com' || hasRole(['CEO', 'Project Director']);
+    // Check if user is the super assigner (CEO or Admin)
+    const isSuperAssigner = hasRole(['CEO', 'Project Director']);
+    const isRegularAssigner = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' || user?.email?.toLowerCase() === 'ali.azeem@mytecheng.com';
+    const isAssigner = isSuperAssigner || isRegularAssigner;
 
     // Assignment Modal State
     const [assignModalOpen, setAssignModalOpen] = useState(false);
@@ -60,10 +62,15 @@ export const BoqDrawingsPortalPage = () => {
                 const isValidStatus = l.status === "Closed" || l.status === "ConvertedToQuotation";
                 if (!isValidStatus) return false;
                 
-                if (isAssigner) return true;
+                if (isSuperAssigner) return true;
                 
-                // If not assigner, only see it if they are the assigned estimator
-                if (myUserId && l.assignedEstimatorId === myUserId) return true;
+                // If regular assigner (Huzefa or Ali), only see leads they created or leads assigned to them
+                if (isRegularAssigner && myUserId) {
+                    if (l.salesmanUserId === myUserId || l.assignedEstimatorId === myUserId) return true;
+                }
+                
+                // For anyone else (like other estimators), only see if assigned to them
+                if (!isSuperAssigner && !isRegularAssigner && myUserId && l.assignedEstimatorId === myUserId) return true;
                 
                 return false;
             });

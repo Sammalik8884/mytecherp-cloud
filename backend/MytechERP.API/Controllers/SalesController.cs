@@ -69,10 +69,18 @@ namespace MytechERP.API.Controllers
             {
                 query = query.Where(l => l.SalesmanUserId == userId);
             }
-            else if (userRole == Roles.Estimation && !string.Equals(userEmail, HuzefaEmail, StringComparison.OrdinalIgnoreCase) && !string.Equals(userEmail, AliAzeemEmail, StringComparison.OrdinalIgnoreCase))
+            else if (userRole == Roles.Estimation)
             {
-                // Non-Huzefa and Non-Ali estimators only see leads assigned to them
-                query = query.Where(l => l.AssignedEstimatorId == userId);
+                if (string.Equals(userEmail, HuzefaEmail, StringComparison.OrdinalIgnoreCase) || string.Equals(userEmail, AliAzeemEmail, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Huzefa and Ali Azeem can only see leads they created (as salesman) OR leads assigned to them. They shouldn't see each other's leads.
+                    query = query.Where(l => l.SalesmanUserId == userId || l.AssignedEstimatorId == userId);
+                }
+                else
+                {
+                    // Non-Huzefa and Non-Ali estimators only see leads assigned to them
+                    query = query.Where(l => l.AssignedEstimatorId == userId);
+                }
             }
 
             var leads = await query.OrderByDescending(l => l.CreatedAt).ToListAsync();
