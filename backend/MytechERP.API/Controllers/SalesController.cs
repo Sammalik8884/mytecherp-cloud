@@ -31,6 +31,7 @@ namespace MytechERP.API.Controllers
         private readonly IEmailService _emailService;
 
         private const string HuzefaEmail = "m.huzefa@mytecheng.com";
+        private const string AliAzeemEmail = "ali.azeem@mytecheng.com";
 
         // Pakistan Standard Time is UTC+5
         private static DateTime PakistanNow() =>
@@ -68,9 +69,9 @@ namespace MytechERP.API.Controllers
             {
                 query = query.Where(l => l.SalesmanUserId == userId);
             }
-            else if (userRole == Roles.Estimation && !string.Equals(userEmail, HuzefaEmail, StringComparison.OrdinalIgnoreCase))
+            else if (userRole == Roles.Estimation && !string.Equals(userEmail, HuzefaEmail, StringComparison.OrdinalIgnoreCase) && !string.Equals(userEmail, AliAzeemEmail, StringComparison.OrdinalIgnoreCase))
             {
-                // Non-Huzefa estimators only see leads assigned to them
+                // Non-Huzefa and Non-Ali estimators only see leads assigned to them
                 query = query.Where(l => l.AssignedEstimatorId == userId);
             }
 
