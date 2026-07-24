@@ -244,8 +244,9 @@ export const SiteVisitPage = () => {
                 return;
             }
 
-            // Require at least one evidence photo
-            if (photos.length === 0) {
+            // Require at least one evidence photo (optional for tahir)
+            const isTahir = user?.email?.toLowerCase() === "tahir.shareef@mytecheng.com";
+            if (photos.length === 0 && !isTahir) {
                 toast.error("Please capture at least one Evidence Photo before ending the visit.");
                 return;
             }
