@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
@@ -26,6 +27,7 @@ export const SalesmanCalendarPage: React.FC = () => {
     const [timeStr, setTimeStr] = useState('');
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
     const [editingMeetingId, setEditingMeetingId] = useState<number | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const fetchMeetings = async () => {
         try {
@@ -73,6 +75,7 @@ export const SalesmanCalendarPage: React.FC = () => {
 
         if (!selectedDate) return;
 
+        setIsSaving(true);
         let finalDate = new Date(selectedDate);
         let isTimeIncluded = false;
 
@@ -104,6 +107,8 @@ export const SalesmanCalendarPage: React.FC = () => {
             fetchMeetings();
         } catch (error) {
             toast.error("Failed to save meeting");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -212,15 +217,18 @@ export const SalesmanCalendarPage: React.FC = () => {
 
                         <div className="flex justify-end space-x-2 mt-6">
                             <button 
-                                className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50"
+                                className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50"
                                 onClick={() => setIsModalOpen(false)}
+                                disabled={isSaving}
                             >
                                 Cancel
                             </button>
                             <button 
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                                 onClick={handleSaveMeeting}
+                                disabled={isSaving}
                             >
+                                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                                 Save Meeting
                             </button>
                         </div>
