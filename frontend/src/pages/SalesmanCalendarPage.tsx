@@ -91,9 +91,9 @@ export const SalesmanCalendarPage: React.FC = () => {
     };
 
     return (
-        <div className="p-6 h-full flex flex-col bg-white">
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Salesman Calendar</h1>
+        <div className="p-4 sm:p-6 h-full flex flex-col bg-white">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <h1 className="text-xl sm:text-2xl font-bold">Salesman Calendar</h1>
                 <button
                     onClick={() => {
                         setSelectedDate(new Date());
@@ -101,23 +101,25 @@ export const SalesmanCalendarPage: React.FC = () => {
                         setTimeStr('');
                         setIsModalOpen(true);
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold shadow-sm"
+                    className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold shadow-sm"
                 >
                     + Schedule Meeting
                 </button>
             </div>
-            <div className="flex-1 mt-4 border border-gray-200 rounded-lg overflow-hidden shadow-sm" style={{ minHeight: '700px' }}>
-                <Calendar
-                    localizer={localizer}
-                    events={events}
-                    startAccessor="start"
-                    endAccessor="end"
-                    style={{ height: 700 }}
-                    selectable
-                    onSelectSlot={handleSelectSlot}
-                    views={['month', 'week', 'day']}
-                    defaultView="month"
-                />
+            <div className="flex-1 mt-2 border border-gray-200 rounded-lg overflow-x-auto shadow-sm bg-white">
+                <div style={{ minWidth: '700px', height: '700px' }}>
+                    <Calendar
+                        localizer={localizer}
+                        events={events}
+                        startAccessor="start"
+                        endAccessor="end"
+                        style={{ height: '100%' }}
+                        selectable
+                        onSelectSlot={handleSelectSlot}
+                        views={['month', 'week', 'day']}
+                        defaultView="month"
+                    />
+                </div>
             </div>
 
             {isModalOpen && (
