@@ -657,12 +657,22 @@ namespace MyTechERP.Infrastructure.Services
 
             var currentTenantId = _currentUserService.TenantId ?? 0;
             
-            // Route all quotation approvals strictly to M.Huzefa
-            var huzefaUser = await _userManager.FindByEmailAsync("m.huzefa@mytecheng.com");
-            var recipients = new List<AppUser>();
-            if (huzefaUser != null && huzefaUser.TenantId == currentTenantId)
+            // Route approvals: if Riffat submits, it goes to Ali Azeem. Otherwise, it goes to M.Huzefa.
+            string approverEmail = "m.huzefa@mytecheng.com";
+            if (!string.IsNullOrEmpty(submitterUserId))
             {
-                recipients.Add(huzefaUser);
+                var submitter = await _userManager.FindByIdAsync(submitterUserId);
+                if (submitter != null && string.Equals(submitter.Email, "riffat.nazir@mytecheng.com", StringComparison.OrdinalIgnoreCase))
+                {
+                    approverEmail = "ali.azeem@mytecheng.com";
+                }
+            }
+
+            var approverUser = await _userManager.FindByEmailAsync(approverEmail);
+            var recipients = new List<AppUser>();
+            if (approverUser != null && approverUser.TenantId == currentTenantId)
+            {
+                recipients.Add(approverUser);
             }
             
             var notificationTitle = "Quotation Submitted";
