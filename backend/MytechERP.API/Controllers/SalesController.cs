@@ -975,7 +975,11 @@ namespace MytechERP.API.Controllers
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
             var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
-            if (userEmail?.ToLower() != "m.huzefa@mytecheng.com" && userRole != Roles.Admin)
+            if (!string.Equals(userEmail, HuzefaEmail, StringComparison.OrdinalIgnoreCase) && 
+                !string.Equals(userEmail, AliAzeemEmail, StringComparison.OrdinalIgnoreCase) && 
+                userRole != Roles.Admin && 
+                userRole != Roles.CEO && 
+                userRole != Roles.ProjectDirector)
             {
                 return Forbid();
             }
