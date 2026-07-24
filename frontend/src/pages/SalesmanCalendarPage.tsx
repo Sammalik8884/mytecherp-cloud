@@ -106,13 +106,13 @@ export const SalesmanCalendarPage: React.FC = () => {
                     + Schedule Meeting
                 </button>
             </div>
-            <div className="flex-1 min-h-[600px]">
+            <div className="flex-1 mt-4 border border-gray-200 rounded-lg overflow-hidden shadow-sm" style={{ minHeight: '700px' }}>
                 <Calendar
                     localizer={localizer}
                     events={events}
                     startAccessor="start"
                     endAccessor="end"
-                    style={{ height: '100%' }}
+                    style={{ height: 700 }}
                     selectable
                     onSelectSlot={handleSelectSlot}
                     views={['month', 'week', 'day']}
