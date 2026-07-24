@@ -19,21 +19,21 @@ export interface SalesMeetingReminderDto {
 }
 
 export const getMeetings = async (): Promise<SalesMeetingReminderDto[]> => {
-    const response = await api.get('/api/SalesMeetings');
+    const response = await api.get('/SalesMeetings');
     return response.data;
 };
 
 export const createMeeting = async (data: CreateSalesMeetingReminderDto): Promise<{message: string}> => {
-    const response = await api.post('/api/SalesMeetings', data);
+    const response = await api.post('/SalesMeetings', data);
     return response.data;
 };
 
 export const getPendingAlerts = async (): Promise<SalesMeetingReminderDto[]> => {
-    const response = await api.get('/api/SalesMeetings/pending-alerts');
+    const response = await api.get('/SalesMeetings/pending-alerts');
     return response.data;
 };
 
 export const acknowledgePopup = async (id: number): Promise<{message: string}> => {
-    const response = await api.post(`/api/SalesMeetings/${id}/acknowledge-popup`);
+    const response = await api.post(`/SalesMeetings/${id}/acknowledge-popup`);
     return response.data;
 };
