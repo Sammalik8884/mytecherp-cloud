@@ -30,8 +30,8 @@ export const BoqDrawingsPortalPage = () => {
     const navigate = useNavigate();
     const { user, hasRole } = useAuth();
     
-    // Check if user is the assigner (M. Huzefa or Admin)
-    const isAssigner = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' || hasRole(['CEO', 'Project Director']);
+    // Check if user is the assigner (M. Huzefa, Ali Azeem, or Admin)
+    const isAssigner = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' || user?.email?.toLowerCase() === 'ali.azeem@mytecheng.com' || hasRole(['CEO', 'Project Director']);
 
     // Assignment Modal State
     const [assignModalOpen, setAssignModalOpen] = useState(false);
@@ -106,9 +106,10 @@ export const BoqDrawingsPortalPage = () => {
             // Filter to only Estimation or Managers
             const eligibleUsers = users.filter((u: any) => {
                 const isEstOrDir = u.roles?.includes('Estimation') || u.roles?.includes('Project Director');
-                // Hide ali.azeem@mytecheng.com and shahbaz.ali@mytecheng.com from m.huzefa@mytecheng.com
+                // Hide ali.azeem, shahbaz.ali, and riffat.nazir from m.huzefa
                 if (user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com') {
-                    if (u.email?.toLowerCase() === 'ali.azeem@mytecheng.com' || u.email?.toLowerCase() === 'shahbaz.ali@mytecheng.com') {
+                    const email = u.email?.toLowerCase();
+                    if (email === 'ali.azeem@mytecheng.com' || email === 'shahbaz.ali@mytecheng.com' || email === 'riffat.nazir@mytecheng.com') {
                         return false;
                     }
                 }
