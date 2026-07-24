@@ -978,8 +978,7 @@ namespace MytechERP.API.Controllers
             if (!string.Equals(userEmail, HuzefaEmail, StringComparison.OrdinalIgnoreCase) && 
                 !string.Equals(userEmail, AliAzeemEmail, StringComparison.OrdinalIgnoreCase) && 
                 userRole != Roles.Admin && 
-                userRole != Roles.CEO && 
-                userRole != Roles.ProjectDirector)
+                userRole != Roles.Manager)
             {
                 return Forbid();
             }
