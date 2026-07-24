@@ -106,9 +106,11 @@ export const BoqDrawingsPortalPage = () => {
             // Filter to only Estimation or Managers
             const eligibleUsers = users.filter((u: any) => {
                 const isEstOrDir = u.roles?.includes('Estimation') || u.roles?.includes('Project Director');
-                // Hide ali.azeem@mytecheng.com from m.huzefa@mytecheng.com
-                if (user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com' && u.email?.toLowerCase() === 'ali.azeem@mytecheng.com') {
-                    return false;
+                // Hide ali.azeem@mytecheng.com and shahbaz.ali@mytecheng.com from m.huzefa@mytecheng.com
+                if (user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com') {
+                    if (u.email?.toLowerCase() === 'ali.azeem@mytecheng.com' || u.email?.toLowerCase() === 'shahbaz.ali@mytecheng.com') {
+                        return false;
+                    }
                 }
                 return isEstOrDir;
             });
