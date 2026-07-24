@@ -92,7 +92,20 @@ export const SalesmanCalendarPage: React.FC = () => {
 
     return (
         <div className="p-6 h-full flex flex-col bg-white">
-            <h1 className="text-2xl font-bold mb-4">Salesman Calendar</h1>
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-bold">Salesman Calendar</h1>
+                <button
+                    onClick={() => {
+                        setSelectedDate(new Date());
+                        setSiteName('');
+                        setTimeStr('');
+                        setIsModalOpen(true);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold shadow-sm"
+                >
+                    + Schedule Meeting
+                </button>
+            </div>
             <div className="flex-1 min-h-[600px]">
                 <Calendar
                     localizer={localizer}
@@ -115,10 +128,14 @@ export const SalesmanCalendarPage: React.FC = () => {
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                             <input 
-                                type="text" 
-                                className="w-full border rounded p-2 bg-gray-100" 
-                                value={selectedDate ? format(selectedDate, 'PP') : ''} 
-                                readOnly 
+                                type="date" 
+                                className="w-full border rounded p-2" 
+                                value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''} 
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setSelectedDate(new Date(e.target.value));
+                                    }
+                                }}
                             />
                         </div>
 
