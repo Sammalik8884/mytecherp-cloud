@@ -48,6 +48,7 @@ type UiItem = CreateQuotationItemDto & {
     unitQty?: number;
     customUnit?: string;
     isManualFinalPrice?: boolean;
+    linkedId?: string;
 };
 
 /* ─── Main Page Component ─────────────────────────────────────── */
@@ -107,6 +108,9 @@ export const QuotationFormPage = () => {
     const [importedServiceItems, setImportedServiceItems] = useState<UiItem[]>([]);
     const [localServiceItems, setLocalServiceItems] = useState<UiItem[]>([]);
 
+    const [deletedImportedServiceIds, setDeletedImportedServiceIds] = useState<Set<string>>(new Set());
+    const [deletedLocalServiceIds, setDeletedLocalServiceIds] = useState<Set<string>>(new Set());
+
     // Breakdown Modal state
     const [modalBreakdown, setModalBreakdown] = useState<any>(null);
 
@@ -150,25 +154,26 @@ export const QuotationFormPage = () => {
             let changed = false;
             const next = [...prev];
             
-            importedItems.forEach((item, i) => {
+            importedItems.forEach((item) => {
+                const serviceIdx = next.findIndex(s => s.linkedId === item.id);
                 const defaultName = item.serviceName !== undefined
                     ? item.serviceName
                     : item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ''}` : '';
                 
-                if (next[i]) {
-                    if (next[i].quantity !== item.quantity || next[i].referenceNumber !== item.referenceNumber) {
-                        next[i] = { ...next[i], quantity: item.quantity, referenceNumber: item.referenceNumber };
+                if (serviceIdx !== -1) {
+                    if (next[serviceIdx].quantity !== item.quantity || next[serviceIdx].referenceNumber !== item.referenceNumber || next[serviceIdx].serviceName !== defaultName) {
+                        next[serviceIdx] = { ...next[serviceIdx], quantity: item.quantity, referenceNumber: item.referenceNumber, serviceName: defaultName };
                         changed = true;
                     }
-                } else {
-                    next[i] = { ...makeEmptyRow('ImportedService'), serviceName: defaultName, quantity: item.quantity, referenceNumber: item.referenceNumber };
+                } else if (!deletedImportedServiceIds.has(item.id)) {
+                    next.push({ ...makeEmptyRow('ImportedService'), linkedId: item.id, serviceName: defaultName, quantity: item.quantity, referenceNumber: item.referenceNumber });
                     changed = true;
                 }
             });
             
             return changed ? next : prev;
         });
-    }, [importedItems, showImportedServices]);
+    }, [importedItems, showImportedServices, deletedImportedServiceIds]);
 
     useEffect(() => {
         if (!showLocalServices) return;
@@ -176,25 +181,26 @@ export const QuotationFormPage = () => {
             let changed = false;
             const next = [...prev];
             
-            localItems.forEach((item, i) => {
+            localItems.forEach((item) => {
+                const serviceIdx = next.findIndex(s => s.linkedId === item.id);
                 const defaultName = item.serviceName !== undefined
                     ? item.serviceName
                     : item.product ? `${item.product.name} ${item.product.itemCode ? `(${item.product.itemCode})` : ''}` : '';
                 
-                if (next[i]) {
-                    if (next[i].quantity !== item.quantity || next[i].referenceNumber !== item.referenceNumber) {
-                        next[i] = { ...next[i], quantity: item.quantity, referenceNumber: item.referenceNumber };
+                if (serviceIdx !== -1) {
+                    if (next[serviceIdx].quantity !== item.quantity || next[serviceIdx].referenceNumber !== item.referenceNumber || next[serviceIdx].serviceName !== defaultName) {
+                        next[serviceIdx] = { ...next[serviceIdx], quantity: item.quantity, referenceNumber: item.referenceNumber, serviceName: defaultName };
                         changed = true;
                     }
-                } else {
-                    next[i] = { ...makeEmptyRow('LocalService'), serviceName: defaultName, quantity: item.quantity, referenceNumber: item.referenceNumber };
+                } else if (!deletedLocalServiceIds.has(item.id)) {
+                    next.push({ ...makeEmptyRow('LocalService'), linkedId: item.id, serviceName: defaultName, quantity: item.quantity, referenceNumber: item.referenceNumber });
                     changed = true;
                 }
             });
             
             return changed ? next : prev;
         });
-    }, [localItems, showLocalServices]);
+    }, [localItems, showLocalServices, deletedLocalServiceIds]);
 
     // Auto-add first row when section is toggled on
     useEffect(() => {
@@ -446,31 +452,41 @@ export const QuotationFormPage = () => {
     };
 
     const handleAddImported = () => {
-        setImportedItems([...importedItems, makeEmptyRow("Imported")]);
-        if (showImportedServices) {
-            setImportedServiceItems([...importedServiceItems, makeEmptyRow("ImportedService")]);
-        }
+        setImportedItems(prev => [...prev, makeEmptyRow("Imported")]);
     };
     
     const handleAddLocal = () => {
-        setLocalItems([...localItems, makeEmptyRow("Local")]);
-        if (showLocalServices) {
-            setLocalServiceItems([...localServiceItems, makeEmptyRow("LocalService")]);
-        }
+        setLocalItems(prev => [...prev, makeEmptyRow("Local")]);
     };
 
     const handleRemoveImported = (idx: number) => {
-        setImportedItems(prev => prev.filter((_, i) => i !== idx));
-        if (showImportedServices) {
-            setImportedServiceItems(prev => prev.filter((_, i) => i !== idx));
-        }
+        setImportedItems(prev => {
+            const removed = prev[idx];
+            if (removed && showImportedServices) {
+                setImportedServiceItems(srv => srv.filter(s => s.linkedId !== removed.id));
+            }
+            return prev.filter((_, i) => i !== idx);
+        });
     };
 
     const handleRemoveLocal = (idx: number) => {
-        setLocalItems(prev => prev.filter((_, i) => i !== idx));
-        if (showLocalServices) {
-            setLocalServiceItems(prev => prev.filter((_, i) => i !== idx));
-        }
+        setLocalItems(prev => {
+            const removed = prev[idx];
+            if (removed && showLocalServices) {
+                setLocalServiceItems(srv => srv.filter(s => s.linkedId !== removed.id));
+            }
+            return prev.filter((_, i) => i !== idx);
+        });
+    };
+
+    const handleRemoveImportedService = (id: string, linkedId?: string) => {
+        setImportedServiceItems(prev => prev.filter(x => x.id !== id));
+        if (linkedId) setDeletedImportedServiceIds(prev => new Set(prev).add(linkedId));
+    };
+
+    const handleRemoveLocalService = (id: string, linkedId?: string) => {
+        setLocalServiceItems(prev => prev.filter(x => x.id !== id));
+        if (linkedId) setDeletedLocalServiceIds(prev => new Set(prev).add(linkedId));
     };
 
     const handleAddImportedService = () => {
@@ -483,45 +499,13 @@ export const QuotationFormPage = () => {
 
     const handleSupplyNameChange = (list: "imported" | "local", idx: number, newName: string) => {
         if (list === "imported") {
-            const oldName = importedItems[idx].serviceName !== undefined 
-                ? importedItems[idx].serviceName 
-                : (importedItems[idx].product ? `${importedItems[idx].product.name} ${importedItems[idx].product.itemCode ? `(${importedItems[idx].product.itemCode})` : ""}` : "");
-            
             const newArr = [...importedItems];
             newArr[idx] = { ...newArr[idx], serviceName: newName };
             setImportedItems(newArr);
-
-            if (showImportedServices) {
-                setImportedServiceItems(prev => {
-                    const next = [...prev];
-                    const targetIdx = next.findIndex(x => x.serviceName === oldName || (!x.serviceName && oldName === ""));
-                    if (targetIdx !== -1) {
-                        next[targetIdx] = { ...next[targetIdx], serviceName: newName };
-                        return next;
-                    }
-                    return prev;
-                });
-            }
         } else {
-            const oldName = localItems[idx].serviceName !== undefined 
-                ? localItems[idx].serviceName 
-                : (localItems[idx].product ? `${localItems[idx].product.name} ${localItems[idx].product.itemCode ? `(${localItems[idx].product.itemCode})` : ""}` : "");
-            
             const newArr = [...localItems];
             newArr[idx] = { ...newArr[idx], serviceName: newName };
             setLocalItems(newArr);
-
-            if (showLocalServices) {
-                setLocalServiceItems(prev => {
-                    const next = [...prev];
-                    const targetIdx = next.findIndex(x => x.serviceName === oldName || (!x.serviceName && oldName === ""));
-                    if (targetIdx !== -1) {
-                        next[targetIdx] = { ...next[targetIdx], serviceName: newName };
-                        return next;
-                    }
-                    return prev;
-                });
-            }
         }
     };
 
@@ -1424,7 +1408,7 @@ export const QuotationFormPage = () => {
                                          </td>
                                          <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
                                          <td className="text-center">
-                                             <button type="button" onClick={() => setImportedServiceItems(importedServiceItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
+                                             <button type="button" onClick={() => handleRemoveImportedService(item.id, item.linkedId)} className="p-1 rounded hover:bg-destructive/10 transition-colors">
                                                  <Trash2 className="w-4 h-4 text-destructive"/>
                                              </button>
                                          </td>
@@ -1455,7 +1439,7 @@ export const QuotationFormPage = () => {
                                      </div>
                                      <div className="flex items-center justify-between">
                                          <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
-                                         <button type="button" onClick={() => setImportedServiceItems(importedServiceItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors"><Trash2 className="w-4 h-4 text-destructive"/></button>
+                                         <button type="button" onClick={() => handleRemoveImportedService(item.id, item.linkedId)} className="p-1.5 rounded hover:bg-destructive/10 transition-colors"><Trash2 className="w-4 h-4 text-destructive"/></button>
                                      </div>
                                  </div>
                              ))}
@@ -1521,7 +1505,7 @@ export const QuotationFormPage = () => {
                                          </td>
                                          <td className="text-right font-bold text-foreground">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</td>
                                          <td className="text-center">
-                                             <button type="button" onClick={() => setLocalServiceItems(localServiceItems.filter(x=>x.id !== item.id))} className="p-1 rounded hover:bg-destructive/10 transition-colors">
+                                             <button type="button" onClick={() => handleRemoveLocalService(item.id, item.linkedId)} className="p-1 rounded hover:bg-destructive/10 transition-colors">
                                                  <Trash2 className="w-4 h-4 text-destructive"/>
                                              </button>
                                          </td>
@@ -1552,7 +1536,7 @@ export const QuotationFormPage = () => {
                                      </div>
                                      <div className="flex items-center justify-between">
                                          <span className="text-sm font-bold text-primary">{item.lineTotal > 0 ? item.lineTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}</span>
-                                         <button type="button" onClick={() => setLocalServiceItems(localServiceItems.filter(x=>x.id !== item.id))} className="p-1.5 rounded hover:bg-destructive/10 transition-colors"><Trash2 className="w-4 h-4 text-destructive"/></button>
+                                         <button type="button" onClick={() => handleRemoveLocalService(item.id, item.linkedId)} className="p-1.5 rounded hover:bg-destructive/10 transition-colors"><Trash2 className="w-4 h-4 text-destructive"/></button>
                                      </div>
                                  </div>
                              ))}
@@ -1778,7 +1762,6 @@ export const QuotationFormPage = () => {
                 onSelect={(p) => {
                     if (productModalTarget?.list === "imported") {
                         const newArr = [...importedItems];
-                        const quantity = newArr[productModalTarget.index].quantity || 1;
                         // Use product.price as the USD base price (shown as "$" in the product catalog/selection modal)
                         const listBasePrice = p.price ?? 0;
                         // Build a CLEAN item: explicitly wipe stale originalPrice & calcBreakdown
@@ -1798,19 +1781,9 @@ export const QuotationFormPage = () => {
                         setImportedItems(newArr);
                         
                         setShowImportedServices(true);
-                        setImportedServiceItems(prev => {
-                            const updated = [...prev];
-                            const targetIdx = productModalTarget.index;
-                            if (updated[targetIdx]) {
-                                updated[targetIdx] = { ...updated[targetIdx], serviceName: p.name, quantity: quantity };
-                            } else {
-                                updated[targetIdx] = { ...makeEmptyRow("ImportedService"), serviceName: p.name, quantity: quantity };
-                            }
-                            return updated;
-                        });
+                        // Service syncing is now handled by the linkedId useEffect
                     } else if (productModalTarget?.list === "local") {
                         const newArr = [...localItems];
-                        const quantity = newArr[productModalTarget.index].quantity || 1;
                         const listBasePrice = p.price ?? 0;
                         const cleanItem = {
                             ...newArr[productModalTarget.index],
@@ -1820,23 +1793,13 @@ export const QuotationFormPage = () => {
                             lineTotal: 0,
                             productId: p.id,
                             product: p,
-                            serviceName: p.name,
-                            quantity: quantity
+                            serviceName: p.name
                         };
                         newArr[productModalTarget.index] = calculateLocalItem(cleanItem, formData, listBasePrice);
                         setLocalItems(newArr);
                         
                         setShowLocalServices(true);
-                        setLocalServiceItems(prev => {
-                            const updated = [...prev];
-                            const targetIdx = productModalTarget.index;
-                            if (updated[targetIdx]) {
-                                updated[targetIdx] = { ...updated[targetIdx], serviceName: p.name, quantity: quantity };
-                            } else {
-                                updated[targetIdx] = { ...makeEmptyRow("LocalService"), serviceName: p.name, quantity: quantity };
-                            }
-                            return updated;
-                        });
+                        // Service syncing is now handled by the linkedId useEffect
                     }
                     setProductModalTarget(null);
                 }}
