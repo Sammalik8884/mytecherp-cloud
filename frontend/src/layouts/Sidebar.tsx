@@ -54,7 +54,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Activity (Salesmen)", href: "/sales/activity", icon: Activity, allowedRoles: ["CEO", "Project Director"] },
     { label: "Activity (Estimators)", href: "/dashboard/estimator-activity", icon: Activity, allowedRoles: ["CEO", "Project Director"] },
     { label: "My Sales Dashboard", href: "/sales/my-dashboard", icon: MapPin, allowedRoles: ["CEO", "Project Director", "Salesman", "Estimation"] },
-    { label: "Salesman Calendar", href: "/sales/calendar", icon: Calendar, allowedRoles: ["CEO", "Project Director", "Salesman"] },
+    { label: "Salesman Calendar", href: "/sales/calendar", icon: Calendar, allowedRoles: ["CEO", "Project Director", "Salesman", "Estimation", "Engineer", "Worker", "Technician"] },
 
     { label: "Foundation", isHeader: true },
     { label: "Users & Roles", href: "/users", icon: ShieldAlert, allowedRoles: ["CEO", "Project Director"] },
