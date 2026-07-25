@@ -56,6 +56,17 @@ namespace MytechERP.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
+            
+            var allowedRoles = new[] { "CEO", "Admin" };
+            var allowedEmails = new[] { "munawar.hasan@mytecheng.com" };
+
+            if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
             await _expenseService.DeleteAsync(id);
             return Ok(new { message = "Expense deleted successfully" });
         }

@@ -21,11 +21,13 @@ export const ExpensesPage = () => {
     const [reviewingExpense, setReviewingExpense] = useState<ExpenseDto | null>(null);
     const [reviewComments, setReviewComments] = useState("");
     const [isReviewing, setIsReviewing] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     const currentUserRoles = user?.roles || [];
-    const canReview = currentUserRoles.includes("CEO") || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts") || user?.email === "asma@mytecheng.com" || user?.email === "munawar.hasan@mytecheng.com" || user?.email === "shahbaz.ali@mytecheng.com" || user?.email === "faisal.ghani@mytecheng.com";
+    const isAdmin = currentUserRoles.includes("Admin") || currentUserRoles.includes("CEO") || user?.email === "munawar.hasan@mytecheng.com";
+    const canReview = isAdmin || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts") || user?.email === "asma@mytecheng.com" || user?.email === "shahbaz.ali@mytecheng.com" || user?.email === "faisal.ghani@mytecheng.com";
 
     useEffect(() => {
         loadExpenses();
@@ -86,6 +88,24 @@ export const ExpensesPage = () => {
             console.error("Failed to load expenses", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteExpense = async (id: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!isAdmin) return;
+        
+        if (window.confirm("Are you sure you want to delete this expense? This action cannot be undone.")) {
+            try {
+                setIsDeleting(true);
+                await expenseApi.delete(id);
+                toast.success("Expense deleted successfully");
+                loadExpenses();
+            } catch (error: any) {
+                toast.error(error.response?.data || "Failed to delete expense");
+            } finally {
+                setIsDeleting(false);
+            }
         }
     };
 
@@ -253,15 +273,24 @@ export const ExpensesPage = () => {
                                                         Review
                                                     </button>
                                                 )}
-                                                {(expense.status === "Rejected" && (expense.createdByEmail === user?.email || currentUserRoles.includes("Admin") || currentUserRoles.includes("CEO"))) && (
+                                                {(expense.status === "Rejected" && (expense.createdByEmail === user?.email || isAdmin)) && (
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             navigate(`/expenses/edit/${expense.id}`);
                                                         }}
-                                                        className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                                                        className="text-blue-600 hover:text-blue-800 font-medium text-sm mr-3"
                                                     >
                                                         Resubmit
+                                                    </button>
+                                                )}
+                                                {isAdmin && (
+                                                    <button
+                                                        onClick={(e) => handleDeleteExpense(expense.id, e)}
+                                                        disabled={isDeleting}
+                                                        className="text-red-600 hover:text-red-800 font-medium text-sm disabled:opacity-50"
+                                                    >
+                                                        Delete
                                                     </button>
                                                 )}
                                             </td>
