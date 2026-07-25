@@ -54,7 +54,7 @@ namespace MytechERP.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, [FromQuery] bool deleteArf = false)
         {
             var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
             var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
@@ -67,7 +67,7 @@ namespace MytechERP.API.Controllers
                 return Forbid();
             }
 
-            await _expenseService.DeleteAsync(id);
+            await _expenseService.DeleteAsync(id, deleteArf);
             return Ok(new { message = "Expense deleted successfully" });
         }
 

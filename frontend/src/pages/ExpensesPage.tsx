@@ -31,6 +31,7 @@ export const ExpensesPage = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
+    const [deleteAssociatedArf, setDeleteAssociatedArf] = useState<boolean>(false);
 
     const currentUserRoles = user?.roles || [];
     const isAdmin = currentUserRoles.includes("Admin") || currentUserRoles.includes("CEO") || user?.email === "munawar.hasan@mytecheng.com";
@@ -102,10 +103,10 @@ export const ExpensesPage = () => {
         try {
             setIsDeleting(true);
             if (confirmModalState.mode === 'single' && confirmModalState.expenseId) {
-                await expenseApi.delete(confirmModalState.expenseId);
+                await expenseApi.delete(confirmModalState.expenseId, deleteAssociatedArf);
                 toast.success("Expense deleted successfully");
             } else if (confirmModalState.mode === 'bulk') {
-                await Promise.all(Array.from(selectedExpenses).map(id => expenseApi.delete(id)));
+                await Promise.all(Array.from(selectedExpenses).map(id => expenseApi.delete(id, deleteAssociatedArf)));
                 toast.success(`${selectedExpenses.size} expenses deleted successfully`);
                 setSelectedExpenses(new Set());
             }
@@ -613,7 +614,20 @@ export const ExpensesPage = () => {
             type="danger"
             onConfirm={executeDelete}
             onCancel={() => !isDeleting && setConfirmModalState({ isOpen: false, mode: 'single' })}
-        />
+        >
+            <div className="mt-4 flex items-center space-x-2">
+                <input 
+                    type="checkbox" 
+                    id="deleteArfCheckbox" 
+                    checked={deleteAssociatedArf} 
+                    onChange={(e) => setDeleteAssociatedArf(e.target.checked)} 
+                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                />
+                <label htmlFor="deleteArfCheckbox" className="text-sm font-medium text-foreground cursor-pointer select-none">
+                    Also delete associated Amount Request Form(s)
+                </label>
+            </div>
+        </ConfirmModal>
         </>
     );
 };

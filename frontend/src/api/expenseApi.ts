@@ -66,8 +66,8 @@ export const expenseApi = {
         const response = await apiClient.put<ExpenseDto>(`/Expenses/${id}`, data);
         return response.data;
     },
-    delete: async (id: number) => {
-        const response = await apiClient.delete(`/Expenses/${id}`);
+    delete: async (id: number, deleteArf: boolean = false) => {
+        const response = await apiClient.delete(`/Expenses/${id}?deleteArf=${deleteArf}`);
         return response.data;
     },
     review: async (id: number, data: ExpenseReviewDto) => {

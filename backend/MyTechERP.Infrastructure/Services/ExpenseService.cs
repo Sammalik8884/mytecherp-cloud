@@ -208,12 +208,22 @@ namespace MyTechERP.Infrastructure.Services
             return await GetByIdAsync(entity.Id);
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, bool deleteArf = false)
         {
             var entity = await _context.Expenses.FindAsync(id);
             if (entity != null)
             {
                 entity.IsDeleted = true;
+                
+                if (deleteArf && entity.AmountRequestFormId.HasValue)
+                {
+                    var arf = await _context.AmountRequestForms.FindAsync(entity.AmountRequestFormId.Value);
+                    if (arf != null)
+                    {
+                        arf.IsDeleted = true;
+                    }
+                }
+                
                 await _context.SaveChangesAsync();
             }
         }
