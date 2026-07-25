@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 import { amountRequestApi } from "../api/amountRequestApi";
 
 import { useAuth } from "../auth/AuthContext";
-import { ChevronDown, ChevronRight, Plus, Receipt, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Receipt, CheckCircle, XCircle, ExternalLink, X, Download } from "lucide-react";
 import dayjs from "dayjs";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +21,8 @@ export const ExpensesPage = () => {
     const [reviewingExpense, setReviewingExpense] = useState<ExpenseDto | null>(null);
     const [reviewComments, setReviewComments] = useState("");
     const [isReviewing, setIsReviewing] = useState(false);
+    
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     const currentUserRoles = user?.roles || [];
     const canReview = currentUserRoles.includes("CEO") || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts") || user?.email === "asma@mytecheng.com" || user?.email === "munawar.hasan@mytecheng.com" || user?.email === "shahbaz.ali@mytecheng.com" || user?.email === "faisal.ghani@mytecheng.com";
@@ -326,14 +329,28 @@ export const ExpensesPage = () => {
                                         <td className="p-2">
                                             <div className="flex flex-wrap gap-2">
                                                 {item.fileUrl && (
-                                                    <a href={item.fileUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center bg-primary/5 px-2 py-1 rounded">
+                                                    <button type="button" onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i.test(item.fileUrl)) {
+                                                            setSelectedImage(item.fileUrl);
+                                                        } else {
+                                                            window.open(item.fileUrl, '_blank');
+                                                        }
+                                                    }} className="text-primary hover:underline flex items-center bg-primary/5 px-2 py-1 rounded">
                                                         <ExternalLink className="h-3 w-3 mr-1" /> File 1
-                                                    </a>
+                                                    </button>
                                                 )}
                                                 {item.attachments?.map((url: string, attIdx: number) => (
-                                                    <a key={attIdx} href={url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center bg-primary/5 px-2 py-1 rounded">
+                                                    <button type="button" key={attIdx} onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i.test(url)) {
+                                                            setSelectedImage(url);
+                                                        } else {
+                                                            window.open(url, '_blank');
+                                                        }
+                                                    }} className="text-primary hover:underline flex items-center bg-primary/5 px-2 py-1 rounded">
                                                         <ExternalLink className="h-3 w-3 mr-1" /> Att {attIdx + 1}
-                                                    </a>
+                                                    </button>
                                                 ))}
                                                 {(!item.fileUrl && (!item.attachments || item.attachments.length === 0)) && (
                                                     <span className="text-muted-foreground italic">None</span>
@@ -378,6 +395,40 @@ export const ExpensesPage = () => {
                     </div>
                 </div>
             </div>
+        )}
+
+        {/* Image Preview Modal */}
+        {selectedImage && createPortal(
+            <div className="fixed inset-0 flex items-center justify-center animate-in fade-in duration-200" style={{ zIndex: 99999 }}>
+                <div className="absolute inset-0 bg-black/85 backdrop-blur-sm cursor-pointer" onClick={() => setSelectedImage(null)} />
+                
+                <div className="absolute top-4 right-4 flex space-x-2 z-10">
+                    <a
+                        href={selectedImage}
+                        download
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors flex items-center justify-center"
+                        title="Download Image"
+                    >
+                        <Download className="h-6 w-6" />
+                    </a>
+                    <button
+                        onClick={() => setSelectedImage(null)}
+                        className="text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
+                </div>
+                
+                <img
+                    src={selectedImage}
+                    alt="Preview"
+                    className="relative z-10 max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+                    style={{ maxHeight: '90vh', maxWidth: '90vw' }}
+                />
+            </div>,
+            document.body
         )}
         </>
     );
