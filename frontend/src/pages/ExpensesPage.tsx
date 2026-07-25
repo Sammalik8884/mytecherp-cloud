@@ -4,10 +4,11 @@ import { expenseApi, ExpenseDto } from "../api/expenseApi";
 import { amountRequestApi } from "../api/amountRequestApi";
 
 import { useAuth } from "../auth/AuthContext";
-import { ChevronDown, ChevronRight, Plus, Receipt, CheckCircle, XCircle, ExternalLink, X, Download } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Receipt, CheckCircle, XCircle, ExternalLink, X, Download, Trash2 } from "lucide-react";
 import dayjs from "dayjs";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { ConfirmModal } from "../components/common/ConfirmModal";
 
 export const ExpensesPage = () => {
     const { user } = useAuth();
@@ -24,6 +25,8 @@ export const ExpensesPage = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedExpenses, setSelectedExpenses] = useState<Set<number>>(new Set());
+    const [confirmModalState, setConfirmModalState] = useState<{isOpen: boolean; mode: 'single' | 'bulk'; expenseId?: number}>({ isOpen: false, mode: 'single' });
 
     const currentUserRoles = user?.roles || [];
     const isAdmin = currentUserRoles.includes("Admin") || currentUserRoles.includes("CEO") || user?.email === "munawar.hasan@mytecheng.com";
@@ -91,21 +94,23 @@ export const ExpensesPage = () => {
         }
     };
 
-    const handleDeleteExpense = async (id: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!isAdmin) return;
-        
-        if (window.confirm("Are you sure you want to delete this expense? This action cannot be undone.")) {
-            try {
-                setIsDeleting(true);
-                await expenseApi.delete(id);
+    const executeDelete = async () => {
+        try {
+            setIsDeleting(true);
+            if (confirmModalState.mode === 'single' && confirmModalState.expenseId) {
+                await expenseApi.delete(confirmModalState.expenseId);
                 toast.success("Expense deleted successfully");
-                loadExpenses();
-            } catch (error: any) {
-                toast.error(error.response?.data || "Failed to delete expense");
-            } finally {
-                setIsDeleting(false);
+            } else if (confirmModalState.mode === 'bulk') {
+                await Promise.all(Array.from(selectedExpenses).map(id => expenseApi.delete(id)));
+                toast.success(`${selectedExpenses.size} expenses deleted successfully`);
+                setSelectedExpenses(new Set());
             }
+            loadExpenses();
+        } catch (error: any) {
+            toast.error(error.response?.data || "Failed to delete expense(s)");
+        } finally {
+            setIsDeleting(false);
+            setConfirmModalState({ isOpen: false, mode: 'single' });
         }
     };
 
@@ -159,13 +164,24 @@ export const ExpensesPage = () => {
                     <h1 className="text-2xl font-bold tracking-tight">Expenses</h1>
                     <p className="text-muted-foreground">Manage and track project expenses</p>
                 </div>
-                <button
-                    onClick={() => navigate("/expenses/new")}
-                    className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors shadow-sm font-medium"
-                >
-                    <Plus className="h-4 w-4" />
-                    <span>Add Expense</span>
-                </button>
+                <div className="flex items-center space-x-3">
+                    {isAdmin && selectedExpenses.size > 0 && (
+                        <button
+                            onClick={() => setConfirmModalState({ isOpen: true, mode: 'bulk' })}
+                            className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-sm font-medium"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            <span>Delete Selected ({selectedExpenses.size})</span>
+                        </button>
+                    )}
+                    <button
+                        onClick={() => navigate("/expenses/new")}
+                        className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors shadow-sm font-medium"
+                    >
+                        <Plus className="h-4 w-4" />
+                        <span>Add Expense</span>
+                    </button>
+                </div>
             </div>
 
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
@@ -173,6 +189,22 @@ export const ExpensesPage = () => {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-muted text-muted-foreground border-b border-border">
                             <tr>
+                                {isAdmin && (
+                                    <th className="px-4 py-3 font-medium w-10">
+                                        <input 
+                                            type="checkbox"
+                                            className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                                            checked={expenses.length > 0 && selectedExpenses.size === expenses.length}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedExpenses(new Set(expenses.map(exp => exp.id)));
+                                                } else {
+                                                    setSelectedExpenses(new Set());
+                                                }
+                                            }}
+                                        />
+                                    </th>
+                                )}
                                 <th className="px-4 py-3 font-medium">Expense ID</th>
                                 <th className="px-4 py-3 font-medium">Site/Project</th>
                                 <th className="px-4 py-3 font-medium">ARF Number</th>
@@ -225,6 +257,21 @@ export const ExpensesPage = () => {
                                             onClick={() => navigate(`/expenses/edit/${expense.id}`)}
                                             className={`hover:bg-muted/50 transition-colors cursor-pointer ${!isMain ? 'bg-muted/30' : ''}`}
                                         >
+                                            {isAdmin && (
+                                                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                                    <input 
+                                                        type="checkbox"
+                                                        className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                                                        checked={selectedExpenses.has(expense.id)}
+                                                        onChange={(e) => {
+                                                            const newSet = new Set(selectedExpenses);
+                                                            if (e.target.checked) newSet.add(expense.id);
+                                                            else newSet.delete(expense.id);
+                                                            setSelectedExpenses(newSet);
+                                                        }}
+                                                    />
+                                                </td>
+                                            )}
                                             <td className="px-4 py-3 font-medium flex items-center gap-2">
                                                 {isMain && hasMultiple ? (
                                                     <button 
@@ -286,7 +333,10 @@ export const ExpensesPage = () => {
                                                 )}
                                                 {isAdmin && (
                                                     <button
-                                                        onClick={(e) => handleDeleteExpense(expense.id, e)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setConfirmModalState({ isOpen: true, mode: 'single', expenseId: expense.id });
+                                                        }}
                                                         disabled={isDeleting}
                                                         className="text-red-600 hover:text-red-800 font-medium text-sm disabled:opacity-50"
                                                     >
@@ -426,39 +476,57 @@ export const ExpensesPage = () => {
             </div>
         )}
 
-        {/* Image Preview Modal */}
-        {selectedImage && createPortal(
-            <div className="fixed inset-0 flex items-center justify-center animate-in fade-in duration-200" style={{ zIndex: 99999 }}>
-                <div className="absolute inset-0 bg-black/85 backdrop-blur-sm cursor-pointer" onClick={() => setSelectedImage(null)} />
-                
-                <div className="absolute top-4 right-4 flex space-x-2 z-10">
-                    <a
-                        href={selectedImage}
-                        download
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors flex items-center justify-center"
-                        title="Download Image"
+        {selectedImage && (
+            createPortal(
+                <div 
+                    className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <div 
+                        className="relative max-w-7xl max-h-[90vh] w-full flex items-center justify-center bg-black rounded-lg overflow-hidden group"
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        <Download className="h-6 w-6" />
-                    </a>
-                    <button
-                        onClick={() => setSelectedImage(null)}
-                        className="text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
-                    >
-                        <X className="h-6 w-6" />
-                    </button>
-                </div>
-                
-                <img
-                    src={selectedImage}
-                    alt="Preview"
-                    className="relative z-10 max-w-full max-h-full object-contain rounded-xl shadow-2xl"
-                    style={{ maxHeight: '90vh', maxWidth: '90vw' }}
-                />
-            </div>,
-            document.body
+                        <button
+                            onClick={() => setSelectedImage(null)}
+                            className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors z-10"
+                        >
+                            <X className="h-6 w-6" />
+                        </button>
+                        
+                        <a
+                            href={selectedImage}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute top-4 right-16 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors z-10 flex items-center gap-2 px-4"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Download className="h-4 w-4" />
+                            <span className="text-sm font-medium">Download</span>
+                        </a>
+
+                        <img 
+                            src={selectedImage} 
+                            alt="Expense Evidence Preview" 
+                            className="max-w-full max-h-[90vh] object-contain"
+                        />
+                    </div>
+                </div>,
+                document.body
+            )
         )}
+
+        <ConfirmModal
+            isOpen={confirmModalState.isOpen}
+            title={confirmModalState.mode === 'bulk' ? "Delete Multiple Expenses" : "Delete Expense"}
+            message={confirmModalState.mode === 'bulk' 
+                ? `Are you sure you want to delete ${selectedExpenses.size} selected expenses? This action cannot be undone.` 
+                : "Are you sure you want to delete this expense? This action cannot be undone."}
+            confirmText={isDeleting ? "Deleting..." : "Delete"}
+            type="danger"
+            onConfirm={executeDelete}
+            onCancel={() => !isDeleting && setConfirmModalState({ isOpen: false, mode: 'single' })}
+        />
         </>
     );
 };
