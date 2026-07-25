@@ -4,7 +4,7 @@ import { expenseApi, ExpenseDto } from "../api/expenseApi";
 import { amountRequestApi } from "../api/amountRequestApi";
 
 import { useAuth } from "../auth/AuthContext";
-import { ChevronDown, ChevronRight, Plus, Receipt, CheckCircle, XCircle, ExternalLink, X, Download, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Receipt, CheckCircle, XCircle, ExternalLink, X, Download, Trash2, Search, ChevronLeft } from "lucide-react";
 import dayjs from "dayjs";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +27,10 @@ export const ExpensesPage = () => {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedExpenses, setSelectedExpenses] = useState<Set<number>>(new Set());
     const [confirmModalState, setConfirmModalState] = useState<{isOpen: boolean; mode: 'single' | 'bulk'; expenseId?: number}>({ isOpen: false, mode: 'single' });
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
 
     const currentUserRoles = user?.roles || [];
     const isAdmin = currentUserRoles.includes("Admin") || currentUserRoles.includes("CEO") || user?.email === "munawar.hasan@mytecheng.com";
@@ -154,6 +158,28 @@ export const ExpensesPage = () => {
         return groups;
     }, [expenses]);
 
+    const filteredGroups = useMemo(() => {
+        let result = groupedExpenses;
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(group => {
+                return group.expenses.some(exp => 
+                    `exp-${exp.id.toString().padStart(4, '0')}`.includes(query) ||
+                    exp.id.toString() === query ||
+                    (exp.arfNumber && exp.arfNumber.toLowerCase().includes(query))
+                );
+            });
+        }
+        return result;
+    }, [groupedExpenses, searchQuery]);
+
+    const paginatedGroups = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        return filteredGroups.slice(startIndex, startIndex + pageSize);
+    }, [filteredGroups, currentPage, pageSize]);
+    
+    const totalPages = Math.max(1, Math.ceil(filteredGroups.length / pageSize));
+
     if (loading) return <div className="p-6">Loading expenses...</div>;
 
     return (
@@ -181,6 +207,40 @@ export const ExpensesPage = () => {
                         <Plus className="h-4 w-4" />
                         <span>Add Expense</span>
                     </button>
+                </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card p-4 rounded-xl border border-border shadow-sm">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-80">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                            type="text"
+                            placeholder="Search by ID (e.g. EXP-0054) or ARF..."
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="pl-9 pr-4 py-2 w-full rounded-lg border border-input bg-background focus:ring-1 focus:ring-primary focus:outline-none text-sm"
+                        />
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Show:</span>
+                    <select
+                        value={pageSize}
+                        onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setCurrentPage(1);
+                        }}
+                        className="p-1 rounded border border-input bg-background focus:ring-1 focus:ring-primary focus:outline-none"
+                    >
+                        <option value={10}>10</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                        <option value={500}>500</option>
+                    </select>
                 </div>
             </div>
 
@@ -216,7 +276,7 @@ export const ExpensesPage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {groupedExpenses.map((group) => {
+                            {paginatedGroups.map((group) => {
                                 const mainExpense = group.expenses[0];
                                 const hasMultiple = group.expenses.length > 1;
                                 const isExpanded = group.arfId ? expandedGroups.has(group.arfId) : false;
@@ -355,9 +415,9 @@ export const ExpensesPage = () => {
                                     </React.Fragment>
                                 );
                             })}
-                            {expenses.length === 0 && (
+                            {paginatedGroups.length === 0 && (
                                 <tr>
-                                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                                    <td colSpan={isAdmin ? 9 : 8} className="px-4 py-8 text-center text-muted-foreground">
                                         <div className="flex flex-col items-center">
                                             <Receipt className="h-12 w-12 opacity-20 mb-3" />
                                             <p>No expenses found. Click 'Add Expense' to create one.</p>
@@ -369,6 +429,33 @@ export const ExpensesPage = () => {
                     </table>
                 </div>
             </div>
+
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm">
+                    <div className="text-sm text-muted-foreground">
+                        Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredGroups.length)} of {filteredGroups.length} expenses
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            className="p-2 rounded-lg hover:bg-muted disabled:opacity-50 transition-colors border border-border bg-background"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        <span className="text-sm font-medium px-2">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                            className="p-2 rounded-lg hover:bg-muted disabled:opacity-50 transition-colors border border-border bg-background"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
 
         {reviewModalOpen && reviewingExpense && (
