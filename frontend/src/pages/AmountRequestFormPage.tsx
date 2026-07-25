@@ -7,7 +7,7 @@ import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "..
 import { SearchableObjectSelect } from "../components/common/SearchableObjectSelect";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 
-import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip, Trash2, Loader2 } from "lucide-react";
+import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip, Trash2, Loader2, Search } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 
@@ -25,6 +25,10 @@ const AmountRequestFormPage = () => {
 
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number } | null>(null);
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
 
     // Form State
     const getSavedDefault = (key: string) => {
@@ -55,6 +59,28 @@ const AmountRequestFormPage = () => {
     const isDirector = user?.email?.toLowerCase() === "shahbaz.ali@mytecheng.com" || hasRole(["CEO", "Project Director"]);
     const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["CEO", "Project Director"]);
     const isAccounts = hasRole(["CEO", "Accounts Head", "Project Director"]); 
+    const isAdmin = hasRole(["Admin", "CEO"]) || user?.email === "munawar.hasan@mytecheng.com";
+
+    const filteredForms = React.useMemo(() => {
+        let result = forms;
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(f => 
+                (f.employeeName && f.employeeName.toLowerCase().includes(query)) ||
+                (f.arfNumber && f.arfNumber.toLowerCase().includes(query)) ||
+                (f.purposeOfAdvance && f.purposeOfAdvance.toLowerCase().includes(query)) ||
+                (f.status && f.status.toLowerCase().includes(query))
+            );
+        }
+        return result;
+    }, [forms, searchQuery]);
+
+    const paginatedForms = React.useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        return filteredForms.slice(startIndex, startIndex + pageSize);
+    }, [filteredForms, currentPage, pageSize]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredForms.length / pageSize));
 
     useEffect(() => {
         fetchData();
@@ -350,9 +376,44 @@ const AmountRequestFormPage = () => {
             </div>
 
             {!isFormOpen && !selectedForm && (
-                <div className="bg-card rounded-2xl shadow-sm border border-border/40 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card p-4 rounded-xl border border-border shadow-sm">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="relative flex-1 sm:w-80">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by ARF Number, Employee..."
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className="pl-9 pr-4 py-2 w-full rounded-lg border border-input bg-background focus:ring-1 focus:ring-primary focus:outline-none text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>Show:</span>
+                            <select
+                                value={pageSize}
+                                onChange={(e) => {
+                                    setPageSize(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
+                                className="p-1 rounded border border-input bg-background focus:ring-1 focus:ring-primary focus:outline-none"
+                            >
+                                <option value={10}>10</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                                <option value={500}>500</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="bg-card rounded-2xl shadow-sm border border-border/40 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-muted/50 text-muted-foreground text-sm border-b border-border/50">
                                     <th className="p-4 font-medium">Employee</th>
@@ -365,13 +426,13 @@ const AmountRequestFormPage = () => {
                             <tbody>
                                 {isLoading ? (
                                     <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Loading requests...</td></tr>
-                                ) : forms.length === 0 ? (
+                                ) : paginatedForms.length === 0 ? (
                                     <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No requests found.</td></tr>
                                 ) : (
-                                    forms.map(form => (
+                                    paginatedForms.map(form => (
                                         <tr key={form.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                                             <td className="p-4">
-                                                <div className="font-medium text-foreground">{form.employeeName}</div>
+                                                <div className="font-medium text-foreground">{form.employeeName} {form.arfNumber ? <span className="ml-2 text-xs font-mono bg-muted px-2 py-0.5 rounded">{form.arfNumber}</span> : null}</div>
                                                 <div className="text-xs text-muted-foreground">{form.purposeOfAdvance.replace(/\s*\[ExpenseId:\d+\]$/, '').substring(0, 30)}...</div>
                                             </td>
                                             <td className="p-4 font-semibold text-primary">{form.advanceRequested.toLocaleString()}</td>
@@ -393,7 +454,7 @@ const AmountRequestFormPage = () => {
                                                 >
                                                     View Details
                                                 </button>
-                                                {(isDirector || isCEO || isAccounts || form.status === "Waiting for Director Approval" || form.status.includes('Rejected')) && (
+                                                {(isAdmin || isDirector || isCEO || isAccounts || form.status === "Waiting for Director Approval" || form.status.includes('Rejected')) && (
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, id: form.id }); }}
                                                         className="text-destructive hover:text-destructive/80 transition-colors"
@@ -409,6 +470,31 @@ const AmountRequestFormPage = () => {
                             </tbody>
                         </table>
                     </div>
+                    {filteredForms.length > 0 && (
+                        <div className="p-4 border-t border-border flex items-center justify-between text-sm">
+                            <div className="text-muted-foreground">
+                                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredForms.length)} of {filteredForms.length} entries
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
+                                >
+                                    Previous
+                                </button>
+                                <span className="text-foreground font-medium">Page {currentPage} of {totalPages}</span>
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
                 </div>
             )}
 
