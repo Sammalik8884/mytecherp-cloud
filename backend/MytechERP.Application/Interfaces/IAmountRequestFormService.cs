@@ -16,5 +16,6 @@ namespace MytechERP.Application.Interfaces
         Task<AmountRequestFormDto> AddPaymentAsync(int id, CreateAmountRequestPaymentDto dto);
         Task<AmountRequestFormDto> UploadAttachmentAsync(int id, Microsoft.AspNetCore.Http.IFormFile file);
         Task DeleteAsync(int id);
+        Task BulkDeleteAsync(List<int> ids);
     }
 }

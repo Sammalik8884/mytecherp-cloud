@@ -491,9 +491,11 @@ namespace MyTechERP.Infrastructure.Services
                 var isManagerOrAdmin = _currentUserService.Roles.Contains("Manager") || 
                                        _currentUserService.Roles.Contains("Admin") ||
                                        _currentUserService.Roles.Contains("Project Director") ||
+                                       _currentUserService.Roles.Contains("CEO") ||
                                        designation == "manager" || 
                                        designation == "project director" ||
-                                       designation == "director";
+                                       designation == "director" ||
+                                       designation == "ceo";
 
                 if (!isManagerOrAdmin)
                 {
@@ -506,6 +508,36 @@ namespace MyTechERP.Infrastructure.Services
                 entity.IsDeleted = true;
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task BulkDeleteAsync(List<int> ids)
+        {
+            var userId = _currentUserService.UserId;
+            var currentUser = await _context.Users.FindAsync(userId);
+            var designation = currentUser?.Designation?.ToLower() ?? "";
+
+            var isManagerOrAdmin = _currentUserService.Roles.Contains("Manager") || 
+                                   _currentUserService.Roles.Contains("Admin") ||
+                                   _currentUserService.Roles.Contains("Project Director") ||
+                                   _currentUserService.Roles.Contains("CEO") ||
+                                   designation == "manager" || 
+                                   designation == "project director" ||
+                                   designation == "director" ||
+                                   designation == "ceo";
+
+            var entities = await _context.AmountRequestForms.Where(a => ids.Contains(a.Id)).ToListAsync();
+            foreach (var entity in entities)
+            {
+                if (!isManagerOrAdmin)
+                {
+                    if (entity.Status != "Waiting for Director Approval" && !entity.Status.Contains("Rejected"))
+                    {
+                        throw new Exception($"You cannot delete ARF #{entity.Id} because it has already been approved or processed.");
+                    }
+                }
+                entity.IsDeleted = true;
+            }
+            await _context.SaveChangesAsync();
         }
 
         private async Task SendFaisalArfEmailAsync(AmountRequestForm entity, string subjectTemplate)

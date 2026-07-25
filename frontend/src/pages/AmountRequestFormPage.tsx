@@ -24,7 +24,8 @@ const AmountRequestFormPage = () => {
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
 
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
-    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number } | null>(null);
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; mode: 'single' | 'bulk'; id?: number } | null>(null);
+    const [selectedForms, setSelectedForms] = useState<Set<number>>(new Set());
 
     const [searchQuery, setSearchQuery] = useState("");
     const [pageSize, setPageSize] = useState<number>(10);
@@ -207,12 +208,18 @@ const AmountRequestFormPage = () => {
         if (!deleteModal) return;
         setIsSubmitting(true);
         try {
-            await amountRequestApi.delete(deleteModal.id);
-            toast.success("Request deleted successfully");
+            if (deleteModal.mode === 'bulk') {
+                await amountRequestApi.bulkDelete(Array.from(selectedForms));
+                toast.success("Requests deleted successfully");
+                setSelectedForms(new Set());
+            } else if (deleteModal.id) {
+                await amountRequestApi.delete(deleteModal.id);
+                toast.success("Request deleted successfully");
+            }
             setDeleteModal(null);
             fetchData();
         } catch (error: any) {
-            toast.error(error.response?.data || "Failed to delete request");
+            toast.error(error.response?.data || "Failed to delete request(s)");
         } finally {
             setIsSubmitting(false);
         }
@@ -365,13 +372,24 @@ const AmountRequestFormPage = () => {
                         </span>
                     </div>
                 ) : (
-                    <button
-                        onClick={() => { resetForm(); setIsFormOpen(true); }}
-                        className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl transition-colors font-medium shadow-sm shadow-primary/20"
-                    >
-                        <Plus className="h-5 w-5" />
-                        <span>New Request</span>
-                    </button>
+                    <div className="flex items-center space-x-3">
+                        {isAdmin && selectedForms.size > 0 && (
+                            <button
+                                onClick={() => setDeleteModal({ isOpen: true, mode: 'bulk' })}
+                                className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition-colors shadow-sm font-medium"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                <span>Delete Selected ({selectedForms.size})</span>
+                            </button>
+                        )}
+                        <button
+                            onClick={() => { resetForm(); setIsFormOpen(true); }}
+                            className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl transition-colors font-medium shadow-sm shadow-primary/20"
+                        >
+                            <Plus className="h-5 w-5" />
+                            <span>New Request</span>
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -416,6 +434,22 @@ const AmountRequestFormPage = () => {
                             <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-muted/50 text-muted-foreground text-sm border-b border-border/50">
+                                    {isAdmin && (
+                                        <th className="p-4 font-medium w-10">
+                                            <input 
+                                                type="checkbox"
+                                                className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                                                checked={paginatedForms.length > 0 && selectedForms.size === paginatedForms.length}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedForms(new Set(paginatedForms.map(f => f.id)));
+                                                    } else {
+                                                        setSelectedForms(new Set());
+                                                    }
+                                                }}
+                                            />
+                                        </th>
+                                    )}
                                     <th className="p-4 font-medium">Employee</th>
                                     <th className="p-4 font-medium">Amount</th>
                                     <th className="p-4 font-medium">Date Required</th>
@@ -431,6 +465,25 @@ const AmountRequestFormPage = () => {
                                 ) : (
                                     paginatedForms.map(form => (
                                         <tr key={form.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                                            {isAdmin && (
+                                                <td className="p-4">
+                                                    <input 
+                                                        type="checkbox"
+                                                        className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                                                        checked={selectedForms.has(form.id)}
+                                                        onChange={(e) => {
+                                                            const newSelected = new Set(selectedForms);
+                                                            if (e.target.checked) {
+                                                                newSelected.add(form.id);
+                                                            } else {
+                                                                newSelected.delete(form.id);
+                                                            }
+                                                            setSelectedForms(newSelected);
+                                                        }}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                </td>
+                                            )}
                                             <td className="p-4">
                                                 <div className="font-medium text-foreground">{form.employeeName} {form.arfNumber ? <span className="ml-2 text-xs font-mono bg-muted px-2 py-0.5 rounded">{form.arfNumber}</span> : null}</div>
                                                 <div className="text-xs text-muted-foreground">{form.purposeOfAdvance.replace(/\s*\[ExpenseId:\d+\]$/, '').substring(0, 30)}...</div>
@@ -456,7 +509,7 @@ const AmountRequestFormPage = () => {
                                                 </button>
                                                 {(isAdmin || isDirector || isCEO || isAccounts || form.status === "Waiting for Director Approval" || form.status.includes('Rejected')) && (
                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, id: form.id }); }}
+                                                        onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, mode: 'single', id: form.id }); }}
                                                         className="text-destructive hover:text-destructive/80 transition-colors"
                                                         title="Delete Request"
                                                     >
@@ -911,7 +964,7 @@ const AmountRequestFormPage = () => {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-200 p-4">
                     <div className="bg-card border border-border/50 rounded-2xl shadow-2xl p-6 w-full max-w-md animate-in zoom-in-95 duration-200">
                         <h3 className="text-xl font-bold text-foreground mb-4">Confirm Deletion</h3>
-                        <p className="text-muted-foreground mb-6">Are you sure you want to delete this amount request? This action cannot be undone.</p>
+                        <p className="text-muted-foreground mb-6">Are you sure you want to delete {deleteModal.mode === 'bulk' ? `these ${selectedForms.size} requests` : 'this amount request'}? This action cannot be undone.</p>
                         <div className="flex justify-end space-x-3">
                             <button
                                 onClick={() => setDeleteModal(null)}

@@ -160,5 +160,19 @@ namespace MytechERP.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPost("bulk-delete")]
+        public async Task<IActionResult> BulkDelete([FromBody] List<int> ids)
+        {
+            try
+            {
+                await _service.BulkDeleteAsync(ids);
+                return NoContent();
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
