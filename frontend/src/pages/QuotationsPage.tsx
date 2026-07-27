@@ -28,8 +28,9 @@ export const QuotationsPage = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<TabKey>('all');
     const isHuzefa = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com';
+    const isAliAzeem = user?.email?.toLowerCase() === 'ali.azeem@mytecheng.com';
 
-    const TABS: { key: TabKey; label: string }[] = isHuzefa 
+    const TABS: { key: TabKey; label: string }[] = (isHuzefa || isAliAzeem) 
         ? [
             { key: 'all',             label: 'All' },
             { key: 'draft',           label: 'Draft' },
@@ -346,7 +347,7 @@ export const QuotationsPage = () => {
                                                             <button onClick={() => handleSendToSalesman(quote.id)} title="Send to Salesman" className="p-2 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
                                                         </>
                                                     )}
-                                                    {normalizeStatus(quote.status) === 'pendingapproval' && isHuzefa && (
+                                                    {normalizeStatus(quote.status) === 'pendingapproval' && (isHuzefa || isAliAzeem) && (
                                                         <>
                                                             <button onClick={() => handleApprove(quote.id)} title="Approve" className="p-2 text-muted-foreground hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"><CheckCircle className="h-4 w-4" /></button>
                                                             <button onClick={() => handleReject(quote.id)} title="Reject" className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><XCircle className="h-4 w-4" /></button>
