@@ -120,10 +120,10 @@ export const BoqDrawingsPortalPage = () => {
                 const isEstOrDir = u.roles?.includes('Estimation') || u.roles?.includes('Project Director');
                 const currentUserEmail = user?.email?.toLowerCase();
                 
-                // Huzefa can assign to Ali and Riffat, but NOT himself (and hide Shahbaz)
+                // Huzefa can assign to anyone (including himself), we just hide shahbaz.ali just in case
                 if (currentUserEmail === 'm.huzefa@mytecheng.com') {
                     const email = u.email?.toLowerCase();
-                    if (email === 'm.huzefa@mytecheng.com' || email === 'shahbaz.ali@mytecheng.com') {
+                    if (email === 'shahbaz.ali@mytecheng.com') {
                         return false;
                     }
                 }
