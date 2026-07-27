@@ -73,7 +73,7 @@ export const ExpensesPage = () => {
                 if (e.amountRequestFormId) {
                     const arfId = e.amountRequestFormId;
                     const excessItemsAmount = e.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + (Number(item.amount) || 0), 0) || 0;
-                    if (e.status !== "Rejected") {
+                    if (e.status === "Accepted") {
                         totals[arfId] = (totals[arfId] || 0) + (Number(e.totalExpenseAmount) || 0) + excessItemsAmount;
                     }
                     
