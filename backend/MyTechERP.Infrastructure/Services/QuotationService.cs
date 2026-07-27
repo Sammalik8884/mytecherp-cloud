@@ -339,7 +339,8 @@ namespace MyTechERP.Infrastructure.Services
             var userRoles = _currentUserService.Roles?.ToList() ?? new List<string>();
 
             bool isAdminOrHuzefa = userRoles.Contains("Admin") || userRoles.Contains("Manager")
-                || string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase);
+                || string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(userEmail, "ali.azeem@mytecheng.com", StringComparison.OrdinalIgnoreCase);
 
             var allQuotes = await _context.Quotations
                 .Include(q => q.Customer)
