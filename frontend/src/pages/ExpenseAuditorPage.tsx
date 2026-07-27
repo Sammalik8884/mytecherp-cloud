@@ -140,12 +140,13 @@ export const ExpenseAuditorPage = () => {
 
         // 2. Map ARFs to Expenses
         const records: AuditRecord[] = filteredArfs.map(arf => {
-            let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id && e.status === "Accepted").map(e => ({...e}));
+            let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id).map(e => ({...e}));
             let totalExpenseAmount = connectedExpenses
+                .filter(e => e.status !== "Rejected")
                 .reduce((sum, e) => sum + e.totalExpenseAmount, 0);
 
             // Add unallocated excess to this ARF's total (any excess that hasn't been claimed by an Excess ARF yet)
-            connectedExpenses.forEach(e => {
+            connectedExpenses.filter(e => e.status !== "Rejected").forEach(e => {
                 let unallocatedExcess = 0;
                 if (remainingExcessByExpense[e.id] !== undefined) {
                     unallocatedExcess = remainingExcessByExpense[e.id];
@@ -553,6 +554,9 @@ export const ExpenseAuditorPage = () => {
                                                             Expense ID: {expense.id}
                                                             {((expense as any).isExcessConnection || expense.items?.some((i: any) => i.isExcess)) && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Contains Excess Items</span>}
                                                             {expense.status === "Rejected" && <span className="ml-2 text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">Rejected</span>}
+                                                            {(!expense.status || expense.status === "Pending") && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Pending</span>}
+                                                            {expense.status === "Reviewed" && <span className="ml-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">Reviewed</span>}
+                                                            {expense.status === "Accepted" && <span className="ml-2 text-xs font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Accepted</span>}
                                                         </p>
                                                         <p className="text-xs text-muted-foreground ml-6">
                                                             Created by: {expense.createdByEmail} • 
