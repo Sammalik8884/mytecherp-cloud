@@ -335,12 +335,12 @@ namespace MyTechERP.Infrastructure.Services
         public async Task<IEnumerable<QuotationDto>> GetAllQuotesAsync()
         {
             var userId = _currentUserService.UserId;
-            var userEmail = _currentUserService.Email;
+            var userEmail = _currentUserService.Email ?? "";
             var userRoles = _currentUserService.Roles?.ToList() ?? new List<string>();
 
-            bool isAdminOrHuzefa = userRoles.Contains("Admin") || userRoles.Contains("Manager")
-                || string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(userEmail, "ali.azeem@mytecheng.com", StringComparison.OrdinalIgnoreCase);
+            bool isAdmin = userRoles.Contains("Admin") || userRoles.Contains("Manager");
+            bool isHuzefa = string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase);
+            bool isAliAzeem = string.Equals(userEmail, "ali.azeem@mytecheng.com", StringComparison.OrdinalIgnoreCase);
 
             var allQuotes = await _context.Quotations
                 .Include(q => q.Customer)
@@ -350,7 +350,22 @@ namespace MyTechERP.Infrastructure.Services
 
             IEnumerable<Quotation> filtered;
 
-            if (isAdminOrHuzefa)
+            var riffatUser = await _userManager.FindByEmailAsync("riffat.nazir@mytecheng.com");
+            var aliUser = await _userManager.FindByEmailAsync("ali.azeem@mytecheng.com");
+            var riffatId = riffatUser?.Id;
+            var aliId = aliUser?.Id;
+
+            if (isAliAzeem)
+            {
+                // Ali sees his own and Riffat's
+                filtered = allQuotes.Where(q => q.CreatedByUserId == userId || (riffatId != null && q.CreatedByUserId == riffatId));
+            }
+            else if (isHuzefa)
+            {
+                // Huzefa sees all quotes EXCEPT Ali's and Riffat's
+                filtered = allQuotes.Where(q => q.CreatedByUserId != aliId && q.CreatedByUserId != riffatId);
+            }
+            else if (isAdmin)
             {
                 filtered = allQuotes;
             }
