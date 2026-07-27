@@ -211,15 +211,21 @@ export const ExpenseAuditorPage = () => {
             };
         });
 
+        // Filter out unreleased ARFs that have no connected expenses
+        const finalRecords = records.filter(r => 
+            r.expenses.length > 0 || 
+            (r.arf.status && r.arf.status.includes("Released"))
+        );
+
         // Group excess ARFs under their original ARFs
         const topLevelRecords: AuditRecord[] = [];
         const recordsById = new Map<number, AuditRecord>();
 
-        records.forEach(r => {
+        finalRecords.forEach(r => {
             recordsById.set(r.arf.id, r);
         });
 
-        records.forEach(r => {
+        finalRecords.forEach(r => {
             const originalArfMatch = r.arf.purposeOfAdvance?.match(/\[OriginalArfId:(\d+)\]/);
             if (originalArfMatch) {
                 const originalArfId = Number(originalArfMatch[1]);
