@@ -140,13 +140,12 @@ export const ExpenseAuditorPage = () => {
 
         // 2. Map ARFs to Expenses
         const records: AuditRecord[] = filteredArfs.map(arf => {
-            let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id).map(e => ({...e}));
+            let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id && e.status === "Accepted").map(e => ({...e}));
             let totalExpenseAmount = connectedExpenses
-                .filter(e => e.status !== "Rejected")
                 .reduce((sum, e) => sum + e.totalExpenseAmount, 0);
 
             // Add unallocated excess to this ARF's total (any excess that hasn't been claimed by an Excess ARF yet)
-            connectedExpenses.filter(e => e.status !== "Rejected").forEach(e => {
+            connectedExpenses.forEach(e => {
                 let unallocatedExcess = 0;
                 if (remainingExcessByExpense[e.id] !== undefined) {
                     unallocatedExcess = remainingExcessByExpense[e.id];
