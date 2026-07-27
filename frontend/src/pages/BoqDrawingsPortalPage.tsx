@@ -64,7 +64,12 @@ export const BoqDrawingsPortalPage = () => {
                 
                 if (isSuperAssigner) return true;
                 
-                // If regular assigner (Huzefa or Ali), only see leads they created or leads assigned to them
+                // Huzefa can see all BOQ leads to assign and track them
+                if (user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com') {
+                    return true;
+                }
+                
+                // If regular assigner (Ali), only see leads they created or leads assigned to them
                 if (isRegularAssigner && myUserId) {
                     if (l.salesmanUserId === myUserId || l.assignedEstimatorId === myUserId) return true;
                 }
@@ -113,16 +118,18 @@ export const BoqDrawingsPortalPage = () => {
             // Filter to only Estimation or Managers
             const eligibleUsers = users.filter((u: any) => {
                 const isEstOrDir = u.roles?.includes('Estimation') || u.roles?.includes('Project Director');
-                // Hide ali.azeem and shahbaz.ali from m.huzefa
-                if (user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com') {
+                const currentUserEmail = user?.email?.toLowerCase();
+                
+                // Huzefa can assign to Ali and Riffat, but NOT himself (and hide Shahbaz)
+                if (currentUserEmail === 'm.huzefa@mytecheng.com') {
                     const email = u.email?.toLowerCase();
-                    if (email === 'ali.azeem@mytecheng.com' || email === 'shahbaz.ali@mytecheng.com') {
+                    if (email === 'm.huzefa@mytecheng.com' || email === 'shahbaz.ali@mytecheng.com') {
                         return false;
                     }
                 }
                 
-                // If user is ali.azeem, he can ONLY assign to riffat.nazir or himself
-                if (user?.email?.toLowerCase() === 'ali.azeem@mytecheng.com') {
+                // Ali can ONLY assign to Riffat or himself
+                if (currentUserEmail === 'ali.azeem@mytecheng.com') {
                     const email = u.email?.toLowerCase();
                     if (email !== 'riffat.nazir@mytecheng.com' && email !== 'ali.azeem@mytecheng.com') {
                         return false;
@@ -156,6 +163,14 @@ export const BoqDrawingsPortalPage = () => {
             return (
                 <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30">
                     Quote Generated
+                </span>
+            );
+        }
+        if (lead.assignedEstimatorName) {
+            const shortName = lead.assignedEstimatorName.split(' ')[0].toLowerCase();
+            return (
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                    At {shortName}
                 </span>
             );
         }
