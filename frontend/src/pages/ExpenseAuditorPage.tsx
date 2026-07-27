@@ -52,7 +52,7 @@ export const ExpenseAuditorPage = () => {
         try {
             setIsLoading(true);
             const [historyRes, expensesRes, officesRes, sitesRes, usersRes] = await Promise.all([
-                amountRequestApi.getHistoryForAccounts(), // Fetches all completed/released ARFs
+                amountRequestApi.getAll(), // Fetches all ARFs instead of just completed/released ones
                 expenseApi.getAll(),
                 officeApi.getAll(),
                 siteService.getAll(),
