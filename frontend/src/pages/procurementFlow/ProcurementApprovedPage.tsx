@@ -43,7 +43,7 @@ const ProcurementApprovedPage: React.FC = () => {
         const purpose = encodeURIComponent(`Procurement for Request ${p.procurementNumber}`);
         const selectedQuote = p.quotes?.find(q => q.isSelected);
         const amount = selectedQuote ? selectedQuote.totalAmount : 0;
-        navigate(`/amount-request?action=generateFromProcurement&procurementId=${p.id}&siteId=${p.siteId}&purpose=${purpose}&amount=${amount}`);
+        navigate(`/amount-request?action=generateFromProcurement&procurementId=${p.id}&amount=${amount}&purpose=${purpose}${p.siteId ? `&siteId=${p.siteId}` : ''}`);
     };
 
     const openAssignModal = (id: number) => {
