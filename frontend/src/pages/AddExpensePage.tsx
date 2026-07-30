@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { siteService } from "../services/siteService";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi, ExpenseDto, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
@@ -7,7 +8,7 @@ import { SiteDto } from "../types/site";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import toast from "react-hot-toast";
-import { Check, Plus, Trash2, X, AlertCircle, Info, ExternalLink, Paperclip } from "lucide-react";
+import { Check, Plus, Trash2, X, AlertCircle, Info, ExternalLink, Paperclip, Download } from "lucide-react";
 import dayjs from "dayjs";
 import { SearchableObjectSelect } from "../components/common/SearchableObjectSelect";
 
@@ -20,6 +21,15 @@ export const AddExpensePage = () => {
     const isLocked = isEditMode && expenseStatus !== null && expenseStatus !== "Rejected";
 
     const { user } = useAuth();
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    const openAttachment = (url: string) => {
+        if (/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i.test(url)) {
+            setSelectedImage(url);
+        } else {
+            window.open(url, '_blank');
+        }
+    };
     
     const [showExcessModal, setShowExcessModal] = useState(false);
     const [excessItemIndices, setExcessItemIndices] = useState<number[]>([]);
@@ -696,14 +706,14 @@ export const AddExpensePage = () => {
                                     <td className="px-1 py-1 text-center">
                                         <div className="flex flex-wrap items-center justify-center gap-1 max-w-[100px]">
                                             {row.fileUrl && (
-                                                <a href={row.fileUrl} target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80" title="View Attachment">
+                                                <button type="button" onClick={() => openAttachment(row.fileUrl!)} className="text-primary hover:text-primary/80" title="View Attachment">
                                                     <ExternalLink className="h-4 w-4" />
-                                                </a>
+                                                </button>
                                             )}
                                             {row.attachments?.map((url: string, i: number) => (
-                                                <a key={i} href={url} target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80" title={`View Attachment ${i + 1}`}>
+                                                <button type="button" key={i} onClick={() => openAttachment(url)} className="text-primary hover:text-primary/80" title={`View Attachment ${i + 1}`}>
                                                     <ExternalLink className="h-4 w-4" />
-                                                </a>
+                                                </button>
                                             ))}
                                             {!isLocked && (
                                                 <label className="cursor-pointer text-muted-foreground hover:text-primary transition-colors ml-1" title="Upload Attachments">
@@ -768,5 +778,43 @@ export const AddExpensePage = () => {
                 </div>
             </div>
         </div>
+
+        {selectedImage && createPortal(
+            <div
+                className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
+                onClick={() => setSelectedImage(null)}
+            >
+                <div
+                    className="relative max-w-7xl max-h-[90vh] w-full flex items-center justify-center bg-black rounded-lg overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => setSelectedImage(null)}
+                        className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors z-10"
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
+
+                    <a
+                        href={selectedImage}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute top-4 right-16 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors z-10 flex items-center gap-2 px-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Download className="h-4 w-4" />
+                        <span className="text-sm font-medium">Download</span>
+                    </a>
+
+                    <img
+                        src={selectedImage}
+                        alt="Expense Attachment Preview"
+                        className="max-w-full max-h-[90vh] object-contain"
+                    />
+                </div>
+            </div>,
+            document.body
+        )}
     );
 };
