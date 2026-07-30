@@ -372,8 +372,16 @@ export const QuotationFormPage = () => {
 
                     setImportedItems(imp);
                     setLocalItems(loc);
-                    setImportedServiceItems(impSrv);
-                    setLocalServiceItems(locSrv);
+                    // Link saved service rows to their parent items by position so the
+                    // sync useEffect does not create duplicate rows on load.
+                    setImportedServiceItems(impSrv.map((srv, idx) => ({
+                        ...srv,
+                        linkedId: imp[idx]?.id ?? srv.linkedId
+                    })));
+                    setLocalServiceItems(locSrv.map((srv, idx) => ({
+                        ...srv,
+                        linkedId: loc[idx]?.id ?? srv.linkedId
+                    })));
 
                 } else if (leadIdParam) {
                     const leadData = await salesService.getLead(Number(leadIdParam)).catch(() => null);
