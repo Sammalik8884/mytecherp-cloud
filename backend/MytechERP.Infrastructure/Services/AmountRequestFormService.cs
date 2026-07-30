@@ -217,7 +217,8 @@ namespace MyTechERP.Infrastructure.Services
                             _currentUserService.Roles.Contains("Project Director") ||
                             designation == "manager" || 
                             designation == "project director" ||
-                            designation == "director";
+                            designation == "director" ||
+                            currentUser?.Email?.ToLower() == "shahbaz.ali@mytecheng.com";
 
             var entity = new AmountRequestForm
             {
@@ -232,7 +233,7 @@ namespace MyTechERP.Infrastructure.Services
                 CustomSiteName = dto.CustomSiteName,
                 ClientName = dto.ClientName,
                 PurposeOfAdvance = dto.PurposeOfAdvance,
-                Status = isManager ? "Approved - Ready for Accounts" : "Waiting for Director Approval"
+                Status = isManager ? "Waiting for CEO Approval" : "Waiting for Director Approval"
             };
 
             _context.AmountRequestForms.Add(entity);
@@ -282,13 +283,39 @@ namespace MyTechERP.Infrastructure.Services
             }
             else
             {
-                // Send Email to Accounts Head
-                await SendFaisalArfEmailAsync(entity, $"An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} (Manager) has been created and is automatically approved, ready for release.");
+                // Auto-approved by Director, now it goes to CEO
+                try
+                {
+                    string subject = $"Amount Advance Request Approval Required - {entity.EmployeeName}";
+                    string body = $"<p>An amount advance request of {entity.AdvanceRequested} by {entity.EmployeeName} has been automatically approved by the Director and requires your approval.</p><p><strong>Account Details:</strong> {entity.AccountDetail}</p><br/><p><a href=\"https://mytecherp.com/login\">Click here to log in to the system</a></p>";
+                    await _emailService.SendEmailAsync("munawar.hasan@mytecheng.com", subject, body);
+                }
+                catch (Exception) { }
 
-                // In-App notification to Faisal Ghani (Accounts Head)
+                // In-App notification to CEO (munawar.hasan)
+                try
+                {
+                    var ceo = await _userManager.FindByEmailAsync("munawar.hasan@mytecheng.com");
+                    if (ceo != null)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            userId: ceo.Id,
+                            title: "ARF Pending Your Approval",
+                            message: $"ARF {entity.ArfNumber} by {entity.EmployeeName} (Rs {entity.AdvanceRequested}) has been automatically approved by the Director and is awaiting your approval.",
+                            type: "ARF",
+                            targetId: entity.Id
+                        );
+                    }
+                }
+                catch (Exception) { }
+
+                // --- Notify Faisal Ghani for info only ---
+                await SendFaisalArfEmailAsync(entity, $"A new amount advance request of {entity.AdvanceRequested} has been submitted by {entity.EmployeeName}. This is for your information only; it is currently waiting for CEO approval.");
+
+                // In-App notification to Faisal Ghani
                 await NotifyAuditorsAsync(
-                    "ARF Ready for Release",
-                    $"{entity.EmployeeName} submitted ARF {entity.ArfNumber} for Rs {entity.AdvanceRequested}. Auto-approved — ready for your release.",
+                    "Amount Request Notification",
+                    $"{entity.EmployeeName} submitted ARF {entity.ArfNumber} for Rs {entity.AdvanceRequested}. Awaiting CEO approval.",
                     entity.Id
                 );
             }
