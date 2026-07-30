@@ -171,16 +171,16 @@ export const UsersPage = () => {
                 </button>
             </div>
 
-            <div className="bg-secondary/30 border border-border/50 rounded-2xl overflow-hidden backdrop-blur-sm shadow-xl">
-                <div className="overflow-x-auto">
+            <div className="bg-secondary/30 border border-border/50 rounded-2xl overflow-visible backdrop-blur-sm shadow-xl">
+                <div className="overflow-visible">
                     <table className="w-full text-sm text-left">
                         <thead className="text-xs text-muted-foreground uppercase bg-secondary/50 border-b border-border/40">
                             <tr>
-                                <th className="px-6 py-4 font-medium">User</th>
+                                <th className="px-6 py-4 font-medium rounded-tl-2xl">User</th>
                                 <th className="px-6 py-4 font-medium">Designation</th>
                                 <th className="px-6 py-4 font-medium">Role(s)</th>
                                 <th className="px-6 py-4 font-medium text-center">Status</th>
-                                <th className="px-6 py-4 font-medium text-right">Actions</th>
+                                <th className="px-6 py-4 font-medium text-right rounded-tr-2xl">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
