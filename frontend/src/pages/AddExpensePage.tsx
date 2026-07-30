@@ -346,6 +346,7 @@ export const AddExpensePage = () => {
 
     return (
         <>
+        <div className="p-6 max-w-[1400px] mx-auto space-y-6">
             {/* Closed ARF Warning Modal */}
             {closedArfWarning?.isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
