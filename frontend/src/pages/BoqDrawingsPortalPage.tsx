@@ -329,34 +329,18 @@ export const BoqDrawingsPortalPage = () => {
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
-                                                {!lead.quotationId ? (
-                                                    lead.assignedEstimatorId ? (
-                                                        // Lead is assigned — show badge + re-assign button for Huzefa
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-medium px-2.5 py-1 rounded-lg">
-                                                                <User className="h-3 w-3" />
-                                                                <span>{lead.assignedEstimatorName || 'Assigned'}</span>
-                                                            </div>
-                                                            {isAssigner && (
-                                                                <button
-                                                                    onClick={() => handleOpenAssignModal(lead)}
-                                                                    className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                                                                    title="Re-assign estimator"
-                                                                >
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                                    </svg>
-                                                                </button>
-                                                            )}
-                                                            <button
-                                                                onClick={() => handleAcceptAndDraft(lead.id)}
-                                                                className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 flex items-center space-x-1.5 text-xs font-medium rounded-lg hover:bg-emerald-500/30 transition-all"
-                                                            >
-                                                                <span>Draft Quote</span>
-                                                                <ChevronRight className="h-3.5 w-3.5" />
-                                                            </button>
-                                                        </div>
-                                                    ) : isAssigner ? (
+
+                                                {/* Assigned Badge */}
+                                                {lead.assignedEstimatorId && (
+                                                    <div className="flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-medium px-2.5 py-1 rounded-lg">
+                                                        <User className="h-3 w-3" />
+                                                        <span>{lead.assignedEstimatorName || 'Assigned'}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Assignment Button */}
+                                                {!lead.assignedEstimatorId ? (
+                                                    isAssigner ? (
                                                         <button
                                                             onClick={() => handleOpenAssignModal(lead)}
                                                             className="bg-primary text-primary-foreground px-3 py-1.5 flex items-center space-x-1.5 text-xs font-medium rounded-lg shadow hover:-translate-y-0.5 transition-all"
@@ -368,13 +352,35 @@ export const BoqDrawingsPortalPage = () => {
                                                         <span className="text-xs text-muted-foreground italic">Awaiting assignment</span>
                                                     )
                                                 ) : (
-                                                    <button
-                                                        onClick={() => navigate(`/quotations/edit/${lead.quotationId}`)}
-                                                        className="bg-purple-500/20 text-purple-400 border border-purple-500/30 px-3 py-1.5 flex items-center space-x-1.5 text-xs font-medium rounded-lg hover:bg-purple-500/30 transition-all"
-                                                    >
-                                                        <span>View Quotation</span>
-                                                        <ChevronRight className="h-3.5 w-3.5" />
-                                                    </button>
+                                                    isAssigner && (
+                                                        <button
+                                                            onClick={() => handleOpenAssignModal(lead)}
+                                                            className="bg-secondary text-foreground border border-border/50 px-3 py-1.5 flex items-center space-x-1.5 text-xs font-medium rounded-lg hover:bg-secondary/80 transition-all"
+                                                        >
+                                                            <span>Re-assign</span>
+                                                        </button>
+                                                    )
+                                                )}
+
+                                                {/* Draft / View Quotation Button */}
+                                                {lead.assignedEstimatorId && (
+                                                    !lead.quotationId ? (
+                                                        <button
+                                                            onClick={() => handleAcceptAndDraft(lead.id)}
+                                                            className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 flex items-center space-x-1.5 text-xs font-medium rounded-lg hover:bg-emerald-500/30 transition-all"
+                                                        >
+                                                            <span>Draft Quote</span>
+                                                            <ChevronRight className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => navigate(`/quotations/edit/${lead.quotationId}`)}
+                                                            className="bg-purple-500/20 text-purple-400 border border-purple-500/30 px-3 py-1.5 flex items-center space-x-1.5 text-xs font-medium rounded-lg hover:bg-purple-500/30 transition-all"
+                                                        >
+                                                            <span>View Quotation</span>
+                                                            <ChevronRight className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    )
                                                 )}
                                             </div>
                                         </td>
