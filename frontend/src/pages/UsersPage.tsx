@@ -10,6 +10,8 @@ export const UsersPage = () => {
     const [regions, setRegions] = useState<string[]>([]);
     const [customRegion, setCustomRegion] = useState("");
     const [isAddingCustomRegion, setIsAddingCustomRegion] = useState(false);
+    const [customSite, setCustomSite] = useState("");
+    const [isAddingCustomSite, setIsAddingCustomSite] = useState(false);
     const [loading, setLoading] = useState(true);
 
     // Modal State
@@ -388,20 +390,79 @@ export const UsersPage = () => {
                                         <p className="text-xs text-red-500 mt-1">Please select at least one role.</p>
                                     )}
                                 </div>
-                                {formData.roles.includes("Procurement Executive") && (
+                                {(formData.roles.includes("Procurement Executive") || formData.roles.includes("Site Supervisor")) && (
                                     <div>
                                         <label className="text-xs font-semibold text-muted-foreground mb-1 block">Assign Site *</label>
-                                        <select
-                                            required
-                                            value={formData.siteId}
-                                            onChange={e => setFormData({ ...formData, siteId: e.target.value })}
-                                            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
-                                        >
-                                            <option value="" disabled>Select a site...</option>
-                                            {sites.map(site => (
-                                                <option key={site.id} value={site.id}>{site.name}</option>
-                                            ))}
-                                        </select>
+                                        {!isAddingCustomSite ? (
+                                            <div className="flex gap-2">
+                                                <select
+                                                    required
+                                                    value={formData.siteId}
+                                                    onChange={e => {
+                                                        if (e.target.value === "ADD_CUSTOM") {
+                                                            setIsAddingCustomSite(true);
+                                                        } else {
+                                                            setFormData({ ...formData, siteId: e.target.value });
+                                                        }
+                                                    }}
+                                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                                >
+                                                    <option value="" disabled>Select a site...</option>
+                                                    {sites.map(site => (
+                                                        <option key={site.id} value={site.id}>{site.name}</option>
+                                                    ))}
+                                                    <option value="ADD_CUSTOM" className="font-semibold text-primary">+ Add Custom Site</option>
+                                                </select>
+                                            </div>
+                                        ) : (
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={customSite}
+                                                    onChange={e => setCustomSite(e.target.value)}
+                                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                                    placeholder="Enter custom site name"
+                                                    autoFocus
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        if (!customSite.trim()) return;
+                                                        try {
+                                                            const apiClient = (await import("../services/apiClient")).apiClient;
+                                                            const res = await apiClient.post('/Sites', {
+                                                                name: customSite,
+                                                                address: "",
+                                                                city: "",
+                                                                customerId: 0
+                                                            });
+                                                            toast.success("Site added");
+                                                            const newSiteId = res.data.id;
+                                                            const newSiteObj = { id: newSiteId, name: customSite };
+                                                            setSites([...sites, newSiteObj]);
+                                                            setFormData({ ...formData, siteId: newSiteId.toString() });
+                                                            setIsAddingCustomSite(false);
+                                                            setCustomSite("");
+                                                        } catch (error) {
+                                                            toast.error("Failed to add custom site");
+                                                        }
+                                                    }}
+                                                    className="bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary/90"
+                                                >
+                                                    Save
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setIsAddingCustomSite(false);
+                                                        setCustomSite("");
+                                                    }}
+                                                    className="px-3 py-2 rounded-lg text-sm border border-border hover:bg-secondary"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 {formData.roles.includes("Regional Head") && (
