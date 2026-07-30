@@ -15,6 +15,9 @@ export const AddExpensePage = () => {
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
     const navigate = useNavigate();
+    const [expenseStatus, setExpenseStatus] = useState<string | null>(null);
+    // Page is locked (read-only) only when viewing a non-rejected existing expense
+    const isLocked = isEditMode && expenseStatus !== null && expenseStatus !== "Rejected";
 
     const { user } = useAuth();
     
@@ -86,6 +89,7 @@ export const AddExpensePage = () => {
 
             if (isEditMode && id) {
                 const expense = await expenseApi.getById(Number(id));
+                setExpenseStatus(expense.status || "Pending");
                 if (expense.officeId) {
                     setLocationType('office');
                     setSelectedOfficeId(expense.officeId);
@@ -480,7 +484,7 @@ export const AddExpensePage = () => {
 
             <div className={`bg-card border border-border rounded-xl p-6 shadow-sm`}>
                 <h1 className={`text-2xl font-bold tracking-tight mb-6 text-center py-3 rounded-lg bg-muted/30 text-muted-foreground/80`}>
-                    {isEditMode ? "Edit Expense Details" : "Expense Details"}
+                    {isLocked ? "View Expense Details" : isEditMode ? "Resubmit Expense" : "Expense Details"}
                 </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -491,9 +495,10 @@ export const AddExpensePage = () => {
                                 <input 
                                     type="radio" 
                                     name="locationType" 
-                                    className="text-primary focus:ring-primary"
+                                    className="text-primary focus:ring-primary disabled:opacity-50"
                                     checked={locationType === 'site'} 
                                     onChange={() => setLocationType('site')} 
+                                    disabled={isLocked}
                                 />
                                 <span className="text-sm font-medium">Site / Project</span>
                             </label>
@@ -501,9 +506,10 @@ export const AddExpensePage = () => {
                                 <input 
                                     type="radio" 
                                     name="locationType" 
-                                    className="text-primary focus:ring-primary"
+                                    className="text-primary focus:ring-primary disabled:opacity-50"
                                     checked={locationType === 'office'} 
                                     onChange={() => setLocationType('office')} 
+                                    disabled={isLocked}
                                 />
                                 <span className="text-sm font-medium">Office</span>
                             </label>
@@ -516,14 +522,16 @@ export const AddExpensePage = () => {
                                     value={selectedSiteId}
                                     onChange={(val) => setSelectedSiteId(val === "" ? "" : Number(val))}
                                     placeholder="-- Select a Site --"
+                                    disabled={isLocked}
                                 />
                             </div>
                         ) : (
                             <div className="space-y-2">
                                 <select 
-                                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                                     value={selectedOfficeId}
                                     onChange={(e) => setSelectedOfficeId(e.target.value ? Number(e.target.value) : "")}
+                                    disabled={isLocked}
                                 >
                                     <option value="">-- Select an Office --</option>
                                     {offices.map((o: any) => (
@@ -539,10 +547,10 @@ export const AddExpensePage = () => {
                             <label className="text-sm font-medium">Select Approved ARF *</label>
                             <div className={`relative rounded-md transition-colors ${arfBoxClass}`}>
                                 <select 
-                                    className="w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm focus:outline-none appearance-none"
+                                    className="w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm focus:outline-none appearance-none disabled:opacity-50"
                                     value={selectedArfId}
                                     onChange={(e) => handleArfSelect(e.target.value)}
-                                    disabled={isAmountEqual && selectedArfId !== ""}
+                                    disabled={isLocked || (isAmountEqual && selectedArfId !== "")}
                                 >
                                     <option value="">-- Select an ARF --</option>
                                     {arfs.map((a: any) => (
@@ -614,7 +622,7 @@ export const AddExpensePage = () => {
                                 <th className="px-2 py-2 border-b border-border min-w-[100px]">Amount</th>
                                 <th className="px-2 py-2 border-b border-border min-w-[140px]">Remarks</th>
                                 <th className="px-2 py-2 border-b border-border min-w-[80px]">Attachment</th>
-                                <th className="px-2 py-2 border-b border-border w-10"></th>
+                                {!isLocked && <th className="px-2 py-2 border-b border-border w-10"></th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -626,7 +634,8 @@ export const AddExpensePage = () => {
                                             type="date" 
                                             value={row.expenseDate}
                                             onChange={(e) => handleRowChange(index, "expenseDate", e.target.value)}
-                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
+                                            disabled={isLocked}
                                         />
                                     </td>
                                     <td className="px-1 py-1">
@@ -634,7 +643,8 @@ export const AddExpensePage = () => {
                                             type="text" 
                                             value={row.employeeName}
                                             onChange={(e) => handleRowChange(index, "employeeName", e.target.value)}
-                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
+                                            disabled={isLocked}
                                         />
                                     </td>
                                     <td className="px-1 py-1">
@@ -642,7 +652,8 @@ export const AddExpensePage = () => {
                                             type="text" 
                                             value={row.employeeDesignation}
                                             onChange={(e) => handleRowChange(index, "employeeDesignation", e.target.value)}
-                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
+                                            disabled={isLocked}
                                         />
                                     </td>
                                     <td className="px-1 py-1">
@@ -650,7 +661,8 @@ export const AddExpensePage = () => {
                                             type="text" 
                                             value={row.expenseType}
                                             onChange={(e) => handleRowChange(index, "expenseType", e.target.value)}
-                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
+                                            disabled={isLocked}
                                         />
                                     </td>
                                     <td className="px-1 py-1">
@@ -658,7 +670,8 @@ export const AddExpensePage = () => {
                                             type="text" 
                                             value={row.descriptionItems}
                                             onChange={(e) => handleRowChange(index, "descriptionItems", e.target.value)}
-                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
+                                            disabled={isLocked}
                                         />
                                     </td>
                                     <td className="px-1 py-1">
@@ -667,7 +680,8 @@ export const AddExpensePage = () => {
                                             min="0"
                                             value={row.amount || ''}
                                             onChange={(e) => handleRowChange(index, "amount", Number(e.target.value))}
-                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
+                                            disabled={isLocked}
                                         />
                                     </td>
                                     <td className="px-1 py-1">
@@ -675,7 +689,8 @@ export const AddExpensePage = () => {
                                             type="text" 
                                             value={row.remarks}
                                             onChange={(e) => handleRowChange(index, "remarks", e.target.value)}
-                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none"
+                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
+                                            disabled={isLocked}
                                         />
                                     </td>
                                     <td className="px-1 py-1 text-center">
@@ -690,21 +705,25 @@ export const AddExpensePage = () => {
                                                     <ExternalLink className="h-4 w-4" />
                                                 </a>
                                             ))}
-                                            <label className="cursor-pointer text-muted-foreground hover:text-primary transition-colors ml-1" title="Upload Attachments">
-                                                <Paperclip className="h-4 w-4" />
-                                                <input type="file" multiple className="hidden" onChange={(e) => handleUploadFile(index, e)} />
-                                            </label>
+                                            {!isLocked && (
+                                                <label className="cursor-pointer text-muted-foreground hover:text-primary transition-colors ml-1" title="Upload Attachments">
+                                                    <Paperclip className="h-4 w-4" />
+                                                    <input type="file" multiple className="hidden" onChange={(e) => handleUploadFile(index, e)} />
+                                                </label>
+                                            )}
                                         </div>
                                     </td>
-                                    <td className="px-1 py-1 text-center">
-                                        <button 
-                                            onClick={() => removeRow(index)}
-                                            className="text-muted-foreground hover:text-destructive p-1 rounded transition-colors"
-                                            tabIndex={-1}
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </button>
-                                    </td>
+                                    {!isLocked && (
+                                        <td className="px-1 py-1 text-center">
+                                            <button 
+                                                onClick={() => removeRow(index)}
+                                                className="text-muted-foreground hover:text-destructive p-1 rounded transition-colors"
+                                                tabIndex={-1}
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>
@@ -712,12 +731,14 @@ export const AddExpensePage = () => {
                 </div>
 
                 <div className="flex justify-between items-center mt-4">
-                    <button 
-                        onClick={addRow}
-                        className="flex items-center text-sm text-primary hover:text-primary/80 font-medium"
-                    >
-                        <Plus className="h-4 w-4 mr-1" /> Add Row
-                    </button>
+                    {!isLocked ? (
+                        <button 
+                            onClick={addRow}
+                            className="flex items-center text-sm text-primary hover:text-primary/80 font-medium"
+                        >
+                            <Plus className="h-4 w-4 mr-1" /> Add Row
+                        </button>
+                    ) : <div></div>}
                     
                     <div className="flex items-center space-x-6 text-sm">
                         <span className="font-semibold text-muted-foreground">Total Amount :</span>
@@ -733,15 +754,17 @@ export const AddExpensePage = () => {
                         onClick={() => navigate("/expenses")}
                         disabled={submitting}
                     >
-                        Cancel
+                        {isEditMode ? "Back" : "Cancel"}
                     </button>
-                    <button
-                        className={`px-6 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium disabled:opacity-50`}
-                        onClick={handleSubmit}
-                        disabled={submitting || (!selectedSiteId && !selectedOfficeId) || !selectedArfId}
-                    >
-                        {submitting ? "Submitting..." : (isEditMode ? "Update Expense" : "Submit Expense")}
-                    </button>
+                    {!isLocked && (
+                        <button
+                            className={`px-6 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium disabled:opacity-50`}
+                            onClick={handleSubmit}
+                            disabled={submitting || (!selectedSiteId && !selectedOfficeId) || !selectedArfId}
+                        >
+                            {submitting ? "Submitting..." : isEditMode ? "Resubmit Expense" : "Submit Expense"}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
