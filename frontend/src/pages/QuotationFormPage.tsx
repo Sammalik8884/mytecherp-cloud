@@ -279,6 +279,7 @@ export const QuotationFormPage = () => {
                         supplyColumnMode: quote.supplyColumnMode || "Both",
                         projectCode: quote.projectCode || "FPS",
                         quoteHeadline: quote.quoteHeadline || "",
+                        boqReferenceNumber: quote.boqReferenceNumber || "",
                         termsAndConditionsJson: quote.termsAndConditionsJson || "",
                         costFactorPct: savedCostFactor,
                         importationPct: savedImportPct,
