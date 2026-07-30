@@ -372,16 +372,61 @@ export const QuotationFormPage = () => {
 
                     setImportedItems(imp);
                     setLocalItems(loc);
-                    // Link saved service rows to their parent items by position so the
-                    // sync useEffect does not create duplicate rows on load.
-                    setImportedServiceItems(impSrv.map((srv, idx) => ({
-                        ...srv,
-                        linkedId: imp[idx]?.id ?? srv.linkedId
-                    })));
-                    setLocalServiceItems(locSrv.map((srv, idx) => ({
-                        ...srv,
-                        linkedId: loc[idx]?.id ?? srv.linkedId
-                    })));
+                    
+                    // Robust deduplication and linking for Imported Services
+                    const cleanImpSrv: UiItem[] = [];
+                    const usedImpSrv = new Set<number>();
+                    
+                    imp.forEach(parent => {
+                        const defaultName = parent.serviceName !== undefined
+                            ? parent.serviceName
+                            : parent.product ? `${parent.product.name} ${parent.product.itemCode ? `(${parent.product.itemCode})` : ''}` : '';
+                        
+                        const matchIdx = impSrv.findIndex((s, idx) => !usedImpSrv.has(idx) && s.serviceName === defaultName);
+                        if (matchIdx !== -1) {
+                            cleanImpSrv.push({ ...impSrv[matchIdx], linkedId: parent.id });
+                            usedImpSrv.add(matchIdx);
+                        }
+                    });
+                    
+                    impSrv.forEach((s, idx) => {
+                        if (!usedImpSrv.has(idx)) {
+                            const isDuplicate = imp.some(parent => {
+                                const defaultName = parent.serviceName !== undefined ? parent.serviceName : parent.product ? `${parent.product.name} ${parent.product.itemCode ? `(${parent.product.itemCode})` : ''}` : '';
+                                return s.serviceName === defaultName;
+                            });
+                            if (!isDuplicate) cleanImpSrv.push(s);
+                        }
+                    });
+                    
+                    // Robust deduplication and linking for Local Services
+                    const cleanLocSrv: UiItem[] = [];
+                    const usedLocSrv = new Set<number>();
+                    
+                    loc.forEach(parent => {
+                        const defaultName = parent.serviceName !== undefined
+                            ? parent.serviceName
+                            : parent.product ? `${parent.product.name} ${parent.product.itemCode ? `(${parent.product.itemCode})` : ''}` : '';
+                        
+                        const matchIdx = locSrv.findIndex((s, idx) => !usedLocSrv.has(idx) && s.serviceName === defaultName);
+                        if (matchIdx !== -1) {
+                            cleanLocSrv.push({ ...locSrv[matchIdx], linkedId: parent.id });
+                            usedLocSrv.add(matchIdx);
+                        }
+                    });
+                    
+                    locSrv.forEach((s, idx) => {
+                        if (!usedLocSrv.has(idx)) {
+                            const isDuplicate = loc.some(parent => {
+                                const defaultName = parent.serviceName !== undefined ? parent.serviceName : parent.product ? `${parent.product.name} ${parent.product.itemCode ? `(${parent.product.itemCode})` : ''}` : '';
+                                return s.serviceName === defaultName;
+                            });
+                            if (!isDuplicate) cleanLocSrv.push(s);
+                        }
+                    });
+
+                    setImportedServiceItems(cleanImpSrv);
+                    setLocalServiceItems(cleanLocSrv);
 
                 } else if (leadIdParam) {
                     const leadData = await salesService.getLead(Number(leadIdParam)).catch(() => null);
