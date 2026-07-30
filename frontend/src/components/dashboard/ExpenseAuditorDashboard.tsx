@@ -56,12 +56,11 @@ export const ExpenseAuditorDashboard: React.FC = () => {
                     if (status === 'Pending') {
                         pending++;
                         totalPendingAmt += amt;
-                    } else if (status === 'Approved') {
+                    } else if (status === 'Accepted' || status === 'Reviewed') {
                         approved++;
                         totalAuditedAmt += amt;
                     } else if (status === 'Rejected') {
                         rejected++;
-                        totalAuditedAmt += amt;
                     }
 
                     // Office
