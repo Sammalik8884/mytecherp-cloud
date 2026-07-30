@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Users, Plus, Shield, Mail, CheckCircle, XCircle, Loader2, ChevronDown, MoreVertical, Edit2, Trash2 } from "lucide-react";
 import { authService } from "../services/authService";
 import { toast } from "react-hot-toast";
+import { SearchableObjectSelect } from "../components/common/SearchableObjectSelect";
 
 export const UsersPage = () => {
     const [users, setUsers] = useState<any[]>([]);
@@ -395,24 +396,21 @@ export const UsersPage = () => {
                                         <label className="text-xs font-semibold text-muted-foreground mb-1 block">Assign Site *</label>
                                         {!isAddingCustomSite ? (
                                             <div className="flex gap-2">
-                                                <select
-                                                    required
+                                                <SearchableObjectSelect
+                                                    options={[
+                                                        ...sites.map(site => ({ label: site.name, value: site.id.toString() })),
+                                                        { label: "+ Add Custom Site", value: "ADD_CUSTOM" }
+                                                    ]}
                                                     value={formData.siteId}
-                                                    onChange={e => {
-                                                        if (e.target.value === "ADD_CUSTOM") {
+                                                    onChange={val => {
+                                                        if (val === "ADD_CUSTOM") {
                                                             setIsAddingCustomSite(true);
                                                         } else {
-                                                            setFormData({ ...formData, siteId: e.target.value });
+                                                            setFormData({ ...formData, siteId: val.toString() });
                                                         }
                                                     }}
-                                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
-                                                >
-                                                    <option value="" disabled>Select a site...</option>
-                                                    {sites.map(site => (
-                                                        <option key={site.id} value={site.id}>{site.name}</option>
-                                                    ))}
-                                                    <option value="ADD_CUSTOM" className="font-semibold text-primary">+ Add Custom Site</option>
-                                                </select>
+                                                    placeholder="Select a site..."
+                                                />
                                             </div>
                                         ) : (
                                             <div className="flex gap-2">
