@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { Check, Plus, Trash2, X, AlertCircle, Info, ExternalLink, Paperclip, Download } from "lucide-react";
 import dayjs from "dayjs";
 import { SearchableObjectSelect } from "../components/common/SearchableObjectSelect";
+import { FormPrompt } from "../components/common/FormPrompt";
 
 export const AddExpensePage = () => {
     const { id } = useParams<{ id: string }>();
@@ -346,6 +347,7 @@ export const AddExpensePage = () => {
 
     return (
         <>
+        <FormPrompt isDirty={rows.some((r: ExpenseItemDto) => r.amount > 0 || !!r.employeeName || !!r.expenseType || !!r.descriptionItems)} />
         <div className="p-6 max-w-[1400px] mx-auto space-y-6">
             {/* Closed ARF Warning Modal */}
             {closedArfWarning?.isOpen && (

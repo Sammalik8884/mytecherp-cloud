@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@microsoft/signalr": "^10.0.0",
     "@types/react-big-calendar": "^1.16.3",
     "axios": "^1.13.5",
     "clsx": "^2.1.1",

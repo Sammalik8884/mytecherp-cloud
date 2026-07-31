@@ -15,6 +15,7 @@ import { ProductDto } from "../types/product";
 import { ProductSelectionModal } from "../components/common/ProductSelectionModal";
 import { AutoResizeTextarea } from "../components/common/AutoResizeTextarea";
 import { TermsAndConditionsSection } from "../components/TermsAndConditionsSection";
+import { FormPrompt } from "../components/common/FormPrompt";
 
 /* ─── Unit options ─── */
 const UNIT_OPTIONS = [
@@ -1050,6 +1051,8 @@ export const QuotationFormPage = () => {
     );
 
     return (
+        <>
+        <FormPrompt isDirty={importedItems.length > 0 || localItems.length > 0 || importedServiceItems.length > 0 || localServiceItems.length > 0 || formData.customerId > 0} />
         <div className="p-4 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500 pb-32">
             <div className="flex items-center space-x-4 mb-6 md:mb-8">
                 <button onClick={() => navigate('/quotations')} className="p-2 hover:bg-secondary/50 rounded-lg text-muted-foreground"><ArrowLeft className="h-5 w-5"/></button>
@@ -1860,6 +1863,7 @@ export const QuotationFormPage = () => {
             />
 
         </div>
+        </>
     );
 };
 

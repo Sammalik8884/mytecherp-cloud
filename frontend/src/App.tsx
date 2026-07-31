@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, createRoutesFromElements, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { RoleProtectedRoute } from "./auth/RoleProtectedRoute";
@@ -79,6 +79,7 @@ import { Toaster } from "react-hot-toast";
 import { useAuth } from "./auth/AuthContext";
 import { SyncProvider } from "./contexts/SyncContext";
 import SyncStatusWidget from "./components/common/SyncStatusWidget";
+import { NotificationProvider } from "./contexts/NotificationContext";
 
 // Smart root route: Logged out -> landing.html, Logged in -> dashboard/portal
 const RootRoute = () => {
@@ -92,12 +93,10 @@ const RootRoute = () => {
     return hasRole(["Customer"]) ? <Navigate to="/portal" replace /> : <Navigate to="/dashboard" replace />;
 };
 
-function App() {
-    return (
-        <AuthProvider>
-            <SyncProvider>
-                <Router>
-                <Routes>
+const router = createBrowserRouter(
+    createRoutesFromElements(
+        <Route>
+
                     {/* Public Routes */}
                     <Route path="/" element={<RootRoute />} />
                     <Route path="/login" element={<LoginPage />} />
@@ -265,12 +264,21 @@ function App() {
                             </Route>
                         </Route>
                     </Route>
-                </Routes>
-            </Router>
-            <SyncStatusWidget />
-            <Toaster position="top-right" toastOptions={{
-                className: 'bg-secondary/90 text-foreground border border-border backdrop-blur',
-            }} />
+                        </Route>
+    )
+);
+
+function App() {
+    return (
+        <AuthProvider>
+            <SyncProvider>
+                <NotificationProvider>
+                    <RouterProvider router={router} />
+                    <SyncStatusWidget />
+                    <Toaster position="top-right" toastOptions={{
+                        className: 'bg-secondary/90 text-foreground border border-border backdrop-blur',
+                    }} />
+                </NotificationProvider>
             </SyncProvider>
         </AuthProvider>
     );

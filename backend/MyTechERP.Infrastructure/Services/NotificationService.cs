@@ -12,10 +12,12 @@ namespace MyTechERP.Infrastructure.Services
     public class NotificationService : INotificationService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ISyncNotifier _syncNotifier;
 
-        public NotificationService(ApplicationDbContext context)
+        public NotificationService(ApplicationDbContext context, ISyncNotifier syncNotifier)
         {
             _context = context;
+            _syncNotifier = syncNotifier;
         }
 
         public async Task<IEnumerable<Notification>> GetUnreadNotificationsAsync(string userId)
@@ -56,6 +58,15 @@ namespace MyTechERP.Infrastructure.Services
 
             await _context.Notifications.AddAsync(notification);
             await _context.SaveChangesAsync();
+
+            try
+            {
+                await _syncNotifier.NotifySyncCompletedAsync("Notification", new List<int> { notification.Id });
+            }
+            catch (Exception)
+            {
+                // Silently ignore signalr errors
+            }
 
             return notification;
         }
