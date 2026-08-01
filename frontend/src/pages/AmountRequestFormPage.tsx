@@ -177,7 +177,7 @@ const AmountRequestFormPage = () => {
         e.preventDefault();
         if (isSubmitting) return;
         
-        if (locationType === 'site' && siteId === "") {
+        if (locationType === 'site' && !siteId) {
             toast.error("Please select a site.");
             return;
         }
@@ -185,7 +185,7 @@ const AmountRequestFormPage = () => {
             toast.error("Please enter a custom site name.");
             return;
         }
-        if (locationType === 'office' && officeId === "") {
+        if (locationType === 'office' && !officeId) {
             toast.error("Please select an office.");
             return;
         }
@@ -213,7 +213,8 @@ const AmountRequestFormPage = () => {
             resetForm();
             fetchData();
         } catch (error: any) {
-            toast.error(error.response?.data || "Failed to submit request");
+            const msg = typeof error.response?.data === 'string' ? error.response.data : error.response?.data?.message || error.response?.data?.Error || "Failed to submit request";
+            toast.error(msg);
         } finally {
             setIsSubmitting(false);
         }
