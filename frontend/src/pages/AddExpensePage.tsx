@@ -239,6 +239,7 @@ export const AddExpensePage = () => {
         if (validRows.some((r: any) => !r.expenseDate)) return toast.error("Expense Date is required for all items.");
         if (validRows.some((r: any) => !r.expenseType?.trim())) return toast.error("Expense Type is required for all items.");
         if (validRows.some((r: any) => !r.descriptionItems?.trim())) return toast.error("Description is required for all items.");
+        if (validRows.some((r: any) => typeof r.amount !== 'number' || isNaN(r.amount) || r.amount <= 0)) return toast.error("Amount must be greater than 0 for all items.");
         if (validRows.some((r: any) => (!r.attachments || r.attachments.length === 0) && !r.fileUrl)) return toast.error("At least one attachment (document or picture) is mandatory for each expense item.");
 
         if (isAmountAbove && !showExcessModal) {
