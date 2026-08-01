@@ -271,7 +271,7 @@ const AccountsArfDashboardPage = () => {
                                             </td>
                                             <td className="p-4 text-right">
                                                 <button onClick={() => setSelectedForm(form)} className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
-                                                    View & Release
+                                                    {isMajeed ? "View" : "View & Release"}
                                                 </button>
                                             </td>
                                         </tr>

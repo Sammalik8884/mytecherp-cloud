@@ -62,7 +62,6 @@ const AmountRequestFormPage = () => {
     const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["CEO", "Project Director"]);
     const isAccounts = hasRole(["CEO", "Accounts Head", "Project Director"]); 
     const isAdmin = hasRole(["Admin", "CEO"]) || user?.email === "munawar.hasan@mytecheng.com";
-    const isMajeed = user?.email?.toLowerCase() === "abdul.majeed@mytecheng.com";
 
     const filteredForms = React.useMemo(() => {
         let result = forms;
@@ -525,7 +524,7 @@ const AmountRequestFormPage = () => {
                                                 >
                                                     View Details
                                                 </button>
-                                                {(isAdmin || isDirector || isCEO || isAccounts || form.status === "Waiting for Director Approval" || form.status.includes('Rejected')) && !isMajeed && (
+                                                {(isAdmin || isDirector || isCEO || isAccounts || ((form.status === "Waiting for Director Approval" || form.status.includes('Rejected')) && form.employeeEmail === user?.email)) && (
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, mode: 'single', id: form.id }); }}
                                                         className="text-destructive hover:text-destructive/80 transition-colors"
