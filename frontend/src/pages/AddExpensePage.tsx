@@ -66,6 +66,7 @@ export const AddExpensePage = () => {
     );
 
     const [submitting, setSubmitting] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     useEffect(() => {
         loadInitialData();
@@ -283,6 +284,7 @@ export const AddExpensePage = () => {
             if (isEditMode && id) {
                 await expenseApi.update(Number(id), payload);
                 toast.success("Expense updated successfully");
+                setIsSubmitted(true);
                 
                 if (isAmountAbove) {
                     setExcessSaved(true);
@@ -292,6 +294,7 @@ export const AddExpensePage = () => {
             } else {
                 await expenseApi.create(payload);
                 toast.success("Expense uploaded successfully");
+                setIsSubmitted(true);
                 
                 if (isAmountAbove) {
                     setExcessSaved(true);
@@ -347,7 +350,7 @@ export const AddExpensePage = () => {
 
     return (
         <>
-        <FormPrompt isDirty={rows.some((r: ExpenseItemDto) => r.amount > 0 || !!r.employeeName || !!r.expenseType || !!r.descriptionItems)} />
+        <FormPrompt isDirty={!isSubmitted && !submitting && rows.some((r: ExpenseItemDto) => r.amount > 0 || !!r.employeeName || !!r.expenseType || !!r.descriptionItems)} />
         <div className="p-6 max-w-[1400px] mx-auto space-y-6">
             {/* Closed ARF Warning Modal */}
             {closedArfWarning?.isOpen && (
