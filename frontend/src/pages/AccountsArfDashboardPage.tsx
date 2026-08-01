@@ -9,8 +9,11 @@ import { officeApi } from "../api/officeApi";
 import { siteService } from "../services/siteService";
 import { authService } from "../services/authService";
 import { SearchableSelect } from "../components/common/SearchableSelect";
+import { useAuth } from "../auth/AuthContext";
 
 const AccountsArfDashboardPage = () => {
+    const { user } = useAuth();
+    const isMajeed = user?.email?.toLowerCase() === "abdul.majeed@mytecheng.com";
     const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
     
     const [pendingForms, setPendingForms] = useState<AmountRequestFormDto[]>([]);
@@ -220,16 +223,18 @@ const AccountsArfDashboardPage = () => {
                 >
                     Pending ARFs ({pendingForms.length})
                 </button>
-                <button
-                    onClick={() => setActiveTab("completed")}
-                    className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                        activeTab === "completed"
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                    }`}
-                >
-                    Completed History
-                </button>
+                {!isMajeed && (
+                    <button
+                        onClick={() => setActiveTab("completed")}
+                        className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                            activeTab === "completed"
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                        }`}
+                    >
+                        Completed History
+                    </button>
+                )}
             </div>
 
             {activeTab === "pending" && (
