@@ -18,8 +18,9 @@ export const AddExpensePage = () => {
     const isEditMode = !!id;
     const navigate = useNavigate();
     const [expenseStatus, setExpenseStatus] = useState<string | null>(null);
-    // Page is locked (read-only) only when viewing a non-rejected existing expense
-    const isLocked = isEditMode && expenseStatus !== null && expenseStatus !== "Rejected";
+    // Page is locked (read-only) only when viewing a non-rejected existing expense, unless the user is Munawar
+    const isMunawar = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com";
+    const isLocked = isEditMode && expenseStatus !== null && expenseStatus !== "Rejected" && !isMunawar;
 
     const { user } = useAuth();
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
