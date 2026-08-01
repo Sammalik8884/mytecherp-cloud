@@ -501,7 +501,7 @@ export const AddExpensePage = () => {
 
             <div className={`bg-card border border-border rounded-xl p-6 shadow-sm`}>
                 <h1 className={`text-2xl font-bold tracking-tight mb-6 text-center py-3 rounded-lg bg-muted/30 text-muted-foreground/80`}>
-                    {isLocked ? "View Expense Details" : isEditMode ? "Resubmit Expense" : "Expense Details"}
+                    {isLocked ? "View Expense Details" : isEditMode ? (isMunawar ? "Update Expense" : "Resubmit Expense") : "Expense Details"}
                 </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -779,7 +779,7 @@ export const AddExpensePage = () => {
                             onClick={handleSubmit}
                             disabled={submitting || (!selectedSiteId && !selectedOfficeId) || !selectedArfId}
                         >
-                            {submitting ? "Submitting..." : isEditMode ? "Resubmit Expense" : "Submit Expense"}
+                            {submitting ? (isEditMode && isMunawar ? "Updating..." : "Submitting...") : isEditMode ? (isMunawar ? "Update Expense" : "Resubmit Expense") : "Submit Expense"}
                         </button>
                     )}
                 </div>
