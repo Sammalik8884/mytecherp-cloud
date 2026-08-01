@@ -419,7 +419,7 @@ const AccountsArfDashboardPage = () => {
                                                 <div><span className="text-muted-foreground">Released Amount:</span> <span className="font-bold text-primary">{selectedForm.accountsReleasedAmount.toLocaleString()}</span></div>
                                                 <div><span className="text-muted-foreground">Remarks:</span> <span>{selectedForm.accountsRemarks}</span></div>
                                             </div>
-                                        ) : activeTab === "pending" ? (
+                                        ) : (activeTab === "pending" && !isMajeed) ? (
                                             <form onSubmit={handleReleaseAmount} className="p-4 space-y-3 text-sm">
                                                 <div><label className="block text-muted-foreground mb-1">Date of Entry</label><input name="dateOfEntry" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                 <div><label className="block text-muted-foreground mb-1">Date Fund Released</label><input name="dateOfFundReleased" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
@@ -432,7 +432,7 @@ const AccountsArfDashboardPage = () => {
                                                 </button>
                                             </form>
                                         ) : (
-                                            <div className="p-4 text-center text-muted-foreground text-sm italic">Not yet released by accounts.</div>
+                                            <div className="p-4 text-center text-muted-foreground text-sm italic">{isMajeed ? "You don't have permission to release funds." : "Not yet released by accounts."}</div>
                                         )}
                                     </div>
 
@@ -484,7 +484,7 @@ const AccountsArfDashboardPage = () => {
                                                             </table>
                                                         </div>
 
-                                                        {(activeTab === "pending" || activeTab === "completed") && remaining > 0 && (
+                                                        {(activeTab === "pending" || activeTab === "completed") && remaining > 0 && !isMajeed && (
                                                             <form onSubmit={handleAddPayment} className="border-t border-border/50 p-4 bg-muted/5 flex flex-wrap gap-4 items-end">
                                                                 <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Date</label><input name="paymentDate" type="date" required className="w-full p-2 text-sm rounded border border-input bg-background" /></div>
                                                                 <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Amount</label><input name="paymentAmount" type="number" max={remaining} defaultValue={remaining} required className="w-full p-2 text-sm rounded border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none" /></div>
