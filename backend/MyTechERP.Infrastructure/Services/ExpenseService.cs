@@ -167,8 +167,8 @@ namespace MyTechERP.Infrastructure.Services
             entity.OfficeId = dto.OfficeId;
             entity.AmountRequestFormId = dto.AmountRequestFormId;
 
-            // If the expense was previously reviewed and rejected, reset it to Pending
-            if (entity.Status == "Rejected")
+            // If the expense was previously reviewed and rejected, reset it to Pending (unless Munawar is just updating it)
+            if (entity.Status == "Rejected" && _currentUserService.Email?.ToLower() != "munawar.hasan@mytecheng.com")
             {
                 entity.Status = "Pending";
             }
