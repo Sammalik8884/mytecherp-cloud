@@ -111,8 +111,14 @@ namespace MyTechERP.Infrastructure.Services
                     };
                     sasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.Read);
                     
-                    // Do not overwrite ContentDisposition to allow the native blob properties (including filename) to take effect.
-                    // sasBuilder.ContentDisposition = isDownload ? "attachment" : "inline";
+                    if (isDownload)
+                    {
+                        sasBuilder.ContentDisposition = "attachment";
+                    }
+                    else
+                    {
+                        sasBuilder.ContentDisposition = "inline";
+                    }
                     
                     string ext = System.IO.Path.GetExtension(blobName).ToLower();
                     sasBuilder.ContentType = ext switch
