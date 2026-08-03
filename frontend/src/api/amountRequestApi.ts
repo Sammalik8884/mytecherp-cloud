@@ -7,6 +7,7 @@ export interface AmountRequestPayment {
   receivedBy: string;
   modeOfPayment: string;
   remarks: string;
+  paymentSlipUrl?: string;
 }
 
 export interface AmountRequestFormDto {

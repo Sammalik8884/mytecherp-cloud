@@ -871,7 +871,7 @@ const AmountRequestFormPage = () => {
                                                                     <td className="px-3 py-2">{p.releasedDate ? new Date(p.releasedDate).toLocaleDateString() : '-'}</td>
                                                                     <td className="px-3 py-2 font-medium">{p.releasedAmount.toLocaleString()}</td>
                                                                     <td className="px-3 py-2">{p.receivedBy}</td>
-                                                                    <td className="px-3 py-2">{p.modeOfPayment}</td>
+                                                                    <td className="px-3 py-2 flex items-center justify-between"><span>{p.modeOfPayment}</span>{p.paymentSlipUrl && (<button onClick={(e) => { e.preventDefault(); window.open(p.paymentSlipUrl, '_blank'); }} className="text-primary hover:text-primary/80 ml-2 p-1 rounded-md hover:bg-primary/10 transition-colors" title="View Attachment"><Paperclip className="w-4 h-4" /></button>)}</td>
                                                                 </tr>
                                                             ))
                                                         )}

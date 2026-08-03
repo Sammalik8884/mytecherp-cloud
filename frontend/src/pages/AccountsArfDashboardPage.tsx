@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
-import { Download, Wallet, XCircle, Loader2 } from "lucide-react";
+import { Download, Wallet, XCircle, Loader2, Paperclip } from "lucide-react";
 import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -477,7 +477,27 @@ const AccountsArfDashboardPage = () => {
                                                                         <tr><td colSpan={5} className="px-3 py-4 text-center text-muted-foreground italic">No payment details found</td></tr>
                                                                     ) : (
                                                                         selectedForm.payments?.map((p, i) => (
-                                                                            <tr key={p.id} className="border-b border-border/50"><td className="px-3 py-2">{i + 1}</td><td className="px-3 py-2">{p.releasedDate ? new Date(p.releasedDate).toLocaleDateString() : '-'}</td><td className="px-3 py-2 font-medium">{p.releasedAmount.toLocaleString()}</td><td className="px-3 py-2">{p.receivedBy}</td><td className="px-3 py-2">{p.modeOfPayment}</td></tr>
+                                                                            <tr key={p.id} className="border-b border-border/50">
+                                                                                <td className="px-3 py-2">{i + 1}</td>
+                                                                                <td className="px-3 py-2">{p.releasedDate ? new Date(p.releasedDate).toLocaleDateString() : '-'}</td>
+                                                                                <td className="px-3 py-2 font-medium">{p.releasedAmount.toLocaleString()}</td>
+                                                                                <td className="px-3 py-2">{p.receivedBy}</td>
+                                                                                <td className="px-3 py-2 flex items-center justify-between">
+                                                                                    <span>{p.modeOfPayment}</span>
+                                                                                    {p.paymentSlipUrl && (
+                                                                                        <button 
+                                                                                            onClick={(e) => {
+                                                                                                e.preventDefault();
+                                                                                                window.open(p.paymentSlipUrl, '_blank');
+                                                                                            }}
+                                                                                            className="text-primary hover:text-primary/80 ml-2 p-1 rounded-md hover:bg-primary/10 transition-colors"
+                                                                                            title="View Attachment"
+                                                                                        >
+                                                                                            <Paperclip className="w-4 h-4" />
+                                                                                        </button>
+                                                                                    )}
+                                                                                </td>
+                                                                            </tr>
                                                                         ))
                                                                     )}
                                                                 </tbody>
