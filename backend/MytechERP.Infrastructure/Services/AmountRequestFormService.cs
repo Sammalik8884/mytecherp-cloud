@@ -130,7 +130,8 @@ namespace MyTechERP.Infrastructure.Services
                     ReleasedAmount = p.ReleasedAmount,
                     ReceivedBy = p.ReceivedBy,
                     ModeOfPayment = p.ModeOfPayment,
-                    Remarks = p.Remarks
+                    Remarks = p.Remarks,
+                    PaymentSlipUrl = !string.IsNullOrEmpty(p.PaymentSlipUrl) ? _blobService.GenerateSasUrl(p.PaymentSlipUrl, 1440, false) : null
                 }).ToList() ?? new List<AmountRequestPaymentDto>()
             };
         }

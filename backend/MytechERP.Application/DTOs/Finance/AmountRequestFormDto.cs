@@ -65,6 +65,7 @@ namespace MytechERP.Application.DTOs.Finance
         public string ReceivedBy { get; set; } = string.Empty;
         public string ModeOfPayment { get; set; } = string.Empty;
         public string Remarks { get; set; } = string.Empty;
+        public string? PaymentSlipUrl { get; set; }
     }
 
     public class CreateAmountRequestPaymentDto
