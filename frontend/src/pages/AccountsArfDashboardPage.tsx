@@ -18,7 +18,7 @@ const AccountsArfDashboardPage = () => {
     
     const [pendingForms, setPendingForms] = useState<AmountRequestFormDto[]>([]);
     const [historyForms, setHistoryForms] = useState<AmountRequestFormDto[]>([]);
-    const [isMajeed, setIsMajeed] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     const openAttachment = (url: string) => {
@@ -497,7 +497,7 @@ const AccountsArfDashboardPage = () => {
                                                                                         <button 
                                                                                             onClick={(e) => {
                                                                                                 e.preventDefault();
-                                                                                                openAttachment(p.paymentSlipUrl);
+                                                                                                openAttachment(p.paymentSlipUrl!);
                                                                                             }}
                                                                                             className="text-primary hover:text-primary/80 ml-2 p-1 rounded-md hover:bg-primary/10 transition-colors"
                                                                                             title="View Attachment"
