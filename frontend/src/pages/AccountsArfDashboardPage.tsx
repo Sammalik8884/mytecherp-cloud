@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
-import { Download, Wallet, XCircle, Loader2, Paperclip } from "lucide-react";
+import { Download, Wallet, XCircle, Loader2, Paperclip, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -18,7 +18,16 @@ const AccountsArfDashboardPage = () => {
     
     const [pendingForms, setPendingForms] = useState<AmountRequestFormDto[]>([]);
     const [historyForms, setHistoryForms] = useState<AmountRequestFormDto[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isMajeed, setIsMajeed] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    const openAttachment = (url: string) => {
+        if (/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i.test(url)) {
+            setSelectedImage(url);
+        } else {
+            window.open(url, '_blank');
+        }
+    };
 
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
     const [isReleasingAmount, setIsReleasingAmount] = useState(false);
@@ -488,7 +497,7 @@ const AccountsArfDashboardPage = () => {
                                                                                         <button 
                                                                                             onClick={(e) => {
                                                                                                 e.preventDefault();
-                                                                                                window.open(p.paymentSlipUrl, '_blank');
+                                                                                                openAttachment(p.paymentSlipUrl);
                                                                                             }}
                                                                                             className="text-primary hover:text-primary/80 ml-2 p-1 rounded-md hover:bg-primary/10 transition-colors"
                                                                                             title="View Attachment"
@@ -528,6 +537,42 @@ const AccountsArfDashboardPage = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+            
+            {selectedImage && createPortal(
+                <div
+                    className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <div
+                        className="relative max-w-7xl max-h-[90vh] w-full flex items-center justify-center bg-black rounded-lg overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setSelectedImage(null)}
+                            className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors z-10"
+                        >
+                            <X className="h-6 w-6" />
+                        </button>
+                        <a
+                            href={selectedImage}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute top-4 right-16 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors z-10 flex items-center gap-2 px-4"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Download className="h-4 w-4" />
+                            <span className="text-sm font-medium">Download</span>
+                        </a>
+                        <img
+                            src={selectedImage}
+                            alt="Attachment Full View"
+                            className="max-w-full max-h-[90vh] object-contain"
+                        />
                     </div>
                 </div>,
                 document.body

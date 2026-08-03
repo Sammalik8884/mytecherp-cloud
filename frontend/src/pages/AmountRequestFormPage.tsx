@@ -7,7 +7,7 @@ import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "..
 import { SearchableObjectSelect } from "../components/common/SearchableObjectSelect";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 
-import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip, Trash2, Loader2, Search } from "lucide-react";
+import { Plus, CheckCircle, XCircle, FileText, User, Wallet, Paperclip, Trash2, Loader2, Search, X, Download } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 import { FormPrompt } from "../components/common/FormPrompt";
@@ -29,6 +29,15 @@ const AmountRequestFormPage = () => {
     const [selectedForms, setSelectedForms] = useState<Set<number>>(new Set());
 
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    const openAttachment = (url: string) => {
+        if (/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i.test(url)) {
+            setSelectedImage(url);
+        } else {
+            window.open(url, '_blank');
+        }
+    };
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -410,6 +419,42 @@ const AmountRequestFormPage = () => {
                 )}
             </div>
 
+            {selectedImage && createPortal(
+                <div
+                    className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <div
+                        className="relative max-w-7xl max-h-[90vh] w-full flex items-center justify-center bg-black rounded-lg overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setSelectedImage(null)}
+                            className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors z-10"
+                        >
+                            <X className="h-6 w-6" />
+                        </button>
+                        <a
+                            href={selectedImage}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute top-4 right-16 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors z-10 flex items-center gap-2 px-4"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Download className="h-4 w-4" />
+                            <span className="text-sm font-medium">Download</span>
+                        </a>
+                        <img
+                            src={selectedImage}
+                            alt="Attachment Full View"
+                            className="max-w-full max-h-[90vh] object-contain"
+                        />
+                    </div>
+                </div>,
+                document.body
+            )}
+
             {!isFormOpen && !selectedForm && (
                 <div className="space-y-4">
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card p-4 rounded-xl border border-border shadow-sm">
@@ -578,7 +623,7 @@ const AmountRequestFormPage = () => {
                     </div>
                     
                     <form onSubmit={handleCreateSubmit} className="p-6 space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="grid grid-grid-1 md:grid-cols-2 gap-8">
                             {/* Employee Section */}
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center border-b border-border/50 pb-2">
@@ -871,7 +916,21 @@ const AmountRequestFormPage = () => {
                                                                     <td className="px-3 py-2">{p.releasedDate ? new Date(p.releasedDate).toLocaleDateString() : '-'}</td>
                                                                     <td className="px-3 py-2 font-medium">{p.releasedAmount.toLocaleString()}</td>
                                                                     <td className="px-3 py-2">{p.receivedBy}</td>
-                                                                    <td className="px-3 py-2 flex items-center justify-between"><span>{p.modeOfPayment}</span>{p.paymentSlipUrl && (<button onClick={(e) => { e.preventDefault(); window.open(p.paymentSlipUrl, '_blank'); }} className="text-primary hover:text-primary/80 ml-2 p-1 rounded-md hover:bg-primary/10 transition-colors" title="View Attachment"><Paperclip className="w-4 h-4" /></button>)}</td>
+                                                                    <td className="px-3 py-2 flex items-center justify-between">
+                                                                        <span>{p.modeOfPayment}</span>
+                                                                        {p.paymentSlipUrl && (
+                                                                            <button 
+                                                                                onClick={(e) => {
+                                                                                    e.preventDefault();
+                                                                                    openAttachment(p.paymentSlipUrl!);
+                                                                                }} 
+                                                                                className="text-primary hover:text-primary/80 ml-2 p-1 rounded-md hover:bg-primary/10 transition-colors" 
+                                                                                title="View Attachment"
+                                                                            >
+                                                                                <Paperclip className="w-4 h-4" />
+                                                                            </button>
+                                                                        )}
+                                                                    </td>
                                                                 </tr>
                                                             ))
                                                         )}
