@@ -405,7 +405,7 @@ export const SalesmanDashboardPage = () => {
                         <p className="text-white/80 font-medium text-sm sm:text-base">Register clients to automatically log your first visit, and track subsequent visits.</p>
                     </div>
                     <div className="shrink-0 flex flex-col sm:flex-row gap-2">
-                        {(!user?.roles?.includes("Salesman")) && (
+                        {(!user?.roles?.includes("Salesman") || user?.email?.toLowerCase() === "tahir.shareef@mytecheng.com") && (
                             <button 
                                 onClick={openLeadByCallModal}
                                 className="w-full sm:w-auto px-5 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2 text-sm sm:text-base border border-white/40"
