@@ -13,7 +13,7 @@ namespace MytechERP.Application.Interfaces
         Task<List<AmountRequestFormDto>> GetHistoryForAccountsAsync();
         Task<AmountRequestFormDto> CreateAsync(CreateAmountRequestFormDto dto);
         Task<AmountRequestFormDto> ApproveAsync(int id, ApproveAmountRequestDto dto);
-        Task<AmountRequestFormDto> ReleaseAmountAsync(int id, AccountsReleaseAmountDto dto, Microsoft.AspNetCore.Http.IFormFile? paymentSlip);
+        Task<AmountRequestFormDto> ReleaseAmountAsync(int id, AccountsReleaseAmountDto dto, List<Microsoft.AspNetCore.Http.IFormFile>? paymentSlips);
         Task<AmountRequestFormDto> AddPaymentAsync(int id, CreateAmountRequestPaymentDto dto);
         Task<AmountRequestFormDto> UploadAttachmentAsync(int id, Microsoft.AspNetCore.Http.IFormFile file);
         Task DeleteAsync(int id);

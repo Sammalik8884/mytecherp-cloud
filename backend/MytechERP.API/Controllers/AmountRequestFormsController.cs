@@ -111,7 +111,7 @@ namespace MytechERP.API.Controllers
 
         [HttpPost("{id}/release")]
         [Authorize]
-        public async Task<ActionResult<AmountRequestFormDto>> ReleaseAmount(int id, [FromForm] AccountsReleaseAmountDto dto, IFormFile? paymentSlip)
+        public async Task<ActionResult<AmountRequestFormDto>> ReleaseAmount(int id, [FromForm] AccountsReleaseAmountDto dto, List<IFormFile> paymentSlips)
         {
             try
             {
@@ -123,7 +123,7 @@ namespace MytechERP.API.Controllers
                 if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
                     return Forbid();
 
-                var result = await _service.ReleaseAmountAsync(id, dto, paymentSlip);
+                var result = await _service.ReleaseAmountAsync(id, dto, paymentSlips);
                 return Ok(result);
             }
             catch (System.Exception ex)

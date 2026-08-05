@@ -414,18 +414,25 @@ namespace MyTechERP.Infrastructure.Services
             return await GetByIdAsync(entity.Id);
         }
 
-        public async Task<AmountRequestFormDto> ReleaseAmountAsync(int id, AccountsReleaseAmountDto dto, Microsoft.AspNetCore.Http.IFormFile? paymentSlip)
+        public async Task<AmountRequestFormDto> ReleaseAmountAsync(int id, AccountsReleaseAmountDto dto, List<Microsoft.AspNetCore.Http.IFormFile>? paymentSlips)
         {
-            if (paymentSlip == null || paymentSlip.Length == 0)
+            if (paymentSlips == null || paymentSlips.Count == 0)
             {
-                throw new Exception("Payment Slip attachment is strictly required to release the amount.");
+                throw new Exception("At least one Payment Slip attachment is required to release the amount.");
             }
 
             var entity = await _context.AmountRequestForms.Include(a => a.Site).FirstOrDefaultAsync(a => a.Id == id);
             if (entity == null) throw new Exception("Form not found");
 
-            var fileName = $"paymentslip_{id}_{Guid.NewGuid()}_{paymentSlip.FileName}";
-            var fileUrl = await _blobService.UploadAsync(paymentSlip, fileName);
+            var fileUrls = new List<string>();
+            foreach (var paymentSlip in paymentSlips)
+            {
+                var fileName = $"paymentslip_{id}_{Guid.NewGuid()}_{paymentSlip.FileName}";
+                var fileUrl = await _blobService.UploadAsync(paymentSlip, fileName);
+                fileUrls.Add(fileUrl);
+            }
+            
+            var serializedUrls = System.Text.Json.JsonSerializer.Serialize(fileUrls);
 
             entity.AccountsDateOfEntry ??= dto.DateOfEntry;
             entity.AccountsDateOfFundReleased = dto.DateOfFundReleased;
@@ -443,7 +450,7 @@ namespace MyTechERP.Infrastructure.Services
                 ReceivedBy = entity.EmployeeName,
                 ModeOfPayment = "Transfer",
                 Remarks = "Auto-generated from Release Details: " + dto.Remarks,
-                PaymentSlipUrl = fileUrl
+                PaymentSlipUrl = serializedUrls
             };
             _context.AmountRequestPayments.Add(payment);
 
