@@ -204,6 +204,22 @@ namespace MyTechERP.Infrastructure.Services
             return entities.Select(MapToDto).ToList();
         }
 
+        public async Task<List<AmountRequestFormDto>> GetPartialForAccountsAsync()
+        {
+            var query = _context.AmountRequestForms
+                .Include(a => a.Site)
+                .Include(a => a.Office)
+                .Include(a => a.Payments)
+                .Where(a => a.Status == "Partially Paid")
+                .AsQueryable();
+
+            var entities = await query
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            return entities.Select(MapToDto).ToList();
+        }
+
         public async Task<AmountRequestFormDto> CreateAsync(CreateAmountRequestFormDto dto)
         {
             int maxId = await _context.AmountRequestForms.MaxAsync(a => (int?)a.Id) ?? 0;
@@ -411,11 +427,13 @@ namespace MyTechERP.Infrastructure.Services
             var fileName = $"paymentslip_{id}_{Guid.NewGuid()}_{paymentSlip.FileName}";
             var fileUrl = await _blobService.UploadAsync(paymentSlip, fileName);
 
-            entity.AccountsDateOfEntry = dto.DateOfEntry;
+            entity.AccountsDateOfEntry ??= dto.DateOfEntry;
             entity.AccountsDateOfFundReleased = dto.DateOfFundReleased;
-            entity.AccountsReleasedAmount = dto.ReleasedAmount;
+            entity.AccountsReleasedAmount = (entity.AccountsReleasedAmount ?? 0) + dto.ReleasedAmount;
             entity.AccountsRemarks = dto.Remarks;
-            entity.Status = "Released";
+            
+            bool isFullRelease = entity.AccountsReleasedAmount >= entity.AdvanceRequested;
+            entity.Status = isFullRelease ? "Released" : "Partially Paid";
 
             var payment = new AmountRequestPayment
             {
@@ -435,8 +453,9 @@ namespace MyTechERP.Infrastructure.Services
                 {
                     try 
                     {
-                        string subject = $"Amount Request Released - {entity.EmployeeName}";
-                        string body = $"<p>Dear {entity.EmployeeName},</p><p>Your ARF is approved. ARF Number is <strong>{entity.ArfNumber}</strong>.</p><p>Your amount advance request of {entity.AdvanceRequested} has been released. Please add your expenses against this ARF Number.</p><p>Remarks: {dto.Remarks}</p>";
+                        string paymentType = isFullRelease ? "fully" : "partially";
+                        string subject = $"Amount Request {char.ToUpper(paymentType[0]) + paymentType.Substring(1)} Released - {entity.EmployeeName}";
+                        string body = $"<p>Dear {entity.EmployeeName},</p><p>Your ARF is approved. ARF Number is <strong>{entity.ArfNumber}</strong>.</p><p>Your amount advance request of {entity.AdvanceRequested} has been {paymentType} released (Amount released in this transaction: {dto.ReleasedAmount}). Please add your expenses against this ARF Number.</p><p>Remarks: {dto.Remarks}</p>";
                         await _emailService.SendEmailAsync(entity.EmployeeEmail, subject, body);
                     }
                     catch (Exception) { }

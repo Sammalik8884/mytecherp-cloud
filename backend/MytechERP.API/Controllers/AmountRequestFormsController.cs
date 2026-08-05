@@ -58,6 +58,22 @@ namespace MytechERP.API.Controllers
             return Ok(forms);
         }
 
+        [HttpGet("accounts/partial")]
+        [Authorize]
+        public async Task<ActionResult<List<AmountRequestFormDto>>> GetPartialForAccounts()
+        {
+            var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
+            var allowedRoles = new[] { "CEO", "Admin", "Manager", "Accounts Head", "Accounts Assistant" };
+            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com" };
+
+            if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
+                return Forbid();
+
+            var forms = await _service.GetPartialForAccountsAsync();
+            return Ok(forms);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<AmountRequestFormDto>> GetById(int id)
         {
