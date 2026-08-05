@@ -53,14 +53,16 @@ export const amountRequestApi = {
     api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/approve`, data),
   delete: (id: number) => api.delete<void>(`/AmountRequestForms/${id}`),
   bulkDelete: (ids: number[]) => api.post<void>("/AmountRequestForms/bulk-delete", ids),
-  releaseAmount: (id: number, data: { dateOfEntry?: string; dateOfFundReleased?: string; releasedAmount: number; remarks: string; paymentSlip?: File }) => {
+  releaseAmount: (id: number, data: { dateOfEntry?: string; dateOfFundReleased?: string; releasedAmount: number; remarks: string; paymentSlips?: FileList | File[] }) => {
     const formData = new FormData();
     if (data.dateOfEntry) formData.append('dateOfEntry', data.dateOfEntry);
     if (data.dateOfFundReleased) formData.append('dateOfFundReleased', data.dateOfFundReleased);
     formData.append('releasedAmount', data.releasedAmount.toString());
     formData.append('remarks', data.remarks);
-    if (data.paymentSlip) {
-      formData.append('paymentSlip', data.paymentSlip);
+    if (data.paymentSlips && data.paymentSlips.length > 0) {
+      Array.from(data.paymentSlips).forEach(file => {
+        formData.append('paymentSlips', file);
+      });
     }
     return api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/release`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }

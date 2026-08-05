@@ -82,9 +82,9 @@ const AccountsArfDashboardPage = () => {
         const releasedAmount = Number(target.releasedAmount?.value);
         const remarks = target.remarks?.value;
         
-        const paymentSlip = target.paymentSlip?.files?.[0];
-        if (!paymentSlip) {
-            toast.error("Payment slip is mandatory to confirm release.");
+        const paymentSlips = target.paymentSlips?.files;
+        if (!paymentSlips || paymentSlips.length === 0) {
+            toast.error("At least one payment slip is mandatory to confirm release.");
             return;
         }
 
@@ -95,7 +95,7 @@ const AccountsArfDashboardPage = () => {
                 dateOfFundReleased: dateOfFundReleased || undefined,
                 releasedAmount,
                 remarks,
-                paymentSlip
+                paymentSlips
             });
             
             toast.success("Amount released and payment slip uploaded successfully");
@@ -432,7 +432,7 @@ const AccountsArfDashboardPage = () => {
                                                             <div><label className="block text-muted-foreground mb-1">Date Fund Released</label><input name="dateOfFundReleased" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div><label className="block text-muted-foreground mb-1">Released Amount (Max: {remaining.toLocaleString()})</label><input name="releasedAmount" type="number" max={remaining} defaultValue={remaining} required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div><label className="block text-muted-foreground mb-1">Remarks</label><input name="remarks" type="text" className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                            <div><label className="block text-muted-foreground mb-1">Payment Slip (Mandatory)</label><input name="paymentSlip" type="file" required className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <div><label className="block text-muted-foreground mb-1">Payment Slip(s) (Mandatory)</label><input name="paymentSlips" type="file" multiple required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <button type="submit" disabled={isReleasingAmount} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-4">
                                                                 {isReleasingAmount ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                                                                 {isReleasingAmount ? "Confirming..." : (selectedForm.accountsReleasedAmount ? "Release Remaining" : "Confirm Release")}
@@ -494,18 +494,31 @@ const AccountsArfDashboardPage = () => {
                                                                                 <td className="px-3 py-2">{p.receivedBy}</td>
                                                                                 <td className="px-3 py-2 flex items-center justify-between">
                                                                                     <span>{p.modeOfPayment}</span>
-                                                                                    {p.paymentSlipUrl && (
-                                                                                        <button 
-                                                                                            onClick={(e) => {
-                                                                                                e.preventDefault();
-                                                                                                openAttachment(p.paymentSlipUrl!);
-                                                                                            }}
-                                                                                            className="text-primary hover:text-primary/80 ml-2 p-1 rounded-md hover:bg-primary/10 transition-colors"
-                                                                                            title="View Attachment"
-                                                                                        >
-                                                                                            <Paperclip className="w-4 h-4" />
-                                                                                        </button>
-                                                                                    )}
+                                                                                    {(() => {
+                                                                                        let urls: string[] = [];
+                                                                                        if (p.paymentSlipUrl) {
+                                                                                            try {
+                                                                                                const parsed = JSON.parse(p.paymentSlipUrl);
+                                                                                                if (Array.isArray(parsed)) urls = parsed;
+                                                                                                else urls = [p.paymentSlipUrl];
+                                                                                            } catch(e) {
+                                                                                                urls = [p.paymentSlipUrl];
+                                                                                            }
+                                                                                        }
+                                                                                        return urls.map((url, idx) => (
+                                                                                            <button 
+                                                                                                key={idx}
+                                                                                                onClick={(e) => {
+                                                                                                    e.preventDefault();
+                                                                                                    openAttachment(url);
+                                                                                                }}
+                                                                                                className="text-primary hover:text-primary/80 ml-2 p-1 rounded-md hover:bg-primary/10 transition-colors"
+                                                                                                title={`View Attachment ${idx + 1}`}
+                                                                                            >
+                                                                                                <Paperclip className="w-4 h-4" />
+                                                                                            </button>
+                                                                                        ));
+                                                                                    })()}
                                                                                 </td>
                                                                             </tr>
                                                                         ))
