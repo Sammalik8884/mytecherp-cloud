@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
+import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { Download, Wallet, XCircle, Loader2, Paperclip, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
@@ -14,9 +14,10 @@ import { useAuth } from "../auth/AuthContext";
 const AccountsArfDashboardPage = () => {
     const { user } = useAuth();
     const isMajeed = user?.email?.toLowerCase() === "abdul.majeed@mytecheng.com";
-    const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
+    const [activeTab, setActiveTab] = useState<"pending" | "partial" | "completed">("pending");
     
     const [pendingForms, setPendingForms] = useState<AmountRequestFormDto[]>([]);
+    const [partialForms, setPartialForms] = useState<AmountRequestFormDto[]>([]);
     const [historyForms, setHistoryForms] = useState<AmountRequestFormDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -49,14 +50,16 @@ const AccountsArfDashboardPage = () => {
     const fetchData = async () => {
         try {
             setIsLoading(true);
-            const [pendingRes, historyRes, officesRes, sitesRes, usersRes] = await Promise.all([
+            const [pendingRes, partialRes, historyRes, officesRes, sitesRes, usersRes] = await Promise.all([
                 amountRequestApi.getPendingForAccounts(),
+                amountRequestApi.getPartialForAccounts(),
                 amountRequestApi.getHistoryForAccounts(),
                 officeApi.getAll(),
                 siteService.getAll(),
                 authService.getUsers()
             ]);
             setPendingForms(pendingRes.data);
+            setPartialForms(partialRes.data);
             setHistoryForms(historyRes.data);
             setAllOffices(officesRes.map(o => o.name));
             setAllSites(sitesRes.map(s => s.name));
@@ -103,30 +106,6 @@ const AccountsArfDashboardPage = () => {
             toast.error(error.response?.data || "Failed to release amount");
         } finally {
             setIsReleasingAmount(false);
-        }
-    };
-
-    const handleAddPayment = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!selectedForm) return;
-
-        const target = e.target as any;
-        const payment: AmountRequestPayment = {
-            releasedDate: target.paymentDate.value || undefined,
-            releasedAmount: Number(target.paymentAmount.value),
-            receivedBy: target.receivedBy.value,
-            modeOfPayment: target.modeOfPayment.value,
-            remarks: "Added via Accounts Dashboard"
-        };
-
-        try {
-            await amountRequestApi.addPayment(selectedForm.id, payment);
-            toast.success("Payment added successfully");
-            const res = await amountRequestApi.getById(selectedForm.id);
-            setSelectedForm(res.data);
-            fetchData();
-        } catch (error: any) {
-            toast.error(error.response?.data || "Failed to add payment");
         }
     };
 
@@ -232,6 +211,16 @@ const AccountsArfDashboardPage = () => {
                 >
                     Pending ARFs ({pendingForms.length})
                 </button>
+                <button
+                    onClick={() => setActiveTab("partial")}
+                    className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        activeTab === "partial"
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    }`}
+                >
+                    Partially Paid ({partialForms.length})
+                </button>
                 {!isMajeed && (
                     <button
                         onClick={() => setActiveTab("completed")}
@@ -246,7 +235,7 @@ const AccountsArfDashboardPage = () => {
                 )}
             </div>
 
-            {activeTab === "pending" && (
+            {(activeTab === "pending" || activeTab === "partial") && (
                 <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
@@ -261,11 +250,11 @@ const AccountsArfDashboardPage = () => {
                             </thead>
                             <tbody className="divide-y divide-border/50">
                                 {isLoading ? (
-                                    <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Loading pending ARFs...</td></tr>
-                                ) : pendingForms.length === 0 ? (
-                                    <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No pending ARFs for accounts.</td></tr>
+                                    <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Loading ARFs...</td></tr>
+                                ) : (activeTab === "pending" ? pendingForms : partialForms).length === 0 ? (
+                                    <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No ARFs found.</td></tr>
                                 ) : (
-                                    pendingForms.map(form => (
+                                    (activeTab === "pending" ? pendingForms : partialForms).map(form => (
                                         <tr key={form.id} className="hover:bg-muted/10 transition-colors">
                                             <td className="p-4">
                                                 <div className="font-medium text-foreground">{form.employeeName}</div>
@@ -421,28 +410,40 @@ const AccountsArfDashboardPage = () => {
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                     <div className="lg:col-span-1 bg-card border border-primary/20 rounded-xl overflow-hidden shadow-sm">
                                         <div className="bg-primary/10 px-4 py-3 border-b border-primary/20 font-semibold text-primary">For Accounts Use Only</div>
-                                        {selectedForm.accountsReleasedAmount ? (
-                                            <div className="p-4 space-y-3 text-sm">
-                                                <div><span className="text-muted-foreground">Date of Entry:</span> <span className="font-medium">{selectedForm.accountsDateOfEntry ? new Date(selectedForm.accountsDateOfEntry).toLocaleDateString() : '-'}</span></div>
-                                                <div><span className="text-muted-foreground">Date Fund Released:</span> <span className="font-medium">{selectedForm.accountsDateOfFundReleased ? new Date(selectedForm.accountsDateOfFundReleased).toLocaleDateString() : '-'}</span></div>
-                                                <div><span className="text-muted-foreground">Released Amount:</span> <span className="font-bold text-primary">{selectedForm.accountsReleasedAmount.toLocaleString()}</span></div>
-                                                <div><span className="text-muted-foreground">Remarks:</span> <span>{selectedForm.accountsRemarks}</span></div>
-                                            </div>
-                                        ) : (activeTab === "pending" && !isMajeed) ? (
-                                            <form onSubmit={handleReleaseAmount} className="p-4 space-y-3 text-sm">
-                                                <div><label className="block text-muted-foreground mb-1">Date of Entry</label><input name="dateOfEntry" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                <div><label className="block text-muted-foreground mb-1">Date Fund Released</label><input name="dateOfFundReleased" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                <div><label className="block text-muted-foreground mb-1">Released Amount</label><input name="releasedAmount" type="number" defaultValue={selectedForm.advanceRequested} required className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                <div><label className="block text-muted-foreground mb-1">Remarks</label><input name="remarks" type="text" className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                <div><label className="block text-muted-foreground mb-1">Payment Slip (Mandatory)</label><input name="paymentSlip" type="file" required className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                <button type="submit" disabled={isReleasingAmount} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
-                                                    {isReleasingAmount ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                                                    {isReleasingAmount ? "Confirming..." : "Confirm Release"}
-                                                </button>
-                                            </form>
-                                        ) : (
-                                            <div className="p-4 text-center text-muted-foreground text-sm italic">{isMajeed ? "You don't have permission to release funds." : "Not yet released by accounts."}</div>
-                                        )}
+                                        {(() => {
+                                            const totalPaid = selectedForm.payments?.reduce((sum, p) => sum + p.releasedAmount, 0) || 0;
+                                            const remaining = selectedForm.advanceRequested - totalPaid;
+                                            return (
+                                                <div className="p-4 space-y-3 text-sm">
+                                                    {selectedForm.accountsReleasedAmount && (
+                                                        <div className="mb-4 bg-muted/20 p-3 rounded-lg border border-border/50">
+                                                            <div className="font-semibold mb-2 border-b border-border/50 pb-1">Last Release Info</div>
+                                                            <div><span className="text-muted-foreground">Date of Entry:</span> <span className="font-medium">{selectedForm.accountsDateOfEntry ? new Date(selectedForm.accountsDateOfEntry).toLocaleDateString() : '-'}</span></div>
+                                                            <div><span className="text-muted-foreground">Date Fund Released:</span> <span className="font-medium">{selectedForm.accountsDateOfFundReleased ? new Date(selectedForm.accountsDateOfFundReleased).toLocaleDateString() : '-'}</span></div>
+                                                            <div><span className="text-muted-foreground">Total Released So Far:</span> <span className="font-bold text-primary">{selectedForm.accountsReleasedAmount.toLocaleString()}</span></div>
+                                                            <div><span className="text-muted-foreground">Remarks:</span> <span>{selectedForm.accountsRemarks}</span></div>
+                                                        </div>
+                                                    )}
+
+                                                    {(activeTab === "pending" || activeTab === "partial") && !isMajeed && remaining > 0 ? (
+                                                        <form onSubmit={handleReleaseAmount} className="space-y-3 pt-2">
+                                                            <div className="font-semibold text-primary mb-2 border-b border-border/50 pb-1">{selectedForm.accountsReleasedAmount ? "Add Another Payment" : "Initial Release"}</div>
+                                                            <div><label className="block text-muted-foreground mb-1">Date of Entry</label><input name="dateOfEntry" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <div><label className="block text-muted-foreground mb-1">Date Fund Released</label><input name="dateOfFundReleased" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <div><label className="block text-muted-foreground mb-1">Released Amount (Max: {remaining.toLocaleString()})</label><input name="releasedAmount" type="number" max={remaining} defaultValue={remaining} required className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <div><label className="block text-muted-foreground mb-1">Remarks</label><input name="remarks" type="text" className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <div><label className="block text-muted-foreground mb-1">Payment Slip (Mandatory)</label><input name="paymentSlip" type="file" required className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <button type="submit" disabled={isReleasingAmount} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-4">
+                                                                {isReleasingAmount ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+                                                                {isReleasingAmount ? "Confirming..." : (selectedForm.accountsReleasedAmount ? "Release Remaining" : "Confirm Release")}
+                                                            </button>
+                                                        </form>
+                                                    ) : (
+                                                        <div className="text-center text-muted-foreground text-sm italic py-4">{isMajeed ? "You don't have permission to release funds." : (remaining === 0 ? "Fully Paid." : "Not available.")}</div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
 
                                     <div className="lg:col-span-2 space-y-4">
@@ -512,23 +513,6 @@ const AccountsArfDashboardPage = () => {
                                                                 </tbody>
                                                             </table>
                                                         </div>
-
-                                                        {(activeTab === "pending" || activeTab === "completed") && remaining > 0 && !isMajeed && (
-                                                            <form onSubmit={handleAddPayment} className="border-t border-border/50 p-4 bg-muted/5 flex flex-wrap gap-4 items-end">
-                                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Date</label><input name="paymentDate" type="date" required className="w-full p-2 text-sm rounded border border-input bg-background" /></div>
-                                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Amount</label><input name="paymentAmount" type="number" max={remaining} defaultValue={remaining} required className="w-full p-2 text-sm rounded border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none" /></div>
-                                                                <div className="flex-1 min-w-[120px]"><label className="block text-xs text-muted-foreground mb-1">Received By</label><input name="receivedBy" type="text" required className="w-full p-2 text-sm rounded border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none" /></div>
-                                                                <div className="flex-1 min-w-[120px]">
-                                                                    <label className="block text-xs text-muted-foreground mb-1">Mode</label>
-                                                                    <select name="modeOfPayment" required className="w-full p-2 text-sm rounded border border-input bg-background focus:ring-2 focus:ring-primary/20 outline-none">
-                                                                        <option value="Transfer">Bank Transfer</option>
-                                                                        <option value="Cash">Cash</option>
-                                                                        <option value="Check">Check</option>
-                                                                    </select>
-                                                                </div>
-                                                                <button type="submit" className="bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">Add Payment</button>
-                                                            </form>
-                                                        )}
                                                     </div>
                                                 );
                                             })()}
