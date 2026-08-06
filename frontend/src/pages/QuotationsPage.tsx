@@ -119,7 +119,7 @@ export const QuotationsPage = () => {
         return acc;
     }, {} as Record<TabKey, number>);
 
-    const handleDownloadPdf = async (id: number, quoteNumber: string) => {
+    const handleDownloadPdf = async (id: number, quoteNumber: string, siteName?: string) => {
         try {
             toast.loading("Generating PDF...", { id: `pdf-${id}` });
             const blob = await quotationService.downloadPdf(id);
@@ -131,14 +131,14 @@ export const QuotationsPage = () => {
             }
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = url; a.download = `${quoteNumber}.pdf`;
+            a.href = url; a.download = siteName ? `${quoteNumber} ${siteName}.pdf` : `${quoteNumber}.pdf`;
             document.body.appendChild(a); a.click();
             window.URL.revokeObjectURL(url);
             toast.success("PDF Downloaded", { id: `pdf-${id}` });
         } catch (error) { toast.error("Failed to download PDF", { id: `pdf-${id}` }); }
     };
 
-    const handleDownloadExcel = async (id: number, quoteNumber: string) => {
+    const handleDownloadExcel = async (id: number, quoteNumber: string, siteName?: string) => {
         try {
             toast.loading("Generating Excel...", { id: `excel-${id}` });
             const blob = await quotationService.downloadExcel(id);
@@ -150,7 +150,7 @@ export const QuotationsPage = () => {
             }
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = url; a.download = `${quoteNumber}.xlsx`;
+            a.href = url; a.download = siteName ? `${quoteNumber} ${siteName}.xlsx` : `${quoteNumber}.xlsx`;
             document.body.appendChild(a); a.click();
             window.URL.revokeObjectURL(url);
             toast.success("Excel Downloaded", { id: `excel-${id}` });
@@ -332,8 +332,8 @@ export const QuotationsPage = () => {
                                                     <button onClick={() => togglePin(quote.id)} title={pinnedQuotes.includes(quote.id) ? "Unpin" : "Pin"} className={`p-2 rounded-lg transition-colors ${pinnedQuotes.includes(quote.id) ? 'text-primary bg-primary/10 hover:bg-primary/20' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'}`}>
                                                         <Pin className={`h-4 w-4 ${pinnedQuotes.includes(quote.id) ? 'fill-current' : ''}`} />
                                                     </button>
-                                                    <button onClick={() => handleDownloadPdf(quote.id, quote.quoteNumber)} title="Download PDF" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><DownloadCloud className="h-4 w-4" /></button>
-                                                    <button onClick={() => handleDownloadExcel(quote.id, quote.quoteNumber)} title="Download Excel" className="p-2 text-muted-foreground hover:text-green-600 hover:bg-green-600/10 rounded-lg transition-colors"><Sheet className="h-4 w-4" /></button>
+                                                    <button onClick={() => handleDownloadPdf(quote.id, quote.quoteNumber, quote.siteName)} title="Download PDF" className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"><DownloadCloud className="h-4 w-4" /></button>
+                                                    <button onClick={() => handleDownloadExcel(quote.id, quote.quoteNumber, quote.siteName)} title="Download Excel" className="p-2 text-muted-foreground hover:text-green-600 hover:bg-green-600/10 rounded-lg transition-colors"><Sheet className="h-4 w-4" /></button>
                                                     {!hasRole(["Estimation"]) && (
                                                         <button onClick={() => handleSendEmail(quote.id)} title="Send Email" className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"><Send className="h-4 w-4" /></button>
                                                     )}

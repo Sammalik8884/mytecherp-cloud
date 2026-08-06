@@ -1825,6 +1825,7 @@ export const QuotationFormPage = () => {
                         const listBasePrice = p.price ?? 0;
                         // Build a CLEAN item: explicitly wipe stale originalPrice & calcBreakdown
                         // so that switching products on the same row always recalculates fresh
+                        const brandSuffix = p.brand ? ` Brand: ${p.brand} (by MY TECH)` : '';
                         const cleanItem = {
                             ...newArr[productModalTarget.index],
                             originalPrice: undefined,   // clear stale price
@@ -1833,7 +1834,7 @@ export const QuotationFormPage = () => {
                             lineTotal: 0,
                             productId: p.id,
                             product: p,
-                            serviceName: p.name,
+                            serviceName: p.name + brandSuffix,
                         };
                         // Run the full calculation pipeline with the product's USD list price forced
                         newArr[productModalTarget.index] = calculateImportedItem(cleanItem, formData, listBasePrice);
@@ -1844,6 +1845,7 @@ export const QuotationFormPage = () => {
                     } else if (productModalTarget?.list === "local") {
                         const newArr = [...localItems];
                         const listBasePrice = p.price ?? 0;
+                        const brandSuffix = p.brand ? ` Brand: ${p.brand} (by MY TECH)` : '';
                         const cleanItem = {
                             ...newArr[productModalTarget.index],
                             originalPrice: undefined,
@@ -1852,7 +1854,7 @@ export const QuotationFormPage = () => {
                             lineTotal: 0,
                             productId: p.id,
                             product: p,
-                            serviceName: p.name
+                            serviceName: p.name + brandSuffix
                         };
                         newArr[productModalTarget.index] = calculateLocalItem(cleanItem, formData, listBasePrice);
                         setLocalItems(newArr);
