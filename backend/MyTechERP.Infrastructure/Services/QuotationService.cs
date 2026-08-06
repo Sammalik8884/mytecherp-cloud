@@ -344,6 +344,7 @@ namespace MyTechERP.Infrastructure.Services
 
             var allQuotes = await _context.Quotations
                 .Include(q => q.Customer)
+                .Include(q => q.Site)
                 .Include(q => q.Items)
                 .OrderByDescending(q => q.Id)
                 .ToListAsync();
