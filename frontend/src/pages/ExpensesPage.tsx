@@ -24,6 +24,9 @@ export const ExpensesPage = () => {
     const [isReviewing, setIsReviewing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
+    const [historyExpense, setHistoryExpense] = useState<ExpenseDto | null>(null);
+
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedExpenses, setSelectedExpenses] = useState<Set<number>>(new Set());
     const [confirmModalState, setConfirmModalState] = useState<{isOpen: boolean; mode: 'single' | 'bulk'; expenseId?: number}>({ isOpen: false, mode: 'single' });
@@ -382,6 +385,31 @@ export const ExpensesPage = () => {
                                                         Review
                                                     </button>
                                                 )}
+                                                {canReview && (expense.status === "Accepted" || expense.status === "Rejected") && (
+                                                    <>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setHistoryExpense(expense);
+                                                                setHistoryModalOpen(true);
+                                                            }}
+                                                            className="text-gray-600 hover:text-gray-900 font-medium text-sm mr-3"
+                                                        >
+                                                            History
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setReviewingExpense(expense);
+                                                                setReviewComments(expense.reviewerComments || "");
+                                                                setReviewModalOpen(true);
+                                                            }}
+                                                            className="text-primary hover:text-primary/80 font-medium text-sm mr-3"
+                                                        >
+                                                            Update
+                                                        </button>
+                                                    </>
+                                                )}
                                                 {(expense.status === "Rejected" && (expense.createdByEmail === user?.email || isAdmin)) && (
                                                     <button
                                                         onClick={(e) => {
@@ -559,6 +587,44 @@ export const ExpensesPage = () => {
                             className="px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded font-medium flex items-center gap-1"
                         >
                             <CheckCircle className="w-4 h-4" /> Accept
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {historyModalOpen && historyExpense && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+                <div className="bg-background rounded-xl shadow-xl w-full max-w-md p-6 flex flex-col">
+                    <h3 className="text-lg font-bold mb-4">Expense History</h3>
+                    <div className="space-y-4 text-sm">
+                        <div>
+                            <p className="text-muted-foreground">Status</p>
+                            <p className="font-semibold capitalize">{historyExpense.status}</p>
+                        </div>
+                        <div>
+                            <p className="text-muted-foreground">Reviewed By</p>
+                            <p className="font-medium">{historyExpense.reviewedByEmail || "Unknown"}</p>
+                        </div>
+                        {historyExpense.reviewedAt && (
+                            <div>
+                                <p className="text-muted-foreground">Reviewed Date</p>
+                                <p className="font-medium">{dayjs(historyExpense.reviewedAt).format("DD MMM YYYY, hh:mm A")}</p>
+                            </div>
+                        )}
+                        <div>
+                            <p className="text-muted-foreground">Comments</p>
+                            <div className="mt-1 p-3 bg-muted rounded border border-border min-h-[60px]">
+                                {historyExpense.reviewerComments || <span className="italic text-muted-foreground">No comments provided.</span>}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-6 flex justify-end">
+                        <button 
+                            onClick={() => setHistoryModalOpen(false)}
+                            className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded font-medium"
+                        >
+                            Close
                         </button>
                     </div>
                 </div>
