@@ -10,6 +10,7 @@ import { Download, Calculator, AlertTriangle, CheckCircle2, Info, Wallet, X, Che
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "react-hot-toast";
+import * as XLSX from "xlsx";
 
 interface AuditRecord {
     arf: AmountRequestFormDto;
@@ -298,6 +299,32 @@ export const ExpenseAuditorPage = () => {
         doc.save(`Expense_Audit_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
+    const generateExcel = () => {
+        const tableRows: any[] = [];
+        tableRows.push(["ARF Number", "Entity", "Released Amt", "Expense Amt", "Variance", "Status"]);
+
+        auditReport.forEach(rec => {
+            const entityName = rec.arf.siteName || rec.arf.customSiteName || rec.arf.officeName || "N/A";
+            tableRows.push([
+                rec.arf.arfNumber || "N/A",
+                entityName,
+                (rec.arf.accountsReleasedAmount || rec.arf.advanceRequested || 0),
+                rec.expenses.reduce((s, e) => s + e.totalExpenseAmount, 0),
+                rec.variance,
+                rec.status
+            ]);
+        });
+
+        // Add summary at the bottom
+        tableRows.push([]);
+        tableRows.push(["", "Overall Totals:", overallTotalReleased, overallTotalExpense, overallVariance, ""]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet(tableRows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Report");
+        XLSX.writeFile(workbook, `Expense_Audit_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
     if (isLoading) {
         return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading Auditor Data...</div>;
     }
@@ -312,13 +339,22 @@ export const ExpenseAuditorPage = () => {
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">Reconcile Released ARFs against Submitted Expenses.</p>
                 </div>
-                <button
-                    onClick={generatePDF}
-                    className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl transition-colors font-medium whitespace-nowrap"
-                >
-                    <Download className="w-4 h-4" />
-                    Export Audit PDF
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={generateExcel}
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-xl transition-colors font-medium whitespace-nowrap"
+                    >
+                        <Download className="w-4 h-4" />
+                        Export Excel
+                    </button>
+                    <button
+                        onClick={generatePDF}
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl transition-colors font-medium whitespace-nowrap"
+                    >
+                        <Download className="w-4 h-4" />
+                        Export PDF
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}
