@@ -33,7 +33,7 @@ namespace MytechERP.API.Controllers
             var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
             var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
             var allowedRoles = new[] { "CEO", "Admin", "Manager", "Accounts Head", "Accounts Assistant" };
-            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com" };
+            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com" };
 
             if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
                 return Forbid();
@@ -49,7 +49,7 @@ namespace MytechERP.API.Controllers
             var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
             var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
             var allowedRoles = new[] { "CEO", "Admin", "Manager", "Accounts Head", "Accounts Assistant" };
-            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com" };
+            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com" };
 
             if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
                 return Forbid();
@@ -65,7 +65,7 @@ namespace MytechERP.API.Controllers
             var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
             var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
             var allowedRoles = new[] { "CEO", "Admin", "Manager", "Accounts Head", "Accounts Assistant" };
-            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com" };
+            var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com" };
 
             if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
                 return Forbid();
@@ -118,7 +118,7 @@ namespace MytechERP.API.Controllers
                 var reviewerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
                 var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
                 var allowedRoles = new[] { "CEO", "Admin", "Manager", "Accounts Head", "Accounts Assistant" };
-                var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com" };
+                var allowedEmails = new[] { "asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com" };
 
                 if (!roles.Any(r => allowedRoles.Contains(r)) && !allowedEmails.Contains(reviewerEmail, StringComparer.OrdinalIgnoreCase))
                     return Forbid();

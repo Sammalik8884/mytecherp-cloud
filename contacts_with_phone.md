@@ -1,0 +1,204 @@
+| Contact Person | Company Name | Location | Phone | Salesman |
+|---|---|---|---|---|
+| ----------------- | ----------- | -------- | ----- | ------------ |
+| Ramazan Ritter | testng |  | 09171741861 | testing person |
+| testing | testing |  | testing | testing person |
+| Mr. Abu Bakar Shafique | DWP Technologies Pvt Ltd. |  | +92 301 5354477 | Muhammad Huzefa |
+| Ghulam Yazdani | Engineering Services |  | +92 300 8613012 | Muhammad Huzefa |
+| Owais Siddiq | AL GHURAIR GIGA PAKISTAN (PRIVATE) LIMITED |  | +92 347 3184510 | Muhammad Huzefa |
+| Abid Hashmi | Purchase Manager | Al Rehamn Garden Phase 2 |  | +92 323 4061428 | Muhammad Huzefa |
+| Owais Siddiq | AL GHURAIR GIGA PAKISTAN (PRIVATE) LIMITED |  | +92 347 3184510 | Muhammad Huzefa |
+| Ria Hartung | abc |  | 03119113356 | Zia Zahoor |
+| SDO E&M Mr. Irfan | PNS KARSAZ (FDAS Library PNS Jauhar Block A7) |  | +92 302 3670856 | Muhammad Huzefa |
+| SDO E&M Mr. Irfan | PNS KARSAZ (Sound Broadcasting System PNS Jauhar Library Block A7) |  | +92 302 3670856 | Muhammad Huzefa |
+| M. Ashraf - Procurement Dept. | Pioneer Engineering - DMC Lahore |  | 0306-7480600 | Muhammad Huzefa |
+| M. Ashraf - Procurement Dept. | Pioneer Engineering - MEEZAN BANK Autoban Raod Hyderabad |  | 0306-7480600 | Muhammad Huzefa |
+| Mr. Waqar (CWO) | Mr Waqar (CWO) |  | +92 332 0741941 | Muhammad Huzefa |
+| Ramazan Ritter | ovensolutions |  | 09171741861 | Muhammad Huzefa |
+| Umar Faraz Khattak | Corporate Avenue Phase-1 | Gulberg Greens Islamabad |  | 03319255978 |
+| Umar Faraz Khattak | Corporate Avenue Phase-2 | FFE Gulberg Greens Islamabad |  | 03319255978 |
+| Ghulam Yazdani | Engineering Services - Basement Floor HBL Marina View Tower |  | +92 300 8613012 | Muhammad Huzefa |
+| Ghulam Yazdani | Engineering Services - Ground Floor HBL Marina View Tower |  | 03008613012 | Muhammad Huzefa |
+| Ghulam Yazdani | Engineering Services - 23rd Floor HBL Marina View Tower |  | 03008613012 | Muhammad Huzefa |
+| Mr. Shakir | Aljibra |  |  | Muhammad Huzefa |
+| Umar Faraz Khattak | Corporate Avenue Phase-1 | ELV FDAS Gulberg Greens Islamabad |  | 03319255978 |
+| Umar Faraz Khattak | Corporate Avenue Phase-1 | ELV IP CCTV Gulberg Greens Islamabad |  | 03319255978 |
+| Umar Faraz Khattak | Corporate Avenue Phase-1 | ELV PAS Gulberg Greens Islamabad |  | 03319255978 |
+| Umar Faraz Khattak | Corporate Avenue Phase-1 | ELV WIFI NETWORKING SYSTEM Gulberg Greens Islamabad |  | 03319255978 |
+| Mahad Azmat  | FFCL - Request for quotation against PR-5301003151 |  | 111-332-111 Extn:3625  | Muhammad Huzefa |
+| Mahad Azmat | FFCL - Request for quotation against PR-5401002138 |  | 111-332-111 Extn:3625  | Muhammad Huzefa |
+| Kabir Ahmed Chhipa | BARQTRON - PART-I - 132 kV AIS Grid Station ? Khipro - INQ-26-032-HESCO-132kV AIS GS Conv & 132kV OHTL Fire Hydrant |  | 0313 3658640 | Muhammad Huzefa |
+| Kabir Ahmed Chhipa | BARQTRON - PART-II 132 kV AIS Grid Station (Remote End) ? Kandiari - INQ-26-032-HESCO-132kV AIS GS Conv & 132kV OHTL Fire Hydrant |  | 0313 3658640 | Muhammad Huzefa |
+| Arsalan | Astral Constructions - Gas Suppression System MRO HANGER ISLAMABAD |  | +92 345 5067860 | Muhammad Huzefa |
+| Mr. Abdul Kareem | Mr. Abdul Kareem |  |  | Muhammad Huzefa |
+| Ramazan Ritter | ovensolutions |  | 09171741861 | Zia Zahoor |
+| Umar Faraz Khattak | Corporate Avenue Phase-2 | ELV FDAS Gulberg Greens Islamabad |  | 03319255978 |
+| Umar Faraz Khattak | Corporate Avenue Phase-1 | ELV SOLID BOTTOM CABLE TRAY Gulberg Greens Islamabad |  | 03319255978 |
+| Mr. Ghulam Yazdani | Engineering Services - FPS for CA-1 BLOCK 4 CLIFTON KARACHI |  | 03008613012 | Muhammad Huzefa |
+| Umar Faraz Khattak | Corporate Avenue Phase-2 | ELV WIFI NETWORKING SYSTEM Gulberg Greens Islamabad |  | 03319255978 |
+| Ayesha Hashmi | BARQTRON - 132kV GIS Grid Station - INQ-26-031-HESCO-132kV GIS GS & TL | RFQ For Fire Hydrant System |  | +92-322-2002611 | Muhammad Huzefa |
+| Umar Faraz Khattak | Corporate Avenue Phase-2 | ELV SOLID BOTTOM CABLE TRAY Gulberg Greens Islamabad |  | 03319255978 |
+| Arsalan | Astral Constructions - Portable Cylinders MRO HANGER ISLAMABAD |  | +92 345 5067860 | Muhammad Huzefa |
+| Mr. Arsalan | Astral Constructions - FHS & Sprinkler System MRO HANGER ISLAMABAD |  | +92 345 5067860 | Muhammad Huzefa |
+| Mr. Majid Hasan | ZETCON Conventional FDAS |  | +92 333 2229816 | Muhammad Huzefa |
+| Arsalan | Astral Constructions - Gas Suppression System MRO HANGER ISLAMABAD |  | +92 345 5067860 | Muhammad Huzefa |
+| Mr. Ishtiaq | Mr. Ishtiaq - CFDAS PROPOSED ELEMENTARY SCHOOL NEW ZERKHAIL |  |  | Muhammad Huzefa |
+| Mr Ahtasham | Firdous pride |  | 0300 2895576 | Tahir Shareef |
+| Noman  | Isra palm |  | +92 333 3310977 | Tahir Shareef |
+| Mr shahrukh | Charlie builders |  | 03222969698 | Tahir Shareef |
+| Mr Sarosh  | Fantasy builders  |  | 03132571482 | Tahir Shareef |
+| Mr. Ishtiaq | Mr. Ishtiaq - AFDAS PROPOSED ELEMENTARY SCHOOL NEW ZERKHAIL |  |  | Muhammad Huzefa |
+| Ayesha Hashmi | BARQTRON Non UL/FM - 132kV GIS Grid Station - INQ-26-031-HESCO-132kV GIS GS & TL | RFQ For Fire Hydrant System |  | +92-322-2002611 | Muhammad Huzefa |
+| Noor Akber super visor  | Elite ZARI MALL |  |  | Shahbaz Hussain |
+| Resident Project Engineer | NORE-1 |  |  | Muhammad Huzefa |
+| Mohsin Raza sb Gm construction  | Al Jadeed tower head office  |  | 03000222339 | Shahbaz Hussain |
+| Muffti sb | SZABU |  | 03169924202 | Shahbaz Hussain |
+| Imran Gilani | Gilani Construction |  | 0300-6345495 | Rehan Saleem |
+| Qasim  | Eddco |  | +92 300 0045958 | Zia Zahoor |
+| Jaleel sb | Al waheed Residencia |  | 03354451055 | Shahbaz Hussain |
+| Mahad Azmat | Request for quotation against PR-1081001835 (DRY Chemical) |  | 111-332-111 Extn:3625  | Muhammad Huzefa |
+| Umar Faraz Khattak | Corporate Avenue FFE Merged Phase-1 & 2 | Gulberg Greens Islamabad |  | 03319255978 |
+| Mr. Owais Siddiq | AL GHURAIR GIGA PAKISTAN (PRIVATE) LIMITED |  | +92 347 3184510 | Muhammad Huzefa |
+| Waqas sb | Riphah University  |  | 03145279835 | Shahbaz Hussain |
+| Umar Faraz Khattak Sb  | AJ tower  |  | 03319255978 | Shahbaz Hussain |
+| Irfan | Parking plaza  |  |  | Zia Zahoor |
+| Mr. Shoaib Ahmed Chishty | Optimum Engineering |  | +923214149008 | Muhammad Huzefa |
+| Mr. Shoaib Ahmed Chishty | Optimum Engineering |  | +923214149008 | Muhammad Huzefa |
+| Muhammad Khushnood Nazeer | Mechanical Design Engineer | Al Imam Enterprises |  | +92 310 170 1504 | Muhammad Huzefa |
+| Abal Rehman | Aps  |  | 03234930594 | Shahbaz Hussain |
+| Rampant sb sv | MARKA E HAQ |  | 03431515616 | Shahbaz Hussain |
+| Ahmed sb | AFIC  |  | 03355258357 | Shahbaz Hussain |
+| Mr. Engr. Umair Nawaz - Head of Procurement | Vernova Marbal Company - VMC-I-02(801)_CIVIL_25-26_LT |  | +92-213-5318740 | Muhammad Huzefa |
+| Mr. Engr. Umair Nawaz - Head of Procurement | Vernova Marbal Company - VMC-I-02(802)_CIVIL_25-26_LT |  | +92-213-5318740 | Muhammad Huzefa |
+| Abeera Siddiqui | Marvel Technologies Pvt. Ltd.  |  | +92-322-413-7174 | Muhammad Huzefa |
+| Mr. Raja Nadeem - Siemens | Facility Manager Siemens Pakistan - SCBA (Self-Contained Breathing Apparatus) |  | N/A | Muhammad Huzefa |
+| Mr. Naseer Ferozi - Procurement Manager | EFU Life House |  | +92 314 2330023 | Muhammad Huzefa |
+| Ramazan Ritter | ovensolutions |  | 09171741861 | NULL |
+| Mr. Ali Kakar | Civil Contractor - Gawadar Safe City - (HVAC) |  | +92 336 1110000 | Muhammad Huzefa |
+| Mr. Ali Kakar | Civil Contractor - Gawadar Safe City - (FPS) |  | +92 336 1110000 | Muhammad Huzefa |
+| Anas (Owner person) | MEP Corp  |  | +92 323 8886488 | Zia Zahoor |
+| Mr Ali Director milestone  | Milestone Associates  |  | 03177481321 | Zia Zahoor |
+| Adhnan sb | Barkaley plaza  |  | 03027061124 | Shahbaz Hussain |
+| Mr zafar  | Electric engineering services  |  | 0333 6667864 | Zia Zahoor |
+| Umar | Qlinks  |  | 03094263426 | Zia Zahoor |
+| Usama Zahid  | Tides consultant  |  | 03175047740 | Zia Zahoor |
+| SSDO AZAM SB | Chaklala officers comodation  |  | 03304105183 | Shahbaz Hussain |
+| Farooq sahib  | Sarhad Engineering  |  | 03345807857 | Zia Zahoor |
+| Mr.Faisal | Saima group |  | 03003914724 | Tahir Shareef |
+| Mr Areeb | UD builders |  | 0335-3835821 | Tahir Shareef |
+| Mr Shahbaz  | US enterprise  |  | 009-233-33156862 | Tahir Shareef |
+| Abid sb mep engineer  | The point plaza |  | 03342445844 | Shahbaz Hussain |
+| Mr. Raja Nadeem - PFM Siemens | Facility Manager Siemens Pakistan - Glass Level Indicator - Water & Foam at Siemens |  | +92 333 2899624 | Muhammad Huzefa |
+| Mr. ABC | KANUP - KNPGS-  TS-07BP-213(P2)-2025-26 |  | 021 99241657 | Muhammad Huzefa |
+| Mr. ABC | KANUP - KNPGS - TS-11SS-264(P2)-2026-27 |  | 021 99241657 | Muhammad Huzefa |
+| Mr. ABC | KANUP - KNPGS - TS-08TC-62(P4)-2025-26 |  | 021 99241657 | Muhammad Huzefa |
+| Mr. ABC | KANUP - KNPGS - TS-08TC-9(P4)-25-26 |  | 021 99241657 | Muhammad Huzefa |
+| Shoaib Sb  | Hotel building  |  | 03027506070 | Shahbaz Hussain |
+| Umar Faraz Khattak | AJ Tower - FFE (Fire Fighting Equipments) |  | 03319255978 | Muhammad Huzefa |
+| Shahid sb | Century Busensies  |  | 03001216450 | Shahbaz Hussain |
+| Mr Asif | Al kuser university  |  | 0300 2788419 | Tahir Shareef |
+| Mr faisal M Ali | RJ tower |  | 03009251998 | Tahir Shareef |
+| Mr Shahzad | Triple S son's  |  | 03152105912 | Tahir Shareef |
+| Unknown | Najeebullah & Co (Pvt) Ltd |  | 0000 0000000 | Muhammad Huzefa |
+| Mr. Muhammad Bilal - Quantity Surveyor M&P -  | Paragon Constructors (Pvt) Ltd |  | +92-302-2277506 | Muhammad Huzefa |
+| Haseeb | HCB Devolper  |  |  | Zia Zahoor |
+| Zamam sahib  | MES |  |  | Zia Zahoor |
+| Qamar shazad | Kingcreat  |  | 03214880099 | Zia Zahoor |
+| Umar Faraz Khattak | AJ Tower - FDAS (Fire Detection & Alarm System) |  | 03319255978 | Muhammad Huzefa |
+| Umar Faraz Khattak | AJ Tower - FE (Fire Extinguisher) |  | 03319255978 | Muhammad Huzefa |
+| Muhammad Bilal | Paragon construction  |  | +92 302 2277506 | Tahir Shareef |
+| Mr syed Hasan  | SAM ENGINEERING  |  | 03362546644 | Tahir Shareef |
+| Mr. ZAHID NAWAZ KAYANI - Project Manager M&P  | Paragon Constructors (Pvt) Ltd  |  | +923226104087 | Muhammad Huzefa |
+| Mr. Abu Bakar C/o Mr. Ali Azeem (Project Manager) MY | Mr. Abu Bakar C/o Mr. Ali Azeem (Project Manager) MY TECH |  |  | Muhammad Huzefa |
+| Asif qambar (procurement executive) | Uniworth pvt company  |  | +92 322 7777906 | Zia Zahoor |
+| Mr. SDO Aqeel  | PAF - Air Base Kamra |  |  | Muhammad Huzefa |
+| Mr. SDO Aqeel  | PAF - Air Base Kamra |  |  | Muhammad Huzefa |
+| Mr. Muhammad Ahmad | Chinoy Engineering & Construction Pvt Limited |  | +92 337 9647756 | Muhammad Huzefa |
+| Mr. SDO Ilyaz Sahb | MES HVAC (PATOKI) Quotation |  |  | Muhammad Huzefa |
+| Owais Siddiq | AL GHURAIR GIGA PAKISTAN (PRIVATE) LIMITED |  | +92 347 3184510 | Muhammad Huzefa |
+| Owais Siddiq | AL GHURAIR GIGA PAKISTAN (PRIVATE) LIMITED |  | +92 347 3184510 | Muhammad Huzefa |
+| Mr. Ghulam Yazdani | Engineering Services - FPS for HIGH-Q-PHARMACEUTICALS KARACH |  | 03008613012 | Muhammad Huzefa |
+| Ibad hassan | YH CONSULTANT  |  | +92 321 8241652 | Tahir Shareef |
+| Mr Farhan | Freight link |  | 03333 0336733 | Tahir Shareef |
+| Mr. Suhail Tuyyab - Manager Procurement CP | DWP Technologies Pvt Ltd. |  | +92 301 8433230 | Muhammad Huzefa |
+| Javaid  | IDAP |  |  | Zia Zahoor |
+| Umar Faraz Khattak | Corporate Avenue FDAS Merged Phase-1 & 2 | Gulberg Greens Islamabad |  | 03319255978 |
+| Mr. Mahad Azmat | FFCL - Request for quotation against PR-5401002127 (Silicon Cloth) |  | 111-332-111 Extn:3625  | Muhammad Huzefa |
+| M. Ashraf - Procurement Dept. | Pioneer Engineering - MEEZAN BANK Pakistan Chowk Karachi |  | 03067480600 | Muhammad Huzefa |
+| Mr. SDO B/R AGE(A) Patoki (Muhammad Muzammil) | MES |  |  | Muhammad Huzefa |
+| Mr touseef  | Gat logistics  |  |  | Tahir Shareef |
+| Mr Asif Nafis | SM AXIS . SM group  |  | 03153002143 | Tahir Shareef |
+| Mr. Bilal Khan - Managing Director | ZAEEM & HAZIQ CORPORATION |  | 03064668044 | Muhammad Huzefa |
+| Mr hassan | Khanasaaz |  | 03042206866 | Tahir Shareef |
+| M Ali jaffery | Kings group  |  | 03002000204 | Tahir Shareef |
+| Mr. Bilal Khan - Managing Director | ZAEEM & HAZIQ CORPORATION |  | 03064668044 | Muhammad Huzefa |
+| Mr. Rehan Saleem | SAMI PHARMACEUTICAL PVT LTD |  | +92 300 8213425 | Muhammad Huzefa |
+| M.Ubaid yousuf | MEPFIT CONSULTANT |  | 03333181216 | Shahbaz Hussain |
+| M.Ubaid yousuf | MEPFIT CONSULTANT |  | 03333181216 | Tahir Shareef |
+| Mr. SDO Amjad Sahb | MES |  |  | Zia Zahoor |
+| Mr. SDO Amjad Sahb | MES |  |  | Muhammad Huzefa |
+| Faisal Bukhari | ENA / JBS |  | 03328448106 | Munawar Hasan |
+| Mr. Asim Qamar | SAMI PHARMACEUTICAL PVT LTD |  | +92 301 8283470 | Muhammad Huzefa |
+| Ramazan Ritter | ovensolutions |  | 09171741861 | Muhammad Huzefa |
+| Ria Hartung | abc |  |  | Muhammad Huzefa |
+| Tahi majeed sb mep manger  | Prism heights  |  | 03150382555 | Shahbaz Hussain |
+| Syed Faheem Askari  | The belvedere  |  | 03355011172 | Shahbaz Hussain |
+| Jahanzeb sb manger procurement  | Riphah farm house  |  | 03116393356 | Shahbaz Hussain |
+| Majeed sb mep manger  | Karkorum greens |  |  | Shahbaz Hussain |
+| Mr Khurram  | Ali Sons technology  |  | 03452224580 | Tahir Shareef |
+| Kashif  | Paari palace  |  | 03265906902 | Tahir Shareef |
+| Nazakat | Nadeem builders |  | 03482132076 | Tahir Shareef |
+| Mr. Mahad Azmat | FFCL - Request for quotation against PR-1091000536 (Air Trolley System) |  | 111-332-111 Extn:3625  | Muhammad Huzefa |
+| Mr. Abdul Moiz - Project Manager | Al-Kawthar University |  | +923212422036 | Muhammad Huzefa |
+| Mr. Muhammad Ahmad | Chinoy Engineering & Construction Pvt Limited |  | +92 337 9647756 | Muhammad Huzefa |
+| Mr. Imran Kidwai | Jubliee Life Insurance |  |  | Muhammad Huzefa |
+| Mr. Asim Qamar | SAMI PHARMACEUTICAL PVT LTD |  | +92 301 8283470 | Muhammad Huzefa |
+| Mr. Abdul Moiz - Project Manager | Al-Kawthar University |  | +923212422036 | Muhammad Huzefa |
+| Ramazan Ritter | ovensolutions |  | 09171741861 | Ali Azeem |
+| Ramazan Ritter | ovensolutions |  | 09171741861 | Muhammad Huzefa |
+| Mr. Mahad Azmat | FFCL - Request for quotation against PR-5301003165 (V-Guard Cap) |  | 111-332-111 Extn:3625  | Muhammad Huzefa |
+| Mr. Abdul Moiz - Project Manager | Al-Kawthar University - LIFECO Option |  | +923212422036 | Muhammad Huzefa |
+| Mr. Mohammad Sarwar - Director Contracts  | Paragon Constructors (Pvt) Ltd  |  | +923187272466 | Muhammad Huzefa |
+| Mr. Mohammad Sarwar - Director Contracts  | Paragon Constructors (Pvt) Ltd  |  | +923187272466 | Muhammad Huzefa |
+| Farhan | Plot no 58-E Etihad town  |  |  | Zia Zahoor |
+| xyz | Astral Construction |  |  | Ali Azeem |
+| Mr. Kashif Khalid | AA Water Front Tower - LIFECO (FFE)  |  | +92 333 2123683 | Muhammad Huzefa |
+| Mr. Kashif Khalid | AA Water Front Tower - APC (FFE)  |  | +92 333 2123683 | Muhammad Huzefa |
+| Akhlaq Sb Project Manager  | Saima Water front HMR  |  | +923008230608 | Tahir Shareef |
+| Mr Umair (Manager Procurment) | HMR Water Front |  | +92 321 2501858 | Tahir Shareef |
+| Mr Kashif Khalid | AA Projects |  | 92 321 2123683 | Tahir Shareef |
+| Muhammad Bilal | Paragon |  | 0302-2277506 | Ali Azeem |
+| Shoukat sb | D&E Facilty project |  | 03702124287 | Shahbaz Hussain |
+| Murtiza sb | PEC  |  | 03336930641 | Shahbaz Hussain |
+| Mr. Hamza Asif  | CBRE | Global Workplace Solutions |  | +923344469659 | Muhammad Huzefa |
+| Mr. Muhammad Taimur Ul Haque - Lead QHSE Services & PSE | Velosi Integrity & Safety Pakistan (Pvt.) Ltd. |  | +92312227909 | Muhammad Huzefa |
+| Ijaz sahib | 579- Plaza  |  | 03224655003 | Zia Zahoor |
+| Mr Adil SDO | MES |  |  | Ali Azeem |
+| Mr. Asim Qamar | SAMI PHARMACEUTICAL PVT LTD |  | +92 301 8283470 | Muhammad Huzefa |
+| D Aslam  | J-1 |  |  | Zia Zahoor |
+| Muzzamil  | 395-j3 |  | 03214311179 | Zia Zahoor |
+| Arslan sahib | 33-j3 |  |  | Zia Zahoor |
+| Muneeb  | Plaza -shokat khanim road  |  | 03249310071 | Zia Zahoor |
+| Ahmed Ali  | Apartments plaza  |  |  | Zia Zahoor |
+| Shaid  | Iteffaq group  |  |  | Zia Zahoor |
+| Shahid Iqabal Sb mep manger  | Mount khalid  |  | 03335684831 | Shahbaz Hussain |
+| Mr. Rizwan Younas | Admin Officer | A Tek Computers Solutions |  | 03294222587 | Muhammad Huzefa |
+| Mr. SDO E&M Adil Khan | MES JNB ORMARA |  | +92 322 5251424 | Muhammad Huzefa |
+| N.A | Union Council Korangi | 80mm Paver Grey 4500+ PSI 80mm Paver 4500+Psi |  |  | Muhammad Huzefa |
+| N.A | Union Council Korangi | 80mm Paver Grey 7000+ PSI 80mm Paver 7000+Psi |  |  | Muhammad Huzefa |
+| Mr. Waqas Ali | Chief Executive Officer | Aqunix - FDAS |  | 0306 8859238 | Muhammad Huzefa |
+| Mr. Waqas Ali | Chief Executive Officer | Aqunix - FFE |  | 0306 8859238 | Muhammad Huzefa |
+| Mr. SDO E&M Adil Khan | MES JNB ORMARA - FSS Customized Design |  | +92 322 5251424 | Muhammad Huzefa |
+| Mr. Tanveer Aziz | Sunbeat Energy Solution - LIFECO Option |  | +92 344 9825852 | Muhammad Huzefa |
+| Jawaid site supervisor  | Nadeem builders  |  | 03102979765 | Tahir Shareef |
+| Mr. Salman M.Hussain - Planning & Coordination Engineer | AAA Partnership PVT LTD (Project & Construction Management) |  | +92 333 0286500 | Muhammad Huzefa |
+| Mr. Daniyal - lieutenant | NHS IV |  |  | Muhammad Huzefa |
+| Mr. Daniyal - lieutenant | NHS IV |  |  | Muhammad Huzefa |
+| Ramazan Ritter | ovensolutions |  | 09171741861 | Munawar Hasan |
+| Sayed Laiq | Tahir Builders |  |  | Ali Azeem |
+| Astral Arsalan | Astral Construction |  |  | Ali Azeem |
+| Mujahid Iqbal  | Vigorous Pharmasuticial Company  |  | +92 304 8926437 | Zia Zahoor |
+| Mr. Muhammad Taimur Ul Haque - Lead QHSE Services & PSE | Velosi Integrity & Safety Pakistan (Pvt.) Ltd. |  | +92312227909 | Muhammad Huzefa |
+| Mr. Daniyal - Commander | NHS IV |  |  | Muhammad Huzefa |
+| Mr. Daniyal - Commander | NHS IV |  |  | Muhammad Huzefa |
+
