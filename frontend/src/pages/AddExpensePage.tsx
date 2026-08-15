@@ -381,8 +381,10 @@ export const AddExpensePage = () => {
                                 </button>
                                 <button
                                     onClick={() => {
+                                        if (closedArfWarning) {
+                                            setSelectedArfId(closedArfWarning.arfId);
+                                        }
                                         setClosedArfWarning(null);
-                                        // Selection remains what user clicked
                                     }}
                                     className="px-4 py-2 text-sm font-medium bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
                                 >
