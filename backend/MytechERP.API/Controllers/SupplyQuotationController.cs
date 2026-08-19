@@ -32,7 +32,7 @@ namespace MytechERP.API.Controllers
 
         private bool IsAuthorized()
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? User.FindFirstValue("email");
             return !string.IsNullOrEmpty(email) && _allowedEmails.Contains(email.ToLower());
         }
 
