@@ -30,7 +30,7 @@ export function SupplyQuotationForm() {
 
     const fetchData = async () => {
         try {
-            const res = await api.get(`/api/supplyquotation/${id}`);
+            const res = await api.get(`/supplyquotation/${id}`);
             const q = res.data;
             setQuoteDate(new Date(q.quoteDate).toISOString().substring(0, 10));
             setQuotationFor(q.quotationFor || "");
@@ -118,9 +118,9 @@ export function SupplyQuotationForm() {
 
         try {
             if (id) {
-                await api.put(`/api/supplyquotation/${id}`, payload);
+                await api.put(`/supplyquotation/${id}`, payload);
             } else {
-                await api.post("/api/supplyquotation", payload);
+                await api.post("/supplyquotation", payload);
             }
             navigate("/supply-quotations");
         } catch (error) {

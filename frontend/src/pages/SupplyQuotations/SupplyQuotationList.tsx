@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Plus, Download, Edit } from "lucide-react";
 import { Link } from "react-router-dom";
 import { apiClient as api } from "../../services/apiClient";
+import { Plus, Edit, Download, Trash2 } from "lucide-react";
 
 export function SupplyQuotationList() {
     const [quotations, setQuotations] = useState<any[]>([]);
@@ -12,7 +12,7 @@ export function SupplyQuotationList() {
 
     const fetchQuotations = async () => {
         try {
-            const res = await api.get("/api/supplyquotation");
+            const res = await api.get("/supplyquotation");
             setQuotations(res.data);
         } catch (error) {
             console.error("Failed to fetch supply quotations", error);
@@ -20,25 +20,36 @@ export function SupplyQuotationList() {
     };
 
     const downloadPdf = async (id: number) => {
-        const response = await api.get(`/api/supplyquotation/${id}/pdf`, { responseType: 'blob' });
+        const response = await api.get(`/supplyquotation/${id}/pdf`, { responseType: "blob" });
         const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
-        link.setAttribute('download', `SupplyQuotation_${id}.pdf`);
+        link.setAttribute("download", `SupplyQuotation_${id}.pdf`);
         document.body.appendChild(link);
         link.click();
         link.remove();
     };
 
     const downloadExcel = async (id: number) => {
-        const response = await api.get(`/api/supplyquotation/${id}/excel`, { responseType: 'blob' });
+        const response = await api.get(`/supplyquotation/${id}/excel`, { responseType: "blob" });
         const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
-        link.setAttribute('download', `SupplyQuotation_${id}.xlsx`);
+        link.setAttribute("download", `SupplyQuotation_${id}.xlsx`);
         document.body.appendChild(link);
         link.click();
         link.remove();
+    };
+
+    const deleteQuotation = async (id: number) => {
+        if (confirm("Are you sure you want to delete this quotation?")) {
+            try {
+                await api.delete(`/supplyquotation/${id}`);
+                fetchQuotations();
+            } catch (error) {
+                console.error("Failed to delete", error);
+            }
+        }
     };
 
     return (
@@ -55,10 +66,10 @@ export function SupplyQuotationList() {
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 border-b">
                         <tr>
-                            <th className="px-6 py-3 font-semibold text-gray-700">Quote #</th>
-                            <th className="px-6 py-3 font-semibold text-gray-700">Date</th>
-                            <th className="px-6 py-3 font-semibold text-gray-700">Quotation For</th>
-                            <th className="px-6 py-3 font-semibold text-gray-700">Actions</th>
+                            <th className="px-6 py-3">Quote Number</th>
+                            <th className="px-6 py-3">Date</th>
+                            <th className="px-6 py-3">Quotation For</th>
+                            <th className="px-6 py-3">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -76,6 +87,9 @@ export function SupplyQuotationList() {
                                     </button>
                                     <button onClick={() => downloadExcel(q.id)} className="text-green-500 hover:text-green-700" title="Excel">
                                         <Download className="w-5 h-5" />
+                                    </button>
+                                    <button onClick={() => deleteQuotation(q.id)} className="text-gray-500 hover:text-gray-700" title="Delete">
+                                        <Trash2 className="w-5 h-5" />
                                     </button>
                                 </td>
                             </tr>
