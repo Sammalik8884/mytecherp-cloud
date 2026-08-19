@@ -15,6 +15,11 @@ namespace MytechERP.domain.Quotations
         
         public string QuotationFor { get; set; } = string.Empty;
         public string RevisionNumber { get; set; } = string.Empty;
+
+        public string HeaderToName { get; set; } = string.Empty;
+        public string HeaderDesignation { get; set; } = string.Empty;
+        public string HeaderCompany { get; set; } = string.Empty;
+        public string HeaderLocation { get; set; } = string.Empty;
         
         public string? TermsAndConditionsJson { get; set; }
         

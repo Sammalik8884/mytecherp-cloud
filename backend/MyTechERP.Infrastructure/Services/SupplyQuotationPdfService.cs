@@ -57,13 +57,10 @@ namespace MyTechERP.Infrastructure.Services
                 // ── Meta Info ──
                 col.Item().PaddingTop(10).PaddingBottom(6).Element(c => ComposeQuoteMetaInfo(c, quote));
 
-                if (!string.IsNullOrWhiteSpace(quote.QuotationFor))
-                {
-                    col.Item().ShowOnce().PaddingTop(4).PaddingBottom(8)
-                        .Background(Brand).Padding(8).AlignCenter()
-                        .Text($"QUOTATION FOR: {quote.QuotationFor.ToUpper()}")
-                        .Bold().FontSize(9.5f).FontColor(Colors.White);
-                }
+                col.Item().ShowOnce().PaddingTop(4).PaddingBottom(8)
+                    .Background(Brand).Padding(8).AlignCenter()
+                    .Text($"QUOTATION FOR {(quote.QuotationFor ?? "").ToUpper()} (Supply ONLY)")
+                    .Bold().FontSize(9.5f).FontColor(Colors.White);
 
                 // ── CONTENT ──
                 col.Item().PaddingTop(6).Element(c => ComposeContent(c, quote));
@@ -100,29 +97,24 @@ namespace MyTechERP.Infrastructure.Services
             {
                 col.Item().Row(row =>
                 {
+                    // Left-aligned info
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text("To,").Bold();
+                        if (!string.IsNullOrWhiteSpace(quote.HeaderToName)) c.Item().Text(quote.HeaderToName).Bold();
+                        if (!string.IsNullOrWhiteSpace(quote.HeaderDesignation)) c.Item().Text(quote.HeaderDesignation);
+                        if (!string.IsNullOrWhiteSpace(quote.HeaderCompany)) c.Item().Text(quote.HeaderCompany).Bold();
+                        if (!string.IsNullOrWhiteSpace(quote.HeaderLocation)) c.Item().Text(quote.HeaderLocation);
+                    });
+
                     // Right-aligned Meta blocks
                     row.RelativeItem().Column(c =>
                     {
-                        void MetaRow(string label, string value, bool highlight = false)
-                        {
-                            c.Item().Table(t =>
-                            {
-                                t.ColumnsDefinition(cd => { cd.ConstantColumn(80); cd.RelativeColumn(); });
-                                t.Cell().Background(highlight ? Brand : BrandLight)
-                                    .PaddingHorizontal(5).PaddingVertical(3)
-                                    .Text(label).FontSize(8)
-                                    .FontColor(highlight ? Colors.White : TextMuted).SemiBold();
-                                t.Cell().Border(0.5f).BorderColor(BorderGrey)
-                                    .PaddingHorizontal(5).PaddingVertical(3)
-                                    .Text(value).FontSize(8)
-                                    .FontColor(highlight ? Brand : TextDark).SemiBold();
-                            });
-                        }
-
-                        MetaRow("Quotation #", quote.QuoteNumber, true);
-                        MetaRow("Date", quote.QuoteDate.ToString("dd-MMM-yyyy"));
-                        if (!string.IsNullOrWhiteSpace(quote.RevisionNumber))
-                            MetaRow("Revision", quote.RevisionNumber);
+                        c.Item().PaddingTop(24);
+                        c.Item().AlignRight().Text($"Quotation # : {quote.QuoteNumber}").Bold();
+                        c.Item().AlignRight().Text($"Date : {quote.QuoteDate:dd-MMM-yyyy}").Bold();
+                        var revStr = string.IsNullOrWhiteSpace(quote.RevisionNumber) ? "" : $" | {quote.RevisionNumber}";
+                        c.Item().AlignRight().Text($"Date / Rev # : {quote.QuoteDate:dd-MMM-yyyy}{revStr}").Bold();
                     });
                 });
             });

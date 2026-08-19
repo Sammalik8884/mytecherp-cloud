@@ -11,6 +11,10 @@ export function SupplyQuotationForm() {
     const [quoteDate, setQuoteDate] = useState(new Date().toISOString().substring(0, 10));
     const [quotationFor, setQuotationFor] = useState("");
     const [revisionNumber, setRevisionNumber] = useState("0");
+    const [headerToName, setHeaderToName] = useState("");
+    const [headerDesignation, setHeaderDesignation] = useState("");
+    const [headerCompany, setHeaderCompany] = useState("");
+    const [headerLocation, setHeaderLocation] = useState("");
     const [termsAndConditions, setTermsAndConditions] = useState("");
     
     const [supplyColumns, setSupplyColumns] = useState<string[]>(["Supply-1 Unit Rate"]);
@@ -29,6 +33,10 @@ export function SupplyQuotationForm() {
             setQuoteDate(new Date(q.quoteDate).toISOString().substring(0, 10));
             setQuotationFor(q.quotationFor || "");
             setRevisionNumber(q.revisionNumber || "0");
+            setHeaderToName(q.headerToName || "");
+            setHeaderDesignation(q.headerDesignation || "");
+            setHeaderCompany(q.headerCompany || "");
+            setHeaderLocation(q.headerLocation || "");
             setTermsAndConditions(q.termsAndConditionsJson || "");
             const cols = JSON.parse(q.supplyColumnsJson || '["Supply-1 Unit Rate"]');
             setSupplyColumns(cols);
@@ -91,6 +99,10 @@ export function SupplyQuotationForm() {
             quoteDate,
             quotationFor,
             revisionNumber,
+            headerToName,
+            headerDesignation,
+            headerCompany,
+            headerLocation,
             termsAndConditionsJson: termsAndConditions,
             supplyColumns,
             items
@@ -125,18 +137,41 @@ export function SupplyQuotationForm() {
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Date</label>
-                        <input type="date" value={quoteDate} onChange={e => setQuoteDate(e.target.value)} className="w-full border rounded p-2" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4 border-r pr-6">
+                        <h3 className="font-bold text-gray-700">Client / Header Details</h3>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">To (Name / Attention)</label>
+                            <input type="text" placeholder="e.g. Mr. Muhammad Ismail Shah" value={headerToName} onChange={e => setHeaderToName(e.target.value)} className="w-full border rounded p-2" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Designation</label>
+                            <input type="text" placeholder="e.g. Electrical Engineer" value={headerDesignation} onChange={e => setHeaderDesignation(e.target.value)} className="w-full border rounded p-2" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Company</label>
+                            <input type="text" placeholder="e.g. EPCL" value={headerCompany} onChange={e => setHeaderCompany(e.target.value)} className="w-full border rounded p-2" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Location / Address</label>
+                            <input type="text" placeholder="e.g. Karachi, Pakistan" value={headerLocation} onChange={e => setHeaderLocation(e.target.value)} className="w-full border rounded p-2" />
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Revision Number</label>
-                        <input type="text" value={revisionNumber} onChange={e => setRevisionNumber(e.target.value)} className="w-full border rounded p-2" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Quotation For</label>
-                        <input type="text" value={quotationFor} onChange={e => setQuotationFor(e.target.value)} className="w-full border rounded p-2" placeholder="e.g. Electrical Items List Rev-02..." />
+                    
+                    <div className="space-y-4">
+                        <h3 className="font-bold text-gray-700">Quotation Meta</h3>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Date</label>
+                            <input type="date" value={quoteDate} onChange={e => setQuoteDate(e.target.value)} className="w-full border rounded p-2" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Revision Number</label>
+                            <input type="text" value={revisionNumber} onChange={e => setRevisionNumber(e.target.value)} className="w-full border rounded p-2" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Quotation For</label>
+                            <input type="text" placeholder="e.g. Electrical Items List Rev-02..." value={quotationFor} onChange={e => setQuotationFor(e.target.value)} className="w-full border rounded p-2" />
+                        </div>
                     </div>
                 </div>
 

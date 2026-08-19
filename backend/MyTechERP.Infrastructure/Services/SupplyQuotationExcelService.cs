@@ -31,74 +31,48 @@ namespace MyTechERP.Infrastructure.Services
 
                 int currentRow = 1;
 
-                // --- Header ---
-                ws.Cells[currentRow, 1, currentRow, 8].Merge = true;
-                ws.Cells[currentRow, 1].Value = "MY TECH ENGINEERING COMPANY PVT LTD";
-                ws.Cells[currentRow, 1].Style.Font.Bold = true;
-                ws.Cells[currentRow, 1].Style.Font.Size = 14;
-                ws.Cells[currentRow, 1].Style.Font.Color.SetColor(Color.White);
-                ws.Cells[currentRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                ws.Cells[currentRow, 1].Style.Fill.BackgroundColor.SetColor(brandColor);
-                ws.Cells[currentRow, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                currentRow++;
+                // --- Header Left & Right ---
+                ws.Cells["A1"].Value = "To,";
+                ws.Cells["A1"].Style.Font.Bold = true;
+                
+                ws.Cells["A2"].Value = quote.HeaderToName;
+                ws.Cells["A2"].Style.Font.Bold = true;
+                
+                ws.Cells["A3"].Value = quote.HeaderDesignation;
+                
+                ws.Cells["A4"].Value = quote.HeaderCompany;
+                ws.Cells["A4"].Style.Font.Bold = true;
+                
+                ws.Cells["A5"].Value = quote.HeaderLocation;
 
-                ws.Cells[currentRow, 1, currentRow, 8].Merge = true;
-                ws.Cells[currentRow, 1].Value = "Industrial & Commercial Solutions";
+                ws.Cells["E3:G3"].Merge = true;
+                ws.Cells["E3"].Value = "Quotation # : " + quote.QuoteNumber;
+                ws.Cells["E3"].Style.Font.Bold = true;
+                ws.Cells["E3"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                ws.Cells["E4:G4"].Merge = true;
+                ws.Cells["E4"].Value = "Date : " + quote.QuoteDate.ToString("dd-MMM-yyyy");
+                ws.Cells["E4"].Style.Font.Bold = true;
+                ws.Cells["E4"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                ws.Cells["E5:G5"].Merge = true;
+                string revStr = string.IsNullOrWhiteSpace(quote.RevisionNumber) ? "" : " | " + quote.RevisionNumber;
+                ws.Cells["E5"].Value = "Date / Rev # : " + quote.QuoteDate.ToString("dd-MMM-yyyy") + revStr;
+                ws.Cells["E5"].Style.Font.Bold = true;
+                ws.Cells["E5"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                currentRow = 6;
+
+                // --- Headline ---
+                ws.Cells[currentRow, 1, currentRow, 7].Merge = true;
+                ws.Cells[currentRow, 1].Value = $"QUOTATION FOR {(quote.QuotationFor ?? "").ToUpper()} (Supply ONLY)";
+                ws.Cells[currentRow, 1].Style.Font.Bold = true;
+                ws.Cells[currentRow, 1].Style.Font.Size = 12;
                 ws.Cells[currentRow, 1].Style.Font.Color.SetColor(Color.White);
                 ws.Cells[currentRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
                 ws.Cells[currentRow, 1].Style.Fill.BackgroundColor.SetColor(brandColor);
                 ws.Cells[currentRow, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                 currentRow += 2;
-
-                // --- Meta Info ---
-                void DrawMetaRow(int row, int startCol, string label, string value, bool highlight = false)
-                {
-                    ws.Cells[row, startCol].Value = label;
-                    ws.Cells[row, startCol].Style.Font.Bold = true;
-                    ws.Cells[row, startCol].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    if (highlight)
-                    {
-                        ws.Cells[row, startCol].Style.Fill.BackgroundColor.SetColor(brandColor);
-                        ws.Cells[row, startCol].Style.Font.Color.SetColor(Color.White);
-                    }
-                    else
-                    {
-                        ws.Cells[row, startCol].Style.Fill.BackgroundColor.SetColor(brandLightColor);
-                        ws.Cells[row, startCol].Style.Font.Color.SetColor(textDarkColor);
-                    }
-                    ws.Cells[row, startCol].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-
-                    ws.Cells[row, startCol + 1].Value = value;
-                    ws.Cells[row, startCol + 1].Style.Font.Bold = true;
-                    if (highlight) ws.Cells[row, startCol + 1].Style.Font.Color.SetColor(brandColor);
-                    ws.Cells[row, startCol + 1].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                }
-
-                DrawMetaRow(currentRow, 1, "Quotation #", quote.QuoteNumber, true);
-                currentRow++;
-                DrawMetaRow(currentRow, 1, "Date", quote.QuoteDate.ToString("dd-MMM-yyyy"));
-                currentRow++;
-                if (!string.IsNullOrWhiteSpace(quote.RevisionNumber))
-                {
-                    DrawMetaRow(currentRow, 1, "Revision", quote.RevisionNumber);
-                    currentRow++;
-                }
-
-                currentRow++;
-
-                // --- Headline ---
-                if (!string.IsNullOrWhiteSpace(quote.QuotationFor))
-                {
-                    ws.Cells[currentRow, 1, currentRow, 8].Merge = true;
-                    ws.Cells[currentRow, 1].Value = $"QUOTATION FOR: {quote.QuotationFor.ToUpper()}";
-                    ws.Cells[currentRow, 1].Style.Font.Bold = true;
-                    ws.Cells[currentRow, 1].Style.Font.Size = 12;
-                    ws.Cells[currentRow, 1].Style.Font.Color.SetColor(Color.White);
-                    ws.Cells[currentRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    ws.Cells[currentRow, 1].Style.Fill.BackgroundColor.SetColor(brandColor);
-                    ws.Cells[currentRow, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                    currentRow += 2;
-                }
 
                 // --- DYNAMIC COLUMNS SETUP ---
                 var supplyColumns = new List<string>();

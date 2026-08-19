@@ -58,6 +58,10 @@ namespace MyTechERP.Infrastructure.Services
                 QuoteDate = dto.QuoteDate,
                 QuotationFor = dto.QuotationFor,
                 RevisionNumber = dto.RevisionNumber,
+                HeaderToName = dto.HeaderToName,
+                HeaderDesignation = dto.HeaderDesignation,
+                HeaderCompany = dto.HeaderCompany,
+                HeaderLocation = dto.HeaderLocation,
                 TermsAndConditionsJson = dto.TermsAndConditionsJson,
                 CreatedByUserId = userId,
                 SupplyColumnsJson = JsonSerializer.Serialize(dto.SupplyColumns),
@@ -89,6 +93,10 @@ namespace MyTechERP.Infrastructure.Services
             quote.QuoteDate = dto.QuoteDate;
             quote.QuotationFor = dto.QuotationFor;
             quote.RevisionNumber = dto.RevisionNumber;
+            quote.HeaderToName = dto.HeaderToName;
+            quote.HeaderDesignation = dto.HeaderDesignation;
+            quote.HeaderCompany = dto.HeaderCompany;
+            quote.HeaderLocation = dto.HeaderLocation;
             quote.TermsAndConditionsJson = dto.TermsAndConditionsJson;
             quote.SupplyColumnsJson = JsonSerializer.Serialize(dto.SupplyColumns);
 
@@ -140,6 +148,10 @@ namespace MyTechERP.Infrastructure.Services
                 QuoteDate = quote.QuoteDate,
                 QuotationFor = quote.QuotationFor,
                 RevisionNumber = quote.RevisionNumber,
+                HeaderToName = quote.HeaderToName,
+                HeaderDesignation = quote.HeaderDesignation,
+                HeaderCompany = quote.HeaderCompany,
+                HeaderLocation = quote.HeaderLocation,
                 TermsAndConditionsJson = quote.TermsAndConditionsJson,
                 CreatedByUserId = quote.CreatedByUserId,
                 SupplyColumnsJson = quote.SupplyColumnsJson,
