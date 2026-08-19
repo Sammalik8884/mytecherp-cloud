@@ -95,26 +95,64 @@ namespace MyTechERP.Infrastructure.Services
         {
             container.Column(col =>
             {
+                // Meta info row
                 col.Item().Row(row =>
                 {
-                    // Left-aligned info
-                    row.RelativeItem().Column(c =>
+                    // LEFT: Customer info boxes (same style as quote # boxes)
+                    row.RelativeItem(3).Column(c =>
                     {
-                        c.Item().Text("To,").Bold();
-                        if (!string.IsNullOrWhiteSpace(quote.HeaderToName)) c.Item().Text(quote.HeaderToName).Bold();
-                        if (!string.IsNullOrWhiteSpace(quote.HeaderDesignation)) c.Item().Text(quote.HeaderDesignation);
-                        if (!string.IsNullOrWhiteSpace(quote.HeaderCompany)) c.Item().Text(quote.HeaderCompany).Bold();
-                        if (!string.IsNullOrWhiteSpace(quote.HeaderLocation)) c.Item().Text(quote.HeaderLocation);
+                        void InfoRow(string label, string value, bool highlight = false)
+                        {
+                            c.Item().Table(t =>
+                            {
+                                t.ColumnsDefinition(cd => { cd.RelativeColumn(); cd.RelativeColumn(1.8f); });
+                                t.Cell().Background(highlight ? Brand : BrandLight)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(label).FontSize(8)
+                                    .FontColor(highlight ? Colors.White : TextMuted).SemiBold();
+                                t.Cell().Border(0.5f).BorderColor(BorderGrey)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(value).FontSize(8)
+                                    .FontColor(highlight ? Brand : TextDark).SemiBold();
+                            });
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(quote.HeaderToName))
+                            InfoRow("To", quote.HeaderToName, true);
+                        if (!string.IsNullOrWhiteSpace(quote.HeaderDesignation))
+                            InfoRow("Designation", quote.HeaderDesignation);
+                        if (!string.IsNullOrWhiteSpace(quote.HeaderCompany))
+                            InfoRow("Company", quote.HeaderCompany);
+                        if (!string.IsNullOrWhiteSpace(quote.HeaderLocation))
+                            InfoRow("Location", quote.HeaderLocation);
                     });
 
-                    // Right-aligned Meta blocks
-                    row.RelativeItem().Column(c =>
+                    // CENTER spacer
+                    row.ConstantItem(20);
+
+                    // RIGHT: Quote number block
+                    row.RelativeItem(2).Column(c =>
                     {
-                        c.Item().PaddingTop(24);
-                        c.Item().AlignRight().Text($"Quotation # : {quote.QuoteNumber}").Bold();
-                        c.Item().AlignRight().Text($"Date : {quote.QuoteDate:dd-MMM-yyyy}").Bold();
-                        var revStr = string.IsNullOrWhiteSpace(quote.RevisionNumber) ? "" : $" | {quote.RevisionNumber}";
-                        c.Item().AlignRight().Text($"Date / Rev # : {quote.QuoteDate:dd-MMM-yyyy}{revStr}").Bold();
+                        void MetaRow(string label, string value, bool highlight = false)
+                        {
+                            c.Item().Table(t =>
+                            {
+                                t.ColumnsDefinition(cd => { cd.RelativeColumn(); cd.RelativeColumn(1.2f); });
+                                t.Cell().Background(highlight ? Brand : BrandLight)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(label).FontSize(8)
+                                    .FontColor(highlight ? Colors.White : TextMuted).SemiBold();
+                                t.Cell().Border(0.5f).BorderColor(BorderGrey)
+                                    .PaddingHorizontal(5).PaddingVertical(3)
+                                    .Text(value).FontSize(8)
+                                    .FontColor(highlight ? Brand : TextDark).SemiBold();
+                            });
+                        }
+
+                        MetaRow("Quotation #", quote.QuoteNumber, true);
+                        MetaRow("Date", quote.QuoteDate.ToString("dd-MMM-yyyy"));
+                        if (!string.IsNullOrWhiteSpace(quote.RevisionNumber))
+                            MetaRow("Revision", quote.RevisionNumber);
                     });
                 });
             });
@@ -210,11 +248,86 @@ namespace MyTechERP.Infrastructure.Services
 
             container.Column(col =>
             {
+                // Header
                 col.Item().Background(BrandLight).Border(0.5f).BorderColor(Brand)
                     .PaddingHorizontal(8).PaddingVertical(5)
                     .Text("TERMS & CONDITIONS").Bold().FontSize(9).FontColor(Brand);
 
-                col.Item().Padding(5).Text(quote.TermsAndConditionsJson);
+                col.Item().PaddingTop(4).Table(tcTerms =>
+                {
+                    tcTerms.ColumnsDefinition(tcd => { tcd.RelativeColumn(); tcd.RelativeColumn(); });
+
+                    void TermBlock(string title, string[] points)
+                    {
+                        tcTerms.Cell().Element(tc => tc.Padding(4)).Column(bc =>
+                        {
+                            bc.Item().Text(title).Bold().FontSize(9f).FontColor(Brand);
+                            foreach (var p in points)
+                            {
+                                bc.Item().PaddingTop(2).Row(r =>
+                                {
+                                    r.AutoItem().Text("• ").FontSize(8.5f).FontColor(Brand);
+                                    r.RelativeItem().PaddingLeft(2).Text(p).FontSize(8.5f).FontColor(TextDark);
+                                });
+                            }
+                        });
+                    }
+
+                    void DynamicTermBlock(string title, string content)
+                    {
+                        var lines = content.Split('\n', System.StringSplitOptions.RemoveEmptyEntries)
+                                           .Select(l => l.Trim())
+                                           .Where(l => l.Length > 0)
+                                           .ToArray();
+                        
+                        if (lines.Length > 0)
+                        {
+                            TermBlock(title, lines);
+                        }
+                    }
+
+                    // Try to parse dynamic T&C
+                    MytechERP.domain.Entities.System.TermsAndConditionsTemplate dynamicTc = null;
+                    if (!string.IsNullOrWhiteSpace(quote.TermsAndConditionsJson))
+                    {
+                        try
+                        {
+                            dynamicTc = JsonSerializer.Deserialize<MytechERP.domain.Entities.System.TermsAndConditionsTemplate>(
+                                quote.TermsAndConditionsJson,
+                                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                            );
+                        }
+                        catch { }
+                    }
+
+                    if (dynamicTc != null && (
+                        !string.IsNullOrWhiteSpace(dynamicTc.PaymentAndTax) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.Delivery) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.Warranty) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.PurchaseOrder) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.ValidityAndTransportation) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.General)))
+                    {
+                        void RenderCustomBlock(string title, string content)
+                        {
+                            if (!string.IsNullOrWhiteSpace(content))
+                            {
+                                DynamicTermBlock(title, content.Trim());
+                            }
+                        }
+
+                        RenderCustomBlock("Payment & Tax", dynamicTc.PaymentAndTax);
+                        RenderCustomBlock("Delivery", dynamicTc.Delivery);
+                        RenderCustomBlock("Warranty", dynamicTc.Warranty);
+                        RenderCustomBlock("Validity & Transportation", dynamicTc.ValidityAndTransportation);
+                        RenderCustomBlock("Purchase Order", dynamicTc.PurchaseOrder);
+                        RenderCustomBlock("General", dynamicTc.General);
+                    }
+                    else
+                    {
+                        DynamicTermBlock("General", quote.TermsAndConditionsJson);
+                    }
+                });
             });
         }
 

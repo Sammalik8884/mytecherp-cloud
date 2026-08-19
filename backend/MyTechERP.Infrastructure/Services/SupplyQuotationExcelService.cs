@@ -29,51 +29,6 @@ namespace MyTechERP.Infrastructure.Services
                 ws.Cells.Style.Font.Name = "Arial";
                 ws.Cells.Style.Font.Size = 10;
 
-                int currentRow = 1;
-
-                // --- Header Left & Right ---
-                ws.Cells["A1"].Value = "To,";
-                ws.Cells["A1"].Style.Font.Bold = true;
-                
-                ws.Cells["A2"].Value = quote.HeaderToName;
-                ws.Cells["A2"].Style.Font.Bold = true;
-                
-                ws.Cells["A3"].Value = quote.HeaderDesignation;
-                
-                ws.Cells["A4"].Value = quote.HeaderCompany;
-                ws.Cells["A4"].Style.Font.Bold = true;
-                
-                ws.Cells["A5"].Value = quote.HeaderLocation;
-
-                ws.Cells["E3:G3"].Merge = true;
-                ws.Cells["E3"].Value = "Quotation # : " + quote.QuoteNumber;
-                ws.Cells["E3"].Style.Font.Bold = true;
-                ws.Cells["E3"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
-
-                ws.Cells["E4:G4"].Merge = true;
-                ws.Cells["E4"].Value = "Date : " + quote.QuoteDate.ToString("dd-MMM-yyyy");
-                ws.Cells["E4"].Style.Font.Bold = true;
-                ws.Cells["E4"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
-
-                ws.Cells["E5:G5"].Merge = true;
-                string revStr = string.IsNullOrWhiteSpace(quote.RevisionNumber) ? "" : " | " + quote.RevisionNumber;
-                ws.Cells["E5"].Value = "Date / Rev # : " + quote.QuoteDate.ToString("dd-MMM-yyyy") + revStr;
-                ws.Cells["E5"].Style.Font.Bold = true;
-                ws.Cells["E5"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
-
-                currentRow = 6;
-
-                // --- Headline ---
-                ws.Cells[currentRow, 1, currentRow, 7].Merge = true;
-                ws.Cells[currentRow, 1].Value = $"QUOTATION FOR {(quote.QuotationFor ?? "").ToUpper()} (Supply ONLY)";
-                ws.Cells[currentRow, 1].Style.Font.Bold = true;
-                ws.Cells[currentRow, 1].Style.Font.Size = 12;
-                ws.Cells[currentRow, 1].Style.Font.Color.SetColor(Color.White);
-                ws.Cells[currentRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                ws.Cells[currentRow, 1].Style.Fill.BackgroundColor.SetColor(brandColor);
-                ws.Cells[currentRow, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                currentRow += 2;
-
                 // --- DYNAMIC COLUMNS SETUP ---
                 var supplyColumns = new List<string>();
                 try
@@ -83,7 +38,7 @@ namespace MyTechERP.Infrastructure.Services
                 catch { }
 
                 int totalCols = 5 + supplyColumns.Count; 
-                
+
                 // --- Column Widths ---
                 ws.Column(1).Width = 5;  // Sr#
                 ws.Column(2).Width = 50; // Description
@@ -96,6 +51,85 @@ namespace MyTechERP.Infrastructure.Services
                     colIndex++;
                 }
                 ws.Column(colIndex).Width = 18; // Amount
+
+                int currentRow = 1;
+
+                // --- Header ---
+                ws.Cells[currentRow, 1, currentRow, totalCols].Merge = true;
+                ws.Cells[currentRow, 1].Value = "MY TECH ENGINEERING COMPANY PVT LTD";
+                ws.Cells[currentRow, 1].Style.Font.Bold = true;
+                ws.Cells[currentRow, 1].Style.Font.Size = 14;
+                ws.Cells[currentRow, 1].Style.Font.Color.SetColor(Color.White);
+                ws.Cells[currentRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[currentRow, 1].Style.Fill.BackgroundColor.SetColor(brandColor);
+                ws.Cells[currentRow, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                currentRow++;
+
+                ws.Cells[currentRow, 1, currentRow, totalCols].Merge = true;
+                ws.Cells[currentRow, 1].Value = "Industrial & Commercial Solutions";
+                ws.Cells[currentRow, 1].Style.Font.Color.SetColor(Color.White);
+                ws.Cells[currentRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[currentRow, 1].Style.Fill.BackgroundColor.SetColor(brandColor);
+                ws.Cells[currentRow, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                currentRow += 2;
+
+                // --- Meta Info ---
+                void DrawMetaRow(int row, int startCol, string label, string value, bool highlight = false)
+                {
+                    ws.Cells[row, startCol].Value = label;
+                    ws.Cells[row, startCol].Style.Font.Bold = true;
+                    ws.Cells[row, startCol].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    if (highlight)
+                    {
+                        ws.Cells[row, startCol].Style.Fill.BackgroundColor.SetColor(brandColor);
+                        ws.Cells[row, startCol].Style.Font.Color.SetColor(Color.White);
+                    }
+                    else
+                    {
+                        ws.Cells[row, startCol].Style.Fill.BackgroundColor.SetColor(brandLightColor);
+                        ws.Cells[row, startCol].Style.Font.Color.SetColor(textDarkColor);
+                    }
+                    ws.Cells[row, startCol].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                    ws.Cells[row, startCol + 1].Value = value;
+                    ws.Cells[row, startCol + 1].Style.Font.Bold = true;
+                    if (highlight) ws.Cells[row, startCol + 1].Style.Font.Color.SetColor(brandColor);
+                    ws.Cells[row, startCol + 1].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                }
+
+                DrawMetaRow(currentRow, 1, "To", quote.HeaderToName, true);
+                DrawMetaRow(currentRow, totalCols - 1, "Quotation #", quote.QuoteNumber, true);
+                currentRow++;
+
+                if (!string.IsNullOrWhiteSpace(quote.HeaderDesignation))
+                    DrawMetaRow(currentRow, 1, "Designation", quote.HeaderDesignation);
+                DrawMetaRow(currentRow, totalCols - 1, "Date", quote.QuoteDate.ToString("dd-MMM-yyyy"));
+                currentRow++;
+
+                if (!string.IsNullOrWhiteSpace(quote.HeaderCompany))
+                    DrawMetaRow(currentRow, 1, "Company", quote.HeaderCompany);
+                if (!string.IsNullOrWhiteSpace(quote.RevisionNumber))
+                    DrawMetaRow(currentRow, totalCols - 1, "Revision", quote.RevisionNumber);
+                currentRow++;
+
+                if (!string.IsNullOrWhiteSpace(quote.HeaderLocation))
+                {
+                    DrawMetaRow(currentRow, 1, "Location", quote.HeaderLocation);
+                    currentRow++;
+                }
+
+                currentRow++;
+
+                // --- Headline ---
+                ws.Cells[currentRow, 1, currentRow, totalCols].Merge = true;
+                ws.Cells[currentRow, 1].Value = $"QUOTATION FOR {(quote.QuotationFor ?? "").ToUpper()} (Supply ONLY)";
+                ws.Cells[currentRow, 1].Style.Font.Bold = true;
+                ws.Cells[currentRow, 1].Style.Font.Size = 12;
+                ws.Cells[currentRow, 1].Style.Font.Color.SetColor(Color.White);
+                ws.Cells[currentRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[currentRow, 1].Style.Fill.BackgroundColor.SetColor(brandColor);
+                ws.Cells[currentRow, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                currentRow += 2;
 
                 // --- Table Headers ---
                 var headers = new List<string> { "#", "Description", "Qty", "Unit" };
@@ -162,6 +196,26 @@ namespace MyTechERP.Infrastructure.Services
                 currentRow += 2;
 
                 // --- TERMS AND CONDITIONS ---
+                void DrawTermBlock(string title, string content)
+                {
+                    if (string.IsNullOrWhiteSpace(content)) return;
+                    ws.Cells[currentRow, 1, currentRow, totalCols].Merge = true;
+                    ws.Cells[currentRow, 1].Value = title;
+                    ws.Cells[currentRow, 1].Style.Font.Bold = true;
+                    ws.Cells[currentRow, 1].Style.Font.Color.SetColor(brandColor);
+                    currentRow++;
+
+                    var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).Where(l => l.Length > 0).ToArray();
+                    foreach (var line in lines)
+                    {
+                        ws.Cells[currentRow, 1, currentRow, totalCols].Merge = true;
+                        ws.Cells[currentRow, 1].Value = $"• {line}";
+                        ws.Cells[currentRow, 1].Style.WrapText = true;
+                        currentRow++;
+                    }
+                    currentRow++;
+                }
+
                 if (!string.IsNullOrWhiteSpace(quote.TermsAndConditionsJson))
                 {
                     ws.Cells[currentRow, 1, currentRow, totalCols].Merge = true;
@@ -173,10 +227,35 @@ namespace MyTechERP.Infrastructure.Services
                     ws.Cells[currentRow, 1].Style.Border.BorderAround(ExcelBorderStyle.Thin, brandColor);
                     currentRow++;
 
-                    ws.Cells[currentRow, 1, currentRow, totalCols].Merge = true;
-                    ws.Cells[currentRow, 1].Value = quote.TermsAndConditionsJson;
-                    ws.Cells[currentRow, 1].Style.WrapText = true;
-                    currentRow++;
+                    MytechERP.domain.Entities.System.TermsAndConditionsTemplate dynamicTc = null;
+                    try
+                    {
+                        dynamicTc = JsonSerializer.Deserialize<MytechERP.domain.Entities.System.TermsAndConditionsTemplate>(
+                            quote.TermsAndConditionsJson,
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                        );
+                    }
+                    catch { }
+
+                    if (dynamicTc != null && (
+                        !string.IsNullOrWhiteSpace(dynamicTc.PaymentAndTax) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.Delivery) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.Warranty) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.PurchaseOrder) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.ValidityAndTransportation) ||
+                        !string.IsNullOrWhiteSpace(dynamicTc.General)))
+                    {
+                        DrawTermBlock("Payment & Tax", dynamicTc.PaymentAndTax);
+                        DrawTermBlock("Delivery", dynamicTc.Delivery);
+                        DrawTermBlock("Warranty", dynamicTc.Warranty);
+                        DrawTermBlock("Validity & Transportation", dynamicTc.ValidityAndTransportation);
+                        DrawTermBlock("Purchase Order", dynamicTc.PurchaseOrder);
+                        DrawTermBlock("General", dynamicTc.General);
+                    }
+                    else
+                    {
+                        DrawTermBlock("General", quote.TermsAndConditionsJson);
+                    }
                 }
 
                 return package.GetAsByteArray();
