@@ -21,6 +21,7 @@ namespace MytechERP.API.Controllers
         {
             "ahmed.faisal@mytecheng.com",
             "kaleemmullah@mytecheng.com",
+            "kaleemullah@mytecheng.com",
             "munawar.hasan@mytecheng.com"
         };
 
