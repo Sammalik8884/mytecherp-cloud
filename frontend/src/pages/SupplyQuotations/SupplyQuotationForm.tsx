@@ -4,6 +4,7 @@ import { apiClient as api } from "../../services/apiClient";
 import { Save, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { TermsAndConditionsSection } from "../../components/TermsAndConditionsSection";
 import { PromptModal } from "../../components/common/PromptModal";
+import { AutoResizeTextarea } from "../../components/common/AutoResizeTextarea";
 
 export function SupplyQuotationForm() {
     const { id } = useParams();
@@ -214,26 +215,32 @@ export function SupplyQuotationForm() {
                             <tbody>
                                 {items.map((item, idx) => (
                                     <tr key={idx} className="border-b hover:bg-gray-50">
-                                        <td className="p-2 border-r text-center">{item.sNo}</td>
-                                        <td className="p-2 border-r">
-                                            <input type="text" value={item.description} onChange={e => updateItem(idx, 'description', e.target.value)} className="w-full bg-transparent outline-none" placeholder="Description" />
+                                        <td className="p-2 border-r text-center align-top">{item.sNo}</td>
+                                        <td className="p-2 border-r align-top">
+                                            <AutoResizeTextarea 
+                                                rows={1}
+                                                value={item.description} 
+                                                onChange={e => updateItem(idx, 'description', e.target.value)} 
+                                                className="w-full bg-transparent outline-none resize-y min-h-[38px] p-1 border border-transparent hover:border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary rounded" 
+                                                placeholder="Description" 
+                                            />
                                         </td>
-                                        <td className="p-2 border-r">
-                                            <input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', parseFloat(e.target.value) || 0)} className="w-full text-center bg-transparent outline-none" />
+                                        <td className="p-2 border-r align-top">
+                                            <input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', parseFloat(e.target.value) || 0)} className="w-full text-center bg-transparent outline-none p-1" />
                                         </td>
-                                        <td className="p-2 border-r">
-                                            <input type="text" value={item.unit} onChange={e => updateItem(idx, 'unit', e.target.value)} className="w-full text-center bg-transparent outline-none" placeholder="Nos" />
+                                        <td className="p-2 border-r align-top">
+                                            <input type="text" value={item.unit} onChange={e => updateItem(idx, 'unit', e.target.value)} className="w-full text-center bg-transparent outline-none p-1" placeholder="Nos" />
                                         </td>
                                         {supplyColumns.map((col, cIdx) => (
-                                            <td key={cIdx} className="p-2 border-r">
-                                                <input type="number" value={item.rates[col] || 0} onChange={e => updateItemRate(idx, col, e.target.value)} className="w-full text-center bg-transparent outline-none" />
+                                            <td key={cIdx} className="p-2 border-r align-top">
+                                                <input type="number" value={item.rates[col] || 0} onChange={e => updateItemRate(idx, col, e.target.value)} className="w-full text-center bg-transparent outline-none p-1" />
                                             </td>
                                         ))}
-                                        <td className="p-2 border-r">
-                                            <input type="number" value={item.totalAmount} onChange={e => updateItem(idx, 'totalAmount', parseFloat(e.target.value) || 0)} className="w-full text-center bg-transparent outline-none font-bold text-primary" />
+                                        <td className="p-2 border-r align-top">
+                                            <input type="number" value={item.totalAmount} onChange={e => updateItem(idx, 'totalAmount', parseFloat(e.target.value) || 0)} className="w-full text-center bg-transparent outline-none font-bold text-primary p-1" />
                                         </td>
-                                        <td className="p-2 text-center">
-                                            <button onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700">
+                                        <td className="p-2 text-center align-top">
+                                            <button onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700 p-1">
                                                 <Trash2 className="w-4 h-4 mx-auto" />
                                             </button>
                                         </td>
