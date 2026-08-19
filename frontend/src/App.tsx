@@ -126,11 +126,15 @@ const router = createBrowserRouter(
                                 <Route path="/quotations/new" element={<QuotationFormPage />} />
                                 <Route path="/quotations/edit/:id" element={<QuotationFormPage />} />
                                 <Route path="/quotations/revise/:id" element={<QuotationFormPage />} />
+                                <Route path="/contracts" element={<ContractsPage />} />
+                                <Route path="/sales/boq-portal" element={<BoqDrawingsPortalPage />} />
+                            </Route>
+
+                            {/* Supply Quotations - Email Only */}
+                            <Route element={<RoleProtectedRoute allowedRoles={[]} allowedEmails={["ahmed.faisal@mytecheng.com", "kaleemmullah@mytecheng.com", "kaleemullah@mytecheng.com", "munawar.hasan@mytecheng.com"]} />}>
                                 <Route path="/supply-quotations" element={<SupplyQuotationList />} />
                                 <Route path="/supply-quotations/new" element={<SupplyQuotationForm />} />
                                 <Route path="/supply-quotations/edit/:id" element={<SupplyQuotationForm />} />
-                                <Route path="/contracts" element={<ContractsPage />} />
-                                <Route path="/sales/boq-portal" element={<BoqDrawingsPortalPage />} />
                             </Route>
 
                             {/* Sales & Leads - Internal Roles */}
