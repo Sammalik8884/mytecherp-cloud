@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { apiClient as api } from "../../services/apiClient";
 import { Save, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { TermsAndConditionsSection } from "../../components/TermsAndConditionsSection";
+import { PromptModal } from "../../components/common/PromptModal";
 
 export function SupplyQuotationForm() {
     const { id } = useParams();
@@ -55,8 +56,14 @@ export function SupplyQuotationForm() {
         }
     };
 
+    const [isPromptOpen, setIsPromptOpen] = useState(false);
+
     const addColumn = () => {
-        const name = prompt("Enter new supply column name:", `Supply-${supplyColumns.length + 1} Unit Rate`);
+        setIsPromptOpen(true);
+    };
+
+    const handlePromptConfirm = (name: string) => {
+        setIsPromptOpen(false);
         if (name && !supplyColumns.includes(name)) {
             setSupplyColumns([...supplyColumns, name]);
             setItems(items.map(item => ({ ...item, rates: { ...item.rates, [name]: 0 } })));
@@ -248,6 +255,15 @@ export function SupplyQuotationForm() {
                     />
                 </div>
             </div>
+
+            <PromptModal
+                isOpen={isPromptOpen}
+                title="New Supply Column"
+                message="Enter new supply column name:"
+                placeholder={`Supply-${supplyColumns.length + 1} Unit Rate`}
+                onConfirm={handlePromptConfirm}
+                onCancel={() => setIsPromptOpen(false)}
+            />
         </div>
     );
 }
