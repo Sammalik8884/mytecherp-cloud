@@ -91,8 +91,15 @@ namespace MytechERP.API.Controllers
         [HttpPost]
         public async Task<ActionResult<AmountRequestFormDto>> Create([FromBody] CreateAmountRequestFormDto dto)
         {
-            var result = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            try
+            {
+                var result = await _service.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost("{id}/approve")]

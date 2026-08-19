@@ -222,6 +222,73 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<AmountRequestFormDto> CreateAsync(CreateAmountRequestFormDto dto)
         {
+            var requestEmail = dto.EmployeeEmail ?? "";
+            var targetUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == requestEmail);
+            var targetDesignation = targetUser?.Designation?.ToLower() ?? "";
+            
+            bool isSiteSupervisor = targetDesignation.Contains("site supervisor") || targetDesignation.Contains("supervisor");
+            bool isProjectDirector = targetDesignation.Contains("project director") || targetDesignation.Contains("director");
+            bool isEngineer = targetDesignation.Contains("engineer");
+
+            if (requestEmail.Equals(_currentUserService.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var roles = _currentUserService.Roles;
+                if (roles.Contains("Project Director")) isProjectDirector = true;
+                if (roles.Contains("Site Supervisor")) isSiteSupervisor = true;
+                if (roles.Contains("Engineer")) isEngineer = true;
+            }
+
+            decimal limit = 100000m; 
+            if (isProjectDirector) {
+                limit = 500000m;
+            } else if (isSiteSupervisor || isEngineer) {
+                limit = 300000m;
+            }
+
+            var oneMonthAgo = DateTime.UtcNow.AddMonths(-1);
+            var oldArfs = await _context.AmountRequestForms
+                .Where(a => a.EmployeeEmail == requestEmail && !a.IsDeleted && 
+                            a.Status != "Rejected by Director" && a.Status != "Rejected by CEO" && 
+                            a.CreatedAt < oneMonthAgo)
+                .ToListAsync();
+
+            foreach (var oldArf in oldArfs)
+            {
+                var hasExpenses = await _context.Expenses
+                    .AnyAsync(e => e.AmountRequestFormId == oldArf.Id && !e.IsDeleted && e.Status != "Rejected");
+                if (!hasExpenses)
+                {
+                    throw new Exception($"Cannot create new ARF. You have a previous ARF ({oldArf.ArfNumber}) older than one month without any submitted expenses. Please upload the previous expenses to generate a new ARF.");
+                }
+            }
+
+            var activeArfs = await _context.AmountRequestForms
+                .Where(a => a.EmployeeEmail == requestEmail && !a.IsDeleted && 
+                            a.Status != "Rejected by Director" && a.Status != "Rejected by CEO")
+                .ToListAsync();
+
+            decimal consumedLimit = 0;
+            foreach (var arf in activeArfs)
+            {
+                var acceptedExpenseItems = await _context.Expenses
+                    .Where(e => e.AmountRequestFormId == arf.Id && !e.IsDeleted && e.Status == "Accepted")
+                    .SelectMany(e => e.Items)
+                    .ToListAsync();
+
+                decimal acceptedAmount = acceptedExpenseItems.Sum(i => i.Amount);
+                decimal unsettled = arf.AdvanceRequested - acceptedAmount;
+                if (unsettled > 0)
+                {
+                    consumedLimit += unsettled;
+                }
+            }
+
+            decimal availableLimit = limit - consumedLimit;
+            if (dto.AdvanceRequested > availableLimit)
+            {
+                throw new Exception($"ARF Limit Exceeded! Your maximum limit is {limit:N0}. You have {consumedLimit:N0} in unsettled ARFs. Available limit: {availableLimit:N0}. Requested: {dto.AdvanceRequested:N0}.");
+            }
+
             int maxId = await _context.AmountRequestForms.MaxAsync(a => (int?)a.Id) ?? 0;
             string arfNumber = $"ARF{(maxId + 1):D5}";
 
