@@ -85,6 +85,8 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Quotation> Quotations { get; set; }
         public DbSet<QuotationItem> QuotationsItem { get; set; }
+        public DbSet<SupplyQuotation> SupplyQuotations { get; set; }
+        public DbSet<SupplyQuotationItem> SupplyQuotationItems { get; set; }
         public DbSet<QuotationSettings> QuotationSettings { get; set; }
         public DbSet<TermsAndConditionsTemplate> TermsAndConditionsTemplates { get; set; }
         public DbSet<DocumentSignature> DocumentSignatures { get; set; }
@@ -270,6 +272,8 @@ namespace MytechERP.Infrastructure.Persistance
                 .IsUnique();
             builder.Entity<Quotation>().HasQueryFilter(q => q.TenantId == _currentUserService.TenantId && !q.IsDeleted);
             builder.Entity<QuotationItem>().HasQueryFilter(qi => qi.TenantId == _currentUserService.TenantId && !qi.IsDeleted);
+            builder.Entity<SupplyQuotation>().HasQueryFilter(q => q.TenantId == _currentUserService.TenantId && !q.IsDeleted);
+            builder.Entity<SupplyQuotationItem>().HasQueryFilter(qi => qi.TenantId == _currentUserService.TenantId && !qi.IsDeleted);
             builder.Entity<QuotationSettings>().HasQueryFilter(qs => qs.TenantId == _currentUserService.TenantId && !qs.IsDeleted);
             builder.Entity<TermsAndConditionsTemplate>().HasQueryFilter(t => t.TenantId == _currentUserService.TenantId && !t.IsDeleted);
             builder.Entity<Invoice>().HasQueryFilter(i => i.TenantId == _currentUserService.TenantId && !i.IsDeleted);

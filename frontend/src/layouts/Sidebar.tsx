@@ -82,6 +82,14 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
 
     { label: "Operations & Jobs", isHeader: true, allowedRoles: ["CEO", "Project Director", "Engineer", "Worker", "Technician", "Estimation"] },
     { label: "Sales & Quotes", href: "/quotations", icon: FileText, paths: ["/quotations", "/quotations/new", "/quotations/edit"], allowedRoles: ["CEO", "Project Director", "Engineer", "Estimation"] },
+    { 
+      label: "Supply Quotations", 
+      href: "/supply-quotations", 
+      icon: FileText, 
+      paths: ["/supply-quotations", "/supply-quotations/new", "/supply-quotations/edit"], 
+      allowedRoles: ["None"], 
+      allowedEmails: ["ahmed.faisal@mytecheng.com", "kaleemmullah@mytecheng.com", "munawar.hasan@mytecheng.com"] 
+    },
     { label: "Products", href: "/products", icon: Package, allowedRoles: ["None"], allowedEmails: ["m.huzefa@mytecheng.com"] },
     { label: "Contracts & AMCs", href: "/contracts", icon: FileSignature, allowedRoles: ["CEO", "Project Director", "Engineer"] },
     { label: "Dispatch (Jobs)", href: "/work-orders", icon: Briefcase, allowedRoles: ["CEO", "Project Director"] },

@@ -89,7 +89,10 @@ builder.Services.AddScoped<MyTechERP.Infrastructure.Services.QuotationPdfService
 builder.Services.AddScoped<MyTechERP.Infrastructure.Services.QuotationExcelService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<QuotationPdfService>();
-builder.Services.AddScoped<MyTechERP.Infrastructure.Services.QuotationExcelService>();
+builder.Services.AddScoped<QuotationExcelService>();
+builder.Services.AddScoped<ISupplyQuotationService, SupplyQuotationService>();
+builder.Services.AddScoped<SupplyQuotationPdfService>();
+builder.Services.AddScoped<SupplyQuotationExcelService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IDigitalSignatureService, DigitalSignatureService>();
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();

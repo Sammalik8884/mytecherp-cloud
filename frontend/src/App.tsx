@@ -19,6 +19,8 @@ import { ProductsPage } from "./pages/ProductsPage";
 import { QuotationsPage } from "./pages/QuotationsPage";
 import { ActivityMonitoringPage } from "./pages/ActivityMonitoringPage";
 import { QuotationFormPage } from "./pages/QuotationFormPage";
+import { SupplyQuotationList } from "./pages/SupplyQuotations/SupplyQuotationList";
+import { SupplyQuotationForm } from "./pages/SupplyQuotations/SupplyQuotationForm";
 import { UsersPage } from "./pages/UsersPage";
 import { AssetsPage } from "./pages/AssetsPage";
 import { WorkOrdersPage } from "./pages/WorkOrdersPage";
@@ -124,6 +126,9 @@ const router = createBrowserRouter(
                                 <Route path="/quotations/new" element={<QuotationFormPage />} />
                                 <Route path="/quotations/edit/:id" element={<QuotationFormPage />} />
                                 <Route path="/quotations/revise/:id" element={<QuotationFormPage />} />
+                                <Route path="/supply-quotations" element={<SupplyQuotationList />} />
+                                <Route path="/supply-quotations/new" element={<SupplyQuotationForm />} />
+                                <Route path="/supply-quotations/edit/:id" element={<SupplyQuotationForm />} />
                                 <Route path="/contracts" element={<ContractsPage />} />
                                 <Route path="/sales/boq-portal" element={<BoqDrawingsPortalPage />} />
                             </Route>
