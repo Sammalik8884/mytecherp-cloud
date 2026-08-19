@@ -45,9 +45,9 @@ export function SupplyQuotationList() {
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Supply Quotations</h1>
-                <Link to="/supply-quotations/new" className="bg-brand text-white px-4 py-2 rounded flex items-center hover:bg-brand/90 transition">
-                    <Plus className="w-5 h-5 mr-2" />
-                    New Quotation
+                <Link to="/supply-quotations/new" className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:-translate-y-0.5 transition-all shadow-lg hover:shadow-primary/25 flex items-center space-x-2">
+                    <Plus className="w-5 h-5" />
+                    <span>Create Quotation</span>
                 </Link>
             </div>
             
@@ -68,7 +68,7 @@ export function SupplyQuotationList() {
                                 <td className="px-6 py-4">{new Date(q.quoteDate).toLocaleDateString()}</td>
                                 <td className="px-6 py-4">{q.quotationFor}</td>
                                 <td className="px-6 py-4 flex gap-2">
-                                    <Link to={`/supply-quotations/edit/${q.id}`} className="text-brand hover:text-brand-dark" title="Edit">
+                                    <Link to={`/supply-quotations/edit/${q.id}`} className="text-primary hover:text-primary/80" title="Edit">
                                         <Edit className="w-5 h-5" />
                                     </Link>
                                     <button onClick={() => downloadPdf(q.id)} className="text-red-500 hover:text-red-700" title="PDF">
