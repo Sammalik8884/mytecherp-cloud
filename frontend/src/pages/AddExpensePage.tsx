@@ -508,78 +508,63 @@ export const AddExpensePage = () => {
                 </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    {/* Site Selection */}
-                    <div className="space-y-4">
-                        <div className="flex items-center space-x-6 bg-muted/30 p-2 rounded-lg w-fit">
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input 
-                                    type="radio" 
-                                    name="locationType" 
-                                    className="text-primary focus:ring-primary disabled:opacity-50"
-                                    checked={locationType === 'site'} 
-                                    onChange={() => setLocationType('site')} 
-                                    disabled={isLocked}
-                                />
-                                <span className="text-sm font-medium">Site / Project</span>
-                            </label>
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input 
-                                    type="radio" 
-                                    name="locationType" 
-                                    className="text-primary focus:ring-primary disabled:opacity-50"
-                                    checked={locationType === 'office'} 
-                                    onChange={() => setLocationType('office')} 
-                                    disabled={isLocked}
-                                />
-                                <span className="text-sm font-medium">Office</span>
-                            </label>
-                        </div>
-                        
-                        {locationType === 'site' ? (
-                            <div className="space-y-2">
-                                <SearchableObjectSelect
-                                    options={sites.map((s: any) => ({ label: `${s.name} (${s.customerName || "No Client"})`, value: s.id }))}
-                                    value={selectedSiteId}
-                                    onChange={(val) => setSelectedSiteId(val === "" ? "" : Number(val))}
-                                    placeholder="-- Select a Site --"
-                                    disabled={isLocked}
-                                />
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                <select 
-                                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
-                                    value={selectedOfficeId}
-                                    onChange={(e) => setSelectedOfficeId(e.target.value ? Number(e.target.value) : "")}
-                                    disabled={isLocked}
-                                >
-                                    <option value="">-- Select an Office --</option>
-                                    {offices.map((o: any) => (
-                                        <option key={o.id} value={o.id}>{o.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
+                    {/* Site/Office Selection */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Select site or office for expense *</label>
+                        <SearchableObjectSelect
+                            options={[
+                                ...sites.map((s: any) => ({ label: `Site: ${s.name} (${s.customerName || "No Client"})`, value: `site_${s.id}` })),
+                                ...offices.map((o: any) => ({ label: `Office: ${o.name}`, value: `office_${o.id}` }))
+                            ]}
+                            value={selectedSiteId ? `site_${selectedSiteId}` : (selectedOfficeId ? `office_${selectedOfficeId}` : "")}
+                            onChange={(val) => {
+                                const valStr = String(val);
+                                if (valStr.startsWith("site_")) {
+                                    setLocationType('site');
+                                    setSelectedSiteId(Number(valStr.split('_')[1]));
+                                    setSelectedOfficeId("");
+                                } else if (valStr.startsWith("office_")) {
+                                    setLocationType('office');
+                                    setSelectedOfficeId(Number(valStr.split('_')[1]));
+                                    setSelectedSiteId("");
+                                } else {
+                                    setLocationType('site');
+                                    setSelectedSiteId("");
+                                    setSelectedOfficeId("");
+                                }
+                                handleArfSelect(""); // Reset ARF when location changes
+                            }}
+                            placeholder="-- Select a Site or Office --"
+                            disabled={isLocked}
+                        />
                     </div>
 
                     {/* ARF Selection */}
                     <div className="space-y-2">
                             <label className="text-sm font-medium">Select Approved ARF *</label>
                             <div className={`relative rounded-md transition-colors ${arfBoxClass}`}>
-                                <select 
-                                    className="w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm focus:outline-none appearance-none disabled:opacity-50"
+                                <SearchableObjectSelect
+                                    options={allArfs.filter(a => {
+                                        if (locationType === 'site' && selectedSiteId) {
+                                            return a.siteId === selectedSiteId;
+                                        } else if (locationType === 'office' && selectedOfficeId) {
+                                            return a.officeId === selectedOfficeId;
+                                        }
+                                        return false;
+                                    }).map(a => {
+                                        const amount = (a.status === "Released" ? a.accountsReleasedAmount : a.advanceRequested) || 0;
+                                        const statusStr = a.status === "Released" ? "Confirmed by accounts" : "Not confirmed by accounts yet";
+                                        return {
+                                            label: `${a.arfNumber || `ARF-${a.id}`} - Rs ${amount.toLocaleString()} - ${statusStr}`,
+                                            value: a.id
+                                        };
+                                    })}
                                     value={selectedArfId}
-                                    onChange={(e) => handleArfSelect(e.target.value)}
-                                    disabled={isLocked || (isAmountEqual && selectedArfId !== "")}
-                                >
-                                    <option value="">-- Select an ARF --</option>
-                                    {arfs.map((a: any) => (
-                                        <option key={a.id} value={a.id}>
-                                            {a.arfNumber || `ARF-${a.id}`} - Rs {(a.status === "Released" ? a.accountsReleasedAmount : a.advanceRequested)?.toLocaleString() || 0} - {a.status === "Released" ? "Confirmed by accounts" : "Not confirmed by accounts yet"}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="absolute right-3 top-2.5 pointer-events-none">
+                                    onChange={(val) => handleArfSelect(String(val))}
+                                    placeholder="-- Select an ARF --"
+                                    disabled={isLocked || (isAmountEqual && selectedArfId !== "") || (!selectedSiteId && !selectedOfficeId)}
+                                />
+                                <div className="absolute right-8 top-2.5 pointer-events-none z-10">
                                     {selectedArfId ? (
                                         isAmountEqual ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-red-600" />
                                     ) : null}
