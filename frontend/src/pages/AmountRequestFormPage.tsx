@@ -5,6 +5,7 @@ import { siteService } from "../services/siteService";
 import { SiteDto } from "../types/site";
 import { officeApi, OfficeDto } from "../api/officeApi";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
+import { arfExceptionApi } from "../api/arfExceptionApi";
 import { SearchableObjectSelect } from "../components/common/SearchableObjectSelect";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 
@@ -24,6 +25,10 @@ const AmountRequestFormPage = () => {
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
+
+    const [isExceptionModalOpen, setIsExceptionModalOpen] = useState(false);
+    const [exceptionReason, setExceptionReason] = useState("");
+    const [exceptionAmount, setExceptionAmount] = useState(0);
 
     const [promptModal, setPromptModal] = useState<{ isOpen: boolean; id: number; role: string; isApproved: boolean; title: string; comment: string } | null>(null);
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; mode: 'single' | 'bulk'; id?: number } | null>(null);
@@ -224,7 +229,33 @@ const AmountRequestFormPage = () => {
             fetchData();
         } catch (error: any) {
             const msg = typeof error.response?.data === 'string' ? error.response.data : error.response?.data?.message || error.response?.data?.Error || "Failed to submit request";
+            if (msg.includes("Limit Exceeded") || msg.includes("Cannot create new ARF")) {
+                setExceptionAmount(Number(advanceRequested));
+                setIsExceptionModalOpen(true);
+            }
             toast.error(msg);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleExceptionSubmit = async () => {
+        if (!exceptionReason.trim()) {
+            toast.error("Reason is required");
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            await arfExceptionApi.create({
+                employeeEmail: user?.email || "",
+                requestedAmount: exceptionAmount,
+                reason: exceptionReason
+            });
+            toast.success("Exception request sent to Munawar.");
+            setIsExceptionModalOpen(false);
+            setExceptionReason("");
+        } catch (error: any) {
+            toast.error("Failed to send request.");
         } finally {
             setIsSubmitting(false);
         }
@@ -1057,6 +1088,32 @@ const AmountRequestFormPage = () => {
                             >
                                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                                 <span>{isSubmitting ? "Deleting..." : "Delete"}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isExceptionModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-background rounded-lg shadow-xl p-6 w-full max-w-md">
+                        <h3 className="text-lg font-bold mb-4">Request ARF Bypass</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            You have exceeded your limit or have an old ARF without expenses. You can request a bypass from Munawar Hasan.
+                        </p>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-1">Reason</label>
+                            <textarea 
+                                className="w-full border rounded-md p-2 h-24"
+                                value={exceptionReason}
+                                onChange={e => setExceptionReason(e.target.value)}
+                                placeholder="Why do you need this bypass?"
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <button onClick={() => setIsExceptionModalOpen(false)} disabled={isSubmitting} className="px-4 py-2 border rounded-md">Cancel</button>
+                            <button onClick={handleExceptionSubmit} disabled={isSubmitting} className="px-4 py-2 bg-primary text-primary-foreground rounded-md">
+                                {isSubmitting ? "Sending..." : "Send Request"}
                             </button>
                         </div>
                     </div>

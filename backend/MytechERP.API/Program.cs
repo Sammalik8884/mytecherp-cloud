@@ -116,6 +116,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IAssetImportService, AssetImportService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAmountRequestFormService, AmountRequestFormService>();
+builder.Services.AddScoped<IArfExceptionService, ArfExceptionService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<MytechERP.Application.Interfaces.Finance.IMonthlyReportGenerator, MyTechERP.Infrastructure.Services.Finance.MonthlyReportGenerator>();
 builder.Services.AddScoped<MytechERP.Application.Interfaces.HR.IApplicationFormService, MyTechERP.Infrastructure.Services.HR.ApplicationFormService>();

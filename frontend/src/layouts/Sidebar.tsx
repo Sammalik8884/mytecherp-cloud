@@ -32,6 +32,7 @@ type SidebarItem = {
 const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Employee Info Form", href: "/hr/employees", paths: ["/hr/employees", "/hr/employees/new", "/hr/employees/edit"], icon: Users, allowedRoles: ["CEO", "Project Director", "Site Supervisor", "Accounts Head"] },
     { label: "Dashboard", href: "/dashboard", icon: Home },
+    { label: "ARF Exceptions", href: "/arf-exceptions", icon: ShieldAlert, allowedEmails: ["munawar.hasan@mytecheng.com"] },
     { label: "Amount Request Form", href: "/amount-request", icon: DollarSign },
     { label: "Expenses", href: "/expenses", icon: Receipt },
     { label: "Offices", href: "/offices", icon: Building2, allowedRoles: ["CEO", "Project Director"] },

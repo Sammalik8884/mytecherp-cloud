@@ -115,6 +115,7 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<VisitPhoto> VisitPhotos { get; set; }
 
         public DbSet<AmountRequestForm> AmountRequestForms { get; set; }
+        public DbSet<ArfExceptionRequest> ArfExceptionRequests { get; set; }
         public DbSet<AmountRequestPayment> AmountRequestPayments { get; set; }
 
         public DbSet<Expense> Expenses { get; set; }

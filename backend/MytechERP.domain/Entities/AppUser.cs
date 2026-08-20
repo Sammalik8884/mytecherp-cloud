@@ -19,5 +19,6 @@ namespace MytechERP.domain.Entities
         public int? SiteId { get; set; }
         public Site? Site { get; set; }
         public string? Region { get; set; }
+        public decimal? CustomArfLimit { get; set; }
     }
 }

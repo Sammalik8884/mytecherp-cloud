@@ -131,7 +131,8 @@ namespace MyTechERP.Infrastructure.Services
                 TenantId = tenantId,
                 IsActive = true,
                 SiteId = request.SiteId,
-                Region = request.Region
+                Region = request.Region,
+                CustomArfLimit = request.CustomArfLimit
             };
 
             var result = await _userManager.CreateAsync(newUser, request.Password);
@@ -380,7 +381,8 @@ namespace MyTechERP.Infrastructure.Services
                     user.Email,
                     user.Designation,
                     Roles = roles,
-                    user.IsActive
+                    user.IsActive,
+                    CustomArfLimit = user.CustomArfLimit
                 });
             }
 
@@ -408,6 +410,7 @@ namespace MyTechERP.Infrastructure.Services
             user.SiteId = request.SiteId;
             user.Region = request.Region;
             user.IsActive = request.IsActive;
+            user.CustomArfLimit = request.CustomArfLimit;
 
             var updateResult = await _userManager.UpdateAsync(user);
             if (!updateResult.Succeeded)

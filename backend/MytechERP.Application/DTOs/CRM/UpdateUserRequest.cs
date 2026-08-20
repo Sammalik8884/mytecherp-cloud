@@ -11,5 +11,6 @@ namespace MytechERP.Application.DTOs.CRM
         public int? SiteId { get; set; }
         public string? Region { get; set; }
         public bool IsActive { get; set; } = true;
+        public decimal? CustomArfLimit { get; set; }
     }
 }

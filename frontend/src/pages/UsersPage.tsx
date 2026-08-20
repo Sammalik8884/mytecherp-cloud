@@ -34,7 +34,8 @@ export const UsersPage = () => {
         designation: "",
         siteId: "",
         region: "",
-        isActive: true
+        isActive: true,
+        customArfLimit: "" as number | string
     });
 
     const fetchData = async () => {
@@ -79,7 +80,8 @@ export const UsersPage = () => {
                 designation: user.designation || "",
                 siteId: user.siteId || "",
                 region: user.region || "",
-                isActive: user.isActive ?? true
+                isActive: user.isActive ?? true,
+                customArfLimit: user.customArfLimit || ""
             });
         } else {
             setIsEditMode(false);
@@ -92,7 +94,8 @@ export const UsersPage = () => {
                 designation: "",
                 siteId: "",
                 region: "",
-                isActive: true
+                isActive: true,
+                customArfLimit: ""
             });
         }
         setIsRolesDropdownOpen(false);
@@ -127,7 +130,8 @@ export const UsersPage = () => {
             const payload = {
                 ...formData,
                 roles: formData.roles,
-                siteId: formData.siteId ? parseInt(formData.siteId) : null
+                siteId: formData.siteId ? parseInt(formData.siteId) : null,
+                customArfLimit: formData.customArfLimit ? Number(formData.customArfLimit) : null
             };
             
             if (isEditMode && editingUserId) {
@@ -182,6 +186,7 @@ export const UsersPage = () => {
                                 <th className="px-6 py-4 font-medium rounded-tl-2xl">User</th>
                                 <th className="px-6 py-4 font-medium">Designation</th>
                                 <th className="px-6 py-4 font-medium">Role(s)</th>
+                                <th className="px-6 py-4 font-medium">Custom ARF Limit</th>
                                 <th className="px-6 py-4 font-medium text-center">Status</th>
                                 <th className="px-6 py-4 font-medium text-right rounded-tr-2xl">Actions</th>
                             </tr>
@@ -235,6 +240,13 @@ export const UsersPage = () => {
                                                 ))}
                                                 {(!user.roles || user.roles.length === 0) && <span className="text-muted-foreground italic text-xs">No roles assigned</span>}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {user.customArfLimit ? (
+                                                <span className="font-semibold text-primary">Rs {user.customArfLimit.toLocaleString()}</span>
+                                            ) : (
+                                                <span className="text-muted-foreground italic text-xs">Role Default</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             {user.isActive ? (
@@ -528,6 +540,20 @@ export const UsersPage = () => {
                                         )}
                                     </div>
                                 )}
+                                
+                                <div>
+                                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Custom ARF Limit</label>
+                                    <input
+                                        type="number" min={0} step={1}
+                                        value={formData.customArfLimit}
+                                        onChange={e => setFormData({ ...formData, customArfLimit: e.target.value })}
+                                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                        placeholder="Leave blank for role default"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground mt-1">
+                                        Override default limit for this user. Blank means they use their role's limit.
+                                    </p>
+                                </div>
 
                                 <div className="flex justify-end space-x-3 pt-4 mt-6 border-t border-border/50">
                                     <button
