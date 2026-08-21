@@ -50,7 +50,11 @@ namespace MyTechERP.Infrastructure.Services
         public async Task<SupplyQuotationDto> CreateSupplyQuotationAsync(CreateSupplyQuotationDto dto, string userId)
         {
             var nextId = (await _context.SupplyQuotations.MaxAsync(q => (int?)q.Id) ?? 0) + 1;
-            var quoteNumber = $"MTQ-AA{nextId:D5}";
+            var companyPrefix = string.IsNullOrWhiteSpace(dto.HeaderCompany) 
+                ? "CORP" 
+                : dto.HeaderCompany.ToUpper().Trim().Replace(" ", "-");
+            
+            var quoteNumber = $"MTQ-{companyPrefix}-AA{nextId:D4}";
 
             var quote = new SupplyQuotation
             {
@@ -65,6 +69,12 @@ namespace MyTechERP.Infrastructure.Services
                 TermsAndConditionsJson = dto.TermsAndConditionsJson,
                 CreatedByUserId = userId,
                 SupplyColumnsJson = JsonSerializer.Serialize(dto.SupplyColumns),
+                TaxPercentage = dto.TaxPercentage,
+                TaxAmount = dto.TaxAmount,
+                NetTotal = dto.NetTotal,
+                GrandTotal = dto.GrandTotal,
+                ApprovedBy = dto.ApprovedBy,
+                IssuedBy = dto.IssuedBy,
                 Items = dto.Items.Select(i => new SupplyQuotationItem
                 {
                     SNo = i.SNo,
@@ -99,6 +109,15 @@ namespace MyTechERP.Infrastructure.Services
             quote.HeaderLocation = dto.HeaderLocation;
             quote.TermsAndConditionsJson = dto.TermsAndConditionsJson;
             quote.SupplyColumnsJson = JsonSerializer.Serialize(dto.SupplyColumns);
+            quote.TaxPercentage = dto.TaxPercentage;
+            quote.TaxAmount = dto.TaxAmount;
+            quote.NetTotal = dto.NetTotal;
+            quote.GrandTotal = dto.GrandTotal;
+            quote.ApprovedBy = dto.ApprovedBy;
+            quote.IssuedBy = dto.IssuedBy;
+
+            // Optional: Re-generate quote number if company changed, but usually we don't change quote number after creation.
+            // So we'll leave QuoteNumber as is for update.
 
             _context.SupplyQuotationItems.RemoveRange(quote.Items);
             
@@ -155,6 +174,12 @@ namespace MyTechERP.Infrastructure.Services
                 TermsAndConditionsJson = quote.TermsAndConditionsJson,
                 CreatedByUserId = quote.CreatedByUserId,
                 SupplyColumnsJson = quote.SupplyColumnsJson,
+                TaxPercentage = quote.TaxPercentage,
+                TaxAmount = quote.TaxAmount,
+                NetTotal = quote.NetTotal,
+                GrandTotal = quote.GrandTotal,
+                ApprovedBy = quote.ApprovedBy,
+                IssuedBy = quote.IssuedBy,
                 Items = quote.Items?.Select(i => new SupplyQuotationItemDto
                 {
                     Id = i.Id,

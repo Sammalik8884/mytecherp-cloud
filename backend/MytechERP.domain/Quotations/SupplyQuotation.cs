@@ -28,6 +28,14 @@ namespace MytechERP.domain.Quotations
         // Storing list of supply columns as JSON, e.g. ["Supply-1", "Supply-2"]
         public string SupplyColumnsJson { get; set; } = "[]"; 
         
+        public decimal TaxPercentage { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal NetTotal { get; set; }
+        public decimal GrandTotal { get; set; }
+
+        public string ApprovedBy { get; set; } = string.Empty;
+        public string IssuedBy { get; set; } = string.Empty;
+        
         public virtual ICollection<SupplyQuotationItem> Items { get; set; } = new List<SupplyQuotationItem>();
     }
 }

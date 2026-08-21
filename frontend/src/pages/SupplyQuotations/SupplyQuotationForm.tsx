@@ -52,12 +52,25 @@ export function SupplyQuotationForm() {
                 totalAmount: i.totalAmount
             }));
             setItems(fetchedItems);
+            setTaxPercentage(q.taxPercentage || 0);
+            setTaxAmount(q.taxAmount || 0);
+            setNetTotal(q.netTotal || 0);
+            setGrandTotal(q.grandTotal || 0);
+            setApprovedBy(q.approvedBy || "");
+            setIssuedBy(q.issuedBy || "");
         } catch (error) {
             console.error(error);
         }
     };
 
     const [isPromptOpen, setIsPromptOpen] = useState(false);
+
+    const [taxPercentage, setTaxPercentage] = useState(0);
+    const [taxAmount, setTaxAmount] = useState(0);
+    const [netTotal, setNetTotal] = useState(0);
+    const [grandTotal, setGrandTotal] = useState(0);
+    const [approvedBy, setApprovedBy] = useState("");
+    const [issuedBy, setIssuedBy] = useState("");
 
     const addColumn = () => {
         setIsPromptOpen(true);
@@ -90,15 +103,35 @@ export function SupplyQuotationForm() {
         }));
     };
 
+    const recalculateRowTotal = (item: any) => {
+        const sumRates = Object.values(item.rates).reduce((a: any, b: any) => parseFloat(a || 0) + parseFloat(b || 0), 0) as number;
+        return sumRates * (parseFloat(item.quantity || 0) as number);
+    };
+
+    useEffect(() => {
+        // Auto calculate net total, tax, grand total whenever items or taxPercentage change
+        const currentNetTotal = items.reduce((sum, item) => sum + (parseFloat(item.totalAmount) || 0), 0);
+        const computedTaxAmount = currentNetTotal * (taxPercentage / 100);
+        const computedGrandTotal = currentNetTotal + computedTaxAmount;
+        
+        setNetTotal(currentNetTotal);
+        setTaxAmount(computedTaxAmount);
+        setGrandTotal(computedGrandTotal);
+    }, [items, taxPercentage]);
+
     const updateItem = (idx: number, field: string, val: any) => {
         const newItems = [...items];
         newItems[idx][field] = val;
+        if (field === 'quantity') {
+            newItems[idx].totalAmount = recalculateRowTotal(newItems[idx]);
+        }
         setItems(newItems);
     };
 
     const updateItemRate = (idx: number, col: string, val: any) => {
         const newItems = [...items];
         newItems[idx].rates[col] = parseFloat(val) || 0;
+        newItems[idx].totalAmount = recalculateRowTotal(newItems[idx]);
         setItems(newItems);
     };
 
@@ -116,6 +149,12 @@ export function SupplyQuotationForm() {
             headerLocation,
             termsAndConditionsJson: termsAndConditions,
             supplyColumns,
+            taxPercentage,
+            taxAmount,
+            netTotal,
+            grandTotal,
+            approvedBy,
+            issuedBy,
             items
         };
 
@@ -253,6 +292,35 @@ export function SupplyQuotationForm() {
                     <button onClick={addItem} className="mt-4 text-primary font-medium flex items-center hover:underline">
                         <Plus className="w-4 h-4 mr-1" /> Add Row
                     </button>
+                    
+                    <div className="mt-6 border-t pt-4 max-w-sm ml-auto space-y-3">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="font-medium text-gray-600">Net Total</span>
+                            <span className="font-bold">{netTotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-600">Tax (%)</span>
+                                <input type="number" value={taxPercentage} onChange={e => setTaxPercentage(parseFloat(e.target.value) || 0)} className="w-16 border rounded p-1 text-center" />
+                            </div>
+                            <span className="font-bold">{taxAmount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-lg border-t pt-2">
+                            <span className="font-bold text-gray-800">Grand Total</span>
+                            <span className="font-bold text-primary">{grandTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Issued By (Name & Designation)</label>
+                        <input type="text" placeholder="e.g. Ali Khan - Sales Manager" value={issuedBy} onChange={e => setIssuedBy(e.target.value)} className="w-full border rounded p-2" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Approved By (Name & Designation)</label>
+                        <input type="text" placeholder="e.g. John Doe - Director" value={approvedBy} onChange={e => setApprovedBy(e.target.value)} className="w-full border rounded p-2" />
+                    </div>
                 </div>
 
                 <div className="mt-8">

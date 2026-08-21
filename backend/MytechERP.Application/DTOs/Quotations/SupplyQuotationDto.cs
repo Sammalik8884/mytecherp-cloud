@@ -19,6 +19,13 @@ namespace MytechERP.Application.DTOs.Quotations
         public string CreatedByUserId { get; set; } = string.Empty;
         public string SupplyColumnsJson { get; set; } = "[]"; 
         
+        public decimal TaxPercentage { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal NetTotal { get; set; }
+        public decimal GrandTotal { get; set; }
+        public string ApprovedBy { get; set; } = string.Empty;
+        public string IssuedBy { get; set; } = string.Empty;
+
         public List<SupplyQuotationItemDto> Items { get; set; } = new List<SupplyQuotationItemDto>();
     }
 
@@ -50,6 +57,13 @@ namespace MytechERP.Application.DTOs.Quotations
         // e.g. ["Supply-1 Unit Rate", "Supply-2 Unit Rate"]
         public List<string> SupplyColumns { get; set; } = new List<string>(); 
         
+        public decimal TaxPercentage { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal NetTotal { get; set; }
+        public decimal GrandTotal { get; set; }
+        public string ApprovedBy { get; set; } = string.Empty;
+        public string IssuedBy { get; set; } = string.Empty;
+
         public List<CreateSupplyQuotationItemDto> Items { get; set; } = new List<CreateSupplyQuotationItemDto>();
     }
 

@@ -239,6 +239,43 @@ namespace MyTechERP.Infrastructure.Services
                     table.Cell().Element(c => TD(c, isAlt)).AlignRight()
                         .Text(item.TotalAmount.ToString("N2")).SemiBold();
                 }
+
+                // Add Summary Rows
+                int totalCols = 4 + supplyColumns.Count; // #, Desc, Qty, Unit + dynamic + Total(1)
+                
+                // Net Total
+                table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                    .Text("Net Total:").SemiBold().FontSize(9);
+                table.Cell().Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                    .Text(quote.NetTotal.ToString("N2")).SemiBold().FontSize(9);
+
+                // Tax
+                table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                    .Text($"Tax ({quote.TaxPercentage}%):").SemiBold().FontSize(9);
+                table.Cell().Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                    .Text(quote.TaxAmount.ToString("N2")).SemiBold().FontSize(9);
+
+                // Grand Total
+                table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                    .Text("Grand Total:").Bold().FontSize(10);
+                table.Cell().Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                    .Text(quote.GrandTotal.ToString("N2")).Bold().FontSize(10).FontColor(Brand);
+            });
+            
+            // Approval block
+            container.PaddingTop(15).Row(row =>
+            {
+                row.RelativeItem().Column(c =>
+                {
+                    c.Item().Text("Issued By:").SemiBold().FontSize(9).FontColor(TextMuted);
+                    c.Item().PaddingTop(2).Text(string.IsNullOrWhiteSpace(quote.IssuedBy) ? "________________________" : quote.IssuedBy).FontSize(9).Bold();
+                });
+                
+                row.RelativeItem().AlignRight().Column(c =>
+                {
+                    c.Item().Text("Approved By:").SemiBold().FontSize(9).FontColor(TextMuted);
+                    c.Item().PaddingTop(2).Text(string.IsNullOrWhiteSpace(quote.ApprovedBy) ? "________________________" : quote.ApprovedBy).FontSize(9).Bold();
+                });
             });
         }
 

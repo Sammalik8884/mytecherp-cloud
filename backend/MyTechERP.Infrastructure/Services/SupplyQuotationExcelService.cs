@@ -193,6 +193,48 @@ namespace MyTechERP.Infrastructure.Services
                     currentRow++;
                 }
 
+                // Add Summary Rows
+                ws.Cells[currentRow, totalCols - 1].Value = "Net Total:";
+                ws.Cells[currentRow, totalCols - 1].Style.Font.Bold = true;
+                ws.Cells[currentRow, totalCols - 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+                ws.Cells[currentRow, totalCols].Value = quote.NetTotal;
+                ws.Cells[currentRow, totalCols].Style.Numberformat.Format = "#,##0.00";
+                ws.Cells[currentRow, totalCols].Style.Font.Bold = true;
+                currentRow++;
+
+                ws.Cells[currentRow, totalCols - 1].Value = $"Tax ({quote.TaxPercentage}%):";
+                ws.Cells[currentRow, totalCols - 1].Style.Font.Bold = true;
+                ws.Cells[currentRow, totalCols - 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+                ws.Cells[currentRow, totalCols].Value = quote.TaxAmount;
+                ws.Cells[currentRow, totalCols].Style.Numberformat.Format = "#,##0.00";
+                ws.Cells[currentRow, totalCols].Style.Font.Bold = true;
+                currentRow++;
+
+                ws.Cells[currentRow, totalCols - 1].Value = "Grand Total:";
+                ws.Cells[currentRow, totalCols - 1].Style.Font.Bold = true;
+                ws.Cells[currentRow, totalCols - 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+                ws.Cells[currentRow, totalCols - 1].Style.Font.Color.SetColor(brandColor);
+                ws.Cells[currentRow, totalCols].Value = quote.GrandTotal;
+                ws.Cells[currentRow, totalCols].Style.Numberformat.Format = "#,##0.00";
+                ws.Cells[currentRow, totalCols].Style.Font.Bold = true;
+                ws.Cells[currentRow, totalCols].Style.Font.Color.SetColor(brandColor);
+                currentRow += 2;
+
+                // Approvals
+                ws.Cells[currentRow, 2].Value = "Issued By:";
+                ws.Cells[currentRow, 2].Style.Font.Bold = true;
+                ws.Cells[currentRow, 2].Style.Font.Color.SetColor(Color.Gray);
+                
+                ws.Cells[currentRow, totalCols - 1].Value = "Approved By:";
+                ws.Cells[currentRow, totalCols - 1].Style.Font.Bold = true;
+                ws.Cells[currentRow, totalCols - 1].Style.Font.Color.SetColor(Color.Gray);
+                currentRow++;
+
+                ws.Cells[currentRow, 2].Value = string.IsNullOrWhiteSpace(quote.IssuedBy) ? "________________________" : quote.IssuedBy;
+                ws.Cells[currentRow, 2].Style.Font.Bold = true;
+                
+                ws.Cells[currentRow, totalCols - 1].Value = string.IsNullOrWhiteSpace(quote.ApprovedBy) ? "________________________" : quote.ApprovedBy;
+                ws.Cells[currentRow, totalCols - 1].Style.Font.Bold = true;
                 currentRow += 2;
 
                 // --- TERMS AND CONDITIONS ---
