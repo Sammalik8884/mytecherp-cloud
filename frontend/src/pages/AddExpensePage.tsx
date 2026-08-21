@@ -46,10 +46,12 @@ export const AddExpensePage = () => {
     const [offices, setOffices] = useState<OfficeDto[]>([]);
     const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
     const [allArfs, setAllArfs] = useState<AmountRequestFormDto[]>([]);
+    const [customSitesFromArfs, setCustomSitesFromArfs] = useState<string[]>([]);
     
-    const [locationType, setLocationType] = useState<'site' | 'office'>('site');
+    const [locationType, setLocationType] = useState<'site' | 'office' | 'custom'>('site');
     const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
     const [selectedOfficeId, setSelectedOfficeId] = useState<number | "">("");
+    const [customSiteName, setCustomSiteName] = useState<string>("");
     const [selectedArfId, setSelectedArfId] = useState<number | "">("");
     
     // State for the rows
@@ -99,6 +101,13 @@ export const AddExpensePage = () => {
             // Show all ARFs
             setArfs(arfData);
             setAllArfs(arfData);
+            
+            const customSites = Array.from(new Set(
+                arfData
+                    .filter((a: any) => a.customSiteName && !a.siteId && !a.officeId)
+                    .map((a: any) => a.customSiteName)
+            )) as string[];
+            setCustomSitesFromArfs(customSites);
 
             if (isEditMode && id) {
                 const expense = await expenseApi.getById(Number(id));
@@ -106,9 +115,15 @@ export const AddExpensePage = () => {
                 if (expense.officeId) {
                     setLocationType('office');
                     setSelectedOfficeId(expense.officeId);
+                } else if (expense.siteId) {
+                    setLocationType('site');
+                    setSelectedSiteId(expense.siteId);
+                } else if (expense.siteName) {
+                    setLocationType('custom');
+                    setCustomSiteName(expense.siteName);
                 } else {
                     setLocationType('site');
-                    setSelectedSiteId(expense.siteId ?? "");
+                    setSelectedSiteId("");
                 }
                 setSelectedArfId(expense.amountRequestFormId ?? "");
                 
@@ -230,6 +245,7 @@ export const AddExpensePage = () => {
     const handleSubmit = async () => {
         if (locationType === 'site' && !selectedSiteId) return toast.error("Please select a site first.");
         if (locationType === 'office' && !selectedOfficeId) return toast.error("Please select an office first.");
+        if (locationType === 'custom' && !customSiteName) return toast.error("Please select a custom site first.");
         if (!selectedArfId) return toast.error("Please select an ARF.");
         
         // Filter out completely empty rows
@@ -514,23 +530,32 @@ export const AddExpensePage = () => {
                         <SearchableObjectSelect
                             options={[
                                 ...sites.map((s: any) => ({ label: `Site: ${s.name} (${s.customerName || "No Client"})`, value: `site_${s.id}` })),
-                                ...offices.map((o: any) => ({ label: `Office: ${o.name}`, value: `office_${o.id}` }))
+                                ...offices.map((o: any) => ({ label: `Office: ${o.name}`, value: `office_${o.id}` })),
+                                ...customSitesFromArfs.map((name: string) => ({ label: `Custom Site: ${name}`, value: `custom_${name}` }))
                             ]}
-                            value={selectedSiteId ? `site_${selectedSiteId}` : (selectedOfficeId ? `office_${selectedOfficeId}` : "")}
+                            value={selectedSiteId ? `site_${selectedSiteId}` : (selectedOfficeId ? `office_${selectedOfficeId}` : (customSiteName ? `custom_${customSiteName}` : ""))}
                             onChange={(val) => {
                                 const valStr = String(val);
                                 if (valStr.startsWith("site_")) {
                                     setLocationType('site');
                                     setSelectedSiteId(Number(valStr.split('_')[1]));
                                     setSelectedOfficeId("");
+                                    setCustomSiteName("");
                                 } else if (valStr.startsWith("office_")) {
                                     setLocationType('office');
                                     setSelectedOfficeId(Number(valStr.split('_')[1]));
                                     setSelectedSiteId("");
+                                    setCustomSiteName("");
+                                } else if (valStr.startsWith("custom_")) {
+                                    setLocationType('custom');
+                                    setSelectedSiteId("");
+                                    setSelectedOfficeId("");
+                                    setCustomSiteName(valStr.substring(7));
                                 } else {
                                     setLocationType('site');
                                     setSelectedSiteId("");
                                     setSelectedOfficeId("");
+                                    setCustomSiteName("");
                                 }
                                 handleArfSelect(""); // Reset ARF when location changes
                             }}
@@ -549,6 +574,8 @@ export const AddExpensePage = () => {
                                             return a.siteId === selectedSiteId;
                                         } else if (locationType === 'office' && selectedOfficeId) {
                                             return a.officeId === selectedOfficeId;
+                                        } else if (locationType === 'custom' && customSiteName) {
+                                            return a.customSiteName === customSiteName;
                                         }
                                         return false;
                                     }).map(a => {

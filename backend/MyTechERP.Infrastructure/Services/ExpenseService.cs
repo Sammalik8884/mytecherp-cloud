@@ -32,7 +32,7 @@ namespace MyTechERP.Infrastructure.Services
             {
                 Id = entity.Id,
                 SiteId = entity.SiteId,
-                SiteName = entity.Site?.Name ?? string.Empty,
+                SiteName = entity.Site?.Name ?? (entity.AmountRequestForm?.CustomSiteName ?? string.Empty),
                 OfficeId = entity.OfficeId,
                 OfficeName = entity.Office?.Name ?? string.Empty,
                 AmountRequestFormId = entity.AmountRequestFormId,
