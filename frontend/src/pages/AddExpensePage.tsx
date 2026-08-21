@@ -589,7 +589,7 @@ export const AddExpensePage = () => {
                                     value={selectedArfId}
                                     onChange={(val) => handleArfSelect(String(val))}
                                     placeholder="-- Select an ARF --"
-                                    disabled={isLocked || (isAmountEqual && selectedArfId !== "") || (!selectedSiteId && !selectedOfficeId)}
+                                    disabled={isLocked || (isAmountEqual && selectedArfId !== "") || (!selectedSiteId && !selectedOfficeId && !customSiteName)}
                                 />
                                 <div className="absolute right-8 top-2.5 pointer-events-none z-10">
                                     {selectedArfId ? (
