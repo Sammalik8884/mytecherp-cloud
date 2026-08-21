@@ -176,105 +176,108 @@ namespace MyTechERP.Infrastructure.Services
             }
             catch { }
 
-            container.Table(table =>
+            container.Column(col => 
             {
-                table.ColumnsDefinition(columns =>
+                col.Item().Table(table =>
                 {
-                    columns.ConstantColumn(25);  // #
-                    columns.RelativeColumn(3);   // Description
-                    columns.ConstantColumn(40);  // Qty
-                    columns.ConstantColumn(40);  // Unit
-                    
-                    foreach (var col in supplyColumns)
+                    table.ColumnsDefinition(columns =>
                     {
-                        columns.RelativeColumn(1); // Dynamic rate column
-                    }
-                    columns.RelativeColumn(1.2f); // Total
-                });
-
-                // Column headers
-                table.Header(header =>
-                {
-                    header.Cell().Element(TH).AlignCenter().Text("#");
-                    header.Cell().Element(TH).Text("Description");
-                    header.Cell().Element(TH).AlignCenter().Text("Qty");
-                    header.Cell().Element(TH).AlignCenter().Text("Unit");
-                    
-                    foreach (var colName in supplyColumns)
-                    {
-                        header.Cell().Element(TH).AlignRight().Text(colName);
-                    }
-                    
-                    header.Cell().Element(TH).AlignRight().Text("Amount");
-                });
-
-                // Data rows
-                foreach (var item in quote.Items.OrderBy(i => i.SNo))
-                {
-                    bool isAlt = item.SNo % 2 == 0;
-
-                    table.Cell().Element(c => TD(c, isAlt))
-                        .AlignCenter().Text(item.SNo.ToString());
-
-                    table.Cell().Element(c => TD(c, isAlt))
-                        .Text(item.Description ?? "").FontSize(8);
+                        columns.ConstantColumn(25);  // #
+                        columns.RelativeColumn(3);   // Description
+                        columns.ConstantColumn(40);  // Qty
+                        columns.ConstantColumn(40);  // Unit
                         
-                    table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Quantity.ToString("G29"));
-                    table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Unit ?? "");
+                        foreach (var colName in supplyColumns)
+                        {
+                            columns.RelativeColumn(1); // Dynamic rate column
+                        }
+                        columns.RelativeColumn(1.2f); // Total
+                    });
 
-                    var rates = new Dictionary<string, decimal>();
-                    try
+                    // Column headers
+                    table.Header(header =>
                     {
-                        rates = JsonSerializer.Deserialize<Dictionary<string, decimal>>(item.RatesJson ?? "{}") ?? new Dictionary<string, decimal>();
-                    }
-                    catch { }
+                        header.Cell().Element(TH).AlignCenter().Text("#");
+                        header.Cell().Element(TH).Text("Description");
+                        header.Cell().Element(TH).AlignCenter().Text("Qty");
+                        header.Cell().Element(TH).AlignCenter().Text("Unit");
+                        
+                        foreach (var colName in supplyColumns)
+                        {
+                            header.Cell().Element(TH).AlignRight().Text(colName);
+                        }
+                        
+                        header.Cell().Element(TH).AlignRight().Text("Amount");
+                    });
 
-                    foreach (var colName in supplyColumns)
+                    // Data rows
+                    foreach (var item in quote.Items.OrderBy(i => i.SNo))
                     {
-                        decimal rate = 0;
-                        if (rates.TryGetValue(colName, out var val)) rate = val;
-                        table.Cell().Element(c => TD(c, isAlt)).AlignRight().Text(rate.ToString("N2")).FontColor(HighlightGold);
+                        bool isAlt = item.SNo % 2 == 0;
+
+                        table.Cell().Element(c => TD(c, isAlt))
+                            .AlignCenter().Text(item.SNo.ToString());
+
+                        table.Cell().Element(c => TD(c, isAlt))
+                            .Text(item.Description ?? "").FontSize(8);
+                            
+                        table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Quantity.ToString("G29"));
+                        table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Unit ?? "");
+
+                        var rates = new Dictionary<string, decimal>();
+                        try
+                        {
+                            rates = JsonSerializer.Deserialize<Dictionary<string, decimal>>(item.RatesJson ?? "{}") ?? new Dictionary<string, decimal>();
+                        }
+                        catch { }
+
+                        foreach (var colName in supplyColumns)
+                        {
+                            decimal rate = 0;
+                            if (rates.TryGetValue(colName, out var val)) rate = val;
+                            table.Cell().Element(c => TD(c, isAlt)).AlignRight().Text(rate.ToString("N2")).FontColor(HighlightGold);
+                        }
+
+                        table.Cell().Element(c => TD(c, isAlt)).AlignRight()
+                            .Text(item.TotalAmount.ToString("N2")).SemiBold();
                     }
 
-                    table.Cell().Element(c => TD(c, isAlt)).AlignRight()
-                        .Text(item.TotalAmount.ToString("N2")).SemiBold();
-                }
+                    // Add Summary Rows
+                    int totalCols = 4 + supplyColumns.Count; // #, Desc, Qty, Unit + dynamic + Total(1)
+                    
+                    // Net Total
+                    table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                        .Text("Net Total:").SemiBold().FontSize(9);
+                    table.Cell().Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                        .Text(quote.NetTotal.ToString("N2")).SemiBold().FontSize(9);
 
-                // Add Summary Rows
-                int totalCols = 4 + supplyColumns.Count; // #, Desc, Qty, Unit + dynamic + Total(1)
-                
-                // Net Total
-                table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
-                    .Text("Net Total:").SemiBold().FontSize(9);
-                table.Cell().Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
-                    .Text(quote.NetTotal.ToString("N2")).SemiBold().FontSize(9);
+                    // Tax
+                    table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                        .Text($"Tax ({quote.TaxPercentage}%):").SemiBold().FontSize(9);
+                    table.Cell().Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                        .Text(quote.TaxAmount.ToString("N2")).SemiBold().FontSize(9);
 
-                // Tax
-                table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
-                    .Text($"Tax ({quote.TaxPercentage}%):").SemiBold().FontSize(9);
-                table.Cell().Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
-                    .Text(quote.TaxAmount.ToString("N2")).SemiBold().FontSize(9);
-
-                // Grand Total
-                table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
-                    .Text("Grand Total:").Bold().FontSize(10);
-                table.Cell().Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
-                    .Text(quote.GrandTotal.ToString("N2")).Bold().FontSize(10).FontColor(Brand);
-            });
-            
-            // Approval block
-            container.PaddingTop(15).Row(row =>
-            {
-                row.RelativeItem().Column(c =>
-                {
-                    c.Item().Text("Issued By:").SemiBold().FontSize(9).FontColor(TextMuted);
-                    c.Item().PaddingTop(2).Text(string.IsNullOrWhiteSpace(quote.IssuedBy) ? "________________________" : quote.IssuedBy).FontSize(9).Bold();
+                    // Grand Total
+                    table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                        .Text("Grand Total:").Bold().FontSize(10);
+                    table.Cell().Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
+                        .Text(quote.GrandTotal.ToString("N2")).Bold().FontSize(10).FontColor(Brand);
                 });
                 
-                row.RelativeItem().AlignRight().Column(c =>
+                // Approval block
+                col.Item().PaddingTop(15).Row(row =>
                 {
-                    c.Item().Text("Approved By:").SemiBold().FontSize(9).FontColor(TextMuted);
-                    c.Item().PaddingTop(2).Text(string.IsNullOrWhiteSpace(quote.ApprovedBy) ? "________________________" : quote.ApprovedBy).FontSize(9).Bold();
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text("Issued By:").SemiBold().FontSize(9).FontColor(TextMuted);
+                        c.Item().PaddingTop(2).Text(string.IsNullOrWhiteSpace(quote.IssuedBy) ? "________________________" : quote.IssuedBy).FontSize(9).Bold();
+                    });
+                    
+                    row.RelativeItem().AlignRight().Column(c =>
+                    {
+                        c.Item().Text("Approved By:").SemiBold().FontSize(9).FontColor(TextMuted);
+                        c.Item().PaddingTop(2).Text(string.IsNullOrWhiteSpace(quote.ApprovedBy) ? "________________________" : quote.ApprovedBy).FontSize(9).Bold();
+                    });
                 });
             });
         }

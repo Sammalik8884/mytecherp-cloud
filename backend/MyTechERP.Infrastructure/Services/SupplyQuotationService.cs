@@ -116,8 +116,15 @@ namespace MyTechERP.Infrastructure.Services
             quote.ApprovedBy = dto.ApprovedBy;
             quote.IssuedBy = dto.IssuedBy;
 
-            // Optional: Re-generate quote number if company changed, but usually we don't change quote number after creation.
-            // So we'll leave QuoteNumber as is for update.
+            var companyPrefix = string.IsNullOrWhiteSpace(dto.HeaderCompany) 
+                ? "CORP" 
+                : dto.HeaderCompany.ToUpper().Trim().Replace(" ", "-");
+
+            // Extract the serial part from existing quote number, e.g. MTQ-EPCL-AA0003 -> 0003
+            var parts = quote.QuoteNumber.Split(new[] { "-AA" }, StringSplitOptions.None);
+            string serialPart = parts.Length > 1 ? parts[1] : quote.Id.ToString("D4");
+            
+            quote.QuoteNumber = $"MTQ-{companyPrefix}-AA{serialPart}";
 
             _context.SupplyQuotationItems.RemoveRange(quote.Items);
             
