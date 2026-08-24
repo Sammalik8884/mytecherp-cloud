@@ -73,6 +73,8 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             }
         } else if (notif.type === "Assignment" || notif.type === "BOQ" || notif.type === "success" || notif.type === "error" || notif.type === "Quotation" || notif.title.includes("Quotation")) {
             navigate("/sales/boq-portal");
+        } else if (notif.type === "ARF_EXCEPTION" || notif.title.includes("Exception Request")) {
+            navigate("/arf-exceptions");
         } else if (notif.type === "ARF" || notif.type === "ArfReleased" || notif.title.includes("Amount Request") || notif.title.includes("Amount Released") || notif.title.includes("ARF")) {
             if (hasRole(["Accounts Head"]) || user?.email === "faisal.ghani@mytecheng.com" || user?.email === "asma@mytecheng.com" || user?.email === "abdul.majeed@mytecheng.com") {
                 navigate("/accounts/arf-dashboard");
