@@ -880,6 +880,14 @@ export const QuotationFormPage = () => {
                         setImportedItems(newArr);
                     }}/>
                 </div>
+                <div className="col-span-2">
+                    <label className="text-xs text-muted-foreground">Remarks</label>
+                    <AutoResizeTextarea rows={2} placeholder="Remarks..." className={inputCls + " !py-1 !text-xs mt-1"} value={item.remarks || ""} onChange={e => {
+                        const newArr = [...importedItems];
+                        newArr[idx] = { ...newArr[idx], remarks: e.target.value };
+                        setImportedItems(newArr);
+                    }}/>
+                </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -984,6 +992,14 @@ export const QuotationFormPage = () => {
                     <input type="text" placeholder="e.g. ITEM-01" className={inputCls + " !py-1 !text-xs mt-1"} value={item.referenceNumber || ""} onChange={e => {
                         const newArr = [...localItems];
                         newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                        setLocalItems(newArr);
+                    }}/>
+                </div>
+                <div className="col-span-2">
+                    <label className="text-xs text-muted-foreground">Remarks</label>
+                    <AutoResizeTextarea rows={2} placeholder="Remarks..." className={inputCls + " !py-1 !text-xs mt-1"} value={item.remarks || ""} onChange={e => {
+                        const newArr = [...localItems];
+                        newArr[idx] = { ...newArr[idx], remarks: e.target.value };
                         setLocalItems(newArr);
                     }}/>
                 </div>
@@ -1163,7 +1179,7 @@ export const QuotationFormPage = () => {
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[200px] w-auto">Product</th><th className="w-[80px] text-center">Ref #</th><th className="w-[120px] text-center">Remarks</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (USD)</th><th className="w-32 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[200px] w-auto">Product</th><th className="w-[80px] text-center">Ref #</th><th className="text-left py-2 px-1 min-w-[150px] w-auto">Remarks</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (USD)</th><th className="w-32 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody data-section="imported">
                                  {importedItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -1196,11 +1212,17 @@ export const QuotationFormPage = () => {
                                              }}/>
                                          </td>
                                          <td className="px-1">
-                                             <input type="text" placeholder="Remarks" className={inputCls + " !py-1 !text-xs"} value={item.remarks || ""} onChange={e => {
-                                                 const newArr = [...importedItems];
-                                                 newArr[idx] = { ...newArr[idx], remarks: e.target.value };
-                                                 setImportedItems(newArr);
-                                             }}/>
+                                             <AutoResizeTextarea
+                                                 rows={2}
+                                                 placeholder="Remarks..."
+                                                 className={inputCls + " !py-1.5 w-full min-w-0 text-sm resize-y"}
+                                                 value={item.remarks || ""}
+                                                 onChange={e => {
+                                                     const newArr = [...importedItems];
+                                                     newArr[idx] = { ...newArr[idx], remarks: e.target.value };
+                                                     setImportedItems(newArr);
+                                                 }}
+                                             />
                                          </td>
                                          <td className="px-1">
                                               <div className="flex flex-col gap-1">
@@ -1317,7 +1339,7 @@ export const QuotationFormPage = () => {
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[200px] w-auto">Product</th><th className="w-[80px] text-center">Ref #</th><th className="w-[120px] text-center">Remarks</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (PKR)</th><th className="w-32 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[200px] w-auto">Product</th><th className="w-[80px] text-center">Ref #</th><th className="text-left py-2 px-1 min-w-[150px] w-auto">Remarks</th><th className="w-[100px] text-center">Unit</th><th className="w-16 text-center">Qty</th><th className="w-24 text-right">Base (PKR)</th><th className="w-32 text-right">Final (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody data-section="local">
                                  {localItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -1350,11 +1372,17 @@ export const QuotationFormPage = () => {
                                              }}/>
                                          </td>
                                          <td className="px-1">
-                                             <input type="text" placeholder="Remarks" className={inputCls + " !py-1 !text-xs"} value={item.remarks || ""} onChange={e => {
-                                                 const newArr = [...localItems];
-                                                 newArr[idx] = { ...newArr[idx], remarks: e.target.value };
-                                                 setLocalItems(newArr);
-                                             }}/>
+                                             <AutoResizeTextarea
+                                                 rows={2}
+                                                 placeholder="Remarks..."
+                                                 className={inputCls + " !py-1.5 w-full min-w-0 text-sm resize-y"}
+                                                 value={item.remarks || ""}
+                                                 onChange={e => {
+                                                     const newArr = [...localItems];
+                                                     newArr[idx] = { ...newArr[idx], remarks: e.target.value };
+                                                     setLocalItems(newArr);
+                                                 }}
+                                             />
                                          </td>
                                          <td className="px-1">
                                               <div className="flex flex-col gap-1">
@@ -1452,7 +1480,7 @@ export const QuotationFormPage = () => {
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[200px] w-auto">Service Name</th><th className="w-[80px] text-center">Ref #</th><th className="w-[120px] text-center">Remarks</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[200px] w-auto">Service Name</th><th className="w-[80px] text-center">Ref #</th><th className="text-left py-2 px-1 min-w-[150px] w-auto">Remarks</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {importedServiceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -1467,11 +1495,17 @@ export const QuotationFormPage = () => {
                                              }}/>
                                          </td>
                                          <td className="px-1">
-                                             <input type="text" placeholder="Remarks" className={inputCls + " !py-1.5 !text-xs"} value={item.remarks || ""} onChange={e => {
-                                                 const newArr = [...importedServiceItems];
-                                                 newArr[idx] = { ...newArr[idx], remarks: e.target.value };
-                                                 setImportedServiceItems(newArr);
-                                             }}/>
+                                             <AutoResizeTextarea
+                                                 rows={2}
+                                                 placeholder="Remarks..."
+                                                 className={inputCls + " !py-1.5 w-full min-w-0 text-sm resize-y"}
+                                                 value={item.remarks || ""}
+                                                 onChange={e => {
+                                                     const newArr = [...importedServiceItems];
+                                                     newArr[idx] = { ...newArr[idx], remarks: e.target.value };
+                                                     setImportedServiceItems(newArr);
+                                                 }}
+                                             />
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
@@ -1510,6 +1544,14 @@ export const QuotationFormPage = () => {
                                              <input type="text" placeholder="e.g. ITEM-01" className={inputCls + " !py-1 !text-xs mt-1"} value={item.referenceNumber || ""} onChange={e => {
                                                  const newArr = [...importedServiceItems];
                                                  newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                                                 setImportedServiceItems(newArr);
+                                             }}/>
+                                         </div>
+                                         <div className="col-span-2">
+                                             <label className="text-xs text-muted-foreground">Remarks</label>
+                                             <AutoResizeTextarea rows={2} placeholder="Remarks..." className={inputCls + " !py-1 !text-xs mt-1"} value={item.remarks || ""} onChange={e => {
+                                                 const newArr = [...importedServiceItems];
+                                                 newArr[idx] = { ...newArr[idx], remarks: e.target.value };
                                                  setImportedServiceItems(newArr);
                                              }}/>
                                          </div>
@@ -1556,7 +1598,7 @@ export const QuotationFormPage = () => {
                          {/* Desktop table */}
                          <div className="hidden md:block overflow-x-auto ml-3">
                          <table className="w-full text-sm min-w-[800px]">
-                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[200px] w-auto">Service Name</th><th className="w-[80px] text-center">Ref #</th><th className="w-[120px] text-center">Remarks</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
+                             <thead className="text-xs text-muted-foreground uppercase"><tr className="border-b border-border/60"><th className="text-left py-2 pr-2 min-w-[200px] w-auto">Service Name</th><th className="w-[80px] text-center">Ref #</th><th className="text-left py-2 px-1 min-w-[150px] w-auto">Remarks</th><th className="w-16 text-center">Qty</th><th className="w-28 text-right">Price (PKR)</th><th className="w-28 text-right">Total</th><th className="w-10"></th></tr></thead>
                              <tbody>
                                  {localServiceItems.map((item, idx) => (
                                      <tr key={item.id} className="border-t border-border/30">
@@ -1571,11 +1613,17 @@ export const QuotationFormPage = () => {
                                              }}/>
                                          </td>
                                          <td className="px-1">
-                                             <input type="text" placeholder="Remarks" className={inputCls + " !py-1.5 !text-xs"} value={item.remarks || ""} onChange={e => {
-                                                 const newArr = [...localServiceItems];
-                                                 newArr[idx] = { ...newArr[idx], remarks: e.target.value };
-                                                 setLocalServiceItems(newArr);
-                                             }}/>
+                                             <AutoResizeTextarea
+                                                 rows={2}
+                                                 placeholder="Remarks..."
+                                                 className={inputCls + " !py-1.5 w-full min-w-0 text-sm resize-y"}
+                                                 value={item.remarks || ""}
+                                                 onChange={e => {
+                                                     const newArr = [...localServiceItems];
+                                                     newArr[idx] = { ...newArr[idx], remarks: e.target.value };
+                                                     setLocalServiceItems(newArr);
+                                                 }}
+                                             />
                                          </td>
                                          <td className="px-1">
                                               <input type="number" className={inputCls + " !px-2 !py-1.5 text-center"} min="1" value={item.quantity} onChange={e => {
@@ -1614,6 +1662,14 @@ export const QuotationFormPage = () => {
                                              <input type="text" placeholder="e.g. ITEM-01" className={inputCls + " !py-1 !text-xs mt-1"} value={item.referenceNumber || ""} onChange={e => {
                                                  const newArr = [...localServiceItems];
                                                  newArr[idx] = { ...newArr[idx], referenceNumber: e.target.value };
+                                                 setLocalServiceItems(newArr);
+                                             }}/>
+                                         </div>
+                                         <div className="col-span-2">
+                                             <label className="text-xs text-muted-foreground">Remarks</label>
+                                             <AutoResizeTextarea rows={2} placeholder="Remarks..." className={inputCls + " !py-1 !text-xs mt-1"} value={item.remarks || ""} onChange={e => {
+                                                 const newArr = [...localServiceItems];
+                                                 newArr[idx] = { ...newArr[idx], remarks: e.target.value };
                                                  setLocalServiceItems(newArr);
                                              }}/>
                                          </div>
