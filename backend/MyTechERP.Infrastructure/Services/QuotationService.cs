@@ -572,7 +572,8 @@ namespace MyTechERP.Infrastructure.Services
                         CalculationBreakdown = calcBreakdown,
                         ReferenceNumber = itemDto.ReferenceNumber,
                         Unit = itemDto.Unit,
-                        UnitQty = itemDto.UnitQty
+                        UnitQty = itemDto.UnitQty,
+                        Remarks = itemDto.Remarks
                     });
                 }
             }
@@ -638,7 +639,8 @@ namespace MyTechERP.Infrastructure.Services
                     CalculationBreakdown = i.CalculationBreakdown,
                     ReferenceNumber = i.ReferenceNumber,
                     Unit = i.Unit,
-                    UnitQty = i.UnitQty
+                    UnitQty = i.UnitQty,
+                    Remarks = i.Remarks
                 }).ToList() ?? new List<QuotationItemDto>()
             };
         }

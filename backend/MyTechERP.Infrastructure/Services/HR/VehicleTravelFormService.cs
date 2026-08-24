@@ -19,6 +19,7 @@ namespace MyTechERP.Infrastructure.Services.HR
         { 
             "asma@mytecheng.com",
             "faisal.ghani@mytecheng.com", 
+            "abdul.majeed@mytecheng.com",
             "shahbaz.ali@mytecheng.com", 
             "munawar.hasan@mytecheng.com" 
         };

@@ -25,6 +25,7 @@ namespace MytechERP.Application.DTOs.Quotations
 
         public string? Unit { get; set; }
         public decimal UnitQty { get; set; }
+        public string? Remarks { get; set; }
         
        
     }

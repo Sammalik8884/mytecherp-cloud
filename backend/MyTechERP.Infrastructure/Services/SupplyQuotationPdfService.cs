@@ -184,6 +184,7 @@ namespace MyTechERP.Infrastructure.Services
                     {
                         columns.ConstantColumn(25);  // #
                         columns.RelativeColumn(3);   // Description
+                        columns.RelativeColumn(2);   // Remarks
                         columns.ConstantColumn(40);  // Qty
                         columns.ConstantColumn(40);  // Unit
                         
@@ -199,6 +200,7 @@ namespace MyTechERP.Infrastructure.Services
                     {
                         header.Cell().Element(TH).AlignCenter().Text("#");
                         header.Cell().Element(TH).Text("Description");
+                        header.Cell().Element(TH).Text("Remarks");
                         header.Cell().Element(TH).AlignCenter().Text("Qty");
                         header.Cell().Element(TH).AlignCenter().Text("Unit");
                         
@@ -220,6 +222,9 @@ namespace MyTechERP.Infrastructure.Services
 
                         table.Cell().Element(c => TD(c, isAlt))
                             .Text(item.Description ?? "").FontSize(8);
+                            
+                        table.Cell().Element(c => TD(c, isAlt))
+                            .Text(item.Remarks ?? "").FontSize(8);
                             
                         table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Quantity.ToString("G29"));
                         table.Cell().Element(c => TD(c, isAlt)).AlignCenter().Text(item.Unit ?? "");

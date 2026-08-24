@@ -66,6 +66,12 @@ namespace MyTechERP.Infrastructure.Services
             {
                 allRecipients.Add(faisal);
             }
+            
+            var majeed = await _userManager.FindByEmailAsync("abdul.majeed@mytecheng.com");
+            if (majeed != null && !allRecipients.Any(u => u.Id == majeed.Id))
+            {
+                allRecipients.Add(majeed);
+            }
 
             var creatorName = _currentUserService.UserId != null ? (await _userManager.FindByIdAsync(_currentUserService.UserId))?.FullName ?? "Someone" : "Someone";
             string siteName = entity.SiteId > 0 ? (await _context.Sites.FindAsync(entity.SiteId))?.Name : "Unknown Site";

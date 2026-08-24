@@ -15,6 +15,7 @@ namespace MytechERP.domain.Quotations
         
         public int SNo { get; set; }
         public string Description { get; set; } = string.Empty;
+        public string? Remarks { get; set; }
         
         [Column(TypeName = "decimal(18,2)")]
         public decimal Quantity { get; set; }

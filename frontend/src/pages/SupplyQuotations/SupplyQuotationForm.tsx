@@ -46,6 +46,7 @@ export function SupplyQuotationForm() {
             const fetchedItems = q.items.map((i: any) => ({
                 sNo: i.sNo,
                 description: i.description,
+                remarks: i.remarks || "",
                 quantity: i.quantity,
                 unit: i.unit,
                 rates: JSON.parse(i.ratesJson || '{}'),
@@ -238,6 +239,7 @@ export function SupplyQuotationForm() {
                                 <tr>
                                     <th className="p-2 border-r text-center w-12">S.NO</th>
                                     <th className="p-2 border-r text-left w-64">DESCRIPTION</th>
+                                    <th className="p-2 border-r text-left w-48">REMARKS</th>
                                     <th className="p-2 border-r text-center w-24">QTY</th>
                                     <th className="p-2 border-r text-center w-24">UNIT</th>
                                     {supplyColumns.map((col, idx) => (
@@ -263,6 +265,15 @@ export function SupplyQuotationForm() {
                                                 onChange={e => updateItem(idx, 'description', e.target.value)} 
                                                 className="w-full bg-transparent outline-none resize-y min-h-[38px] p-1 border border-transparent hover:border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary rounded" 
                                                 placeholder="Description" 
+                                            />
+                                        </td>
+                                        <td className="p-2 border-r align-top">
+                                            <AutoResizeTextarea 
+                                                rows={1}
+                                                value={item.remarks} 
+                                                onChange={e => updateItem(idx, 'remarks', e.target.value)} 
+                                                className="w-full bg-transparent outline-none resize-y min-h-[38px] p-1 border border-transparent hover:border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary rounded" 
+                                                placeholder="Remarks" 
                                             />
                                         </td>
                                         <td className="p-2 border-r align-top">

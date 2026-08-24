@@ -89,7 +89,7 @@ namespace MyTechERP.Infrastructure.Services
                 .AsQueryable();
 
             if (role != "Admin" && role != "Manager" && role != "Accounts Head" && role != "CEO" && role != "Accounts Assistant" && 
-                email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com" && email != "asma@mytecheng.com" && email != "faisal.ghani@mytecheng.com")
+                email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com" && email != "asma@mytecheng.com" && email != "faisal.ghani@mytecheng.com" && email != "abdul.majeed@mytecheng.com")
             {
                 query = query.Where(e => e.CreatedByEmail.ToLower() == email);
             }

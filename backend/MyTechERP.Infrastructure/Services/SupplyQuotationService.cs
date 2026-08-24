@@ -79,6 +79,7 @@ namespace MyTechERP.Infrastructure.Services
                 {
                     SNo = i.SNo,
                     Description = i.Description,
+                    Remarks = i.Remarks,
                     Quantity = i.Quantity,
                     Unit = i.Unit,
                     RatesJson = JsonSerializer.Serialize(i.Rates),
@@ -133,6 +134,7 @@ namespace MyTechERP.Infrastructure.Services
                 SupplyQuotationId = id,
                 SNo = i.SNo,
                 Description = i.Description,
+                Remarks = i.Remarks,
                 Quantity = i.Quantity,
                 Unit = i.Unit,
                 RatesJson = JsonSerializer.Serialize(i.Rates),
@@ -193,6 +195,7 @@ namespace MyTechERP.Infrastructure.Services
                     SupplyQuotationId = i.SupplyQuotationId,
                     SNo = i.SNo,
                     Description = i.Description,
+                    Remarks = i.Remarks,
                     Quantity = i.Quantity,
                     Unit = i.Unit,
                     RatesJson = i.RatesJson,

@@ -38,8 +38,7 @@ export const ExpensesPage = () => {
 
     const currentUserRoles = user?.roles || [];
     const isAdmin = currentUserRoles.includes("Admin") || currentUserRoles.includes("CEO") || user?.email === "munawar.hasan@mytecheng.com";
-    const isMajeed = user?.email?.toLowerCase() === "abdul.majeed@mytecheng.com";
-    const canReview = !isMajeed && (isAdmin || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts") || user?.email === "asma@mytecheng.com" || user?.email === "shahbaz.ali@mytecheng.com" || user?.email === "faisal.ghani@mytecheng.com");
+    const canReview = isAdmin || currentUserRoles.includes("Accounts Assistant") || currentUserRoles.includes("Accounts Head") || currentUserRoles.includes("Accounts") || user?.email === "asma@mytecheng.com" || user?.email === "shahbaz.ali@mytecheng.com" || user?.email === "faisal.ghani@mytecheng.com" || user?.email === "abdul.majeed@mytecheng.com";
 
     useEffect(() => {
         loadExpenses();

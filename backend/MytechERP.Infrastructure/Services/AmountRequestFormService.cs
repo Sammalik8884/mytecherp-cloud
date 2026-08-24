@@ -43,7 +43,7 @@ namespace MyTechERP.Infrastructure.Services
         {
             try
             {
-                var emails = new[] { "faisal.ghani@mytecheng.com", "asma@mytecheng.com" };
+                var emails = new[] { "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com", "asma@mytecheng.com" };
                 foreach (var email in emails)
                 {
                     var auditor = await _userManager.FindByEmailAsync(email);
@@ -160,7 +160,7 @@ namespace MyTechERP.Infrastructure.Services
                 .AsQueryable();
 
             if (role != "Admin" && role != "Manager" && role != "Accounts Head" && role != "CEO" && role != "Accounts Assistant" && 
-                email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com" && email != "asma@mytecheng.com" && email != "faisal.ghani@mytecheng.com")
+                email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com" && email != "asma@mytecheng.com" && email != "faisal.ghani@mytecheng.com" && email != "abdul.majeed@mytecheng.com")
             {
                 query = query.Where(a => a.EmployeeEmail.ToLower() == email);
             }
@@ -734,6 +734,7 @@ namespace MyTechERP.Infrastructure.Services
                 string subject = $"Amount Request Notification - {entity.EmployeeName} ({entity.ArfNumber})";
 
                 await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
+                await _emailService.SendEmailAsync("abdul.majeed@mytecheng.com", subject, body);
                 await _emailService.SendEmailAsync("asma@mytecheng.com", subject, body);
                 await _emailService.SendEmailAsync("usamamalikwork1@gmail.com", subject, body);
             }

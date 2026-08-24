@@ -35,6 +35,7 @@ namespace MytechERP.Application.DTOs.Quotations
         public int SupplyQuotationId { get; set; }
         public int SNo { get; set; }
         public string Description { get; set; } = string.Empty;
+        public string? Remarks { get; set; }
         public decimal Quantity { get; set; }
         public string Unit { get; set; } = string.Empty;
         
@@ -71,6 +72,7 @@ namespace MytechERP.Application.DTOs.Quotations
     {
         public int SNo { get; set; }
         public string Description { get; set; } = string.Empty;
+        public string? Remarks { get; set; }
         public decimal Quantity { get; set; }
         public string Unit { get; set; } = string.Empty;
         

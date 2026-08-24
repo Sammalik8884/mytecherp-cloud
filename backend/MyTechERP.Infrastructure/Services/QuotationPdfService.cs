@@ -263,7 +263,8 @@ namespace MyTechERP.Infrastructure.Services
                         {
                             columns.ConstantColumn(50);  // Ref#
                         }
-                        columns.RelativeColumn();    // Description
+                        columns.RelativeColumn(2);    // Description
+                        columns.RelativeColumn(1);    // Remarks
                         if (showUnit)
                         {
                             columns.ConstantColumn(55);  // Unit
@@ -282,6 +283,7 @@ namespace MyTechERP.Infrastructure.Services
                             header.Cell().Element(TH).AlignCenter().Text("Ref #");
                         }
                         header.Cell().Element(TH).Text("Description");
+                        header.Cell().Element(TH).Text("Remarks");
                         if (showUnit)
                         {
                             header.Cell().Element(TH).AlignCenter().Text("Unit");
@@ -314,6 +316,12 @@ namespace MyTechERP.Infrastructure.Services
                         table.Cell().Element(c => TD(c, isAlt)).Column(dc =>
                         {
                             dc.Item().Text(item.Description ?? "Unknown Service").FontSize(8);
+                        });
+                        
+                        // Remarks cell
+                        table.Cell().Element(c => TD(c, isAlt)).Column(dc =>
+                        {
+                            dc.Item().Text(item.Remarks ?? "").FontSize(8);
                         });
                         // Unit cell - show unit type and quantity (conditional)
                         if (showUnit)

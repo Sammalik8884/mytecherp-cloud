@@ -45,6 +45,8 @@ namespace MytechERP.domain.Quotations
 
         [Column(TypeName = "nvarchar(max)")]
         public string? CalculationBreakdown { get; set; }
+        
+        public string? Remarks { get; set; }
 
         // Measurement unit (e.g. feet, cm, m, inch, etc.)
         public string? Unit { get; set; }

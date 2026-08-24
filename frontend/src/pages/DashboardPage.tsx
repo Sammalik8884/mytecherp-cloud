@@ -92,7 +92,7 @@ export const DashboardPage: React.FC = () => {
         return <EstimatorDashboard />;
     }
 
-    const isExpenseAuditor = user?.roles?.includes('Accounts Head') || user?.email === 'asma@mytecheng.com' || user?.email === 'munawar.hasan@mytecheng.com' || user?.email === 'shahbaz.ali@mytecheng.com' || user?.email === 'faisal.ghani@mytecheng.com';
+    const isExpenseAuditor = user?.roles?.includes('Accounts Head') || user?.email === 'asma@mytecheng.com' || user?.email === 'munawar.hasan@mytecheng.com' || user?.email === 'shahbaz.ali@mytecheng.com' || user?.email === 'faisal.ghani@mytecheng.com' || user?.email === 'abdul.majeed@mytecheng.com';
 
     if (isExpenseAuditor && !user?.roles?.includes('CEO') && !user?.roles?.includes('Project Director')) {
         return <ExpenseAuditorDashboard />;
