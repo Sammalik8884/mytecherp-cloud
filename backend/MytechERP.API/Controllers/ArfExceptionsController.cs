@@ -47,10 +47,10 @@ namespace MytechERP.API.Controllers
             }
         }
 
-        [HttpGet("pending")]
-        public async Task<ActionResult<IEnumerable<ArfExceptionRequestDto>>> GetPending()
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<ArfExceptionRequestDto>>> GetAll()
         {
-            var result = await _service.GetAllPendingAsync();
+            var result = await _service.GetAllAsync();
             return Ok(result);
         }
 

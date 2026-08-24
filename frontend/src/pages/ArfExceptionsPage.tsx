@@ -11,7 +11,7 @@ const ArfExceptionsPage = () => {
 
     const fetchRequests = async () => {
         try {
-            const res = await arfExceptionApi.getPending();
+            const res = await arfExceptionApi.getAll();
             setRequests(res.data);
         } catch (error) {
             toast.error("Failed to load requests");
@@ -43,12 +43,12 @@ const ArfExceptionsPage = () => {
     };
 
     return (
-        <div className="p-6 max-w-5xl mx-auto">
+        <div className="p-6 max-w-7xl mx-auto">
             <h1 className="text-2xl font-bold mb-6">ARF Exception Requests</h1>
             {loading ? (
                 <p>Loading...</p>
             ) : requests.length === 0 ? (
-                <p>No pending requests.</p>
+                <p>No requests found.</p>
             ) : (
                 <div className="bg-card border rounded-lg shadow-sm overflow-hidden">
                     <table className="w-full text-left text-sm">
@@ -58,6 +58,8 @@ const ArfExceptionsPage = () => {
                                 <th className="p-3">Requested Amount</th>
                                 <th className="p-3">Reason</th>
                                 <th className="p-3">Date</th>
+                                <th className="p-3">Status</th>
+                                <th className="p-3">Comment</th>
                                 <th className="p-3 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -65,16 +67,28 @@ const ArfExceptionsPage = () => {
                             {requests.map(r => (
                                 <tr key={r.id} className="border-t">
                                     <td className="p-3 font-medium">{r.employeeEmail}</td>
-                                    <td className="p-3 text-primary">Rs {r.requestedAmount.toLocaleString()}</td>
-                                    <td className="p-3 text-muted-foreground max-w-xs truncate" title={r.reason}>{r.reason}</td>
-                                    <td className="p-3">{new Date(r.createdAt).toLocaleDateString()}</td>
+                                    <td className="p-3 text-primary font-bold">Rs {r.requestedAmount.toLocaleString()}</td>
+                                    <td className="p-3 text-muted-foreground max-w-[200px] truncate" title={r.reason}>{r.reason}</td>
+                                    <td className="p-3 whitespace-nowrap">{new Date(r.createdAt).toLocaleDateString()}</td>
+                                    <td className="p-3">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                            r.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                                            r.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                                            'bg-yellow-100 text-yellow-700'
+                                        }`}>
+                                            {r.status}
+                                        </span>
+                                    </td>
+                                    <td className="p-3 text-muted-foreground max-w-[200px] truncate" title={r.munawarComment}>{r.munawarComment || "-"}</td>
                                     <td className="p-3 text-right">
-                                        <button 
-                                            onClick={() => { setSelectedRequest(r); setIsApproveModalOpen(true); }}
-                                            className="px-3 py-1 bg-primary text-primary-foreground rounded-md text-xs font-medium"
-                                        >
-                                            Review
-                                        </button>
+                                        {r.status === 'Pending' && (
+                                            <button 
+                                                onClick={() => { setSelectedRequest(r); setIsApproveModalOpen(true); }}
+                                                className="px-3 py-1 bg-primary text-primary-foreground rounded-md text-xs font-medium hover:bg-primary/90 transition-colors"
+                                            >
+                                                Review
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

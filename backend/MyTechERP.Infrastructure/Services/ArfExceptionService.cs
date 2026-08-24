@@ -78,10 +78,10 @@ namespace MyTechERP.Infrastructure.Services
             return MapToDto(entity);
         }
 
-        public async Task<IEnumerable<ArfExceptionRequestDto>> GetAllPendingAsync()
+        public async Task<IEnumerable<ArfExceptionRequestDto>> GetAllAsync()
         {
             var list = await _context.ArfExceptionRequests
-                .Where(x => x.Status == "Pending")
+                .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
             return list.Select(MapToDto);
         }

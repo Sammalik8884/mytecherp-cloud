@@ -19,8 +19,8 @@ export const arfExceptionApi = {
     approve: (id: number, data: { isApproved: boolean; comment: string }) => 
         apiClient.post<ArfExceptionRequestDto>(`/ArfExceptions/${id}/approve`, data),
     
-    getPending: () => 
-        apiClient.get<ArfExceptionRequestDto[]>("/ArfExceptions/pending"),
+    getAll: () => 
+        apiClient.get<ArfExceptionRequestDto[]>("/ArfExceptions/all"),
     
     getMyRequests: () => 
         apiClient.get<ArfExceptionRequestDto[]>("/ArfExceptions/my")
