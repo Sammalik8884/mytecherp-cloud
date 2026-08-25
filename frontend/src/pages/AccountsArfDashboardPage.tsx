@@ -370,7 +370,7 @@ const AccountsArfDashboardPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/50">
-                                    {filteredHistory.map(form => (
+                                    {displayedForms.map(form => (
                                         <tr key={form.id} className="hover:bg-muted/10 transition-colors">
                                             <td className="p-4">{new Date(form.createdAt).toLocaleDateString()}</td>
                                             <td className="p-4 font-medium">{form.employeeName}</td>
@@ -384,14 +384,14 @@ const AccountsArfDashboardPage = () => {
                                             </td>
                                         </tr>
                                     ))}
-                                    {filteredHistory.length > 0 && (
+                                    {displayedForms.length > 0 && (
                                         <tr className="bg-muted/10 font-bold text-base">
                                             <td colSpan={4} className="p-4 text-right">Total Released:</td>
                                             <td className="p-4 text-green-600">{totalAmount.toLocaleString()}</td>
                                             <td></td>
                                         </tr>
                                     )}
-                                    {filteredHistory.length === 0 && (
+                                    {displayedForms.length === 0 && (
                                         <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No records found for the selected filters.</td></tr>
                                     )}
                                 </tbody>
