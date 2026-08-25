@@ -730,10 +730,20 @@ const AmountRequestFormPage = () => {
                                         <SearchableObjectSelect
                                             options={[
                                                 ...sites.map(s => ({ label: s.name, value: s.id })),
-                                                { label: "Other (Custom Site)", value: "custom" }
+                                                ...Array.from(new Set(forms.map(f => f.customSiteName).filter(Boolean) as string[])).map(name => ({ label: name, value: `custom_${name}` })),
+                                                { label: "Other (New Custom Site)", value: "custom" }
                                             ]}
                                             value={siteId}
-                                            onChange={(val) => setSiteId(val === "custom" ? "custom" : (val === "" ? "" : Number(val)))}
+                                            onChange={(val) => {
+                                                if (val === "custom") {
+                                                    setSiteId("custom");
+                                                } else if (typeof val === 'string' && val.startsWith('custom_')) {
+                                                    setSiteId("custom");
+                                                    setCustomSiteName(val.replace('custom_', ''));
+                                                } else {
+                                                    setSiteId(val === "" ? "" : Number(val));
+                                                }
+                                            }}
                                             placeholder="-- Select a Site --"
                                         />
                                     </div>

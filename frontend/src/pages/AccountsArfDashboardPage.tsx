@@ -62,7 +62,15 @@ const AccountsArfDashboardPage = () => {
             setPartialForms(partialRes.data);
             setHistoryForms(historyRes.data);
             setAllOffices(officesRes.map(o => o.name));
-            setAllSites(sitesRes.map(s => s.name));
+            
+            const uniqueCustomSites = Array.from(new Set([
+                ...pendingRes.data.map(f => f.customSiteName),
+                ...partialRes.data.map(f => f.customSiteName),
+                ...historyRes.data.map(f => f.customSiteName)
+            ].filter(Boolean) as string[]));
+            
+            setAllSites([...sitesRes.map(s => s.name), ...uniqueCustomSites]);
+            
             setAllEmployees(usersRes.map(u => u.fullName || u.email));
         } catch (error) {
             console.error("Error fetching ARFs for accounts", error);
