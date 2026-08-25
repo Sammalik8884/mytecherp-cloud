@@ -109,7 +109,8 @@ const AccountsArfDashboardPage = () => {
         }
     };
 
-    // Filter History
+    const [universalSearch, setUniversalSearch] = useState("");
+
     const getUniqueEntities = () => {
         if (historySection === "offices") {
             return allOffices;
@@ -120,8 +121,8 @@ const AccountsArfDashboardPage = () => {
         }
     };
 
-    const getFilteredHistory = () => {
-        let filtered = historyForms;
+    const getFilteredData = (forms: AmountRequestFormDto[]) => {
+        let filtered = forms;
         
         if (selectedEntity) {
             if (historySection === "offices") {
@@ -142,11 +143,22 @@ const AccountsArfDashboardPage = () => {
             filtered = filtered.filter(f => new Date(f.createdAt) <= endDate);
         }
 
+        if (universalSearch) {
+            const lowerSearch = universalSearch.toLowerCase();
+            filtered = filtered.filter(f => 
+                f.employeeName?.toLowerCase().includes(lowerSearch) ||
+                f.arfNumber?.toLowerCase().includes(lowerSearch) ||
+                f.advanceRequested?.toString().includes(lowerSearch) ||
+                f.employeeEmail?.toLowerCase().includes(lowerSearch) ||
+                f.status?.toLowerCase().includes(lowerSearch)
+            );
+        }
+
         return filtered;
     };
 
-    const filteredHistory = getFilteredHistory();
-    const totalAmount = filteredHistory.reduce((sum, f) => sum + (f.accountsReleasedAmount || 0), 0);
+    const displayedForms = getFilteredData(activeTab === "pending" ? pendingForms : (activeTab === "partial" ? partialForms : historyForms));
+    const totalAmount = displayedForms.reduce((sum, f) => sum + (f.accountsReleasedAmount || 0), 0);
 
     const generatePDF = () => {
         const doc = new jsPDF();
@@ -163,7 +175,7 @@ const AccountsArfDashboardPage = () => {
         const tableColumn = ["Date", "ARF Number", "Employee", "Location", "Requested", "Released Amount"];
         const tableRows: any[] = [];
 
-        filteredHistory.forEach(form => {
+        displayedForms.forEach(form => {
             const location = form.siteName || form.officeName || form.customSiteName || "-";
             const rowData = [
                 new Date(form.createdAt).toLocaleDateString(),
@@ -235,6 +247,65 @@ const AccountsArfDashboardPage = () => {
                 )}
             </div>
 
+            <div className="bg-card border border-border/50 rounded-2xl shadow-sm p-6 mb-6">
+                <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex-1 space-y-4">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Report Type</h3>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {["offices", "sites", "employees"].map(sec => (
+                                <button
+                                    key={sec}
+                                    onClick={() => { setHistorySection(sec as any); setSelectedEntity(""); }}
+                                    className={`px-5 py-2 text-sm rounded-lg border font-medium transition-colors ${
+                                        historySection === sec ? "border-primary bg-primary/10 text-primary shadow-sm" : "border-border/50 hover:bg-muted/30 text-foreground"
+                                    }`}
+                                >
+                                    {sec.charAt(0).toUpperCase() + sec.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Search & Select {historySection.charAt(0).toUpperCase() + historySection.slice(1).slice(0, -1)}</label>
+                            <SearchableSelect
+                                options={getUniqueEntities()}
+                                value={selectedEntity}
+                                onChange={(val) => setSelectedEntity(val)}
+                                placeholder={`Search ${historySection}...`}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex-1 space-y-4">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Date & General Filter</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs mb-1">Start Date</label>
+                                <input type="date" value={dateRange.start} onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })} className="w-full p-2 rounded-lg border border-input bg-background" />
+                            </div>
+                            <div>
+                                <label className="block text-xs mb-1">End Date</label>
+                                <input type="date" value={dateRange.end} onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })} className="w-full p-2 rounded-lg border border-input bg-background" />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs mb-1">Universal Search</label>
+                            <input 
+                                type="text" 
+                                placeholder="Search by ARF#, user, amount..." 
+                                value={universalSearch} 
+                                onChange={(e) => setUniversalSearch(e.target.value)} 
+                                className="w-full p-2 rounded-lg border border-input bg-background text-sm" 
+                            />
+                        </div>
+                        <div className="pt-2">
+                            <button onClick={generatePDF} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors font-medium text-sm">
+                                <Download className="w-4 h-4" /> Export PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {(activeTab === "pending" || activeTab === "partial") && (
                 <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
@@ -251,10 +322,10 @@ const AccountsArfDashboardPage = () => {
                             <tbody className="divide-y divide-border/50">
                                 {isLoading ? (
                                     <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Loading ARFs...</td></tr>
-                                ) : (activeTab === "pending" ? pendingForms : partialForms).length === 0 ? (
+                                ) : displayedForms.length === 0 ? (
                                     <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No ARFs found.</td></tr>
                                 ) : (
-                                    (activeTab === "pending" ? pendingForms : partialForms).map(form => (
+                                    displayedForms.map(form => (
                                         <tr key={form.id} className="hover:bg-muted/10 transition-colors">
                                             <td className="p-4">
                                                 <div className="font-medium text-foreground">{form.employeeName}</div>
@@ -283,54 +354,7 @@ const AccountsArfDashboardPage = () => {
 
             {activeTab === "completed" && (
                 <div className="space-y-6">
-                    <div className="bg-card border border-border/50 rounded-2xl shadow-sm p-6">
-                        <div className="flex flex-col md:flex-row gap-6 mb-6">
-                            <div className="flex-1 space-y-4">
-                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Report Type</h3>
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {["offices", "sites", "employees"].map(sec => (
-                                        <button
-                                            key={sec}
-                                            onClick={() => { setHistorySection(sec as any); setSelectedEntity(""); }}
-                                            className={`px-5 py-2 text-sm rounded-lg border font-medium transition-colors ${
-                                                historySection === sec ? "border-primary bg-primary/10 text-primary shadow-sm" : "border-border/50 hover:bg-muted/30 text-foreground"
-                                            }`}
-                                        >
-                                            {sec.charAt(0).toUpperCase() + sec.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
-                                
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">Search & Select {historySection.charAt(0).toUpperCase() + historySection.slice(1).slice(0, -1)}</label>
-                                    <SearchableSelect
-                                        options={getUniqueEntities()}
-                                        value={selectedEntity}
-                                        onChange={(val) => setSelectedEntity(val)}
-                                        placeholder={`Search ${historySection}...`}
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex-1 space-y-4">
-                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Date Filter</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs mb-1">Start Date</label>
-                                        <input type="date" value={dateRange.start} onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })} className="w-full p-2 rounded-lg border border-input bg-background" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs mb-1">End Date</label>
-                                        <input type="date" value={dateRange.end} onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })} className="w-full p-2 rounded-lg border border-input bg-background" />
-                                    </div>
-                                </div>
-                                <div className="pt-2">
-                                    <button onClick={generatePDF} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors font-medium text-sm">
-                                        <Download className="w-4 h-4" /> Export PDF
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
 
                     <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
                         <div className="overflow-x-auto">
@@ -431,7 +455,10 @@ const AccountsArfDashboardPage = () => {
                                                             <div><label className="block text-muted-foreground mb-1">Date of Entry</label><input name="dateOfEntry" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div><label className="block text-muted-foreground mb-1">Date Fund Released</label><input name="dateOfFundReleased" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div><label className="block text-muted-foreground mb-1">Released Amount (Max: {remaining.toLocaleString()})</label><input name="releasedAmount" type="number" max={remaining} defaultValue={remaining} required className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                            <div><label className="block text-muted-foreground mb-1">Remarks</label><input name="remarks" type="text" className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <div>
+                                                                <label className="block text-primary font-semibold mb-1">Remarks *</label>
+                                                                <textarea name="remarks" rows={2} placeholder="Add release remarks..." className="w-full p-2 rounded-lg border-2 border-primary/50 bg-primary/5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
+                                                            </div>
                                                             <div><label className="block text-muted-foreground mb-1">Payment Slip(s) (Mandatory)</label><input name="paymentSlips" type="file" multiple required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <button type="submit" disabled={isReleasingAmount} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-4">
                                                                 {isReleasingAmount ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
