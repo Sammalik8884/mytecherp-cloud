@@ -342,54 +342,71 @@ namespace MyTechERP.Infrastructure.Services
             bool isHuzefa = string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase);
             bool isAliAzeem = string.Equals(userEmail, "ali.azeem@mytecheng.com", StringComparison.OrdinalIgnoreCase);
 
-            var query = _context.Quotations
-                .Include(q => q.Customer)
-                .Include(q => q.Site)
-                // Skip including Items if we don't strictly need it, but MapToDto uses it. So we keep it.
-                .Include(q => q.Items)
-                .AsNoTracking()
-                .AsQueryable();
-
             var riffatUser = await _userManager.FindByEmailAsync("riffat.nazir@mytecheng.com");
             var aliUser = await _userManager.FindByEmailAsync("ali.azeem@mytecheng.com");
             var riffatId = riffatUser?.Id;
             var aliId = aliUser?.Id;
 
+            // Build filtered query at DB level - no Items loaded at all
+            var query = _context.Quotations.AsNoTracking().AsQueryable();
+
             if (isAliAzeem)
-            {
-                // Ali sees his own and Riffat's
                 query = query.Where(q => q.CreatedByUserId == userId || (riffatId != null && q.CreatedByUserId == riffatId));
-            }
             else if (isHuzefa)
-            {
-                // Huzefa sees all quotes EXCEPT Ali's and Riffat's
                 query = query.Where(q => q.CreatedByUserId != aliId && q.CreatedByUserId != riffatId);
-            }
-            else if (isAdmin)
+            else if (!isAdmin)
             {
-                // Admin sees all
-            }
-            else if (userRoles.Contains("Salesman"))
-            {
-                // Salesmen see quotations created for their leads
-                var myLeadQuoteIds = await _context.SalesLeads
-                    .Where(l => l.SalesmanUserId == userId && l.QuotationId != null)
-                    .Select(l => l.QuotationId!.Value)
-                    .ToListAsync();
-
-                query = query.Where(q =>
-                    q.CreatedByUserId == userId ||
-                    myLeadQuoteIds.Contains(q.Id));
-            }
-            else
-            {
-                // Engineers, Estimators, others: only quotations they created
-                query = query.Where(q => q.CreatedByUserId == userId);
+                if (userRoles.Contains("Salesman"))
+                {
+                    var myLeadQuoteIds = await _context.SalesLeads
+                        .Where(l => l.SalesmanUserId == userId && l.QuotationId != null)
+                        .Select(l => l.QuotationId!.Value)
+                        .ToListAsync();
+                    query = query.Where(q => q.CreatedByUserId == userId || myLeadQuoteIds.Contains(q.Id));
+                }
+                else
+                {
+                    query = query.Where(q => q.CreatedByUserId == userId);
+                }
             }
 
-            var filteredQuotes = await query.OrderByDescending(q => q.Id).ToListAsync();
-
-            return filteredQuotes.Select(q => MapToDto(q)).ToList();
+            // Project only the columns needed for the list page — no Items join at all
+            return await query
+                .OrderByDescending(q => q.Id)
+                .Select(q => new QuotationDto
+                {
+                    Id = q.Id,
+                    QuoteNumber = q.QuoteNumber,
+                    ParentQuoteId = q.ParentQuoteId,
+                    CustomerId = q.CustomerId,
+                    CustomerName = q.Customer != null ? q.Customer.Name : "Unknown",
+                    ContactPersonName = q.Customer != null ? q.Customer.ContactPersonName : null,
+                    SiteName = q.Site != null ? q.Site.Name : null,
+                    ValidUntil = q.ValidUntil,
+                    Status = q.Status.ToString(),
+                    CreatedAt = q.CreatedAt,
+                    UpdatedAt = q.UpdatedAt,
+                    QuoteMode = q.QuoteMode,
+                    SupplyColumnMode = q.SupplyColumnMode,
+                    Currency = q.Currency,
+                    SubTotal = q.SubTotal,
+                    GSTPercentage = q.GSTPercentage,
+                    GSTAmount = q.GSTAmount,
+                    IncomeTaxPercentage = q.IncomeTaxPercentage,
+                    IncomeTaxAmount = q.IncomeTaxAmount,
+                    ProvincialTaxType = q.ProvincialTaxType,
+                    ProvincialTaxPercentage = q.ProvincialTaxPercentage,
+                    ProvincialTaxAmount = q.ProvincialTaxAmount,
+                    Adjustment = q.Adjustment,
+                    GrandTotal = q.GrandTotal,
+                    RevisionNumber = q.RevisionNumber,
+                    ProjectCode = q.ProjectCode,
+                    QuoteHeadline = q.QuoteHeadline,
+                    BoqReferenceNumber = q.BoqReferenceNumber,
+                    // Items intentionally omitted — not needed for the list view
+                    Items = new List<QuotationItemDto>()
+                })
+                .ToListAsync();
         }
 
         public async Task DeleteQuoteAsync(int id)
