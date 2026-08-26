@@ -41,6 +41,7 @@ namespace MyTechERP.Infrastructure.Services
         public async Task<List<SupplyQuotationDto>> GetAllSupplyQuotationsAsync()
         {
             var quotes = await _context.SupplyQuotations
+                .AsNoTracking()
                 .OrderByDescending(q => q.Id)
                 .ToListAsync();
 

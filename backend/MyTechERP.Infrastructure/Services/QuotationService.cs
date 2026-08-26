@@ -342,14 +342,13 @@ namespace MyTechERP.Infrastructure.Services
             bool isHuzefa = string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase);
             bool isAliAzeem = string.Equals(userEmail, "ali.azeem@mytecheng.com", StringComparison.OrdinalIgnoreCase);
 
-            var allQuotes = await _context.Quotations
+            var query = _context.Quotations
                 .Include(q => q.Customer)
                 .Include(q => q.Site)
+                // Skip including Items if we don't strictly need it, but MapToDto uses it. So we keep it.
                 .Include(q => q.Items)
-                .OrderByDescending(q => q.Id)
-                .ToListAsync();
-
-            IEnumerable<Quotation> filtered;
+                .AsNoTracking()
+                .AsQueryable();
 
             var riffatUser = await _userManager.FindByEmailAsync("riffat.nazir@mytecheng.com");
             var aliUser = await _userManager.FindByEmailAsync("ali.azeem@mytecheng.com");
@@ -359,16 +358,16 @@ namespace MyTechERP.Infrastructure.Services
             if (isAliAzeem)
             {
                 // Ali sees his own and Riffat's
-                filtered = allQuotes.Where(q => q.CreatedByUserId == userId || (riffatId != null && q.CreatedByUserId == riffatId));
+                query = query.Where(q => q.CreatedByUserId == userId || (riffatId != null && q.CreatedByUserId == riffatId));
             }
             else if (isHuzefa)
             {
                 // Huzefa sees all quotes EXCEPT Ali's and Riffat's
-                filtered = allQuotes.Where(q => q.CreatedByUserId != aliId && q.CreatedByUserId != riffatId);
+                query = query.Where(q => q.CreatedByUserId != aliId && q.CreatedByUserId != riffatId);
             }
             else if (isAdmin)
             {
-                filtered = allQuotes;
+                // Admin sees all
             }
             else if (userRoles.Contains("Salesman"))
             {
@@ -378,17 +377,19 @@ namespace MyTechERP.Infrastructure.Services
                     .Select(l => l.QuotationId!.Value)
                     .ToListAsync();
 
-                filtered = allQuotes.Where(q =>
+                query = query.Where(q =>
                     q.CreatedByUserId == userId ||
                     myLeadQuoteIds.Contains(q.Id));
             }
             else
             {
                 // Engineers, Estimators, others: only quotations they created
-                filtered = allQuotes.Where(q => q.CreatedByUserId == userId);
+                query = query.Where(q => q.CreatedByUserId == userId);
             }
 
-            return filtered.Select(q => MapToDto(q)).ToList();
+            var filteredQuotes = await query.OrderByDescending(q => q.Id).ToListAsync();
+
+            return filteredQuotes.Select(q => MapToDto(q)).ToList();
         }
 
         public async Task DeleteQuoteAsync(int id)
