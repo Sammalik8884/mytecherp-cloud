@@ -27,6 +27,9 @@ export const QuotationsPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<TabKey>('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(20);
+    
     const isHuzefa = user?.email?.toLowerCase() === 'm.huzefa@mytecheng.com';
     const isAliAzeem = user?.email?.toLowerCase() === 'ali.azeem@mytecheng.com';
 
@@ -260,11 +263,24 @@ export const QuotationsPage = () => {
                     ))}
                 </div>
 
-                <div className="p-4 border-b border-border/40">
+                <div className="p-4 border-b border-border/40 flex justify-between items-center">
                     <div className="relative w-72">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <input type="text" placeholder="Search quotes..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                        <input type="text" placeholder="Search quotes..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                             className="bg-background/50 border border-border text-sm rounded-lg pl-9 pr-4 py-2 w-full focus:outline-none focus:ring-1 focus:ring-primary" />
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <span>Show:</span>
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                            className="bg-background/50 border border-border text-sm rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary"
+                        >
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
                     </div>
                 </div>
 
@@ -367,15 +383,19 @@ export const QuotationsPage = () => {
                                     );
                                     };
 
-                                    sortedFilteredQuotations.forEach(quote => {
-                                        if (processedIds.has(quote.id)) return;
-                                        
-                                        // Skip if parent is in the same view, we'll render it as a child
-                                        if (quote.parentQuoteId) {
-                                            const parentInList = sortedFilteredQuotations.some(q => q.id === quote.parentQuoteId);
-                                            if (parentInList) return;
-                                        }
+                                    // Extract root quotes for pagination
+                                    const rootQuotes = sortedFilteredQuotations.filter(quote => {
+                                        if (!quote.parentQuoteId) return true;
+                                        // Also root if its parent is NOT in the current sortedFilteredQuotations
+                                        const parentInList = sortedFilteredQuotations.some(q => q.id === quote.parentQuoteId);
+                                        return !parentInList;
+                                    });
 
+                                    const totalPages = Math.ceil(rootQuotes.length / itemsPerPage);
+                                    const paginatedRoots = rootQuotes.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+                                    paginatedRoots.forEach(quote => {
+                                        if (processedIds.has(quote.id)) return;
                                         renderedRows.push(renderQuoteRow(quote, 0));
                                         processedIds.add(quote.id);
 
@@ -392,7 +412,27 @@ export const QuotationsPage = () => {
                                         renderChildren(quote.id, 0);
                                     });
 
-                                    return renderedRows;
+                                    return (
+                                        <>
+                                            {renderedRows}
+                                            {totalPages > 1 && (
+                                                <tr>
+                                                    <td colSpan={7} className="px-6 py-4">
+                                                        <div className="flex justify-between items-center text-sm text-muted-foreground">
+                                                            <div>
+                                                                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, rootQuotes.length)} of {rootQuotes.length} quotations
+                                                            </div>
+                                                            <div className="flex space-x-2">
+                                                                <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="px-3 py-1 bg-secondary/50 border border-border rounded-lg disabled:opacity-50">Prev</button>
+                                                                <span className="px-3 py-1">Page {currentPage} of {totalPages}</span>
+                                                                <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="px-3 py-1 bg-secondary/50 border border-border rounded-lg disabled:opacity-50">Next</button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </>
+                                    );
                                 })()
                             )}
                         </tbody>
