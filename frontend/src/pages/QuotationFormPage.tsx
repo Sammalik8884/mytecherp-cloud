@@ -339,6 +339,7 @@ export const QuotationFormPage = () => {
                             unitQty: i.unitQty || 0,
                             customUnit: isCustomUnit ? i.unit : "",
                             referenceNumber: i.referenceNumber || "",
+                            remarks: i.remarks || "",
                         };
                         // For imported items: re-derive calculations from saved originalPrice
                         if (i.itemType === "Imported" && i.originalPrice > 0) {
@@ -698,7 +699,8 @@ export const QuotationFormPage = () => {
                  finalPriceOverride: i.isManualFinalPrice ? i.unitPrice : undefined,
                  unit: resolveUnit(i),
                  unitQty: i.unitQty || 0,
-                 referenceNumber: i.referenceNumber || undefined
+                 referenceNumber: i.referenceNumber || undefined,
+                 remarks: i.remarks || undefined
              })));
         }
         if (showLocal) {
@@ -713,16 +715,17 @@ export const QuotationFormPage = () => {
                  finalPriceOverride: i.isManualFinalPrice ? i.unitPrice : undefined,
                  unit: resolveUnit(i),
                  unitQty: i.unitQty || 0,
-                 referenceNumber: i.referenceNumber || undefined
+                 referenceNumber: i.referenceNumber || undefined,
+                 remarks: i.remarks || undefined
              })));
         }
         if (showImportedServices) {
              const valid = importedServiceItems.filter(i => i.serviceName && i.serviceName.trim() !== "");
-             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "ImportedService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0, referenceNumber: i.referenceNumber || undefined })));
+             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "ImportedService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0, referenceNumber: i.referenceNumber || undefined, remarks: i.remarks || undefined })));
         }
         if (showLocalServices) {
              const valid = localServiceItems.filter(i => i.serviceName && i.serviceName.trim() !== "");
-             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "LocalService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0, referenceNumber: i.referenceNumber || undefined })));
+             payloadItems.push(...valid.map(i => ({ quantity: i.quantity, itemType: "LocalService", serviceName: i.serviceName, servicePrice: i.servicePrice, unit: resolveUnit(i), unitQty: i.unitQty || 0, referenceNumber: i.referenceNumber || undefined, remarks: i.remarks || undefined })));
         }
 
         if (payloadItems.length === 0) {
