@@ -248,8 +248,7 @@ namespace MyTechERP.Infrastructure.Services
                     }
 
                     // Add Summary Rows
-                    int totalCols = 4 + supplyColumns.Count; // #, Desc, Qty, Unit + dynamic + Total(1)
-                    
+                    int totalCols = 5 + supplyColumns.Count; // #, Desc, Remarks, Qty, Unit + dynamic
                     // Net Total
                     table.Cell().ColumnSpan((uint)totalCols).Element(c => c.PaddingVertical(4).PaddingHorizontal(5)).AlignRight()
                         .Text("Net Total:").SemiBold().FontSize(9);

@@ -352,7 +352,7 @@ namespace MyTechERP.Infrastructure.Services
 
                     // Section sub-total row
                     decimal sectionTotal = items.Sum(x => x.LineTotal);
-                    uint span = 3;
+                    uint span = 4;
                     if (showUnit) span++;
                     if (showRefNumber) span++;
 
