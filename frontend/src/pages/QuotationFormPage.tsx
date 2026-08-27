@@ -613,6 +613,12 @@ export const QuotationFormPage = () => {
         addRowFn: () => void
     ) => {
         if (e.key !== "Enter") return;
+
+        // Allow Shift+Enter to insert a newline in textarea without moving to next row
+        if (e.shiftKey && e.currentTarget.tagName.toLowerCase() === 'textarea') {
+            return;
+        }
+
         e.preventDefault();
         // Try to find next row's first input in the same section
         const allInputs = Array.from(
