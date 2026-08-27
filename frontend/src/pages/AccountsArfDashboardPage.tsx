@@ -641,8 +641,8 @@ const AccountsArfDashboardPage = () => {
             )}
             
             {/* Delete Payment Modal */}
-            {deletePaymentModal && deletePaymentModal.isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+            {deletePaymentModal && deletePaymentModal.isOpen && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
                     <div className="bg-card w-full max-w-md rounded-2xl shadow-xl border border-border overflow-hidden">
                         <div className="px-6 py-4 border-b border-border/50 bg-muted/30 flex justify-between items-center">
                             <h3 className="text-xl font-bold text-foreground">Confirm Deletion</h3>
@@ -659,12 +659,13 @@ const AccountsArfDashboardPage = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Edit Payment Modal */}
-            {editPaymentModal && editPaymentModal.isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+            {editPaymentModal && editPaymentModal.isOpen && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
                     <div className="bg-card w-full max-w-lg rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="px-6 py-4 border-b border-border/50 bg-muted/30 flex justify-between items-center shrink-0">
                             <h3 className="text-xl font-bold text-foreground">Edit Payment</h3>
@@ -706,7 +707,8 @@ const AccountsArfDashboardPage = () => {
                             </form>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {selectedImage && createPortal(
