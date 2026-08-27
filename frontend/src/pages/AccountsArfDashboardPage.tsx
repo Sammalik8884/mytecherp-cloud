@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
-import { Download, Wallet, XCircle, Loader2, Paperclip, X } from "lucide-react";
+import { Download, Wallet, XCircle, Loader2, Paperclip, X, Pencil, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -21,6 +21,56 @@ const AccountsArfDashboardPage = () => {
     const [historyForms, setHistoryForms] = useState<AmountRequestFormDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [deletePaymentModal, setDeletePaymentModal] = useState<{ isOpen: boolean; arfId: number; paymentId: number } | null>(null);
+    const [editPaymentModal, setEditPaymentModal] = useState<{ isOpen: boolean; arfId: number; payment: any } | null>(null);
+    const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+
+    const handleDeletePayment = async () => {
+        if (!deletePaymentModal) return;
+        setIsSubmittingPayment(true);
+        try {
+            await amountRequestApi.deletePayment(deletePaymentModal.arfId, deletePaymentModal.paymentId);
+            toast.success("Payment deleted successfully");
+            setDeletePaymentModal(null);
+            if (selectedForm) {
+                const res = await amountRequestApi.getById(selectedForm.id);
+                setSelectedForm(res.data);
+            }
+            fetchData();
+        } catch (error: any) {
+            toast.error(error?.response?.data || "Failed to delete payment");
+        } finally {
+            setIsSubmittingPayment(false);
+        }
+    };
+
+    const handleUpdatePayment = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!editPaymentModal) return;
+        setIsSubmittingPayment(true);
+        try {
+            const formData = new FormData(e.currentTarget);
+            const payload = {
+                releasedDate: formData.get('releasedDate') as string,
+                releasedAmount: Number(formData.get('releasedAmount')),
+                receivedBy: formData.get('receivedBy') as string,
+                modeOfPayment: formData.get('modeOfPayment') as string,
+                remarks: formData.get('remarks') as string
+            };
+            await amountRequestApi.updatePayment(editPaymentModal.arfId, editPaymentModal.payment.id!, payload);
+            toast.success("Payment updated successfully");
+            setEditPaymentModal(null);
+            if (selectedForm) {
+                const res = await amountRequestApi.getById(selectedForm.id);
+                setSelectedForm(res.data);
+            }
+            fetchData();
+        } catch (error: any) {
+            toast.error(error?.response?.data || "Failed to update payment");
+        } finally {
+            setIsSubmittingPayment(false);
+        }
+    };
 
     const openAttachment = (url: string) => {
         if (/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i.test(url)) {
@@ -554,6 +604,22 @@ const AccountsArfDashboardPage = () => {
                                                                                             </button>
                                                                                         ));
                                                                                     })()}
+                                                                                    <button 
+                                                                                        type="button"
+                                                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditPaymentModal({ isOpen: true, arfId: selectedForm.id, payment: p }); }}
+                                                                                        className="text-amber-500 hover:text-amber-600 ml-2 p-1 rounded-md hover:bg-amber-50 transition-colors"
+                                                                                        title="Edit Payment"
+                                                                                    >
+                                                                                        <Pencil className="w-4 h-4" />
+                                                                                    </button>
+                                                                                    <button 
+                                                                                        type="button"
+                                                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeletePaymentModal({ isOpen: true, arfId: selectedForm.id, paymentId: p.id! }); }}
+                                                                                        className="text-red-500 hover:text-red-600 ml-2 p-1 rounded-md hover:bg-red-50 transition-colors"
+                                                                                        title="Delete Payment"
+                                                                                    >
+                                                                                        <Trash2 className="w-4 h-4" />
+                                                                                    </button>
                                                                                 </td>
                                                                             </tr>
                                                                         ))
@@ -574,6 +640,75 @@ const AccountsArfDashboardPage = () => {
                 document.body
             )}
             
+            {/* Delete Payment Modal */}
+            {deletePaymentModal && deletePaymentModal.isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+                    <div className="bg-card w-full max-w-md rounded-2xl shadow-xl border border-border overflow-hidden">
+                        <div className="px-6 py-4 border-b border-border/50 bg-muted/30 flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-foreground">Confirm Deletion</h3>
+                            <button onClick={() => setDeletePaymentModal(null)} className="text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-muted-foreground mb-6">Are you sure you want to delete this payment? This action cannot be undone.</p>
+                            <div className="flex justify-end space-x-3">
+                                <button onClick={() => setDeletePaymentModal(null)} disabled={isSubmittingPayment} className="px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-secondary/80 rounded-lg transition-colors">Cancel</button>
+                                <button onClick={handleDeletePayment} disabled={isSubmittingPayment} className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-sm font-medium">
+                                    {isSubmittingPayment && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    <span>{isSubmittingPayment ? "Deleting..." : "Delete"}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Payment Modal */}
+            {editPaymentModal && editPaymentModal.isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+                    <div className="bg-card w-full max-w-lg rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="px-6 py-4 border-b border-border/50 bg-muted/30 flex justify-between items-center shrink-0">
+                            <h3 className="text-xl font-bold text-foreground">Edit Payment</h3>
+                            <button onClick={() => setEditPaymentModal(null)} className="text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>
+                        </div>
+                        <div className="p-6 overflow-y-auto">
+                            <form onSubmit={handleUpdatePayment} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">Released Date</label>
+                                    <input name="releasedDate" type="date" required defaultValue={editPaymentModal.payment.releasedDate ? editPaymentModal.payment.releasedDate.split('T')[0] : ''} className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">Amount</label>
+                                    <input name="releasedAmount" type="number" step="any" required defaultValue={editPaymentModal.payment.releasedAmount} className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">Received By</label>
+                                    <input name="receivedBy" type="text" required defaultValue={editPaymentModal.payment.receivedBy} className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">Mode of Payment</label>
+                                    <select name="modeOfPayment" required defaultValue={editPaymentModal.payment.modeOfPayment} className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none">
+                                        <option value="Cash">Cash</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="Transfer">Transfer</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">Remarks</label>
+                                    <textarea name="remarks" rows={3} required defaultValue={editPaymentModal.payment.remarks} className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" />
+                                </div>
+                                <div className="flex justify-end space-x-3 pt-4 border-t border-border/50">
+                                    <button type="button" onClick={() => setEditPaymentModal(null)} disabled={isSubmittingPayment} className="px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-secondary/80 rounded-lg transition-colors">Cancel</button>
+                                    <button type="submit" disabled={isSubmittingPayment} className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors shadow-sm font-medium">
+                                        {isSubmittingPayment && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        <span>{isSubmittingPayment ? "Saving..." : "Save Changes"}</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {selectedImage && createPortal(
                 <div
                     className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"

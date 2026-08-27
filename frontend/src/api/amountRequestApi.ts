@@ -68,6 +68,10 @@ export const amountRequestApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
+  updatePayment: (id: number, paymentId: number, data: AmountRequestPayment) =>
+    api.put<AmountRequestFormDto>(`/AmountRequestForms/${id}/payments/${paymentId}`, data),
+  deletePayment: (id: number, paymentId: number) =>
+    api.delete<void>(`/AmountRequestForms/${id}/payments/${paymentId}`),
   addPayment: (id: number, data: AmountRequestPayment) =>
     api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/payments`, data),
   uploadAttachment: (id: number, file: File) => {

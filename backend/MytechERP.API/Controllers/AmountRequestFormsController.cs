@@ -139,6 +139,34 @@ namespace MytechERP.API.Controllers
             }
         }
 
+        [HttpDelete("{id}/payments/{paymentId}")]
+        public async Task<IActionResult> DeletePayment(int id, int paymentId)
+        {
+            try
+            {
+                await _service.DeletePaymentAsync(id, paymentId);
+                return NoContent();
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("{id}/payments/{paymentId}")]
+        public async Task<ActionResult<AmountRequestFormDto>> UpdatePayment(int id, int paymentId, [FromBody] CreateAmountRequestPaymentDto dto)
+        {
+            try
+            {
+                var result = await _service.UpdatePaymentAsync(id, paymentId, dto);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("{id}/payments")]
         public async Task<ActionResult<AmountRequestFormDto>> AddPayment(int id, [FromBody] CreateAmountRequestPaymentDto dto)
         {

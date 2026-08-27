@@ -591,6 +591,58 @@ namespace MyTechERP.Infrastructure.Services
             return await GetByIdAsync(entity.Id);
         }
 
+        public async Task DeletePaymentAsync(int id, int paymentId)
+        {
+            var payment = await _context.AmountRequestPayments.FirstOrDefaultAsync(p => p.Id == paymentId && p.AmountRequestFormId == id);
+            if (payment == null) throw new Exception("Payment not found");
+
+            var form = await _context.AmountRequestForms.FindAsync(id);
+            if (form != null)
+            {
+                form.AccountsReleasedAmount = (form.AccountsReleasedAmount ?? 0) - payment.ReleasedAmount;
+                if (form.AccountsReleasedAmount <= 0) {
+                    form.AccountsReleasedAmount = 0;
+                    form.Status = "PendingAccounts"; 
+                } else if (form.AccountsReleasedAmount < form.AdvanceRequested) {
+                    form.Status = "Partially Paid";
+                } else {
+                    form.Status = "Released";
+                }
+            }
+
+            _context.AmountRequestPayments.Remove(payment);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<AmountRequestFormDto> UpdatePaymentAsync(int id, int paymentId, CreateAmountRequestPaymentDto dto)
+        {
+            var payment = await _context.AmountRequestPayments.FirstOrDefaultAsync(p => p.Id == paymentId && p.AmountRequestFormId == id);
+            if (payment == null) throw new Exception("Payment not found");
+
+            var form = await _context.AmountRequestForms.FindAsync(id);
+            if (form != null)
+            {
+                form.AccountsReleasedAmount = (form.AccountsReleasedAmount ?? 0) - payment.ReleasedAmount + dto.ReleasedAmount;
+                if (form.AccountsReleasedAmount <= 0) {
+                    form.AccountsReleasedAmount = 0;
+                    form.Status = "PendingAccounts"; 
+                } else if (form.AccountsReleasedAmount < form.AdvanceRequested) {
+                    form.Status = "Partially Paid";
+                } else {
+                    form.Status = "Released";
+                }
+            }
+
+            payment.ReleasedDate = dto.ReleasedDate;
+            payment.ReleasedAmount = dto.ReleasedAmount;
+            payment.ReceivedBy = dto.ReceivedBy;
+            payment.ModeOfPayment = dto.ModeOfPayment;
+            payment.Remarks = dto.Remarks;
+
+            await _context.SaveChangesAsync();
+            return await GetByIdAsync(id);
+        }
+
         public async Task<AmountRequestFormDto> AddPaymentAsync(int id, CreateAmountRequestPaymentDto dto)
         {
             var entity = await _context.AmountRequestForms.FirstOrDefaultAsync(a => a.Id == id);
