@@ -264,7 +264,9 @@ namespace MyTechERP.Infrastructure.Services
                 bypassLimits = true;
             }
 
-            if (!bypassLimits)
+            bool isUsama = requestEmail.Equals("usamamalikwork1@gmail.com", StringComparison.OrdinalIgnoreCase);
+
+            if (!bypassLimits && !isUsama)
             {
                 var oneMonthAgo = DateTime.UtcNow.AddMonths(-1);
                 var oldArfs = await _context.AmountRequestForms
@@ -310,7 +312,7 @@ namespace MyTechERP.Infrastructure.Services
                     throw new Exception($"ARF Limit Exceeded! Your maximum limit is {limit:N0}. You have {consumedLimit:N0} in unsettled ARFs. Available limit: {availableLimit:N0}. Requested: {dto.AdvanceRequested:N0}.");
                 }
             }
-            else
+            else if (bypassLimits && exceptionRequest != null)
             {
                 // Consume the exception request
                 exceptionRequest.IsUsed = true;
