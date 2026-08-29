@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -29,6 +29,7 @@ namespace MyTechERP.Infrastructure.Migrations
                     Details = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ReturnDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ReturnedByEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsDebt = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     TenantId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
