@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { arfReturnApi, ArfReturnDto } from "../api/arfReturnApi";
-import { useAuth } from "../auth/AuthContext";
 import { toast } from "react-hot-toast";
 import { Plus, CheckCircle, XCircle } from "lucide-react";
 
 const ArfReturnsPage = () => {
-    const { user, hasRole } = useAuth();
     const [returns, setReturns] = useState<ArfReturnDto[]>([]);
     const [arfs, setArfs] = useState<AmountRequestFormDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -218,6 +216,7 @@ const ArfReturnsPage = () => {
 };
 
 export default ArfReturnsPage;
+
 
 
 

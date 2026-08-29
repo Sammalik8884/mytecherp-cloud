@@ -256,7 +256,12 @@ export const ExpenseAuditorPage = () => {
                 advanceRequested: 0,
                 accountsReleasedAmount: 0,
                 status: "Released",
-                employeeName: exp.createdByEmail
+                employeeName: exp.createdByEmail,
+                employeeEmail: exp.createdByEmail,
+                accountDetail: "Debt Balance",
+                customSiteName: "",
+                clientName: "",
+                payments: []
             };
             
             topLevelRecords.push({
