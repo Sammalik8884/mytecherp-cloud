@@ -34,7 +34,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     { label: "Dashboard", href: "/dashboard", icon: Home },
     { label: "ARF Exceptions", href: "/arf-exceptions", icon: ShieldAlert, allowedEmails: ["munawar.hasan@mytecheng.com"] },
     { label: "Amount Request Form", href: "/amount-request", icon: DollarSign },
-    { label: "ARF Returns", href: "/arf-returns", icon: Wallet, allowedEmails: ["munawar.hasan@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com", "asma@mytecheng.com"] },
+    { label: "ARF Returns", href: "/arf-returns", icon: Wallet },
     { label: "Expenses", href: "/expenses", icon: Receipt },
     { label: "Offices", href: "/offices", icon: Building2, allowedRoles: ["CEO", "Project Director"] },
     { label: "Projects", href: "/projects", icon: FolderTree, allowedRoles: ["CEO", "Project Director"] },

@@ -28,8 +28,14 @@ namespace MyTechERP.Infrastructure.Services
 
             var query = _context.ArfReturns.Include(r => r.AmountRequestForm).AsQueryable();
 
-            if (role != "Admin" && role != "Manager" && role != "Accounts Head" && role != "CEO" && 
-                email != "shahbaz.ali@mytecheng.com" && email != "munawar.hasan@mytecheng.com" && email != "asma@mytecheng.com" && email != "faisal.ghani@mytecheng.com" && email != "abdul.majeed@mytecheng.com")
+            var allowedAllEmails = new[] { 
+                "munawar.hasan@mytecheng.com", 
+                "faisal.ghani@mytecheng.com", 
+                "abdul.majeed@mytecheng.com", 
+                "asma@mytecheng.com" 
+            };
+
+            if (email == null || !allowedAllEmails.Contains(email.ToLower()))
             {
                 query = query.Where(r => r.ReturnedByEmail == email);
             }

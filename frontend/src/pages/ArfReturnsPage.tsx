@@ -19,9 +19,6 @@ const ArfReturnsPage = () => {
 
     const [debtBalance, setDebtBalance] = useState<number>(0);
 
-    const isAuditor = hasRole(["Admin", "CEO", "Manager", "Accounts Head"]) || 
-                      ["munawar.hasan@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com", "asma@mytecheng.com"].includes(user?.email?.toLowerCase() || "");
-
     useEffect(() => {
         fetchData();
     }, []);
@@ -221,5 +218,6 @@ const ArfReturnsPage = () => {
 };
 
 export default ArfReturnsPage;
+
 
 
