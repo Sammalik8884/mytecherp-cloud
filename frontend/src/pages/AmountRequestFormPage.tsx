@@ -77,6 +77,7 @@ const AmountRequestFormPage = () => {
     const isCEO = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com" || hasRole(["CEO", "Project Director"]);
     const isAccounts = hasRole(["CEO", "Accounts Head", "Project Director"]); 
     const isAdmin = hasRole(["Admin", "CEO"]) || user?.email === "munawar.hasan@mytecheng.com";
+    const isMunawar = user?.email?.toLowerCase() === "munawar.hasan@mytecheng.com";
 
     const filteredForms = React.useMemo(() => {
         let result = forms;
@@ -878,7 +879,7 @@ const AmountRequestFormPage = () => {
                                         </div>
                                     )}
 
-                                    {isCEO && !selectedForm.ceoName && selectedForm.status.includes('Waiting for CEO') && (
+                                    {isCEO && (!selectedForm.ceoName && selectedForm.status.includes('Waiting for CEO') || (isMunawar && !selectedForm.status.includes('Released') && !selectedForm.status.includes('Paid'))) && (
                                         <div className="flex gap-2 pt-2 border-t border-border/50 mt-2">
                                             <button onClick={() => handleApprove(selectedForm.id, "CEO", true)} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-md transition-colors text-xs font-medium">Approve</button>
                                             <button onClick={() => handleApprove(selectedForm.id, "CEO", false)} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-md transition-colors text-xs font-medium">Reject</button>
