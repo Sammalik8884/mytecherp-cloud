@@ -881,8 +881,12 @@ const AmountRequestFormPage = () => {
 
                                     {isCEO && (!selectedForm.ceoName && selectedForm.status.includes('Waiting for CEO') || (isMunawar && !selectedForm.status.includes('Released') && !selectedForm.status.includes('Paid'))) && (
                                         <div className="flex gap-2 pt-2 border-t border-border/50 mt-2">
-                                            <button onClick={() => handleApprove(selectedForm.id, "CEO", true)} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-md transition-colors text-xs font-medium">Approve</button>
-                                            <button onClick={() => handleApprove(selectedForm.id, "CEO", false)} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-md transition-colors text-xs font-medium">Reject</button>
+                                            {(!selectedForm.ceoName && selectedForm.status.includes('Waiting for CEO') || (isMunawar && selectedForm.status.includes('Rejected'))) && (
+                                                <button onClick={() => handleApprove(selectedForm.id, "CEO", true)} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-md transition-colors text-xs font-medium">Approve</button>
+                                            )}
+                                            {(!selectedForm.ceoName && selectedForm.status.includes('Waiting for CEO') || (isMunawar && selectedForm.status.includes('Approved'))) && (
+                                                <button onClick={() => handleApprove(selectedForm.id, "CEO", false)} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-md transition-colors text-xs font-medium">Reject</button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
