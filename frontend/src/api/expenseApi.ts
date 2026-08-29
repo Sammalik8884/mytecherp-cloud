@@ -20,8 +20,9 @@ export interface ExpenseDto {
     siteName?: string;
     officeId?: number | null;
     officeName?: string;
-    amountRequestFormId?: number | null;
-    arfNumber: string;
+    amountRequestFormId?: number;
+    arfNumber?: string;
+    isPaidByDebt?: boolean;
     totalExpenseAmount: number;
     arfReleasedAmount: number;
     createdByEmail: string;
@@ -37,6 +38,7 @@ export interface CreateExpenseDto {
     siteId?: number | null;
     officeId?: number | null;
     amountRequestFormId?: number | null;
+    isPaidByDebt?: boolean;
     items: ExpenseItemDto[];
 }
 

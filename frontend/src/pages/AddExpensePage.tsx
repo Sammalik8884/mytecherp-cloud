@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { siteService } from "../services/siteService";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi, ExpenseDto, CreateExpenseDto, ExpenseItemDto } from "../api/expenseApi";
+import { arfReturnApi } from "../api/arfReturnApi";
 import { officeApi, OfficeDto } from "../api/officeApi";
 import { SiteDto } from "../types/site";
 import { useNavigate, useParams } from "react-router-dom";
@@ -53,6 +54,8 @@ export const AddExpensePage = () => {
     const [selectedOfficeId, setSelectedOfficeId] = useState<number | "">("");
     const [customSiteName, setCustomSiteName] = useState<string>("");
     const [selectedArfId, setSelectedArfId] = useState<number | "">("");
+    const [isPaidByDebt, setIsPaidByDebt] = useState<boolean>(false);
+    const [debtBalance, setDebtBalance] = useState<number>(0);
     
     // State for the rows
     const [rows, setRows] = useState<ExpenseItemDto[]>(
@@ -79,11 +82,13 @@ export const AddExpensePage = () => {
         try {
             const siteData = await siteService.getAll();
             const officeData = await officeApi.getAll();
-            const [arfDataResp, expenseData] = await Promise.all([
+            const [arfDataResp, expenseData, debtResp] = await Promise.all([
                 amountRequestApi.getAll(),
-                expenseApi.getAll()
+                expenseApi.getAll(),
+                arfReturnApi.getDebtBalance()
             ]);
             const arfData = arfDataResp.data;
+            setDebtBalance(debtResp.data);
             setAllExpenses(expenseData);
             
             const consumedMap: Record<number, number> = {};
@@ -126,6 +131,7 @@ export const AddExpensePage = () => {
                     setSelectedSiteId("");
                 }
                 setSelectedArfId(expense.amountRequestFormId ?? "");
+                setIsPaidByDebt(expense.isPaidByDebt || false);
                 
                 if (expense.items && expense.items.length > 0) {
                     const mappedRows = expense.items.map(item => ({
@@ -246,7 +252,7 @@ export const AddExpensePage = () => {
         if (locationType === 'site' && !selectedSiteId) return toast.error("Please select a site first.");
         if (locationType === 'office' && !selectedOfficeId) return toast.error("Please select an office first.");
         if (locationType === 'custom' && !customSiteName) return toast.error("Please select a custom site first.");
-        if (!selectedArfId) return toast.error("Please select an ARF.");
+        if (!isPaidByDebt && !selectedArfId) return toast.error("Please select an ARF or check 'Pay using Debt Balance'.");
         
         // Filter out completely empty rows
         const validRows = rows.filter((r: any) => r.descriptionItems || r.amount > 0);
@@ -295,7 +301,8 @@ export const AddExpensePage = () => {
             const payload: CreateExpenseDto = {
                 siteId: locationType === 'site' ? Number(selectedSiteId) : null,
                 officeId: locationType === 'office' ? Number(selectedOfficeId) : null,
-                amountRequestFormId: Number(selectedArfId),
+                amountRequestFormId: isPaidByDebt ? null : Number(selectedArfId),
+                isPaidByDebt: isPaidByDebt,
                 items: itemsToSubmit
             };
 
@@ -565,8 +572,29 @@ export const AddExpensePage = () => {
                     </div>
 
                     {/* ARF Selection */}
-                    <div className="space-y-2">
-                            <label className="text-sm font-medium">Select Approved ARF *</label>
+                    <div className="space-y-4">
+                        {(debtBalance > 0 || isPaidByDebt) && (
+                            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                                <input 
+                                    type="checkbox" 
+                                    id="payByDebt" 
+                                    checked={isPaidByDebt} 
+                                    onChange={(e) => {
+                                        setIsPaidByDebt(e.target.checked);
+                                        if (e.target.checked) setSelectedArfId("");
+                                    }}
+                                    disabled={isLocked}
+                                    className="w-4 h-4 text-red-600 rounded border-red-300 focus:ring-red-500"
+                                />
+                                <label htmlFor="payByDebt" className="text-sm font-semibold text-red-700 cursor-pointer">
+                                    Pay using Debt Balance (Current Balance: Rs {debtBalance.toLocaleString()})
+                                </label>
+                            </div>
+                        )}
+                        
+                        {!isPaidByDebt && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Select Approved ARF *</label>
                             <div className={`relative rounded-md transition-colors ${arfBoxClass}`}>
                                 <SearchableObjectSelect
                                     options={allArfs.filter(a => {
@@ -638,6 +666,8 @@ export const AddExpensePage = () => {
                                 </div>
                             )}
                         </div>
+                        )}
+                    </div>
                     </div>
 
                     {/* Spreadsheet-like Table */}

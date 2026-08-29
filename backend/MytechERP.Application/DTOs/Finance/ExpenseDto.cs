@@ -12,6 +12,7 @@ namespace MytechERP.Application.DTOs.Finance
         public string OfficeName { get; set; } = string.Empty;
         public int? AmountRequestFormId { get; set; }
         public string ArfNumber { get; set; } = string.Empty;
+        public bool IsPaidByDebt { get; set; }
         public decimal TotalExpenseAmount { get; set; }
         public decimal ArfReleasedAmount { get; set; }
         public string CreatedByEmail { get; set; } = string.Empty;
@@ -45,6 +46,7 @@ namespace MytechERP.Application.DTOs.Finance
         public int? SiteId { get; set; }
         public int? OfficeId { get; set; }
         public int? AmountRequestFormId { get; set; }
+        public bool IsPaidByDebt { get; set; }
         public List<CreateExpenseItemDto> Items { get; set; } = new List<CreateExpenseItemDto>();
     }
 

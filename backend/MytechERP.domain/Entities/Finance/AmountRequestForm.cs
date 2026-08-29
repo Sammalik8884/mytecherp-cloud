@@ -53,6 +53,8 @@ namespace MytechERP.domain.Entities.Finance
         // Released Payments Detail (One-to-Many mapping)
         public ICollection<AmountRequestPayment> Payments { get; set; } = new List<AmountRequestPayment>();
 
+        public ICollection<ArfReturn> Returns { get; set; } = new List<ArfReturn>();
+
         // File Attachments (stored as JSON array of URLs)
         public string AttachmentsJson { get; set; } = "[]";
 

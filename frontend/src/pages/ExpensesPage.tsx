@@ -86,7 +86,7 @@ export const ExpensesPage = () => {
                         
                         // Find any excess ARFs generated for this ARF
                         const excessReleased = arfsRes.data
-                            .filter(a => a.purposeOfAdvance?.includes(e.arfNumber))
+                            .filter(a => a.purposeOfAdvance?.includes(e.arfNumber || ''))
                             .reduce((sum, a) => sum + (Number(a.accountsReleasedAmount) || 0), 0);
                             
                         effectiveReleased[arfId] = originalReleased + excessReleased;
@@ -697,3 +697,4 @@ export const ExpensesPage = () => {
         </>
     );
 };
+

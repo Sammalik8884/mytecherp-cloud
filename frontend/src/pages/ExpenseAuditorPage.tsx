@@ -241,6 +241,33 @@ export const ExpenseAuditorPage = () => {
             }
         });
 
+        // Add independent debt expenses as pseudo-ARF records
+        const independentDebtExpenses = allExpenses.filter(e => e.isPaidByDebt && !e.amountRequestFormId);
+        independentDebtExpenses.forEach(exp => {
+            const fakeArf: AmountRequestFormDto = {
+                id: -exp.id, // negative ID to distinguish
+                arfNumber: "PAID BY DEBT",
+                purposeOfAdvance: "Debt Clearance",
+                siteId: exp.siteId ?? undefined,
+                siteName: exp.siteName,
+                officeId: exp.officeId ?? undefined,
+                officeName: exp.officeName,
+                createdAt: exp.createdAt,
+                advanceRequested: 0,
+                accountsReleasedAmount: 0,
+                status: "Released",
+                employeeName: exp.createdByEmail
+            };
+            
+            topLevelRecords.push({
+                arf: fakeArf,
+                expenses: [exp],
+                variance: -exp.totalExpenseAmount,
+                status: "Balanced",
+                resolution: "Cleared using Debt Balance."
+            });
+        });
+
         return topLevelRecords;
     }, [allArfs, allExpenses, section, selectedEntity, dateRange]);
 
@@ -595,6 +622,7 @@ export const ExpenseAuditorPage = () => {
                                                             {isExpanded ? <ChevronUp className="h-4 w-4 mr-2 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />}
                                                             Expense ID: {expense.id}
                                                             {((expense as any).isExcessConnection || expense.items?.some((i: any) => i.isExcess)) && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Contains Excess Items</span>}
+                                                            {expense.isPaidByDebt && <span className="ml-2 text-xs font-bold text-white bg-red-600 px-2 py-0.5 rounded-full shadow-sm animate-pulse">PAID BY DEBT</span>}
                                                             {expense.status === "Rejected" && <span className="ml-2 text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">Rejected</span>}
                                                             {(!expense.status || expense.status === "Pending") && <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Pending</span>}
                                                             {expense.status === "Reviewed" && <span className="ml-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">Reviewed</span>}

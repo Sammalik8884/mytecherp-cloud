@@ -52,6 +52,7 @@ import { SubscriptionPlansPage } from "./pages/SubscriptionPlansPage";
 import { SubscriptionSuccessPage } from "./pages/SubscriptionSuccessPage";
 import { SubscriptionCancelPage } from "./pages/SubscriptionCancelPage";
 import AmountRequestFormPage from "./pages/AmountRequestFormPage";
+import ArfReturnsPage from "./pages/ArfReturnsPage";
 import ArfExceptionsPage from "./pages/ArfExceptionsPage";
 import AccountsArfDashboardPage from "./pages/AccountsArfDashboardPage";
 import { ExpenseAuditorPage } from "./pages/ExpenseAuditorPage";
@@ -185,6 +186,7 @@ const router = createBrowserRouter(
                             </Route>
 
                             <Route path="/amount-request" element={<AmountRequestFormPage />} />
+                            <Route path="/arf-returns" element={<ArfReturnsPage />} />
                             <Route path="/arf-exceptions" element={<ArfExceptionsPage />} />
                             <Route path="/expenses" element={<ExpensesPage />} />
                             <Route path="/expenses/new" element={<AddExpensePage />} />
@@ -296,3 +298,4 @@ function App() {
 }
 
 export default App;
+

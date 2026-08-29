@@ -28,6 +28,8 @@ namespace MytechERP.domain.Entities.Finance
         public string ReviewedByEmail { get; set; } = string.Empty;
         public DateTime? ReviewedAt { get; set; }
 
+        public bool IsPaidByDebt { get; set; } = false;
+
         public ICollection<ExpenseItem> Items { get; set; } = new List<ExpenseItem>();
     }
 

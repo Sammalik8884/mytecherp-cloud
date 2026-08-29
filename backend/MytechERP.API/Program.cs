@@ -65,6 +65,7 @@ builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IChecklistRepository, ChecklistRepository>();
 builder.Services.AddScoped<ICheckListService, CheckListService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IArfReturnService, ArfReturnService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

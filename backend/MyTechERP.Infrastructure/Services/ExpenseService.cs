@@ -37,6 +37,7 @@ namespace MyTechERP.Infrastructure.Services
                 OfficeName = entity.Office?.Name ?? string.Empty,
                 AmountRequestFormId = entity.AmountRequestFormId,
                 ArfNumber = entity.AmountRequestForm?.ArfNumber ?? string.Empty,
+                IsPaidByDebt = entity.IsPaidByDebt,
                 CreatedByEmail = entity.CreatedByEmail,
                 CreatedAt = entity.CreatedAt,
                 Status = entity.Status,
@@ -127,6 +128,7 @@ namespace MyTechERP.Infrastructure.Services
                 SiteId = dto.SiteId,
                 OfficeId = dto.OfficeId,
                 AmountRequestFormId = dto.AmountRequestFormId,
+                IsPaidByDebt = dto.IsPaidByDebt,
                 CreatedByEmail = email,
                 Items = dto.Items.Select(i => new ExpenseItem
                 {
@@ -166,6 +168,7 @@ namespace MyTechERP.Infrastructure.Services
             entity.SiteId = dto.SiteId;
             entity.OfficeId = dto.OfficeId;
             entity.AmountRequestFormId = dto.AmountRequestFormId;
+            entity.IsPaidByDebt = dto.IsPaidByDebt;
 
             // If the expense was previously reviewed and rejected, reset it to Pending (unless Munawar is just updating it)
             if (entity.Status == "Rejected" && _currentUserService.Email?.ToLower() != "munawar.hasan@mytecheng.com")
@@ -229,3 +232,4 @@ namespace MyTechERP.Infrastructure.Services
         }
     }
 }
+

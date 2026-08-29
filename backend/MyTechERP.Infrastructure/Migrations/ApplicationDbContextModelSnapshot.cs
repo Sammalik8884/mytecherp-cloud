@@ -2165,6 +2165,41 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.ToTable("ArfExceptionRequests");
                 });
 
+            modelBuilder.Entity("MytechERP.domain.Entities.Finance.ArfReturn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AmountRequestFormId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ReturnAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("ReturnDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReturnedByEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AmountRequestFormId");
+
+                    b.ToTable("ArfReturns");
+                });
+
             modelBuilder.Entity("MytechERP.domain.Entities.Finance.BankAccount", b =>
                 {
                     b.Property<int>("Id")
@@ -2224,6 +2259,9 @@ namespace MyTechERP.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPaidByDebt")
                         .HasColumnType("bit");
 
                     b.Property<int?>("OfficeId")
@@ -5526,6 +5564,17 @@ namespace MyTechERP.Infrastructure.Migrations
                     b.Navigation("AmountRequestForm");
                 });
 
+            modelBuilder.Entity("MytechERP.domain.Entities.Finance.ArfReturn", b =>
+                {
+                    b.HasOne("MytechERP.domain.Entities.Finance.AmountRequestForm", "AmountRequestForm")
+                        .WithMany("Returns")
+                        .HasForeignKey("AmountRequestFormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AmountRequestForm");
+                });
+
             modelBuilder.Entity("MytechERP.domain.Entities.Finance.Expense", b =>
                 {
                     b.HasOne("MytechERP.domain.Entities.Finance.AmountRequestForm", "AmountRequestForm")
@@ -6159,6 +6208,8 @@ namespace MyTechERP.Infrastructure.Migrations
             modelBuilder.Entity("MytechERP.domain.Entities.Finance.AmountRequestForm", b =>
                 {
                     b.Navigation("Payments");
+
+                    b.Navigation("Returns");
                 });
 
             modelBuilder.Entity("MytechERP.domain.Entities.Finance.Expense", b =>
