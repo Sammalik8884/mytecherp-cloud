@@ -42,9 +42,7 @@ namespace MyTechERP.Infrastructure.Services
 
             var entities = await query.OrderByDescending(r => r.ReturnDate).ToListAsync();
 
-            return entities.Select(e => new ArfReturnDto
-            {
-                Id = e.Id,
+            return entities.Select(e => new ArfReturnDto { Id = e.Id,
                 AmountRequestFormId = e.AmountRequestFormId,
                 ArfNumber = e.AmountRequestForm?.ArfNumber ?? "",
                 ReturnAmount = e.ReturnAmount,
@@ -117,3 +115,4 @@ namespace MyTechERP.Infrastructure.Services
         }
     }
 }
+

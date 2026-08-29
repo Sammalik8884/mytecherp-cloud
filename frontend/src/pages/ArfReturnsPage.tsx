@@ -29,11 +29,21 @@ const ArfReturnsPage = () => {
                 amountRequestApi.getAll(),
                 arfReturnApi.getDebtBalance()
             ]);
-            setReturns(returnsRes.data);
-            setArfs(arfsRes.data);
-            setDebtBalance(debtRes.data);
+            setReturns(returnsRes.data || []);
+            setArfs(arfsRes.data || []);
+            setDebtBalance(debtRes.data || 0);
         } catch (error: any) {
-            toast.error(error.response?.data || "Failed to fetch data");
+            let errorMessage = "Failed to fetch data";
+            if (error.response?.data) {
+                if (typeof error.response.data === 'string') {
+                    errorMessage = error.response.data;
+                } else if (error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                } else if (error.response.data.title) {
+                    errorMessage = error.response.data.title;
+                }
+            }
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -60,7 +70,17 @@ const ArfReturnsPage = () => {
             setDetails("");
             fetchData();
         } catch (error: any) {
-            toast.error(error.response?.data || "Failed to submit return");
+            let errorMessage = "Failed to submit return";
+            if (error.response?.data) {
+                if (typeof error.response.data === 'string') {
+                    errorMessage = error.response.data;
+                } else if (error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                } else if (error.response.data.title) {
+                    errorMessage = error.response.data.title;
+                }
+            }
+            toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -83,7 +103,7 @@ const ArfReturnsPage = () => {
                 <div className="flex items-center gap-4">
                     <div className="bg-red-50 text-red-700 px-4 py-2 rounded-md border border-red-200">
                         <span className="font-semibold">Your Current Debt Balance: </span>
-                        <span>Rs {debtBalance.toLocaleString()}</span>
+                        <span>Rs {(debtBalance || 0).toLocaleString()}</span>
                     </div>
                     <button 
                         onClick={() => setIsFormOpen(true)}
@@ -191,7 +211,7 @@ const ArfReturnsPage = () => {
                                         <td className="p-4">{new Date(r.returnDate).toLocaleDateString()}</td>
                                         <td className="p-4 font-medium">{r.arfNumber}</td>
                                         <td className="p-4">{r.returnedByEmail}</td>
-                                        <td className="p-4 font-semibold text-red-600">Rs {r.returnAmount.toLocaleString()}</td>
+                                        <td className="p-4 font-semibold text-red-600">Rs {(r.returnAmount || 0).toLocaleString()}</td>
                                         <td className="p-4 max-w-xs truncate" title={r.details}>{r.details}</td>
                                         <td className="p-4">
                                             {r.isDebt ? (
