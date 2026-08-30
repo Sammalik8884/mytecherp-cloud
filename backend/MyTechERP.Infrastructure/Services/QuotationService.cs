@@ -338,8 +338,8 @@ namespace MyTechERP.Infrastructure.Services
             var userEmail = _currentUserService.Email ?? "";
             var userRoles = _currentUserService.Roles?.ToList() ?? new List<string>();
 
-            bool isAdmin = userRoles.Contains("Admin") || userRoles.Contains("Manager");
             bool isHuzefa = string.Equals(userEmail, "m.huzefa@mytecheng.com", StringComparison.OrdinalIgnoreCase);
+            bool isAdmin = userRoles.Contains("Admin") || userRoles.Contains("Manager") || isHuzefa;
             bool isAliAzeem = string.Equals(userEmail, "ali.azeem@mytecheng.com", StringComparison.OrdinalIgnoreCase);
 
             var riffatUser = await _userManager.FindByEmailAsync("riffat.nazir@mytecheng.com");
@@ -352,8 +352,6 @@ namespace MyTechERP.Infrastructure.Services
 
             if (isAliAzeem)
                 query = query.Where(q => q.CreatedByUserId == userId || (riffatId != null && q.CreatedByUserId == riffatId));
-            else if (isHuzefa)
-                query = query.Where(q => q.CreatedByUserId != aliId && q.CreatedByUserId != riffatId);
             else if (!isAdmin)
             {
                 if (userRoles.Contains("Salesman"))
