@@ -1762,6 +1762,18 @@ export const QuotationFormPage = () => {
                                      onChange={e => setWhtPercentage(Number(e.target.value))}
                                  />
                              </div>
+                             <div className="flex items-center space-x-2 mt-4 col-span-2 md:col-span-3">
+                                 <input
+                                     type="checkbox"
+                                     id="showStamp"
+                                     checked={formData.showStamp || false}
+                                     onChange={e => setFormData({...formData, showStamp: e.target.checked})}
+                                     className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                                 />
+                                 <label htmlFor="showStamp" className="text-sm font-medium text-foreground cursor-pointer">
+                                     Show Stamp in PDF
+                                 </label>
+                             </div>
                          </div>
                      </div>
                      <div className="bg-gradient-to-br from-secondary/50 to-secondary/30 border border-border/50 rounded-2xl p-4 md:p-6 shadow-xl flex flex-col justify-center">
