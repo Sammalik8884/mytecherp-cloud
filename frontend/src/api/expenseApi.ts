@@ -31,6 +31,7 @@ export interface ExpenseDto {
     reviewedByEmail?: string;
     reviewerComments?: string;
     reviewedAt?: string;
+    isDeleted?: boolean;
     items: ExpenseItemDto[];
 }
 

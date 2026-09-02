@@ -48,6 +48,7 @@ export interface QuotationDto {
     quoteHeadline?: string;
     boqReferenceNumber?: string;
     termsAndConditionsJson?: string;
+    showStamp?: boolean;
     items: QuotationItemDto[];
 }
 
@@ -92,6 +93,7 @@ export interface CreateQuotationDto {
     quoteHeadline?: string;
     boqReferenceNumber?: string;
     termsAndConditionsJson?: string;
+    showStamp?: boolean;
     items: CreateQuotationItemDto[];
 }
 
