@@ -600,7 +600,7 @@ namespace MyTechERP.Infrastructure.Services
                         var stampPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stamp.png");
                         if (File.Exists(stampPath))
                         {
-                            row.ConstantItem(60).AlignCenter().AlignMiddle().Image(stampPath).FitArea();
+                            row.ConstantItem(100).PaddingHorizontal(15).AlignCenter().AlignMiddle().Image(stampPath).FitArea();
                         }
                         else
                         {
