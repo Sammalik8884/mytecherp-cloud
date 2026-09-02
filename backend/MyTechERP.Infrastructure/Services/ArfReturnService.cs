@@ -60,13 +60,29 @@ namespace MyTechERP.Infrastructure.Services
             var arf = await _context.AmountRequestForms.FindAsync(dto.AmountRequestFormId);
             if (arf == null) throw new Exception("ARF not found");
 
-            var existingReturns = await _context.ArfReturns.Where(r => r.AmountRequestFormId == dto.AmountRequestFormId).SumAsync(r => r.ReturnAmount);
-            if (existingReturns + dto.ReturnAmount > arf.AdvanceRequested)
-            {
-                throw new Exception($"Return amount exceeds ARF balance. Maximum returnable: {arf.AdvanceRequested - existingReturns}");
-            }
+            var existingDebtReturns = await _context.ArfReturns
+                .Where(r => r.AmountRequestFormId == dto.AmountRequestFormId && r.IsDebt)
+                .SumAsync(r => r.ReturnAmount);
 
             bool isDebt = arf.Status.Contains("Released") || arf.Status.Contains("Paid");
+
+            if (isDebt)
+            {
+                if (existingDebtReturns + dto.ReturnAmount > arf.AdvanceRequested)
+                {
+                    throw new Exception($"Return amount exceeds ARF balance. Maximum returnable: {arf.AdvanceRequested - existingDebtReturns}");
+                }
+            }
+            else
+            {
+                if (dto.ReturnAmount > arf.AdvanceRequested)
+                {
+                    throw new Exception($"Return amount exceeds current ARF balance. Maximum returnable: {arf.AdvanceRequested}");
+                }
+                
+                arf.AdvanceRequested -= dto.ReturnAmount;
+                _context.AmountRequestForms.Update(arf);
+            }
 
             var entity = new ArfReturn
             {

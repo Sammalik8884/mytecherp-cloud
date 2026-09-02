@@ -352,6 +352,9 @@ const AmountRequestFormPage = () => {
                 details
             });
             toast.success("Amount returned successfully");
+            fetchData();
+            const res = await amountRequestApi.getById(selectedForm.id);
+            setSelectedForm(res.data);
             target.reset();
         } catch (error: any) {
             if (typeof error.response?.data === 'string') {
