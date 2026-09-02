@@ -571,7 +571,7 @@ namespace MyTechERP.Infrastructure.Services
                 });
 
                 // Signature row
-                col.Item().EnsureSpace().ExtendVertical().AlignBottom().PaddingTop(30).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
+                col.Item().EnsureSpace().PaddingTop(30).Border(0.5f).BorderColor(BorderGrey).Padding(10).Row(row =>
                 {
                     void SigBlock(string role, string name, string title, string phone, string email)
                     {
@@ -595,7 +595,22 @@ namespace MyTechERP.Infrastructure.Services
                     SigBlock("Approved By:", "Engr. Muhammad Huzefa", "Estimation & Design Engineer",
                         "+92-306-7666644", "m.huzefa@mytecheng.com");
 
-                    row.ConstantItem(30);
+                    if (quote.ShowStamp)
+                    {
+                        var stampPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "stamp.png");
+                        if (File.Exists(stampPath))
+                        {
+                            row.ConstantItem(80).AlignCenter().AlignMiddle().Image(stampPath).FitArea();
+                        }
+                        else
+                        {
+                            row.ConstantItem(30);
+                        }
+                    }
+                    else
+                    {
+                        row.ConstantItem(30);
+                    }
 
                     var prepName = string.IsNullOrWhiteSpace(quote.PreparedByName) ? "System Generated" : quote.PreparedByName;
                     var prepTitle = string.IsNullOrWhiteSpace(quote.PreparedByDesignation) ? "" : quote.PreparedByDesignation;

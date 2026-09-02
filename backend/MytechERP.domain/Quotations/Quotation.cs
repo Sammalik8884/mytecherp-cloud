@@ -77,6 +77,7 @@ namespace MytechERP.domain.Quotations
         public string? BoqReferenceNumber { get; set; }
 
         public string? TermsAndConditionsJson { get; set; }
+        public bool ShowStamp { get; set; } = false;
 
         public int? ParentQuoteId { get; set; }
         public Quotation? ParentQuote { get; set; }

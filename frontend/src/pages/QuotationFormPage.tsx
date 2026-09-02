@@ -93,7 +93,8 @@ export const QuotationFormPage = () => {
         localProfitPct: 15,
         projectCode: "FPS",
         quoteHeadline: "",
-        termsAndConditionsJson: ""
+        termsAndConditionsJson: "",
+        showStamp: false
     });
 
     // WHT state — UI-only, not submitted to backend, not on PDF
@@ -284,6 +285,7 @@ export const QuotationFormPage = () => {
                         quoteHeadline: quote.quoteHeadline || "",
                         boqReferenceNumber: quote.boqReferenceNumber || "",
                         termsAndConditionsJson: quote.termsAndConditionsJson || "",
+                        showStamp: quote.showStamp || false,
                         costFactorPct: savedCostFactor,
                         importationPct: savedImportPct,
                         transportationPct: savedTransPct,

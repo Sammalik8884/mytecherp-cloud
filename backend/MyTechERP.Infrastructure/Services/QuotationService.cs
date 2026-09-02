@@ -183,7 +183,8 @@ namespace MyTechERP.Infrastructure.Services
                 ProjectCode = string.IsNullOrWhiteSpace(dto.ProjectCode) ? "FPS" : dto.ProjectCode,
                 QuoteHeadline = headline,
                 BoqReferenceNumber = dto.BoqReferenceNumber,
-                TermsAndConditionsJson = dto.TermsAndConditionsJson
+                TermsAndConditionsJson = dto.TermsAndConditionsJson,
+                ShowStamp = dto.ShowStamp
             };
 
             await CalculateAndAddItemsAsync(quotation, dto);
@@ -258,6 +259,7 @@ namespace MyTechERP.Infrastructure.Services
             existingQuote.QuoteHeadline = dto.QuoteHeadline;
             existingQuote.BoqReferenceNumber = dto.BoqReferenceNumber;
             existingQuote.TermsAndConditionsJson = dto.TermsAndConditionsJson;
+            existingQuote.ShowStamp = dto.ShowStamp;
 
             var newItems = await CalculateItemsAsync(existingQuote, dto);
 
@@ -623,6 +625,7 @@ namespace MyTechERP.Infrastructure.Services
                 QuoteMode = q.QuoteMode,
                 SupplyColumnMode = q.SupplyColumnMode,
                 TermsAndConditionsJson = q.TermsAndConditionsJson,
+                ShowStamp = q.ShowStamp,
 
                 Currency = q.Currency,
                 SubTotal = q.SubTotal,
@@ -871,6 +874,7 @@ namespace MyTechERP.Infrastructure.Services
             q.ProvincialTaxPercentage = request.ProvincialTaxPercentage;
             q.Adjustment = request.Adjustment;
             q.TermsAndConditionsJson = request.TermsAndConditionsJson;
+            q.ShowStamp = request.ShowStamp;
 
             _context.QuotationsItem.RemoveRange(q.Items);
             q.Items = request.Items.Select(i => new QuotationItem

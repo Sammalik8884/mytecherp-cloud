@@ -43,6 +43,7 @@ namespace MytechERP.Application.DTOs.Quotations
         public string? BoqReferenceNumber { get; set; }
         public string? ContactPersonName { get; set; }
         public string? TermsAndConditionsJson { get; set; }
+        public bool ShowStamp { get; set; }
 
         public string? PreparedByName { get; set; }
         public string? PreparedByEmail { get; set; }
