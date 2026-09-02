@@ -6,6 +6,7 @@ import { SiteDto } from "../types/site";
 import { officeApi, OfficeDto } from "../api/officeApi";
 import { amountRequestApi, AmountRequestFormDto, AmountRequestPayment } from "../api/amountRequestApi";
 import { arfExceptionApi } from "../api/arfExceptionApi";
+import { arfReturnApi } from "../api/arfReturnApi";
 import { SearchableObjectSelect } from "../components/common/SearchableObjectSelect";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
 
@@ -333,6 +334,33 @@ const AmountRequestFormPage = () => {
             setPromptModal(null);
         } catch (error: any) {
             toast.error(error.response?.data || "Action failed");
+        }
+    };
+
+    const handleReturnAmount = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedForm) return;
+
+        const target = e.target as any;
+        const returnAmount = Number(target.returnAmount.value);
+        const details = target.details.value;
+
+        try {
+            await arfReturnApi.create({
+                amountRequestFormId: selectedForm.id,
+                returnAmount,
+                details
+            });
+            toast.success("Amount returned successfully");
+            target.reset();
+        } catch (error: any) {
+            if (typeof error.response?.data === 'string') {
+                toast.error(error.response.data);
+            } else if (error.response?.data?.detail) {
+                toast.error(error.response.data.detail);
+            } else {
+                toast.error("Action failed");
+            }
         }
     };
 
@@ -1012,6 +1040,28 @@ const AmountRequestFormPage = () => {
                                 </div>
                             </div>
                         ) : null}
+
+                        {/* ARF Return Section */}
+                        <div className="mt-8 pt-8 border-t border-border/50">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold flex items-center gap-2">
+                                    <Wallet className="h-6 w-6 text-primary" /> Return Amount
+                                </h3>
+                            </div>
+                            <form onSubmit={handleReturnAmount} className="border border-border/50 rounded-xl p-4 bg-muted/5 flex flex-wrap gap-4 items-end">
+                                <div className="flex-1 min-w-[200px]">
+                                    <label className="block text-xs text-muted-foreground mb-1">Return Amount</label>
+                                    <input name="returnAmount" type="number" min="1" step="0.01" required className="w-full p-2 text-sm rounded border border-input bg-background" />
+                                </div>
+                                <div className="flex-[2] min-w-[300px]">
+                                    <label className="block text-xs text-muted-foreground mb-1">Details / Reason</label>
+                                    <input name="details" type="text" required className="w-full p-2 text-sm rounded border border-input bg-background" placeholder="e.g. Unused balance returned" />
+                                </div>
+                                <button type="submit" className="bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap">
+                                    Submit Return
+                                </button>
+                            </form>
+                        </div>
 
                         {/* Attachments Section */}
                         <div className="mt-8 pt-8 border-t border-border/50">
