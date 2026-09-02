@@ -822,7 +822,7 @@ export const AddExpensePage = () => {
                         <button
                             className={`px-6 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium disabled:opacity-50`}
                             onClick={handleSubmit}
-                            disabled={submitting || (!selectedSiteId && !selectedOfficeId && !customSiteName) || !selectedArfId}
+                            disabled={submitting || (!selectedSiteId && !selectedOfficeId && !customSiteName) || (!selectedArfId && !isPaidByDebt)}
                         >
                             {submitting ? (isEditMode && isMunawar ? "Updating..." : "Submitting...") : isEditMode ? (isMunawar ? "Update Expense" : "Resubmit Expense") : "Submit Expense"}
                         </button>

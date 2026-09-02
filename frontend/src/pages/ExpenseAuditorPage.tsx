@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { amountRequestApi, AmountRequestFormDto } from "../api/amountRequestApi";
 import { expenseApi, ExpenseDto } from "../api/expenseApi";
+import { arfReturnApi, ArfReturnDto } from "../api/arfReturnApi";
 import { officeApi } from "../api/officeApi";
 import { siteService } from "../services/siteService";
 import { authService } from "../services/authService";
@@ -24,6 +25,7 @@ interface AuditRecord {
 export const ExpenseAuditorPage = () => {
     const [allArfs, setAllArfs] = useState<AmountRequestFormDto[]>([]);
     const [allExpenses, setAllExpenses] = useState<ExpenseDto[]>([]);
+    const [allArfReturns, setAllArfReturns] = useState<ArfReturnDto[]>([]);
     
     // Entity Lists
     const [allOffices, setAllOffices] = useState<string[]>([]);
@@ -52,15 +54,17 @@ export const ExpenseAuditorPage = () => {
     const fetchData = async () => {
         try {
             setIsLoading(true);
-            const [historyRes, expensesRes, officesRes, sitesRes, usersRes] = await Promise.all([
+            const [historyRes, expensesRes, officesRes, sitesRes, usersRes, returnsRes] = await Promise.all([
                 amountRequestApi.getAll(), // Fetches all ARFs instead of just completed/released ones
                 expenseApi.getAll(),
                 officeApi.getAll(),
                 siteService.getAll(),
-                authService.getUsers()
+                authService.getUsers(),
+                arfReturnApi.getAll()
             ]);
             setAllArfs(historyRes.data);
             setAllExpenses(expensesRes);
+            setAllArfReturns(returnsRes.data);
             
             setAllOffices(officesRes.map(o => o.name));
             setAllSites(sitesRes.map(s => s.name));
@@ -273,8 +277,62 @@ export const ExpenseAuditorPage = () => {
             });
         });
 
+        // Calculate and add Outstanding Debt per employee as pseudo-ARF
+        const debtReturnsByUser = new Map<string, number>();
+        allArfReturns.forEach(r => {
+            if (r.isDebt) {
+                debtReturnsByUser.set(r.returnedByEmail, (debtReturnsByUser.get(r.returnedByEmail) || 0) + r.returnAmount);
+            }
+        });
+
+        const debtExpensesByUser = new Map<string, number>();
+        allExpenses.forEach(e => {
+            if (e.isPaidByDebt && e.status !== "Rejected" && !e.isDeleted) {
+                debtExpensesByUser.set(e.createdByEmail, (debtExpensesByUser.get(e.createdByEmail) || 0) + e.totalExpenseAmount);
+            }
+        });
+
+        let nextDebtId = -100000;
+        debtReturnsByUser.forEach((returnsTotal, email) => {
+            const expensesTotal = debtExpensesByUser.get(email) || 0;
+            const balance = returnsTotal - expensesTotal;
+            
+            if (balance > 0) {
+                // If filtering by employees, only show if this matches the selected employee
+                if (section === "employees" && selectedEntity && email !== selectedEntity) {
+                    return;
+                }
+                
+                const fakeArf: AmountRequestFormDto = {
+                    id: nextDebtId--, // Unique negative ID
+                    arfNumber: "OUTSTANDING DEBT",
+                    purposeOfAdvance: "Remaining Debt to clear",
+                    createdAt: new Date().toISOString(),
+                    advanceRequested: balance,
+                    accountsReleasedAmount: balance,
+                    status: "Released",
+                    employeeName: email,
+                    employeeEmail: email,
+                    accountDetail: "Debt Balance",
+                    siteName: "",
+                    officeName: "",
+                    customSiteName: "",
+                    clientName: "",
+                    payments: []
+                };
+
+                topLevelRecords.push({
+                    arf: fakeArf,
+                    expenses: [],
+                    variance: balance,
+                    status: "Unaccounted Funds",
+                    resolution: "User needs to clear this debt by submitting expenses."
+                });
+            }
+        });
+
         return topLevelRecords;
-    }, [allArfs, allExpenses, section, selectedEntity, dateRange]);
+    }, [allArfs, allExpenses, allArfReturns, section, selectedEntity, dateRange]);
 
     const sumReleased = (records: AuditRecord[]): number => {
         return records.reduce((sum, rec) => sum + (rec.arf.accountsReleasedAmount || rec.arf.advanceRequested || 0) + sumReleased(rec.childRecords || []), 0);

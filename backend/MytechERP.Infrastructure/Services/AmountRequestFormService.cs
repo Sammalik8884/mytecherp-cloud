@@ -223,6 +223,40 @@ namespace MyTechERP.Infrastructure.Services
         public async Task<AmountRequestFormDto> CreateAsync(CreateAmountRequestFormDto dto)
         {
             var requestEmail = dto.EmployeeEmail ?? "";
+            
+            // Debt check logic
+            var debtReturns = await _context.ArfReturns
+                .Where(r => r.ReturnedByEmail == requestEmail && r.IsDebt)
+                .OrderBy(r => r.ReturnDate)
+                .ToListAsync();
+
+            var debtExpenses = await _context.Expenses
+                .Include(e => e.Items)
+                .Where(e => e.CreatedByEmail == requestEmail && e.IsPaidByDebt && !e.IsDeleted && e.Status != "Rejected")
+                .ToListAsync();
+            
+            decimal totalDebtExpenses = debtExpenses.Sum(e => e.Items.Sum(i => i.Amount));
+            decimal amountLeftToClear = totalDebtExpenses;
+            DateTime? oldestActiveDebtDate = null;
+
+            foreach(var r in debtReturns)
+            {
+                if (amountLeftToClear >= r.ReturnAmount)
+                {
+                    amountLeftToClear -= r.ReturnAmount;
+                }
+                else
+                {
+                    oldestActiveDebtDate = r.ReturnDate;
+                    break;
+                }
+            }
+
+            if (oldestActiveDebtDate.HasValue && oldestActiveDebtDate.Value < DateTime.UtcNow.AddMonths(-1))
+            {
+                throw new Exception("You have an outstanding debt older than 1 month. Please clear your debt first before generating a new ARF.");
+            }
+
             var targetUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == requestEmail);
             var targetDesignation = targetUser?.Designation?.ToLower() ?? "";
             
