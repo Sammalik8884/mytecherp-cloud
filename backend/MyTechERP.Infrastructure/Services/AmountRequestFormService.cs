@@ -222,6 +222,11 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<AmountRequestFormDto> CreateAsync(CreateAmountRequestFormDto dto)
         {
+            if (!dto.SiteId.HasValue && !dto.OfficeId.HasValue && string.IsNullOrWhiteSpace(dto.CustomSiteName))
+            {
+                throw new Exception("You must select a Site, Office, or provide a Custom Site Name.");
+            }
+
             var requestEmail = dto.EmployeeEmail ?? "";
             
             // Debt check logic
