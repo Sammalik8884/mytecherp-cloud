@@ -598,6 +598,11 @@ export const AddExpensePage = () => {
                             <div className={`relative rounded-md transition-colors ${arfBoxClass}`}>
                                 <SearchableObjectSelect
                                     options={allArfs.filter(a => {
+                                        // Always allow ARFs that have NO location assigned (Global/General ARFs)
+                                        if (!a.siteId && !a.officeId && !a.customSiteName) {
+                                            return true;
+                                        }
+
                                         if (locationType === 'site' && selectedSiteId) {
                                             return a.siteId === selectedSiteId;
                                         } else if (locationType === 'office' && selectedOfficeId) {
