@@ -11,6 +11,36 @@ import { authService } from "../services/authService";
 import { SearchableSelect } from "../components/common/SearchableSelect";
 import { useAuth } from "../auth/AuthContext";
 
+const RemarkSelect = ({ name, defaultValue, pastRemarks }: { name: string, defaultValue?: string, pastRemarks: string[] }) => {
+    const isCustomDefault = defaultValue && !pastRemarks.includes(defaultValue);
+    const [remarkType, setRemarkType] = useState<string>(isCustomDefault ? "custom" : (defaultValue || pastRemarks[0]));
+    const [customRemark, setCustomRemark] = useState<string>(isCustomDefault ? defaultValue : "");
+
+    return (
+        <div className="space-y-2">
+            <select 
+                value={remarkType} 
+                onChange={e => setRemarkType(e.target.value)}
+                className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+            >
+                {pastRemarks.map(r => <option key={r} value={r}>{r}</option>)}
+                <option value="custom">Other (Custom Remark)</option>
+            </select>
+            {remarkType === "custom" && (
+                <textarea 
+                    rows={2} 
+                    placeholder="Type custom remark here..." 
+                    value={customRemark}
+                    onChange={e => setCustomRemark(e.target.value)}
+                    required
+                    className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" 
+                />
+            )}
+            <input type="hidden" name={name} value={remarkType === "custom" ? customRemark : remarkType} />
+        </div>
+    );
+};
+
 const AccountsArfDashboardPage = () => {
     const { user } = useAuth();
     const isMajeed = user?.email?.toLowerCase() === "abdul.majeed@mytecheng.com";
@@ -82,6 +112,27 @@ const AccountsArfDashboardPage = () => {
 
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
     const [isReleasingAmount, setIsReleasingAmount] = useState(false);
+
+    const [pastRemarks, setPastRemarks] = useState<string[]>(["partial payment", "Completed"]);
+
+    useEffect(() => {
+        const defaultRemarks = ["partial payment", "Completed"];
+        const remarksSet = new Set<string>(defaultRemarks);
+        const allForms = [...pendingForms, ...partialForms, ...historyForms];
+        allForms.forEach(f => {
+            if (f.payments) {
+                f.payments.forEach(p => {
+                    if (p.remarks && p.remarks.trim() !== "") {
+                        remarksSet.add(p.remarks.trim());
+                    }
+                });
+            }
+            if (f.accountsRemarks && f.accountsRemarks.trim() !== "") {
+                remarksSet.add(f.accountsRemarks.trim());
+            }
+        });
+        setPastRemarks(Array.from(remarksSet));
+    }, [pendingForms, partialForms, historyForms]);
 
     // History Tab State
     const [historySection, setHistorySection] = useState<"offices" | "sites" | "employees">("offices");
@@ -515,7 +566,7 @@ const AccountsArfDashboardPage = () => {
                                                             <div><label className="block text-muted-foreground mb-1">Released Amount (Max: {remaining.toLocaleString()})</label><input name="releasedAmount" type="number" max={remaining} defaultValue={remaining} required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div>
                                                                 <label className="block text-primary font-semibold mb-1">Remarks *</label>
-                                                                <textarea name="remarks" rows={2} placeholder="Add release remarks..." className="w-full p-2 rounded-lg border-2 border-primary/50 bg-primary/5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
+                                                                <RemarkSelect name="remarks" pastRemarks={pastRemarks} />
                                                             </div>
                                                             <div><label className="block text-muted-foreground mb-1">Payment Slip(s) (Mandatory)</label><input name="paymentSlips" type="file" multiple required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <button type="submit" disabled={isReleasingAmount} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-4">
@@ -695,7 +746,7 @@ const AccountsArfDashboardPage = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-muted-foreground mb-1">Remarks</label>
-                                    <textarea name="remarks" rows={3} required defaultValue={editPaymentModal.payment.remarks} className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" />
+                                    <RemarkSelect name="remarks" defaultValue={editPaymentModal.payment.remarks} pastRemarks={pastRemarks} />
                                 </div>
                                 <div className="flex justify-end space-x-3 pt-4 border-t border-border/50">
                                     <button type="button" onClick={() => setEditPaymentModal(null)} disabled={isSubmittingPayment} className="px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-secondary/80 rounded-lg transition-colors">Cancel</button>
