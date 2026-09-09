@@ -31,6 +31,7 @@ export const ExpenseAuditorPage = () => {
     const [allOffices, setAllOffices] = useState<string[]>([]);
     const [allSites, setAllSites] = useState<string[]>([]);
     const [allEmployees, setAllEmployees] = useState<string[]>([]);
+    const [allCategories, setAllCategories] = useState<string[]>([]);
 
     const [isLoading, setIsLoading] = useState(true);
     const [selectedRecord, setSelectedRecord] = useState<AuditRecord | null>(null);
@@ -43,7 +44,7 @@ export const ExpenseAuditorPage = () => {
     };
 
     // Filters
-    const [section, setSection] = useState<"offices" | "sites" | "employees">("offices");
+    const [section, setSection] = useState<"offices" | "sites" | "employees" | "categories">("offices");
     const [selectedEntity, setSelectedEntity] = useState<string>("");
     const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
 
@@ -69,6 +70,9 @@ export const ExpenseAuditorPage = () => {
             setAllOffices(officesRes.map(o => o.name));
             setAllSites(sitesRes.map(s => s.name));
             setAllEmployees(usersRes.map(u => u.fullName || u.email));
+            
+            const categories = Array.from(new Set(expensesRes.flatMap((e: any) => e.items?.map((i: any) => i.expenseType) || []).filter(Boolean)));
+            setAllCategories(categories as string[]);
         } catch (error) {
             console.error("Error fetching auditor data", error);
             toast.error("Failed to load auditor data");
@@ -80,6 +84,7 @@ export const ExpenseAuditorPage = () => {
     const getUniqueEntities = () => {
         if (section === "offices") return allOffices;
         if (section === "sites") return allSites;
+        if (section === "categories") return allCategories;
         return allEmployees;
     };
 
@@ -103,6 +108,10 @@ export const ExpenseAuditorPage = () => {
                 filteredArfs = filteredArfs.filter(f => 
                     f.employeeName === selectedEntity ||
                     allExpenses.some(e => e.amountRequestFormId === f.id && e.createdByEmail === selectedEntity)
+                );
+            } else if (section === "categories") {
+                filteredArfs = filteredArfs.filter(f => 
+                    allExpenses.some(e => e.amountRequestFormId === f.id && e.items?.some(i => i.expenseType === selectedEntity))
                 );
             }
         }
@@ -453,7 +462,7 @@ export const ExpenseAuditorPage = () => {
                     <div className="flex-1 space-y-4">
                         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Audit Scope</h3>
                         <div className="flex flex-wrap gap-2 mb-4">
-                            {["offices", "sites", "employees"].map(sec => (
+                            {["offices", "sites", "employees", "categories"].map(sec => (
                                 <button
                                     key={sec}
                                     onClick={() => { setSection(sec as any); setSelectedEntity(""); }}

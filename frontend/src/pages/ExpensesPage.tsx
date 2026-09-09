@@ -32,6 +32,7 @@ export const ExpensesPage = () => {
     const [confirmModalState, setConfirmModalState] = useState<{isOpen: boolean; mode: 'single' | 'bulk'; expenseId?: number}>({ isOpen: false, mode: 'single' });
 
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<string>("");
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [deleteAssociatedArf, setDeleteAssociatedArf] = useState<boolean>(false);
@@ -174,13 +175,22 @@ export const ExpensesPage = () => {
                 );
             });
         }
+        if (selectedCategory) {
+            result = result.filter(group => {
+                return group.expenses.some(exp => exp.items?.some((i: any) => i.expenseType === selectedCategory));
+            });
+        }
         return result;
-    }, [groupedExpenses, searchQuery]);
+    }, [groupedExpenses, searchQuery, selectedCategory]);
 
     const paginatedGroups = useMemo(() => {
         const startIndex = (currentPage - 1) * pageSize;
         return filteredGroups.slice(startIndex, startIndex + pageSize);
     }, [filteredGroups, currentPage, pageSize]);
+    
+    const allCategories = useMemo(() => {
+        return Array.from(new Set(expenses.flatMap(e => e.items?.map((i: any) => i.expenseType) || []).filter(Boolean))) as string[];
+    }, [expenses]);
     
     const totalPages = Math.max(1, Math.ceil(filteredGroups.length / pageSize));
 
@@ -226,9 +236,22 @@ export const ExpensesPage = () => {
                                 setSearchQuery(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            className="pl-9 pr-4 py-2 w-full rounded-lg border border-input bg-background focus:ring-1 focus:ring-primary focus:outline-none text-sm"
+                            className="w-full pl-9 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                         />
                     </div>
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => {
+                            setSelectedCategory(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="p-2 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-background text-sm"
+                    >
+                        <option value="">All Categories</option>
+                        {allCategories.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>Show:</span>

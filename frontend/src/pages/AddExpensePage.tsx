@@ -723,14 +723,38 @@ export const AddExpensePage = () => {
                                             disabled={isLocked}
                                         />
                                     </td>
-                                    <td className="px-1 py-1">
-                                        <input 
-                                            type="text" 
-                                            value={row.expenseType}
-                                            onChange={(e) => handleRowChange(index, "expenseType", e.target.value)}
-                                            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
-                                            disabled={isLocked}
-                                        />
+                                    <td className="px-1 py-1 align-top">
+                                        <div className="space-y-1">
+                                            <select
+                                                value={["", "Vehicle Repairing", "Site Expenses", "Food"].includes(row.expenseType) ? row.expenseType : "Other"}
+                                                onChange={(e) => {
+                                                    if (e.target.value === "Other") {
+                                                        handleRowChange(index, "expenseType", "Other");
+                                                    } else {
+                                                        handleRowChange(index, "expenseType", e.target.value);
+                                                    }
+                                                }}
+                                                className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
+                                                disabled={isLocked}
+                                            >
+                                                <option value="">-- Select --</option>
+                                                <option value="Vehicle Repairing">Vehicle Repairing</option>
+                                                <option value="Site Expenses">Site Expenses</option>
+                                                <option value="Food">Food</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                            {(!["", "Vehicle Repairing", "Site Expenses", "Food"].includes(row.expenseType)) && (
+                                                <input
+                                                    type="text"
+                                                    placeholder="Specify expense type..."
+                                                    value={row.expenseType === "Other" ? "" : row.expenseType}
+                                                    onChange={(e) => handleRowChange(index, "expenseType", e.target.value || "Other")}
+                                                    className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-50"
+                                                    disabled={isLocked}
+                                                    autoFocus
+                                                />
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-1 py-1">
                                         <input 
