@@ -813,12 +813,12 @@ namespace MyTechERP.Infrastructure.Services
                 }
                 catch (TimeZoneNotFoundException)
                 {
-                    pktZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Karachi");
+                    try { pktZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Karachi"); }
+                    catch { pktZone = TimeZoneInfo.Utc; }
                 }
                 var pktTime = TimeZoneInfo.ConvertTimeFromUtc(entity.CreatedAt, pktZone);
 
-                string body = $@"
-                    <p>{subjectTemplate}</p>
+                string body = $@"<p>{subjectTemplate}</p>
                     <br/>
                     <p><strong>ARF Number:</strong> {entity.ArfNumber}</p>
                     <p><strong>Requestee Name:</strong> <mark>{entity.EmployeeName}</mark></p>
@@ -827,19 +827,28 @@ namespace MyTechERP.Infrastructure.Services
                     <p><strong>Amount Requested:</strong> Rs {entity.AdvanceRequested}</p>
                     <p><strong>Account Details:</strong> {entity.AccountDetail}</p>
                     <p><strong>Current Status:</strong> {entity.Status}</p>
-                    <p><strong>Requested Time:</strong> {pktTime.ToString("g")} (PKT)</p>
+                    <p><strong>Requested Time:</strong> {pktTime:g} (PKT)</p>
                     <br/>
-                    <p><a href=""https://mytecherp.com/login"">Click here to log in to the system</a></p>
-                ";
+                    <p><a href='https://mytecherp.com/login'>Click here to log in to the system</a></p>";
 
                 string subject = $"Amount Request Notification - {entity.EmployeeName} ({entity.ArfNumber})";
 
-                await _emailService.SendEmailAsync("faisal.ghani@mytecheng.com", subject, body);
-                await _emailService.SendEmailAsync("abdul.majeed@mytecheng.com", subject, body);
-                await _emailService.SendEmailAsync("asma@mytecheng.com", subject, body);
-                await _emailService.SendEmailAsync("usamamalikwork1@gmail.com", subject, body);
+                var recipients = new[] { "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com", "asma@mytecheng.com", "usamamalikwork1@gmail.com" };
+                foreach (var recipient in recipients)
+                {
+                    try
+                    {
+                        await _emailService.SendEmailAsync(recipient, subject, body);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.IO.File.AppendAllText("email_error_log.txt", $"{DateTime.UtcNow} | FAILED TO: {recipient} | {ex.Message}\n");
+                    }
+                }
             }
-            catch (Exception) { }
+            catch (Exception ex) { 
+                System.IO.File.AppendAllText("email_error_log.txt", $"{DateTime.UtcNow} | SendFaisalArfEmailAsync setup error: {ex}\n");
+            }
         }
     }
 }
