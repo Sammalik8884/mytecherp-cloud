@@ -806,7 +806,15 @@ namespace MyTechERP.Infrastructure.Services
                 var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == entity.EmployeeEmail);
                 var designation = currentUser?.Designation ?? "N/A";
 
-                var pktZone = TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time");
+                TimeZoneInfo pktZone;
+                try
+                {
+                    pktZone = TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time");
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    pktZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Karachi");
+                }
                 var pktTime = TimeZoneInfo.ConvertTimeFromUtc(entity.CreatedAt, pktZone);
 
                 string body = $@"
