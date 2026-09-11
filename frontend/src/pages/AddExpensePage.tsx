@@ -642,7 +642,7 @@ export const AddExpensePage = () => {
                                                         <Info className="h-3.5 w-3.5" />
                                                     </button>
                                                 </div>
-                                                <span className="text-primary font-medium mt-0.5">Remaining Balance: Rs {remainingArfBalance.toLocaleString()}</span>
+                                                <span className={`font-medium mt-0.5 ${Math.max(0, remainingArfBalance - totalAmount) === 0 ? "text-emerald-600" : "text-primary"}`}>Balance After This Expense: Rs {Math.max(0, remainingArfBalance - totalAmount).toLocaleString()}</span>
                                             </>
                                         )}
                                     </div>
