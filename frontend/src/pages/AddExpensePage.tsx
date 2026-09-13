@@ -37,6 +37,7 @@ export const AddExpensePage = () => {
     const [showExcessModal, setShowExcessModal] = useState(false);
     const [excessItemIndices, setExcessItemIndices] = useState<number[]>([]);
     const [excessSaved, setExcessSaved] = useState(false);
+    const [createdExpenseId, setCreatedExpenseId] = useState<number | null>(null);
     
     const [arfConsumedAmounts, setArfConsumedAmounts] = useState<Record<number, number>>({});
     const [closedArfWarning, setClosedArfWarning] = useState<{ isOpen: boolean; arfId: number } | null>(null);
@@ -317,11 +318,12 @@ export const AddExpensePage = () => {
                     navigate("/expenses");
                 }
             } else {
-                await expenseApi.create(payload);
+                const created = await expenseApi.create(payload);
                 toast.success("Expense uploaded successfully");
                 setIsSubmitted(true);
                 
                 if (isAmountAbove) {
+                    setCreatedExpenseId(created.id);
                     setExcessSaved(true);
                 } else {
                     navigate("/expenses");
@@ -362,7 +364,7 @@ export const AddExpensePage = () => {
                                 ? sites.find((s: any) => s.id === Number(selectedSiteId))?.name 
                                 : offices.find((o: any) => o.id === Number(selectedOfficeId))?.name;
                             
-                            navigate(`/amount-request?action=generateExcess&amount=${excessAmount}&${locParam}&siteName=${encodeURIComponent(locName || '')}&managedFromArf=${arfLabel}`);
+                            navigate(`/amount-request?action=generateExcess&amount=${excessAmount}&expenseId=${id || createdExpenseId || ''}&${locParam}&siteName=${encodeURIComponent(locName || '')}&managedFromArf=${arfLabel}`);
                         }}
                     >
                         Generate ARF for Rs {excessAmount.toLocaleString()}
@@ -655,16 +657,6 @@ export const AddExpensePage = () => {
                                                 <span className="text-red-600 font-bold mt-0.5">
                                                     Exceeds by: Rs {excessAmount.toLocaleString()}
                                                 </span>
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => {
-                                                        const siteName = sites.find(s => s.id === selectedSiteId)?.name || '';
-                                                        navigate(`/amount-request?action=generateExcess&amount=${excessAmount}&expenseId=${id || ''}&siteId=${locationType === 'site' ? selectedSiteId : ''}&officeId=${locationType === 'office' ? selectedOfficeId : ''}&siteName=${encodeURIComponent(siteName)}&managedFromArf=${selectedArf?.arfNumber || ''}`);
-                                                    }}
-                                                    className="text-xs text-emerald-600 hover:text-emerald-700 underline mt-1 font-medium bg-emerald-50 px-2 py-0.5 rounded"
-                                                >
-                                                    Generate ARF for Excess
-                                                </button>
                                             </div>
                                         )}
                                     </div>

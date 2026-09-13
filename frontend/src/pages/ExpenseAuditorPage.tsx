@@ -131,10 +131,25 @@ export const ExpenseAuditorPage = () => {
         const sortedArfs = [...allArfs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
         sortedArfs.forEach(arf => {
+            let excessExpenseId: number | null = null;
             const expenseIdMatch = arf.purposeOfAdvance?.match(/\[ExpenseId:(\d+)\]/);
             if (expenseIdMatch) {
-                const excessExpenseId = Number(expenseIdMatch[1]);
-                
+                excessExpenseId = Number(expenseIdMatch[1]);
+            } else {
+                const oldMatch = arf.purposeOfAdvance?.match(/from\s+(ARF-\d+)\s+for/i);
+                if (oldMatch) {
+                    const originalArfNumber = oldMatch[1];
+                    const originalArf = allArfs.find(a => a.arfNumber === originalArfNumber);
+                    if (originalArf) {
+                        const possibleExpense = allExpenses.find(e => e.amountRequestFormId === originalArf.id && e.items?.some(i => i.isExcessItem));
+                        if (possibleExpense) {
+                            excessExpenseId = possibleExpense.id;
+                        }
+                    }
+                }
+            }
+
+            if (excessExpenseId) {
                 if (remainingExcessByExpense[excessExpenseId] === undefined) {
                     const excessExpense = allExpenses.find(e => e.id === excessExpenseId);
                     remainingExcessByExpense[excessExpenseId] = excessExpense?.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
@@ -178,9 +193,25 @@ export const ExpenseAuditorPage = () => {
             });
 
             // Link excess ARFs to their corresponding expenses
+            let excessExpenseId: number | null = null;
             const expenseIdMatch = arf.purposeOfAdvance?.match(/\[ExpenseId:(\d+)\]/);
             if (expenseIdMatch) {
-                const excessExpenseId = Number(expenseIdMatch[1]);
+                excessExpenseId = Number(expenseIdMatch[1]);
+            } else {
+                const oldMatch = arf.purposeOfAdvance?.match(/from\s+(ARF-\d+)\s+for/i);
+                if (oldMatch) {
+                    const originalArfNumber = oldMatch[1];
+                    const originalArf = allArfs.find(a => a.arfNumber === originalArfNumber);
+                    if (originalArf) {
+                        const possibleExpense = allExpenses.find(e => e.amountRequestFormId === originalArf.id && e.items?.some(i => i.isExcessItem));
+                        if (possibleExpense) {
+                            excessExpenseId = possibleExpense.id;
+                        }
+                    }
+                }
+            }
+
+            if (excessExpenseId) {
                 const excessExpense = allExpenses.find(e => e.id === excessExpenseId);
                 if (excessExpense) {
                     // Use the pre-allocated amount for this specific ARF, instead of the full excess amount
