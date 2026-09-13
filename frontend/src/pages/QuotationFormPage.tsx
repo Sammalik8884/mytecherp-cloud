@@ -1934,6 +1934,8 @@ export const QuotationFormPage = () => {
                         // Build a CLEAN item: explicitly wipe stale originalPrice & calcBreakdown
                         // so that switching products on the same row always recalculates fresh
                         const brandSuffix = p.brand ? ` Brand: ${p.brand} (by MY TECH)` : '';
+                        const partLabel = p.brand === "FIKE" ? "Part No" : "Model No";
+                        const partSuffix = (p.itemCode && !p.name.includes(p.itemCode)) ? ` (${partLabel}: ${p.itemCode})` : '';
                         const cleanItem = {
                             ...newArr[productModalTarget.index],
                             originalPrice: undefined,   // clear stale price
@@ -1942,7 +1944,7 @@ export const QuotationFormPage = () => {
                             lineTotal: 0,
                             productId: p.id,
                             product: p,
-                            serviceName: p.name + brandSuffix,
+                            serviceName: p.name + partSuffix + brandSuffix,
                         };
                         // Run the full calculation pipeline with the product's USD list price forced
                         newArr[productModalTarget.index] = calculateImportedItem(cleanItem, formData, listBasePrice);
@@ -1954,6 +1956,8 @@ export const QuotationFormPage = () => {
                         const newArr = [...localItems];
                         const listBasePrice = p.price ?? 0;
                         const brandSuffix = p.brand ? ` Brand: ${p.brand} (by MY TECH)` : '';
+                        const partLabel = p.brand === "FIKE" ? "Part No" : "Model No";
+                        const partSuffix = (p.itemCode && !p.name.includes(p.itemCode)) ? ` (${partLabel}: ${p.itemCode})` : '';
                         const cleanItem = {
                             ...newArr[productModalTarget.index],
                             originalPrice: undefined,
@@ -1962,7 +1966,7 @@ export const QuotationFormPage = () => {
                             lineTotal: 0,
                             productId: p.id,
                             product: p,
-                            serviceName: p.name + brandSuffix
+                            serviceName: p.name + partSuffix + brandSuffix
                         };
                         newArr[productModalTarget.index] = calculateLocalItem(cleanItem, formData, listBasePrice);
                         setLocalItems(newArr);
