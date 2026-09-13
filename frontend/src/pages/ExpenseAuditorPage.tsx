@@ -136,7 +136,7 @@ export const ExpenseAuditorPage = () => {
             if (expenseIdMatch) {
                 excessExpenseId = Number(expenseIdMatch[1]);
             } else {
-                const oldMatch = arf.purposeOfAdvance?.match(/from\s+(ARF-\d+)\s+for/i);
+                const oldMatch = arf.purposeOfAdvance?.match(/from\s+(ARF-?\d+)(?:\s+for|$)/i);
                 if (oldMatch) {
                     const originalArfNumber = oldMatch[1];
                     const originalArf = allArfs.find(a => a.arfNumber === originalArfNumber);
@@ -198,7 +198,7 @@ export const ExpenseAuditorPage = () => {
             if (expenseIdMatch) {
                 excessExpenseId = Number(expenseIdMatch[1]);
             } else {
-                const oldMatch = arf.purposeOfAdvance?.match(/from\s+(ARF-\d+)\s+for/i);
+                const oldMatch = arf.purposeOfAdvance?.match(/from\s+(ARF-?\d+)(?:\s+for|$)/i);
                 if (oldMatch) {
                     const originalArfNumber = oldMatch[1];
                     const originalArf = allArfs.find(a => a.arfNumber === originalArfNumber);
