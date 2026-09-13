@@ -415,7 +415,16 @@ namespace MyTechERP.Infrastructure.Services
                             .Text(value);
                     }
 
-                    SRow("Sub Total (Before Taxes)", quote.SubTotal.ToString("N2"), bg: BrandLight);
+                    bool hasTaxes = quote.GSTPercentage > 0 || quote.IncomeTaxPercentage > 0 || quote.ProvincialTaxPercentage > 0;
+                    
+                    if (hasTaxes)
+                    {
+                        SRow("Sub Total (Before Taxes)", quote.SubTotal.ToString("N2"), bg: BrandLight);
+                    }
+                    else if (quote.Adjustment != 0)
+                    {
+                        SRow("Sub Total", quote.SubTotal.ToString("N2"), bg: BrandLight);
+                    }
 
                     if (quote.GSTPercentage > 0)
                         SRow($"GST @ {quote.GSTPercentage:N0}%", quote.GSTAmount.ToString("N2"));

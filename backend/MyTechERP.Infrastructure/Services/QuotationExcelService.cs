@@ -256,7 +256,17 @@ namespace MyTechERP.Infrastructure.Services
                     currentRow++;
                 }
 
-                DrawSummaryRow("Sub Total (Before Taxes)", quote.SubTotal);
+                bool hasTaxes = quote.GSTPercentage > 0 || quote.IncomeTaxPercentage > 0 || quote.ProvincialTaxPercentage > 0;
+                
+                if (hasTaxes)
+                {
+                    DrawSummaryRow("Sub Total (Before Taxes)", quote.SubTotal);
+                }
+                else if (quote.Adjustment != 0)
+                {
+                    DrawSummaryRow("Sub Total", quote.SubTotal);
+                }
+
                 if (quote.GSTPercentage > 0) DrawSummaryRow($"GST @ {quote.GSTPercentage:N0}%", quote.GSTAmount);
                 if (quote.IncomeTaxPercentage > 0) DrawSummaryRow($"Income Tax @ {quote.IncomeTaxPercentage:N0}%", quote.IncomeTaxAmount);
                 if (quote.ProvincialTaxPercentage > 0)
