@@ -87,6 +87,8 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<QuotationItem> QuotationsItem { get; set; }
         public DbSet<SupplyQuotation> SupplyQuotations { get; set; }
         public DbSet<SupplyQuotationItem> SupplyQuotationItems { get; set; }
+        public DbSet<SalesInvoice> SalesInvoices { get; set; }
+        public DbSet<SalesInvoiceItem> SalesInvoiceItems { get; set; }
         public DbSet<QuotationSettings> QuotationSettings { get; set; }
         public DbSet<TermsAndConditionsTemplate> TermsAndConditionsTemplates { get; set; }
         public DbSet<DocumentSignature> DocumentSignatures { get; set; }

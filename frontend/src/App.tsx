@@ -21,6 +21,8 @@ import { ActivityMonitoringPage } from "./pages/ActivityMonitoringPage";
 import { QuotationFormPage } from "./pages/QuotationFormPage";
 import { SupplyQuotationList } from "./pages/SupplyQuotations/SupplyQuotationList";
 import { SupplyQuotationForm } from "./pages/SupplyQuotations/SupplyQuotationForm";
+import { SalesInvoiceList } from "./pages/SalesInvoices/SalesInvoiceList";
+import { SalesInvoiceForm } from "./pages/SalesInvoices/SalesInvoiceForm";
 import { UsersPage } from "./pages/UsersPage";
 import { AssetsPage } from "./pages/AssetsPage";
 import { WorkOrdersPage } from "./pages/WorkOrdersPage";
@@ -132,11 +134,15 @@ const router = createBrowserRouter(
                                 <Route path="/sales/boq-portal" element={<BoqDrawingsPortalPage />} />
                             </Route>
 
-                            {/* Supply Quotations - Email Only */}
+                            {/* Supply Quotations & Sales Invoices - Email Only */}
                             <Route element={<RoleProtectedRoute allowedRoles={[]} allowedEmails={["ahmed.faisal@mytecheng.com", "kaleemmullah@mytecheng.com", "kaleemullah@mytecheng.com", "munawar.hasan@mytecheng.com"]} />}>
                                 <Route path="/supply-quotations" element={<SupplyQuotationList />} />
                                 <Route path="/supply-quotations/new" element={<SupplyQuotationForm />} />
                                 <Route path="/supply-quotations/edit/:id" element={<SupplyQuotationForm />} />
+
+                                <Route path="/sales-invoices" element={<SalesInvoiceList />} />
+                                <Route path="/sales-invoices/new" element={<SalesInvoiceForm />} />
+                                <Route path="/sales-invoices/edit/:id" element={<SalesInvoiceForm />} />
                             </Route>
 
                             {/* Sales & Leads - Internal Roles */}

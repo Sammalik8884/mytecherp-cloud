@@ -92,6 +92,8 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<QuotationPdfService>();
 builder.Services.AddScoped<QuotationExcelService>();
 builder.Services.AddScoped<ISupplyQuotationService, SupplyQuotationService>();
+builder.Services.AddScoped<ISalesInvoiceService, MyTechERP.Infrastructure.Services.SalesInvoiceService>();
+builder.Services.AddScoped<ISalesInvoicePdfService, MyTechERP.Infrastructure.Services.SalesInvoicePdfService>();
 builder.Services.AddScoped<SupplyQuotationPdfService>();
 builder.Services.AddScoped<SupplyQuotationExcelService>();
 builder.Services.AddScoped<IAuditService, AuditService>();

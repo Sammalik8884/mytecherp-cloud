@@ -92,6 +92,14 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
       allowedRoles: ["None"], 
       allowedEmails: ["ahmed.faisal@mytecheng.com", "kaleemmullah@mytecheng.com", "kaleemullah@mytecheng.com", "munawar.hasan@mytecheng.com"] 
     },
+    { 
+      label: "Sales Invoices", 
+      href: "/sales-invoices", 
+      icon: FileText, 
+      paths: ["/sales-invoices", "/sales-invoices/new", "/sales-invoices/edit"], 
+      allowedRoles: ["None"], 
+      allowedEmails: ["ahmed.faisal@mytecheng.com", "kaleemmullah@mytecheng.com", "kaleemullah@mytecheng.com", "munawar.hasan@mytecheng.com"] 
+    },
     { label: "Products", href: "/products", icon: Package, allowedRoles: ["None"], allowedEmails: ["m.huzefa@mytecheng.com"] },
     { label: "Contracts & AMCs", href: "/contracts", icon: FileSignature, allowedRoles: ["CEO", "Project Director", "Engineer"] },
     { label: "Dispatch (Jobs)", href: "/work-orders", icon: Briefcase, allowedRoles: ["CEO", "Project Director"] },
