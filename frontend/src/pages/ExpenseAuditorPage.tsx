@@ -169,28 +169,23 @@ export const ExpenseAuditorPage = () => {
 
         // 2. Map ARFs to Expenses
         const records: AuditRecord[] = filteredArfs.map(arf => {
-            let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id).map(e => ({...e}));
+            let connectedExpenses = allExpenses.filter(e => e.amountRequestFormId === arf.id).map(e => {
+                let allocatedAway = 0;
+                if (excessAllocations[e.id]) {
+                    allocatedAway = Object.values(excessAllocations[e.id]).reduce((sum, val) => sum + val, 0);
+                }
+                return {
+                    ...e,
+                    totalExpenseAmount: e.totalExpenseAmount - allocatedAway
+                };
+            });
+            
             let totalExpenseAmount = connectedExpenses
                 .filter(e => e.status !== "Rejected")
                 .reduce((sum, e) => sum + e.totalExpenseAmount, 0);
 
-            // Add unallocated excess to this ARF's total (any excess that hasn't been claimed by an Excess ARF yet)
-            connectedExpenses.filter(e => e.status !== "Rejected").forEach(e => {
-                let unallocatedExcess = 0;
-                if (remainingExcessByExpense[e.id] !== undefined) {
-                    unallocatedExcess = remainingExcessByExpense[e.id];
-                } else {
-                    unallocatedExcess = e.items?.filter(i => i.isExcessItem).reduce((sum, item) => sum + item.amount, 0) || 0;
-                }
-                
-                if (unallocatedExcess > 0) {
-                    e.totalExpenseAmount += unallocatedExcess; // Reflect full amount in the UI
-                    totalExpenseAmount += unallocatedExcess;
-                    
-                    // Deduct it so we don't double-count
-                    remainingExcessByExpense[e.id] = 0;
-                }
-            });
+            // Any remaining excess (unallocated to any Excess ARF) is already naturally included in e.totalExpenseAmount 
+            // since we only deducted `allocatedAway`. So we don't need to manually add unallocatedExcess back.
 
             // Link excess ARFs to their corresponding expenses
             let excessExpenseId: number | null = null;
