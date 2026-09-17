@@ -112,6 +112,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
 
     { label: "Accounts Module", isHeader: true, allowedRoles: ["CEO", "Accounts Head", "Project Director"], allowedEmails: ["asma@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com"] },
     { label: "ARF Dashboard", href: "/accounts/arf-dashboard", icon: Wallet, allowedRoles: ["CEO", "Accounts Head", "Project Director"], allowedEmails: ["asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com"] },
+    { label: "Manage Cheques", href: "/accounts/manage-cheques", icon: CreditCard, allowedRoles: ["CEO", "Accounts Head"], allowedEmails: ["asma@mytecheng.com", "faisal.ghani@mytecheng.com"] },
     { label: "Expense Auditor", href: "/accounts/expense-auditor", icon: Calculator, allowedRoles: ["CEO", "Accounts Head", "Project Director"], allowedEmails: ["asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com"] },
 
     { label: "System", isHeader: true, allowedRoles: ["CEO", "Project Director"] },

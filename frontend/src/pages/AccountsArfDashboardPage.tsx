@@ -375,11 +375,6 @@ const AccountsArfDashboardPage = () => {
                     <h1 className="text-2xl font-bold text-foreground">Accounts ARF Dashboard</h1>
                     <p className="text-muted-foreground mt-1 text-sm">Process pending requests and view history</p>
                 </div>
-                {!isMajeed && (
-                    <button onClick={() => setIsChequeModalOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded flex items-center gap-2">
-                        <Wallet className="h-4 w-4" /> Manage Cheques
-                    </button>
-                )}
             </div>
 
             <div className="flex space-x-1 bg-card p-1 rounded-xl border border-border/50 w-fit">

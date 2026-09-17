@@ -58,6 +58,7 @@ import ArfReturnsPage from "./pages/ArfReturnsPage";
 import ArfExceptionsPage from "./pages/ArfExceptionsPage";
 import AccountsArfDashboardPage from "./pages/AccountsArfDashboardPage";
 import { ExpenseAuditorPage } from "./pages/ExpenseAuditorPage";
+import ManageChequesPage from "./pages/ManageChequesPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ProjectDetailsPage } from "./pages/ProjectDetailsPage";
 import { OfficesListPage } from "./pages/OfficesListPage";
@@ -203,6 +204,9 @@ const router = createBrowserRouter(
                             <Route path="/vehicle-travel-forms/new" element={<NewVehicleTravelFormPage />} />
                             <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} allowedEmails={["asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com", "abdul.majeed@mytecheng.com"]} />}>
                                 <Route path="/accounts/arf-dashboard" element={<AccountsArfDashboardPage />} />
+                            </Route>
+                            <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Accounts Head"]} allowedEmails={["asma@mytecheng.com", "faisal.ghani@mytecheng.com"]} />}>
+                                <Route path="/accounts/manage-cheques" element={<ManageChequesPage />} />
                             </Route>
                             <Route element={<RoleProtectedRoute allowedRoles={["CEO", "Project Director", "Accounts Head"]} allowedEmails={["asma@mytecheng.com", "munawar.hasan@mytecheng.com", "shahbaz.ali@mytecheng.com", "faisal.ghani@mytecheng.com", "abdul.majeed@mytecheng.com"]} />}>
                                 <Route path="/accounts/expense-auditor" element={<ExpenseAuditorPage />} />
