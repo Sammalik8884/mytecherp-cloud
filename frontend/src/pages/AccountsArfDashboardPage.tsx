@@ -56,6 +56,7 @@ const AccountsArfDashboardPage = () => {
     const [isChequeModalOpen, setIsChequeModalOpen] = useState(false);
     const [availableCheques, setAvailableCheques] = useState<ChequeDto[]>([]);
     const [selectedChequeId, setSelectedChequeId] = useState<number | ''>('');
+    const [chequeExceededPopup, setChequeExceededPopup] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
     const [deletePaymentModal, setDeletePaymentModal] = useState<{ isOpen: boolean; arfId: number; paymentId: number } | null>(null);
     const [editPaymentModal, setEditPaymentModal] = useState<{ isOpen: boolean; arfId: number; payment: any } | null>(null);
     const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
@@ -221,7 +222,12 @@ const AccountsArfDashboardPage = () => {
             const res = await amountRequestApi.getById(selectedForm.id);
             setSelectedForm(res.data);
         } catch (error: any) {
-            toast.error(error.response?.data || "Failed to release amount");
+            const errMsg: string = error.response?.data || error.message || "Failed to release amount";
+            if (errMsg.toLowerCase().includes("cheque limit exceeded")) {
+                setChequeExceededPopup({ isOpen: true, message: errMsg });
+            } else {
+                toast.error(errMsg);
+            }
         } finally {
             setIsReleasingAmount(false);
         }
@@ -324,6 +330,46 @@ const AccountsArfDashboardPage = () => {
     return (
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
             <ChequeModal isOpen={isChequeModalOpen} onClose={() => { setIsChequeModalOpen(false); fetchData(); }} />
+
+            {/* Cheque Limit Exceeded Custom Popup */}
+            {chequeExceededPopup.isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60">
+                    <div className="bg-background rounded-2xl shadow-2xl border border-red-300 w-full max-w-md mx-4 overflow-hidden">
+                        {/* Header */}
+                        <div className="bg-red-600 px-6 py-4 flex items-center gap-3">
+                            <div className="bg-white/20 rounded-full p-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-white text-lg font-bold">Cheque Limit Exceeded</h2>
+                        </div>
+                        {/* Body */}
+                        <div className="px-6 py-5">
+                            <p className="text-foreground text-sm mb-2">The amount you are trying to release exceeds the available cheque balance.</p>
+                            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-red-700 text-sm font-medium">
+                                {chequeExceededPopup.message}
+                            </div>
+                            <p className="text-muted-foreground text-xs mt-3">Please either reduce the release amount, select a different cheque, or update the cheque's initial amount from <strong>Manage Cheques</strong>.</p>
+                        </div>
+                        {/* Footer */}
+                        <div className="px-6 py-4 bg-muted/30 border-t border-border flex justify-end gap-3">
+                            <button
+                                onClick={() => { setChequeExceededPopup({ isOpen: false, message: '' }); setIsChequeModalOpen(true); }}
+                                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
+                            >
+                                Update Cheque
+                            </button>
+                            <button
+                                onClick={() => setChequeExceededPopup({ isOpen: false, message: '' })}
+                                className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-6 rounded-2xl border border-border/50 shadow-sm">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Accounts ARF Dashboard</h1>
