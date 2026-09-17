@@ -553,20 +553,37 @@ namespace MyTechERP.Infrastructure.Services
 
         public async Task<AmountRequestFormDto> ReleaseAmountAsync(int id, AccountsReleaseAmountDto dto, List<Microsoft.AspNetCore.Http.IFormFile>? paymentSlips)
         {
-            if (paymentSlips == null || paymentSlips.Count == 0)
+            if (dto.ChequeId.HasValue)
             {
-                throw new Exception("At least one Payment Slip attachment is required to release the amount.");
+                var cheque = await _context.Cheques.Include(c => c.Payments).FirstOrDefaultAsync(c => c.Id == dto.ChequeId.Value);
+                if (cheque == null || cheque.IsDeleted || !cheque.IsActive)
+                    throw new Exception("Invalid or inactive cheque selected.");
+                
+                var usedAmount = cheque.Payments.Sum(p => p.ReleasedAmount);
+                var remainingBalance = cheque.InitialAmount - usedAmount;
+
+                if (dto.ReleasedAmount > remainingBalance)
+                {
+                    throw new Exception($"Cheque limit exceeded. Remaining balance is {remainingBalance}.");
+                }
+            }
+            else if (paymentSlips == null || paymentSlips.Count == 0)
+            {
+                throw new Exception("At least one Payment Slip attachment or a Cheque is required to release the amount.");
             }
 
             var entity = await _context.AmountRequestForms.Include(a => a.Site).FirstOrDefaultAsync(a => a.Id == id);
             if (entity == null) throw new Exception("Form not found");
 
             var fileUrls = new List<string>();
-            foreach (var paymentSlip in paymentSlips)
+            if (paymentSlips != null)
             {
-                var fileName = $"paymentslip_{id}_{Guid.NewGuid()}_{paymentSlip.FileName}";
-                var fileUrl = await _blobService.UploadAsync(paymentSlip, fileName);
-                fileUrls.Add(fileUrl);
+                foreach (var paymentSlip in paymentSlips)
+                {
+                    var fileName = $"paymentslip_{id}_{Guid.NewGuid()}_{paymentSlip.FileName}";
+                    var fileUrl = await _blobService.UploadAsync(paymentSlip, fileName);
+                    fileUrls.Add(fileUrl);
+                }
             }
             
             var serializedUrls = System.Text.Json.JsonSerializer.Serialize(fileUrls);
@@ -585,9 +602,10 @@ namespace MyTechERP.Infrastructure.Services
                 ReleasedDate = dto.DateOfFundReleased,
                 ReleasedAmount = dto.ReleasedAmount,
                 ReceivedBy = entity.EmployeeName,
-                ModeOfPayment = "Transfer",
+                ModeOfPayment = dto.ChequeId.HasValue ? "Cheque" : "Transfer",
                 Remarks = "Auto-generated from Release Details: " + dto.Remarks,
-                PaymentSlipUrl = serializedUrls
+                PaymentSlipUrl = serializedUrls,
+                ChequeId = dto.ChequeId
             };
             _context.AmountRequestPayments.Add(payment);
 
@@ -660,6 +678,21 @@ namespace MyTechERP.Infrastructure.Services
             var payment = await _context.AmountRequestPayments.FirstOrDefaultAsync(p => p.Id == paymentId && p.AmountRequestFormId == id);
             if (payment == null) throw new Exception("Payment not found");
 
+            if (dto.ChequeId.HasValue)
+            {
+                var cheque = await _context.Cheques.Include(c => c.Payments).FirstOrDefaultAsync(c => c.Id == dto.ChequeId.Value);
+                if (cheque == null || cheque.IsDeleted || !cheque.IsActive)
+                    throw new Exception("Invalid or inactive cheque selected.");
+                
+                var usedAmount = cheque.Payments.Where(p => p.Id != paymentId).Sum(p => p.ReleasedAmount);
+                var remainingBalance = cheque.InitialAmount - usedAmount;
+
+                if (dto.ReleasedAmount > remainingBalance)
+                {
+                    throw new Exception($"Cheque limit exceeded. Remaining balance is {remainingBalance}.");
+                }
+            }
+
             var form = await _context.AmountRequestForms.FindAsync(id);
             if (form != null)
             {
@@ -677,8 +710,9 @@ namespace MyTechERP.Infrastructure.Services
             payment.ReleasedDate = dto.ReleasedDate;
             payment.ReleasedAmount = dto.ReleasedAmount;
             payment.ReceivedBy = dto.ReceivedBy;
-            payment.ModeOfPayment = dto.ModeOfPayment;
+            payment.ModeOfPayment = dto.ChequeId.HasValue ? "Cheque" : dto.ModeOfPayment;
             payment.Remarks = dto.Remarks;
+            payment.ChequeId = dto.ChequeId;
 
             await _context.SaveChangesAsync();
             return await GetByIdAsync(id);
@@ -689,14 +723,30 @@ namespace MyTechERP.Infrastructure.Services
             var entity = await _context.AmountRequestForms.FirstOrDefaultAsync(a => a.Id == id);
             if (entity == null) throw new Exception("Form not found");
 
+            if (dto.ChequeId.HasValue)
+            {
+                var cheque = await _context.Cheques.Include(c => c.Payments).FirstOrDefaultAsync(c => c.Id == dto.ChequeId.Value);
+                if (cheque == null || cheque.IsDeleted || !cheque.IsActive)
+                    throw new Exception("Invalid or inactive cheque selected.");
+                
+                var usedAmount = cheque.Payments.Sum(p => p.ReleasedAmount);
+                var remainingBalance = cheque.InitialAmount - usedAmount;
+
+                if (dto.ReleasedAmount > remainingBalance)
+                {
+                    throw new Exception($"Cheque limit exceeded. Remaining balance is {remainingBalance}.");
+                }
+            }
+
             var payment = new AmountRequestPayment
             {
                 AmountRequestFormId = id,
                 ReleasedDate = dto.ReleasedDate,
                 ReleasedAmount = dto.ReleasedAmount,
                 ReceivedBy = dto.ReceivedBy,
-                ModeOfPayment = dto.ModeOfPayment,
-                Remarks = dto.Remarks
+                ModeOfPayment = dto.ChequeId.HasValue ? "Cheque" : dto.ModeOfPayment,
+                Remarks = dto.Remarks,
+                ChequeId = dto.ChequeId
             };
 
             _context.AmountRequestPayments.Add(payment);

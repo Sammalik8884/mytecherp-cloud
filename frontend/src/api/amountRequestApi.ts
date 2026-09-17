@@ -8,6 +8,7 @@ export interface AmountRequestPayment {
   modeOfPayment: string;
   remarks: string;
   paymentSlipUrl?: string;
+  chequeId?: number;
 }
 
 export interface AmountRequestFormDto {
@@ -53,12 +54,13 @@ export const amountRequestApi = {
     api.post<AmountRequestFormDto>(`/AmountRequestForms/${id}/approve`, data),
   delete: (id: number) => api.delete<void>(`/AmountRequestForms/${id}`),
   bulkDelete: (ids: number[]) => api.post<void>("/AmountRequestForms/bulk-delete", ids),
-  releaseAmount: (id: number, data: { dateOfEntry?: string; dateOfFundReleased?: string; releasedAmount: number; remarks: string; paymentSlips?: FileList | File[] }) => {
+  releaseAmount: (id: number, data: { dateOfEntry?: string; dateOfFundReleased?: string; releasedAmount: number; remarks: string; paymentSlips?: FileList | File[]; chequeId?: number }) => {
     const formData = new FormData();
     if (data.dateOfEntry) formData.append('dateOfEntry', data.dateOfEntry);
     if (data.dateOfFundReleased) formData.append('dateOfFundReleased', data.dateOfFundReleased);
     formData.append('releasedAmount', data.releasedAmount.toString());
     formData.append('remarks', data.remarks);
+    if (data.chequeId) formData.append('chequeId', data.chequeId.toString());
     if (data.paymentSlips && data.paymentSlips.length > 0) {
       Array.from(data.paymentSlips).forEach(file => {
         formData.append('paymentSlips', file);

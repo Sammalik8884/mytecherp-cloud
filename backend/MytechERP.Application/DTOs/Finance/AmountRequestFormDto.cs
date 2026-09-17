@@ -66,6 +66,8 @@ namespace MytechERP.Application.DTOs.Finance
         public string ModeOfPayment { get; set; } = string.Empty;
         public string Remarks { get; set; } = string.Empty;
         public string? PaymentSlipUrl { get; set; }
+        public int? ChequeId { get; set; }
+        public ChequeDto? Cheque { get; set; }
     }
 
     public class CreateAmountRequestPaymentDto
@@ -75,6 +77,7 @@ namespace MytechERP.Application.DTOs.Finance
         public string ReceivedBy { get; set; } = string.Empty;
         public string ModeOfPayment { get; set; } = string.Empty;
         public string Remarks { get; set; } = string.Empty;
+        public int? ChequeId { get; set; }
     }
 
     public class ApproveAmountRequestDto
@@ -91,5 +94,6 @@ namespace MytechERP.Application.DTOs.Finance
         public DateTime? DateOfFundReleased { get; set; }
         public decimal ReleasedAmount { get; set; }
         public string Remarks { get; set; } = string.Empty;
+        public int? ChequeId { get; set; }
     }
 }

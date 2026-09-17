@@ -120,6 +120,7 @@ namespace MytechERP.Infrastructure.Persistance
         public DbSet<ArfExceptionRequest> ArfExceptionRequests { get; set; }
         public DbSet<AmountRequestPayment> AmountRequestPayments { get; set; }
         public DbSet<ArfReturn> ArfReturns { get; set; }
+        public DbSet<Cheque> Cheques { get; set; }
 
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<ExpenseItem> ExpenseItems { get; set; }
@@ -326,6 +327,19 @@ namespace MytechERP.Infrastructure.Persistance
                 .HasIndex(s => new { s.SiteId, s.StoreToolId })
                 .IsUnique();
             builder.Entity<VehicleTravelForm>().HasQueryFilter(vtf => vtf.TenantId == _currentUserService.TenantId && !vtf.IsDeleted);
+
+
+            builder.Entity<AmountRequestPayment>()
+                .HasOne(p => p.AmountRequestForm)
+                .WithMany(a => a.Payments)
+                .HasForeignKey(p => p.AmountRequestFormId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<AmountRequestPayment>()
+                .HasOne(p => p.Cheque)
+                .WithMany(c => c.Payments)
+                .HasForeignKey(p => p.ChequeId)
+                .OnDelete(DeleteBehavior.SetNull);
 
 
             builder.Entity<ApplicationFormAttachment>()

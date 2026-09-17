@@ -77,5 +77,8 @@ namespace MytechERP.domain.Entities.Finance
         public string ModeOfPayment { get; set; } = string.Empty;
         public string Remarks { get; set; } = string.Empty;
         public string? PaymentSlipUrl { get; set; }
+
+        public int? ChequeId { get; set; }
+        public Cheque? Cheque { get; set; }
     }
 }

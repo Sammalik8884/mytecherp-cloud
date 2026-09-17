@@ -10,6 +10,8 @@ import { siteService } from "../services/siteService";
 import { authService } from "../services/authService";
 import { SearchableSelect } from "../components/common/SearchableSelect";
 import { useAuth } from "../auth/AuthContext";
+import { ChequeModal } from "./components/ChequeModal";
+import { chequeApi, ChequeDto } from "../api/chequeApi";
 
 const RemarkSelect = ({ name, defaultValue, pastRemarks }: { name: string, defaultValue?: string, pastRemarks: string[] }) => {
     const isCustomDefault = defaultValue && !pastRemarks.includes(defaultValue);
@@ -51,6 +53,9 @@ const AccountsArfDashboardPage = () => {
     const [historyForms, setHistoryForms] = useState<AmountRequestFormDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [isChequeModalOpen, setIsChequeModalOpen] = useState(false);
+    const [availableCheques, setAvailableCheques] = useState<ChequeDto[]>([]);
+    const [selectedChequeId, setSelectedChequeId] = useState<number | ''>('');
     const [deletePaymentModal, setDeletePaymentModal] = useState<{ isOpen: boolean; arfId: number; paymentId: number } | null>(null);
     const [editPaymentModal, setEditPaymentModal] = useState<{ isOpen: boolean; arfId: number; payment: any } | null>(null);
     const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
@@ -151,18 +156,20 @@ const AccountsArfDashboardPage = () => {
     const fetchData = async () => {
         try {
             setIsLoading(true);
-            const [pendingRes, partialRes, historyRes, officesRes, sitesRes, usersRes] = await Promise.all([
+            const [pendingRes, partialRes, historyRes, officesRes, sitesRes, usersRes, chequesRes] = await Promise.all([
                 amountRequestApi.getPendingForAccounts(),
                 amountRequestApi.getPartialForAccounts(),
                 amountRequestApi.getHistoryForAccounts(),
                 officeApi.getAll(),
                 siteService.getAll(),
-                authService.getUsers()
+                authService.getUsers(),
+                chequeApi.getAll().catch(() => [])
             ]);
             setPendingForms(pendingRes.data);
             setPartialForms(partialRes.data);
             setHistoryForms(historyRes.data);
             setAllOffices(officesRes.map(o => o.name));
+            setAvailableCheques(chequesRes as ChequeDto[]);
             
             const uniqueCustomSites = Array.from(new Set([
                 ...pendingRes.data.map(f => f.customSiteName),
@@ -190,10 +197,11 @@ const AccountsArfDashboardPage = () => {
         const dateOfFundReleased = target.dateOfFundReleased?.value;
         const releasedAmount = Number(target.releasedAmount?.value);
         const remarks = target.remarks?.value;
+        const chequeIdStr = target.chequeId?.value;
         
         const paymentSlips = target.paymentSlips?.files;
-        if (!paymentSlips || paymentSlips.length === 0) {
-            toast.error("At least one payment slip is mandatory to confirm release.");
+        if ((!paymentSlips || paymentSlips.length === 0) && !chequeIdStr) {
+            toast.error("Either a Payment Slip or a Cheque selection is mandatory to confirm release.");
             return;
         }
 
@@ -204,10 +212,11 @@ const AccountsArfDashboardPage = () => {
                 dateOfFundReleased: dateOfFundReleased || undefined,
                 releasedAmount,
                 remarks,
-                paymentSlips
+                paymentSlips: paymentSlips?.length > 0 ? paymentSlips : undefined,
+                chequeId: chequeIdStr ? Number(chequeIdStr) : undefined
             });
             
-            toast.success("Amount released and payment slip uploaded successfully");
+            toast.success("Amount released successfully");
             fetchData();
             const res = await amountRequestApi.getById(selectedForm.id);
             setSelectedForm(res.data);
@@ -314,11 +323,17 @@ const AccountsArfDashboardPage = () => {
 
     return (
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+            <ChequeModal isOpen={isChequeModalOpen} onClose={() => { setIsChequeModalOpen(false); fetchData(); }} />
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-6 rounded-2xl border border-border/50 shadow-sm">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Accounts ARF Dashboard</h1>
                     <p className="text-muted-foreground mt-1 text-sm">Process pending requests and view history</p>
                 </div>
+                {!isMajeed && (
+                    <button onClick={() => setIsChequeModalOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded flex items-center gap-2">
+                        <Wallet className="h-4 w-4" /> Manage Cheques
+                    </button>
+                )}
             </div>
 
             <div className="flex space-x-1 bg-card p-1 rounded-xl border border-border/50 w-fit">
@@ -568,7 +583,28 @@ const AccountsArfDashboardPage = () => {
                                                                 <label className="block text-primary font-semibold mb-1">Remarks *</label>
                                                                 <RemarkSelect name="remarks" pastRemarks={pastRemarks} />
                                                             </div>
-                                                            <div><label className="block text-muted-foreground mb-1">Payment Slip(s) (Mandatory)</label><input name="paymentSlips" type="file" multiple required className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <div>
+                                                                <label className="block text-muted-foreground mb-1">Select Cheque (Optional)</label>
+                                                                <select 
+                                                                    name="chequeId"
+                                                                    value={selectedChequeId}
+                                                                    onChange={(e) => setSelectedChequeId(e.target.value ? Number(e.target.value) : '')}
+                                                                    className="w-full p-2 rounded border border-input bg-background"
+                                                                >
+                                                                    <option value="">-- No Cheque (Transfer) --</option>
+                                                                    {availableCheques.map(c => (
+                                                                        <option key={c.id} value={c.id}>
+                                                                            {c.chequeNumber} (Remaining: {c.remainingBalance.toLocaleString()})
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-muted-foreground mb-1">
+                                                                    Payment Slip(s) {selectedChequeId ? '(Optional if Cheque selected)' : '(Mandatory)'}
+                                                                </label>
+                                                                <input name="paymentSlips" type="file" multiple required={!selectedChequeId} className="w-full p-2 rounded border border-input bg-background" />
+                                                            </div>
                                                             <button type="submit" disabled={isReleasingAmount} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-4">
                                                                 {isReleasingAmount ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                                                                 {isReleasingAmount ? "Confirming..." : (selectedForm.accountsReleasedAmount ? "Release Remaining" : "Confirm Release")}
