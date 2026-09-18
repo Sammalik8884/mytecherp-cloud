@@ -19,6 +19,15 @@ namespace MytechERP.domain.Entities.Finance
 
         public string PictureUrl { get; set; } = string.Empty;
 
+        [MaxLength(150)]
+        public string BankName { get; set; } = string.Empty;
+
+        [MaxLength(150)]
+        public string AccountName { get; set; } = string.Empty;
+
+        [MaxLength(50)]
+        public string AccountNumber { get; set; } = string.Empty;
+
         public bool IsActive { get; set; } = true;
 
         public ICollection<AmountRequestPayment> Payments { get; set; } = new List<AmountRequestPayment>();

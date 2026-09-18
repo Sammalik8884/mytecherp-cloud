@@ -13,5 +13,6 @@ namespace MytechERP.Application.Interfaces
         Task<ChequeDto> UpdateAsync(int id, UpdateChequeDto dto);
         Task DeleteAsync(int id);
         Task<string> UploadPictureAsync(IFormFile file);
+        Task<ChequeLedgerDto> GetLedgerAsync(int id);
     }
 }

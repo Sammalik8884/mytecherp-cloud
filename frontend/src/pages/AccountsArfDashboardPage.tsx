@@ -5,6 +5,7 @@ import { Download, Wallet, XCircle, Loader2, Paperclip, X, Pencil, Trash2 } from
 import { toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 import { officeApi } from "../api/officeApi";
 import { siteService } from "../services/siteService";
 import { authService } from "../services/authService";
@@ -169,7 +170,7 @@ const AccountsArfDashboardPage = () => {
             setPendingForms(pendingRes.data);
             setPartialForms(partialRes.data);
             setHistoryForms(historyRes.data);
-            setAllOffices(officesRes.map(o => o.name));
+            setAllOffices(officesRes.map(o => o.name).sort((a, b) => a.localeCompare(b)));
             setAvailableCheques(chequesRes as ChequeDto[]);
             
             const uniqueCustomSites = Array.from(new Set([
@@ -178,9 +179,9 @@ const AccountsArfDashboardPage = () => {
                 ...historyRes.data.map(f => f.customSiteName)
             ].filter(Boolean) as string[]));
             
-            setAllSites([...sitesRes.map(s => s.name), ...uniqueCustomSites]);
+            setAllSites([...sitesRes.map(s => s.name), ...uniqueCustomSites].sort((a, b) => a.localeCompare(b)));
             
-            setAllEmployees(usersRes.map(u => u.fullName || u.email));
+            setAllEmployees(usersRes.map(u => u.fullName || u.email).sort((a, b) => a.localeCompare(b)));
         } catch (error) {
             console.error("Error fetching ARFs for accounts", error);
             toast.error("Failed to load data");
@@ -327,6 +328,23 @@ const AccountsArfDashboardPage = () => {
         doc.save(`ARF_History_${historySection}_${selectedEntity || "All"}.pdf`);
     };
 
+    const generateExcel = () => {
+        const rows = displayedForms.map(form => ({
+            'Date': new Date(form.createdAt).toLocaleDateString(),
+            'ARF Number': form.arfNumber || '-',
+            'Employee': form.employeeName,
+            'Location': form.siteName || form.officeName || form.customSiteName || '-',
+            'Requested Amount': form.advanceRequested,
+            'Released Amount': form.accountsReleasedAmount || 0,
+            'Status': form.status || '-',
+        }));
+        rows.push({ 'Date': '', 'ARF Number': '', 'Employee': '', 'Location': '', 'Requested Amount': null as any, 'Released Amount': totalAmount, 'Status': 'TOTAL' });
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'ARF History');
+        XLSX.writeFile(wb, `ARF_History_${historySection}_${selectedEntity || "All"}.xlsx`);
+    };
+
     return (
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
             <ChequeModal isOpen={isChequeModalOpen} onClose={() => { setIsChequeModalOpen(false); fetchData(); }} />
@@ -462,9 +480,12 @@ const AccountsArfDashboardPage = () => {
                                 className="w-full p-2 rounded-lg border border-input bg-background text-sm" 
                             />
                         </div>
-                        <div className="pt-2">
-                            <button onClick={generatePDF} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors font-medium text-sm">
+                        <div className="pt-2 flex gap-2 flex-wrap">
+                            <button onClick={generatePDF} className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors font-medium text-sm">
                                 <Download className="w-4 h-4" /> Export PDF
+                            </button>
+                            <button onClick={generateExcel} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors font-medium text-sm">
+                                <Download className="w-4 h-4" /> Export Excel
                             </button>
                         </div>
                     </div>
@@ -619,7 +640,11 @@ const AccountsArfDashboardPage = () => {
                                                             <div className="font-semibold text-primary mb-2 border-b border-border/50 pb-1">{selectedForm.accountsReleasedAmount ? "Add Another Payment" : "Initial Release"}</div>
                                                             <div><label className="block text-muted-foreground mb-1">Date of Entry</label><input name="dateOfEntry" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div><label className="block text-muted-foreground mb-1">Date Fund Released</label><input name="dateOfFundReleased" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                            <div><label className="block text-muted-foreground mb-1">Released Amount (Max: {remaining.toLocaleString()})</label><input name="releasedAmount" type="number" max={remaining} defaultValue={remaining} required className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <div><label className="block text-muted-foreground mb-1">Released Amount (Max: {remaining.toLocaleString()})</label><input name="releasedAmount" type="number" max={remaining} value={
+                                                                selectedChequeId
+                                                                    ? Math.min(availableCheques.find(c => c.id === selectedChequeId)?.remainingBalance ?? remaining, remaining)
+                                                                    : remaining
+                                                            } onChange={() => {}} required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div>
                                                                 <label className="block text-primary font-semibold mb-1">Remarks *</label>
                                                                 <RemarkSelect name="remarks" pastRemarks={pastRemarks} />
@@ -632,13 +657,21 @@ const AccountsArfDashboardPage = () => {
                                                                     onChange={(e) => setSelectedChequeId(e.target.value ? Number(e.target.value) : '')}
                                                                     className="w-full p-2 rounded border border-input bg-background"
                                                                 >
-                                                                    <option value="">-- No Cheque (Transfer) --</option>
+                                                                    <option value="">-- No Cheque (Bank Transfer) --</option>
                                                                     {availableCheques.map(c => (
                                                                         <option key={c.id} value={c.id}>
-                                                                            {c.chequeNumber} (Remaining: {c.remainingBalance.toLocaleString()})
+                                                                            {c.chequeNumber}{c.bankName ? ` | ${c.bankName}` : ''} (Remaining: {c.remainingBalance.toLocaleString()})
                                                                         </option>
                                                                     ))}
                                                                 </select>
+                                                                {selectedChequeId && (() => {
+                                                                    const sel = availableCheques.find(c => c.id === selectedChequeId);
+                                                                    return sel ? (
+                                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                                            💳 {sel.bankName} | {sel.accountName} | {sel.accountNumber} — Remaining: <strong className="text-green-600">PKR {sel.remainingBalance.toLocaleString()}</strong>
+                                                                        </p>
+                                                                    ) : null;
+                                                                })()}
                                                             </div>
                                                             <div>
                                                                 <label className="block text-muted-foreground mb-1">

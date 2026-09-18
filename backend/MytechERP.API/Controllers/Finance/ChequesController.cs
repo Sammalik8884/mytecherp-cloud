@@ -56,5 +56,11 @@ namespace MytechERP.API.Controllers.Finance
             var url = await _chequeService.UploadPictureAsync(file);
             return Ok(new { url });
         }
+
+        [HttpGet("{id}/ledger")]
+        public async Task<IActionResult> GetLedger(int id)
+        {
+            return Ok(await _chequeService.GetLedgerAsync(id));
+        }
     }
 }

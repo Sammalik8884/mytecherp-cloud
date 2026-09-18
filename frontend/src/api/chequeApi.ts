@@ -7,13 +7,37 @@ export interface ChequeDto {
     releasedAmount: number;
     remainingBalance: number;
     pictureUrl: string;
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
     isActive: boolean;
     createdAt: string;
+}
+
+export interface ChequeLedgerPaymentDto {
+    paymentId: number;
+    arfId: number;
+    arfNumber: string;
+    employeeName: string;
+    siteName: string;
+    releasedAmount: number;
+    releasedDate: string | null;
+    remarks: string;
+    paymentSlipUrl: string | null;
+}
+
+export interface ChequeLedgerDto {
+    cheque: ChequeDto;
+    payments: ChequeLedgerPaymentDto[];
 }
 
 export const chequeApi = {
     getAll: async (): Promise<ChequeDto[]> => {
         const res = await apiClient.get('/cheques');
+        return res.data;
+    },
+    getById: async (id: number): Promise<ChequeDto> => {
+        const res = await apiClient.get(`/cheques/${id}`);
         return res.data;
     },
     create: async (data: any): Promise<ChequeDto> => {
@@ -31,10 +55,12 @@ export const chequeApi = {
         const formData = new FormData();
         formData.append('file', file);
         const res = await apiClient.post('/cheques/upload-picture', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
+            headers: { 'Content-Type': 'multipart/form-data' }
         });
         return res.data.url;
+    },
+    getLedger: async (id: number): Promise<ChequeLedgerDto> => {
+        const res = await apiClient.get(`/cheques/${id}/ledger`);
+        return res.data;
     }
 };
