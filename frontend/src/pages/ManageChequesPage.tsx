@@ -261,9 +261,27 @@ const ManageChequesPage: React.FC = () => {
                                             <td className="px-4 py-3">{p.releasedDate ? new Date(p.releasedDate).toLocaleDateString() : '-'}</td>
                                             <td className="px-4 py-3 text-muted-foreground">{p.remarks}</td>
                                             <td className="px-4 py-3 text-center">
-                                                {p.paymentSlipUrl
-                                                    ? <a href={p.paymentSlipUrl} target="_blank" rel="noreferrer" className="text-blue-500 underline text-xs">View</a>
-                                                    : <span className="text-muted-foreground text-xs">—</span>}
+                                                {(() => {
+                                                    let urls: string[] = [];
+                                                    if (p.paymentSlipUrl && p.paymentSlipUrl !== "[]") {
+                                                        try {
+                                                            const parsed = JSON.parse(p.paymentSlipUrl);
+                                                            if (Array.isArray(parsed)) urls = parsed;
+                                                            else urls = [p.paymentSlipUrl];
+                                                        } catch {
+                                                            urls = [p.paymentSlipUrl];
+                                                        }
+                                                    }
+                                                    if (urls.length === 0) return <span className="text-muted-foreground text-xs">—</span>;
+                                                    if (urls.length === 1) return <a href={urls[0]} target="_blank" rel="noreferrer" className="text-blue-500 underline text-xs">View</a>;
+                                                    return (
+                                                        <div className="flex flex-col gap-1 items-center">
+                                                            {urls.map((u, idx) => (
+                                                                <a key={idx} href={u} target="_blank" rel="noreferrer" className="text-blue-500 underline text-xs">View {idx + 1}</a>
+                                                            ))}
+                                                        </div>
+                                                    );
+                                                })()}
                                             </td>
                                         </tr>
                                     ))}
@@ -312,9 +330,13 @@ const ManageChequesPage: React.FC = () => {
                         <button onClick={() => setIsFormOpen(false)} className="p-2 hover:bg-muted rounded-full"><X className="h-4 w-4" /></button>
                     </div>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <datalist id="datalist-chequeNumber">{Array.from(new Set(cheques.map(c => c.chequeNumber).filter(Boolean))).map(v => <option key={v} value={v} />)}</datalist>
+                        <datalist id="datalist-bankName">{Array.from(new Set(cheques.map(c => c.bankName).filter(Boolean))).map(v => <option key={v} value={v} />)}</datalist>
+                        <datalist id="datalist-accountName">{Array.from(new Set(cheques.map(c => c.accountName).filter(Boolean))).map(v => <option key={v} value={v} />)}</datalist>
+                        <datalist id="datalist-accountNumber">{Array.from(new Set(cheques.map(c => c.accountNumber).filter(Boolean))).map(v => <option key={v} value={v} />)}</datalist>
                         <div>
                             <label className="block text-sm font-medium mb-1">Cheque Number *</label>
-                            <input required value={chequeNumber} onChange={e => setChequeNumber(e.target.value)} className="w-full p-2.5 border border-input rounded-lg bg-background" placeholder="e.g. CHQ-001234" />
+                            <input required list="datalist-chequeNumber" value={chequeNumber} onChange={e => setChequeNumber(e.target.value)} className="w-full p-2.5 border border-input rounded-lg bg-background" placeholder="e.g. CHQ-001234" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Initial Amount *</label>
@@ -322,15 +344,15 @@ const ManageChequesPage: React.FC = () => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Bank Name</label>
-                            <input value={bankName} onChange={e => setBankName(e.target.value)} className="w-full p-2.5 border border-input rounded-lg bg-background" placeholder="e.g. HBL, MCB, UBL" />
+                            <input list="datalist-bankName" value={bankName} onChange={e => setBankName(e.target.value)} className="w-full p-2.5 border border-input rounded-lg bg-background" placeholder="e.g. HBL, MCB, UBL" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Account Name</label>
-                            <input value={accountName} onChange={e => setAccountName(e.target.value)} className="w-full p-2.5 border border-input rounded-lg bg-background" placeholder="Account holder name" />
+                            <input list="datalist-accountName" value={accountName} onChange={e => setAccountName(e.target.value)} className="w-full p-2.5 border border-input rounded-lg bg-background" placeholder="Account holder name" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Account Number</label>
-                            <input value={accountNumber} onChange={e => setAccountNumber(e.target.value)} className="w-full p-2.5 border border-input rounded-lg bg-background" placeholder="e.g. 0123456789" />
+                            <input list="datalist-accountNumber" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} className="w-full p-2.5 border border-input rounded-lg bg-background" placeholder="e.g. 0123456789" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Cheque Picture</label>

@@ -122,8 +122,14 @@ namespace MytechERP.Infrastructure.Services
             var arfIds = entity.Payments.Select(p => p.AmountRequestFormId).Distinct().ToList();
             var arfs = await _context.AmountRequestForms
                 .Include(a => a.Site)
+                .Include(a => a.Office)
                 .Where(a => arfIds.Contains(a.Id))
-                .Select(a => new { a.Id, a.ArfNumber, a.EmployeeName, SiteName = a.Site != null ? a.Site.Name : a.CustomSiteName })
+                .Select(a => new { 
+                    a.Id, 
+                    a.ArfNumber, 
+                    a.EmployeeName, 
+                    SiteName = a.Site != null ? a.Site.Name : (a.Office != null ? a.Office.Name : a.CustomSiteName) 
+                })
                 .ToListAsync();
 
             var arfMap = arfs.ToDictionary(a => a.Id);

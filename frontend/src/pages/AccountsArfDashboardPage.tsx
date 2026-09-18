@@ -14,9 +14,10 @@ import { useAuth } from "../auth/AuthContext";
 import { ChequeModal } from "./components/ChequeModal";
 import { chequeApi, ChequeDto } from "../api/chequeApi";
 
-const RemarkSelect = ({ name, defaultValue, pastRemarks }: { name: string, defaultValue?: string, pastRemarks: string[] }) => {
-    const isCustomDefault = defaultValue && !pastRemarks.includes(defaultValue);
-    const [remarkType, setRemarkType] = useState<string>(isCustomDefault ? "custom" : (defaultValue || pastRemarks[0]));
+const RemarkSelect = ({ name, defaultValue }: { name: string, defaultValue?: string }) => {
+    const defaultRemarks = ["fully paid", "partial paid"];
+    const isCustomDefault = defaultValue && !defaultRemarks.includes(defaultValue);
+    const [remarkType, setRemarkType] = useState<string>(isCustomDefault ? "custom" : (defaultValue || defaultRemarks[0]));
     const [customRemark, setCustomRemark] = useState<string>(isCustomDefault ? defaultValue : "");
 
     return (
@@ -26,7 +27,7 @@ const RemarkSelect = ({ name, defaultValue, pastRemarks }: { name: string, defau
                 onChange={e => setRemarkType(e.target.value)}
                 className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
             >
-                {pastRemarks.map(r => <option key={r} value={r}>{r}</option>)}
+                {defaultRemarks.map(r => <option key={r} value={r}>{r}</option>)}
                 <option value="custom">Other (Custom Remark)</option>
             </select>
             {remarkType === "custom" && (
@@ -35,8 +36,7 @@ const RemarkSelect = ({ name, defaultValue, pastRemarks }: { name: string, defau
                     placeholder="Type custom remark here..." 
                     value={customRemark}
                     onChange={e => setCustomRemark(e.target.value)}
-                    required
-                    className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" 
+                    className="w-full p-2.5 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none resize-none"
                 />
             )}
             <input type="hidden" name={name} value={remarkType === "custom" ? customRemark : remarkType} />
@@ -120,8 +120,6 @@ const AccountsArfDashboardPage = () => {
     const [selectedForm, setSelectedForm] = useState<AmountRequestFormDto | null>(null);
     const [isReleasingAmount, setIsReleasingAmount] = useState(false);
 
-    const [pastRemarks, setPastRemarks] = useState<string[]>(["partial payment", "Completed"]);
-
     const [releasedAmountInput, setReleasedAmountInput] = useState<number | ''>('');
 
     // Update released amount input whenever selected form or cheque changes
@@ -144,25 +142,6 @@ const AccountsArfDashboardPage = () => {
             setReleasedAmountInput(remaining);
         }
     }, [selectedForm, selectedChequeId, availableCheques]);
-
-    useEffect(() => {
-        const defaultRemarks = ["partial payment", "Completed"];
-        const remarksSet = new Set<string>(defaultRemarks);
-        const allForms = [...pendingForms, ...partialForms, ...historyForms];
-        allForms.forEach(f => {
-            if (f.payments) {
-                f.payments.forEach(p => {
-                    if (p.remarks && p.remarks.trim() !== "") {
-                        remarksSet.add(p.remarks.trim());
-                    }
-                });
-            }
-            if (f.accountsRemarks && f.accountsRemarks.trim() !== "") {
-                remarksSet.add(f.accountsRemarks.trim());
-            }
-        });
-        setPastRemarks(Array.from(remarksSet));
-    }, [pendingForms, partialForms, historyForms]);
 
     // History Tab State
     const [historySection, setHistorySection] = useState<"offices" | "sites" | "employees">("offices");
@@ -666,7 +645,7 @@ const AccountsArfDashboardPage = () => {
                                                             <div><label className="block text-muted-foreground mb-1">Released Amount (Max: {remaining.toLocaleString()})</label><input name="releasedAmount" type="number" max={remaining} value={releasedAmountInput} onChange={(e) => setReleasedAmountInput(e.target.value ? Number(e.target.value) : '')} required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div>
                                                                 <label className="block text-primary font-semibold mb-1">Remarks *</label>
-                                                                <RemarkSelect name="remarks" pastRemarks={pastRemarks} />
+                                                                <RemarkSelect name="remarks" />
                                                             </div>
                                                             <div>
                                                                 <label className="block text-muted-foreground mb-1">Select Cheque (Optional)</label>
@@ -875,7 +854,7 @@ const AccountsArfDashboardPage = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-muted-foreground mb-1">Remarks</label>
-                                    <RemarkSelect name="remarks" defaultValue={editPaymentModal.payment.remarks} pastRemarks={pastRemarks} />
+                                    <RemarkSelect name="remarks" defaultValue={editPaymentModal.payment.remarks} />
                                 </div>
                                 <div className="flex justify-end space-x-3 pt-4 border-t border-border/50">
                                     <button type="button" onClick={() => setEditPaymentModal(null)} disabled={isSubmittingPayment} className="px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-secondary/80 rounded-lg transition-colors">Cancel</button>
