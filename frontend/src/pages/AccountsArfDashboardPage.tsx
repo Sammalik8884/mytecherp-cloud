@@ -122,6 +122,29 @@ const AccountsArfDashboardPage = () => {
 
     const [pastRemarks, setPastRemarks] = useState<string[]>(["partial payment", "Completed"]);
 
+    const [releasedAmountInput, setReleasedAmountInput] = useState<number | ''>('');
+
+    // Update released amount input whenever selected form or cheque changes
+    useEffect(() => {
+        if (!selectedForm) {
+            setReleasedAmountInput('');
+            return;
+        }
+        const totalPaid = selectedForm.payments?.reduce((sum, p) => sum + p.releasedAmount, 0) || 0;
+        const remaining = selectedForm.advanceRequested - totalPaid;
+        
+        if (selectedChequeId) {
+            const cheque = availableCheques.find(c => c.id === selectedChequeId);
+            if (cheque) {
+                setReleasedAmountInput(Math.min(cheque.remainingBalance, remaining));
+            } else {
+                setReleasedAmountInput(remaining);
+            }
+        } else {
+            setReleasedAmountInput(remaining);
+        }
+    }, [selectedForm, selectedChequeId, availableCheques]);
+
     useEffect(() => {
         const defaultRemarks = ["partial payment", "Completed"];
         const remarksSet = new Set<string>(defaultRemarks);
@@ -640,11 +663,7 @@ const AccountsArfDashboardPage = () => {
                                                             <div className="font-semibold text-primary mb-2 border-b border-border/50 pb-1">{selectedForm.accountsReleasedAmount ? "Add Another Payment" : "Initial Release"}</div>
                                                             <div><label className="block text-muted-foreground mb-1">Date of Entry</label><input name="dateOfEntry" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div><label className="block text-muted-foreground mb-1">Date Fund Released</label><input name="dateOfFundReleased" type="date" required className="w-full p-2 rounded border border-input bg-background" /></div>
-                                                            <div><label className="block text-muted-foreground mb-1">Released Amount (Max: {remaining.toLocaleString()})</label><input name="releasedAmount" type="number" max={remaining} value={
-                                                                selectedChequeId
-                                                                    ? Math.min(availableCheques.find(c => c.id === selectedChequeId)?.remainingBalance ?? remaining, remaining)
-                                                                    : remaining
-                                                            } onChange={() => {}} required className="w-full p-2 rounded border border-input bg-background" /></div>
+                                                            <div><label className="block text-muted-foreground mb-1">Released Amount (Max: {remaining.toLocaleString()})</label><input name="releasedAmount" type="number" max={remaining} value={releasedAmountInput} onChange={(e) => setReleasedAmountInput(e.target.value ? Number(e.target.value) : '')} required className="w-full p-2 rounded border border-input bg-background" /></div>
                                                             <div>
                                                                 <label className="block text-primary font-semibold mb-1">Remarks *</label>
                                                                 <RemarkSelect name="remarks" pastRemarks={pastRemarks} />
